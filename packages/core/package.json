@@ -5,14 +5,16 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./draw": "./src/draw/index.ts"
+    "./draw": "./src/draw/index.ts",
+    "./live": "./src/live/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {
-    "@playora/contracts": "workspace:*"
+    "@playora/contracts": "workspace:*",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playora/tsconfig": "workspace:*"

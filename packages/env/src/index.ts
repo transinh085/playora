@@ -16,6 +16,11 @@ const s3Env = {
   S3_SECRET_KEY: z.string().min(1).default('playora123'),
 };
 
+/** Shared by API (issues) and realtime (verifies) handshake tokens — see @playora/core/live. */
+const liveTokenEnv = {
+  LIVE_TOKEN_SECRET: z.string().min(32),
+};
+
 export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -42,12 +47,15 @@ export const apiEnvSchema = z.object({
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
   ...s3Env,
+  ...liveTokenEnv,
 });
 
 export const realtimeEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   REALTIME_PORT: z.coerce.number().int().positive().default(4001),
+  DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
+  ...liveTokenEnv,
   /** Comma-separated list of origins allowed to open a socket. */
   REALTIME_CORS_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
   /** M0 spike only: shared key for host sockets. Replaced by organizer session tickets in M1. */

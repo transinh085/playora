@@ -208,6 +208,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@playora/contracts": "workspace:*",
+        "zod": "4.6.7",
       },
       "devDependencies": {
         "@playora/tsconfig": "workspace:*",
