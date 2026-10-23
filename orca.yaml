@@ -1,0 +1,15 @@
+# Orca workspace hooks — runs in every new worktree before the agent starts.
+scripts:
+  setup: |
+    set -euo pipefail
+    # Reuse the main checkout's .env (holds BETTER_AUTH_SECRET); fall back to the example.
+    main_root="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+    if [ ! -f .env ]; then
+      cp "$main_root/.env" .env 2>/dev/null || cp .env.example .env
+    fi
+    bun install --frozen-lockfile
+    # Shared dev infra (Postgres :54329, Valkey :63799) is started once from any checkout.
+    docker compose -f infra/compose/docker-compose.dev.yml up -d --wait >/dev/null 2>&1 \
+      || echo "warning: could not start dev infra; run 'bun run infra:up' manually"
+    bun run db:migrate >/dev/null
+setupAgentStartupPolicy: wait-for-setup
