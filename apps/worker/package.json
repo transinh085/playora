@@ -7,17 +7,21 @@
     "dev": "bun --env-file=../../.env --watch src/main.ts",
     "start": "bun --env-file=../../.env dist/main.js",
     "build": "bun build src/main.ts --target=bun --outdir=dist --sourcemap=linked --packages=external",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun --env-file=../../.env test"
   },
   "dependencies": {
     "@nestjs/common": "12.2.0",
     "@nestjs/core": "12.2.0",
+    "@playora/db": "workspace:*",
     "@playora/env": "workspace:*",
     "@playora/jobs": "workspace:*",
     "bullmq": "6.4.0",
+    "drizzle-orm": "0.45.4",
     "ioredis": "6.0.0",
     "reflect-metadata": "0.2.2",
-    "rxjs": "7.8.2"
+    "rxjs": "7.8.2",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@playora/tsconfig": "workspace:*"

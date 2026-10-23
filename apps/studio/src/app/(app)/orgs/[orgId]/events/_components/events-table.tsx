@@ -12,6 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@playora/ui/components/table';
+import { Settings } from 'lucide-react';
+import type { Route } from 'next';
+import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { EventStatusBadge } from '@/components/event-status-badge';
 import { api } from '@/lib/api';
@@ -56,6 +59,7 @@ export function EventsTable({ orgId }: { orgId: string }) {
           <TableHead>{t('events.slug')}</TableHead>
           <TableHead>{t('events.startsAt')}</TableHead>
           <TableHead>{t('events.status')}</TableHead>
+          <TableHead className="w-12" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -73,6 +77,16 @@ export function EventsTable({ orgId }: { orgId: string }) {
             </TableCell>
             <TableCell>
               <EventStatusBadge status={event.status} />
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" size="icon" asChild>
+                <Link
+                  href={`/orgs/${orgId}/events/${event.id}/settings` as Route}
+                  aria-label={t('events.settings')}
+                >
+                  <Settings className="size-4" />
+                </Link>
+              </Button>
             </TableCell>
           </TableRow>
         ))}

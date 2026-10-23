@@ -9,6 +9,13 @@ const optionalString = z
   .optional()
   .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined));
 
+const s3Env = {
+  S3_ENDPOINT: z.url().default('http://localhost:9000'),
+  S3_BUCKET: z.string().min(1).default('playora-dev'),
+  S3_ACCESS_KEY: z.string().min(1).default('playora'),
+  S3_SECRET_KEY: z.string().min(1).default('playora123'),
+};
+
 export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -34,6 +41,7 @@ export const apiEnvSchema = z.object({
   /** Optional Google OAuth credentials (ORG-01); enabled only when both are present. */
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  ...s3Env,
 });
 
 export const realtimeEnvSchema = z.object({
@@ -51,6 +59,7 @@ export const workerEnvSchema = z.object({
   WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4002),
   DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
+  ...s3Env,
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

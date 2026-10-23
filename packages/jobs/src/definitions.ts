@@ -7,7 +7,18 @@ import { z } from 'zod';
 export const jobs = {
   'asset.process': {
     queue: 'media',
-    payload: z.object({ organizationId: z.string(), assetId: z.uuid() }),
+    payload: z.object({
+      organizationId: z.string(),
+      assetId: z.uuid(),
+      crop: z
+        .object({
+          x: z.number().int().min(0),
+          y: z.number().int().min(0),
+          w: z.number().int().positive(),
+          h: z.number().int().positive(),
+        })
+        .optional(),
+    }),
   },
   'event.export': {
     queue: 'export',

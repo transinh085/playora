@@ -38,10 +38,20 @@ export class EventsService {
   }
 
   async create(orgId: string, body: CreateBody) {
+    if (body.brandKitId) {
+      const ok = await this.repo.brandKitExistsInOrg(orgId, body.brandKitId);
+      if (!ok) {
+        throw new NotFoundException({
+          code: ErrorCode.NOT_FOUND,
+          message: 'Brand kit not found',
+        });
+      }
+    }
     try {
       return await this.repo.insert(orgId, {
         name: body.name,
         slug: body.slug,
+        brandKitId: body.brandKitId,
         mode: body.mode,
         identity: body.identity,
         timezone: body.timezone,
@@ -62,8 +72,18 @@ export class EventsService {
   }
 
   async update(orgId: string, eventId: string, body: UpdateBody) {
+    if (body.brandKitId) {
+      const ok = await this.repo.brandKitExistsInOrg(orgId, body.brandKitId);
+      if (!ok) {
+        throw new NotFoundException({
+          code: ErrorCode.NOT_FOUND,
+          message: 'Brand kit not found',
+        });
+      }
+    }
     const updated = await this.repo.update(orgId, eventId, {
       name: body.name,
+      brandKitId: body.brandKitId,
       identity: body.identity,
       timezone: body.timezone,
       startsAt: toDate(body.startsAt),
