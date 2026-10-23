@@ -21,3 +21,4 @@ export function createAuth({ db, secret, baseURL, trustedOrigins }: CreateAuthOp
 }
 
 export type Auth = ReturnType<typeof createAuth>;
+export * from './permissions';

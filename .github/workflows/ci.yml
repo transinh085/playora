@@ -9,8 +9,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  NEXT_TELEMETRY_DISABLED: 1
+
 jobs:
   check:
+    name: lint · typecheck · test · build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -20,26 +25,92 @@ jobs:
           POSTGRES_USER: playora
           POSTGRES_PASSWORD: playora
           POSTGRES_DB: playora
-        ports: ['5432:5432']
+        # Same host ports as infra/compose so .env.example works unchanged.
+        ports: ["54329:5432"]
         options: >-
           --health-cmd "pg_isready -U playora" --health-interval 2s --health-retries 30
       valkey:
         image: valkey/valkey:8-alpine
-        ports: ['6379:6379']
-    env:
-      DATABASE_URL: postgres://playora:playora@localhost:5432/playora
-      REDIS_URL: redis://localhost:6379
-      BETTER_AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789
-      NEXT_PUBLIC_API_URL: http://localhost:4000
-      NEXT_PUBLIC_REALTIME_URL: http://localhost:4001
-      TURBO_TELEMETRY_DISABLED: 1
+        ports: ["63799:6379"]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: package.json
+      - run: cp .env.example .env
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - name: Migrations apply cleanly
         run: bun run db:migrate
       - run: bunx turbo run typecheck test build
+
+  e2e:
+    name: e2e (Playwright)
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: playora
+          POSTGRES_PASSWORD: playora
+          POSTGRES_DB: playora
+        # Same host ports as infra/compose so .env.example works unchanged.
+        ports: ["54329:5432"]
+        options: >-
+          --health-cmd "pg_isready -U playora" --health-interval 2s --health-retries 30
+      valkey:
+        image: valkey/valkey:8-alpine
+        ports: ["63799:6379"]
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: cp .env.example .env
+      - run: bun install --frozen-lockfile
+      - run: bun run db:migrate && bun run db:seed
+      - run: bun --cwd tooling/e2e run e2e:install
+      - run: bun run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tooling/e2e/playwright-report
+          retention-days: 7
+
+  docker:
+    name: docker build (${{ matrix.app }})
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { app: api, dockerfile: Dockerfile.nest }
+          - { app: realtime, dockerfile: Dockerfile.nest }
+          - { app: worker, dockerfile: Dockerfile.nest }
+          - { app: studio, dockerfile: Dockerfile.next }
+          - { app: play, dockerfile: Dockerfile.next }
+          - { app: web, dockerfile: Dockerfile.next }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/${{ matrix.dockerfile }}
+          build-args: |
+            APP=@playora/${{ matrix.app }}
+            APP_DIR=apps/${{ matrix.app }}
+          push: false
+          tags: playora-${{ matrix.app }}:ci
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}

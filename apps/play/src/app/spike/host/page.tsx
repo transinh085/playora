@@ -1,21 +1,21 @@
 'use client';
 
 import type { CommandAck, HostCommand } from '@playora/contracts';
-import { Button } from '@playora/ui';
+import { useLiveRoom } from '@playora/realtime-client/react';
+import { Button } from '@playora/ui/components/button';
 import { useState } from 'react';
-import { SPIKE_EVENT, useLiveSocket } from '@/lib/live';
+import { REALTIME_URL, SPIKE_EVENT } from '@/lib/live';
 import type { ScreenView } from '../types';
-
-const QUERY = { event: SPIKE_EVENT, role: 'host' };
 
 /** Mobile-first host console for the spike (LIV-01 preview). */
 export default function SpikeHostPage() {
   const [hostKey, setHostKey] = useState('');
   const [submittedKey, setSubmittedKey] = useState<string | null>(null);
   const [lastAck, setLastAck] = useState<string>('');
-  const { connected, view, socket } = useLiveSocket<ScreenView>(
-    submittedKey ? QUERY : null,
-    submittedKey ? { hostKey: submittedKey } : {},
+  const { connected, view, socket } = useLiveRoom<ScreenView>(
+    submittedKey
+      ? { url: REALTIME_URL, eventId: SPIKE_EVENT, role: 'host', auth: { hostKey: submittedKey } }
+      : null,
   );
 
   async function send(command: HostCommand) {
@@ -28,7 +28,7 @@ export default function SpikeHostPage() {
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-6">
         <h1 className="text-2xl font-extrabold">MC điều khiển</h1>
         <input
-          className="h-12 rounded-lg border border-border bg-surface px-3"
+          className="h-12 rounded-lg border border-input bg-background px-3"
           placeholder="Host key (REALTIME_HOST_KEY)"
           value={hostKey}
           onChange={(e) => setHostKey(e.target.value)}

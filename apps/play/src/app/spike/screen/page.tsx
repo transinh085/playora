@@ -1,21 +1,22 @@
 'use client';
 
+import { useLiveRoom } from '@playora/realtime-client/react';
 import { useEffect, useState } from 'react';
-import { formatCountdown, SPIKE_EVENT, useLiveSocket } from '@/lib/live';
+import { formatCountdown, REALTIME_URL, SPIKE_EVENT } from '@/lib/live';
 import type { ScreenView } from '../types';
 
-const QUERY = { event: SPIKE_EVENT, role: 'screen' };
+const OPTIONS = { url: REALTIME_URL, eventId: SPIKE_EVENT, role: 'screen' } as const;
 
 export default function SpikeScreenPage() {
-  const { connected, view } = useLiveSocket<ScreenView>(QUERY);
+  const { connected, view, serverNow } = useLiveRoom<ScreenView>(OPTIONS);
   const [now, setNow] = useState(Date.now());
   const [joinUrl, setJoinUrl] = useState('');
 
   useEffect(() => {
     setJoinUrl(`${window.location.origin}/spike/player`);
-    const id = setInterval(() => setNow(Date.now()), 200);
+    const id = setInterval(() => setNow(serverNow()), 200);
     return () => clearInterval(id);
-  }, []);
+  }, [serverNow]);
 
   const maxTeam = Math.max(1, ...(view?.teams.map((t) => t.score) ?? []));
 

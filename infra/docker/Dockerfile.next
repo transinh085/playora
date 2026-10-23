@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1.7
+# Next.js apps (studio, play, web) as a standalone Node server.
+#   docker build -f infra/docker/Dockerfile.next --build-arg APP=@playora/studio --build-arg APP_DIR=apps/studio \
+#     --build-arg NEXT_PUBLIC_API_URL=https://api.playora.vn -t playora-studio .
+ARG BUN_VERSION=1.4.4
+ARG NODE_VERSION=24
+
+FROM oven/bun:${BUN_VERSION}-slim AS prune
+WORKDIR /repo
+COPY . .
+ARG APP
+RUN bunx turbo@2.11.10 prune ${APP} --docker
+
+FROM oven/bun:${BUN_VERSION} AS build
+WORKDIR /repo
+COPY --from=prune /repo/out/json/ .
+RUN bun install --frozen-lockfile --ignore-scripts
+COPY --from=prune /repo/out/full/ .
+ARG APP_DIR
+# NEXT_PUBLIC_* are inlined into the client bundle at build time.
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_REALTIME_URL=http://localhost:4001
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_REALTIME_URL=${NEXT_PUBLIC_REALTIME_URL} \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_OUTPUT=standalone
+RUN cd ${APP_DIR} && bun run build
+
+FROM node:${NODE_VERSION}-slim AS runtime
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+ARG APP_DIR
+WORKDIR /app
+COPY --from=build --chown=node:node /repo/${APP_DIR}/.next/standalone ./
+COPY --from=build --chown=node:node /repo/${APP_DIR}/.next/static ./${APP_DIR}/.next/static
+USER node
+EXPOSE 3000
+ENV APP_DIR=${APP_DIR}
+CMD ["sh", "-c", "node ${APP_DIR}/server.js"]

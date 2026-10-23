@@ -1,0 +1,13 @@
+# Git hooks (installed by `bun install` via the root `prepare` script).
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    conventional:
+      run: bun tooling/scripts/check-commit-msg.ts {1}

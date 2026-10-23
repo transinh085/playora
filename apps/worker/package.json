@@ -13,6 +13,7 @@
     "@nestjs/common": "12.2.0",
     "@nestjs/core": "12.2.0",
     "@playora/env": "workspace:*",
+    "@playora/jobs": "workspace:*",
     "bullmq": "6.4.0",
     "ioredis": "6.0.0",
     "reflect-metadata": "0.2.2",

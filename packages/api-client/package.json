@@ -1,0 +1,26 @@
+{
+  "name": "@playora/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@playora/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@playora/tsconfig": "workspace:*",
+    "@tanstack/react-query": "5.104.5",
+    "@types/react": "19.3.0",
+    "react": "19.3.1"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0"
+  }
+}

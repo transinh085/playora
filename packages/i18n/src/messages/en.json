@@ -1,0 +1,69 @@
+{
+  "common": {
+    "appName": "Playora",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "unknownError": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "signInTitle": "Sign in to Studio",
+    "signUpTitle": "Create an account",
+    "name": "Full name",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "signOut": "Sign out",
+    "toSignUp": "No account yet? Sign up",
+    "toSignIn": "Already have an account? Sign in"
+  },
+  "onboarding": {
+    "title": "Create your first organization",
+    "description": "Organizations are where you and your teammates manage events. Agencies can add clients later.",
+    "orgName": "Organization name",
+    "orgSlug": "Slug",
+    "submit": "Create organization"
+  },
+  "nav": {
+    "events": "Events",
+    "templates": "Game library",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "events": {
+    "title": "Events",
+    "empty": "No events yet. Create your first event to get started.",
+    "new": "New event",
+    "name": "Event name",
+    "slug": "Join link",
+    "slugHint": "play.playora.vn/{slug}",
+    "startsAt": "Starts",
+    "status": "Status",
+    "created": "Created “{name}”",
+    "statuses": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "live": "Live",
+      "ended": "Ended",
+      "archived": "Archived"
+    }
+  },
+  "errors": {
+    "VALIDATION_FAILED": "Some fields are invalid, please check again",
+    "UNAUTHORIZED": "Your session has expired",
+    "FORBIDDEN": "You are not allowed to do this",
+    "NOT_FOUND": "Not found",
+    "CONFLICT": "The data changed, please reload",
+    "SLUG_TAKEN": "This link is already taken",
+    "RATE_LIMITED": "Too many requests, please retry in a moment",
+    "EVENT_NOT_LIVE": "The event has not started or has ended",
+    "PLAYER_LIMIT_REACHED": "The event is full",
+    "PRIZE_OUT_OF_STOCK": "This prize is out of stock",
+    "DRAW_POOL_EMPTY": "No eligible players left to draw",
+    "INTERNAL": "Something went wrong on our side, please retry"
+  }
+}

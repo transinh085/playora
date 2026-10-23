@@ -1,14 +1,23 @@
 import { z } from 'zod';
 
 const nodeEnv = z.enum(['development', 'test', 'production']).default('development');
+const logLevel = z
+  .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+  .default('info');
 
 export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   API_PORT: z.coerce.number().int().positive().default(4000),
   API_PUBLIC_URL: z.url().default('http://localhost:4000'),
   DATABASE_URL: z.url(),
+  DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
   REDIS_URL: z.url(),
   BETTER_AUTH_SECRET: z.string().min(32),
+  LOG_LEVEL: logLevel,
+  /** Requests per minute per client (IP) across all API instances. */
+  RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(300),
+  /** Express `trust proxy` — number of proxy hops in front of the API (Cloudflare + LB = 2). */
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
   STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
 });

@@ -64,7 +64,7 @@ Cập nhật: 23/10/2026 · Owner: Tech Lead
 | Monorepo orchestration | **Turborepo 2.11** | Cache task, pipeline `build/lint/test/typecheck`, filter theo package bị ảnh hưởng |
 | Frontend framework | **Next.js 16.4** (App Router) + React 19.3 | SSR/RSC cho Studio và marketing; `output: 'standalone'` để self-host |
 | UI | **Tailwind CSS v4** + **shadcn/ui** (Radix) + lucide | Tốc độ dựng dashboard; design tokens dùng chung |
-| Data fetching | **TanStack Query** + **openapi-fetch** (client sinh từ OpenAPI) | Type-safe, cache, optimistic update |
+| Data fetching | **TanStack Query** + `@playora/api-client` (typed từ zod contract, không codegen; ADR-008) | Type-safe, cache, optimistic update |
 | Form | **react-hook-form** + zod resolver; **form tự sinh từ zod schema** cho game config | Một schema cho validate client, server và editor |
 | State (editor/runtime) | **Zustand** | Nhẹ, dùng được ngoài React (game loop) |
 | Game rendering | **PixiJS v8** (game hành động, screen LED), DOM/CSS + **Motion** (quiz, vòng quay, UI) | Nhẹ hơn Phaser; WebGL/WebGPU; tree-shake được |
@@ -115,7 +115,7 @@ playora/
 │   │   ├── shake-race/
 │   │   └── spin-wheel/ …
 │   ├── ui/                  # shadcn/ui, tokens, components dùng chung, auto-form từ zod
-│   ├── api-client/          # openapi-fetch client + TanStack Query hooks (generated)
+│   ├── api-client/          # typed client từ zod contract + TanStack Query hooks (ADR-008)
 │   ├── realtime-client/     # Socket.IO client: typed events, reconnect, resume, clock sync
 │   ├── auth/                # Better Auth server config + client helpers
 │   ├── i18n/                # messages vi/en
@@ -124,7 +124,7 @@ playora/
 ├── tooling/
 │   ├── k6/                  # kịch bản load test (join, shake-race, quiz, draw)
 │   ├── bots/                # bot giả lập người chơi (dùng cho rehearsal mode và test)
-│   └── scripts/             # gen:template, gen:api-client, db utils
+│   └── scripts/             # check-commit-msg, gen:template (M1)
 ├── infra/
 │   ├── docker/              # Dockerfile.next, Dockerfile.nest
 │   ├── compose/             # docker-compose.dev.yml (postgres, redis, minio, mailpit)

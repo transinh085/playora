@@ -1,0 +1,69 @@
+{
+  "common": {
+    "appName": "Playora",
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "create": "Tạo",
+    "delete": "Xoá",
+    "loading": "Đang tải…",
+    "retry": "Thử lại",
+    "unknownError": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  },
+  "auth": {
+    "signInTitle": "Đăng nhập Studio",
+    "signUpTitle": "Tạo tài khoản",
+    "name": "Họ tên",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "signOut": "Đăng xuất",
+    "toSignUp": "Chưa có tài khoản? Đăng ký",
+    "toSignIn": "Đã có tài khoản? Đăng nhập"
+  },
+  "onboarding": {
+    "title": "Tạo tổ chức đầu tiên",
+    "description": "Tổ chức là nơi bạn và đồng nghiệp quản lý sự kiện. Agency có thể thêm khách hàng sau.",
+    "orgName": "Tên tổ chức",
+    "orgSlug": "Đường dẫn",
+    "submit": "Tạo tổ chức"
+  },
+  "nav": {
+    "events": "Sự kiện",
+    "templates": "Thư viện game",
+    "reports": "Báo cáo",
+    "settings": "Cài đặt"
+  },
+  "events": {
+    "title": "Sự kiện",
+    "empty": "Chưa có sự kiện nào. Tạo sự kiện đầu tiên để bắt đầu.",
+    "new": "Tạo sự kiện",
+    "name": "Tên sự kiện",
+    "slug": "Đường dẫn tham gia",
+    "slugHint": "play.playora.vn/{slug}",
+    "startsAt": "Bắt đầu",
+    "status": "Trạng thái",
+    "created": "Đã tạo sự kiện “{name}”",
+    "statuses": {
+      "draft": "Nháp",
+      "scheduled": "Đã lên lịch",
+      "live": "Đang diễn ra",
+      "ended": "Đã kết thúc",
+      "archived": "Lưu trữ"
+    }
+  },
+  "errors": {
+    "VALIDATION_FAILED": "Dữ liệu chưa hợp lệ, vui lòng kiểm tra lại",
+    "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn",
+    "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này",
+    "NOT_FOUND": "Không tìm thấy dữ liệu",
+    "CONFLICT": "Dữ liệu đã thay đổi, vui lòng tải lại",
+    "SLUG_TAKEN": "Đường dẫn này đã được dùng",
+    "RATE_LIMITED": "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút",
+    "EVENT_NOT_LIVE": "Sự kiện chưa mở hoặc đã kết thúc",
+    "PLAYER_LIMIT_REACHED": "Sự kiện đã đủ số người tham gia",
+    "PRIZE_OUT_OF_STOCK": "Giải thưởng đã hết",
+    "DRAW_POOL_EMPTY": "Không còn người phù hợp để quay số",
+    "INTERNAL": "Đã có lỗi hệ thống, vui lòng thử lại"
+  }
+}

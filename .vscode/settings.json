@@ -1,0 +1,22 @@
+{
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+  "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[css]": { "editor.defaultFormatter": "biomejs.biome" },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.associations": { "*.css": "tailwindcss" },
+  "tailwindCSS.experimental.configFile": {
+    "apps/studio/src/app/globals.css": "apps/studio/**",
+    "apps/play/src/app/globals.css": "apps/play/**",
+    "apps/web/src/app/globals.css": "apps/web/**",
+    "packages/ui/src/styles.css": "packages/ui/**"
+  },
+  "search.exclude": { "**/.next": true, "**/dist": true, "**/.turbo": true, "bun.lock": true }
+}

@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "bradlc.vscode-tailwindcss",
+    "oven.bun-vscode",
+    "ms-playwright.playwright",
+    "yoavbls.pretty-ts-errors"
+  ]
+}

@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@playora/contracts": "workspace:*",
+    "@playora/realtime-client": "workspace:*",
     "@playora/ui": "workspace:*",
     "next": "16.4.3",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "socket.io-client": "4.8.4"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@playora/tsconfig": "workspace:*",

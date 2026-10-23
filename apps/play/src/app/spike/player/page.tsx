@@ -1,8 +1,9 @@
 'use client';
 
-import { Button } from '@playora/ui';
+import { useLiveRoom } from '@playora/realtime-client/react';
+import { Button } from '@playora/ui/components/button';
 import { useEffect, useRef, useState } from 'react';
-import { formatCountdown, SPIKE_EVENT, useLiveSocket } from '@/lib/live';
+import { formatCountdown, REALTIME_URL, SPIKE_EVENT } from '@/lib/live';
 import { type PlayerView, TEAMS } from '../types';
 
 const SEND_EVERY_MS = 250;
@@ -28,11 +29,13 @@ export default function SpikePlayerPage() {
   const [now, setNow] = useState(Date.now());
   const pending = useRef(0);
   const armed = useRef(true);
-  const { connected, view, socket } = useLiveSocket<PlayerView>(query);
+  const { connected, view, socket, serverNow } = useLiveRoom<PlayerView>(
+    query ? { url: REALTIME_URL, eventId: SPIKE_EVENT, role: 'player', query } : null,
+  );
 
   useEffect(() => {
     const id = setInterval(() => {
-      setNow(Date.now());
+      setNow(serverNow());
       if (pending.current > 0 && socket.current?.connected) {
         socket.current.emit('input', {
           roundId: SPIKE_EVENT,
@@ -43,7 +46,7 @@ export default function SpikePlayerPage() {
       }
     }, SEND_EVERY_MS);
     return () => clearInterval(id);
-  }, [socket]);
+  }, [socket, serverNow]);
 
   useEffect(() => {
     if (motion !== 'granted') return;
@@ -72,7 +75,7 @@ export default function SpikePlayerPage() {
       setMotion(await Motion.requestPermission().catch(() => 'denied' as const));
     } else setMotion('granted');
 
-    setQuery({ event: SPIKE_EVENT, role: 'player', key: playerKey(), name: name || 'Khách', team });
+    setQuery({ key: playerKey(), name: name || 'Khách', team });
   }
 
   if (!query) {
@@ -80,14 +83,14 @@ export default function SpikePlayerPage() {
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-6">
         <h1 className="text-2xl font-extrabold">Lắc điện thoại đua</h1>
         <input
-          className="h-12 rounded-lg border border-border bg-surface px-3"
+          className="h-12 rounded-lg border border-input bg-background px-3"
           placeholder="Tên của bạn"
           value={name}
           maxLength={40}
           onChange={(e) => setName(e.target.value)}
         />
         <select
-          className="h-12 rounded-lg border border-border bg-surface px-3"
+          className="h-12 rounded-lg border border-input bg-background px-3"
           value={team}
           onChange={(e) => setTeam(e.target.value)}
         >
@@ -125,7 +128,7 @@ export default function SpikePlayerPage() {
         onPointerDown={() => {
           pending.current++;
         }}
-        className="size-44 rounded-full bg-brand text-xl font-extrabold text-brand-foreground shadow-lg active:scale-95 disabled:opacity-40"
+        className="size-44 rounded-full bg-primary text-xl font-extrabold text-primary-foreground shadow-lg active:scale-95 disabled:opacity-40"
       >
         {motion === 'granted' ? 'LẮC hoặc CHẠM' : 'CHẠM'}
       </button>

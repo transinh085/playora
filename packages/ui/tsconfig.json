@@ -1,5 +1,8 @@
 {
   "extends": "@playora/tsconfig/library.json",
-  "compilerOptions": { "jsx": "react-jsx" },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "paths": { "@playora/ui/*": ["./src/*"] }
+  },
   "include": ["src"]
 }

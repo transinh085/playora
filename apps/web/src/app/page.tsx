@@ -1,9 +1,9 @@
-import { Button } from '@playora/ui';
+import { Button } from '@playora/ui/components/button';
 
 export default function Landing() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-4xl flex-col justify-center gap-8 p-8">
-      <p className="text-sm font-semibold uppercase tracking-widest text-brand">Playora</p>
+      <p className="text-sm font-semibold uppercase tracking-widest text-primary">Playora</p>
       <h1 className="text-5xl font-extrabold leading-tight sm:text-6xl">
         Cả hội trường cùng chơi.
       </h1>

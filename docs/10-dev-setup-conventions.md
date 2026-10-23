@@ -1,255 +1,210 @@
-# 10 — Dev setup, convention và CI/CD
+# 10 — Kiến trúc code, convention và quy trình phát triển
 
-Cập nhật: 23/10/2026 · Áp dụng từ M0 (task E0.1–E0.8)
-
----
-
-## 1. Yêu cầu môi trường
-
-- Bun (pin version trong `packageManager` của root `package.json`)
-- Docker Desktop / OrbStack
-- Node LTS (chỉ khi một app chạy fallback theo ADR-002)
-- `gh` CLI, `k6` (load test)
+Cập nhật: 23/10/2026 · Áp dụng cho mọi code trong repo · Quyết định nền tảng: [docs/adr/](./adr/README.md)
 
 ---
 
-## 2. Scaffold monorepo
+## 1. Bản đồ repo
 
-> **Đã scaffold ngày 23/10/2026.** Hướng dẫn chạy thực tế nằm ở [`README.md`](../README.md) ở root. Các lệnh scaffold dưới đây chỉ để tham khảo: repo được dựng tay, không dùng `create-next-app` hay Nest CLI. Postgres dev chạy ở cổng **54329**, Valkey ở **63799** để tránh trùng dự án khác.
+```
+apps/
+  api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json
+  realtime/     NestJS + Socket.IO — namespace /live (M0: spike shake race)
+  worker/       NestJS standalone + BullMQ — xử lý job từ @playora/jobs
+  studio/       Next.js 16 — builder cho organizer (đăng nhập, org, events…)
+  play/         Next.js 16 — player shell /[slug], screen, spike /spike/*
+  web/          Next.js 16 — landing
+packages/
+  contracts/    zod: route contracts (REST), WS events, ErrorCode — NGUỒN CHÂN LÝ
+  api-client/   typed client từ contracts (+ ./react: TanStack Query hooks)
+  realtime-client/ socket typed, đồng bộ đồng hồ (+ ./react: useLiveRoom)
+  db/           Drizzle schema, migrations, seed, ./testing (DB test)
+  auth/         Better Auth options + RBAC 5 vai trò (./permissions)
+  jobs/         queue + payload schema + producer
+  core/         logic thuần (quay số provably-fair…), không I/O
+  game-sdk/     interface template game (M1)
+  ui/           shadcn/ui + design tokens (./components/*, ./lib/utils, ./styles.css)
+  i18n/         messages vi/en (vi là chuẩn)
+  env/          zod schema env theo app
+  tsconfig/     base, library, nestjs, nextjs
+tooling/
+  e2e/          Playwright (desktop + mobile)
+  loadtest/     spike realtime
+  scripts/      check-commit-msg…
+infra/
+  compose/      Postgres :54329, Valkey :63799, MinIO, Mailpit
+  docker/       Dockerfile.nest, Dockerfile.next (turbo prune)
+```
 
-### Lệnh scaffold gốc (tham khảo)
+**Luật phụ thuộc:**
+
+```
+apps/*  →  packages/*               (app không import app)
+contracts, i18n, env  →  không phụ thuộc package nội bộ nào (core → contracts)
+db  →  (drizzle, postgres)          auth  →  db
+api-client, realtime-client  →  contracts
+ui  →  (react, radix, tailwind)     không biết gì về API
+```
+
+---
+
+## 2. Chạy dự án
 
 ```bash
-# 1. Root
-mkdir -p apps packages/games tooling infra docs/adr
-bun init -y
-bun add -d turbo @biomejs/biome typescript
-
-# 2. Next.js apps
-bunx create-next-app@latest apps/studio --ts --tailwind --app --src-dir --use-bun --no-eslint
-bunx create-next-app@latest apps/play   --ts --tailwind --app --src-dir --use-bun --no-eslint
-bunx create-next-app@latest apps/web    --ts --tailwind --app --src-dir --use-bun --no-eslint
-
-# 3. NestJS apps
-bunx @nestjs/cli new apps/api      --package-manager bun --skip-git --strict
-bunx @nestjs/cli new apps/realtime --package-manager bun --skip-git --strict
-bunx @nestjs/cli new apps/worker   --package-manager bun --skip-git --strict
-
-# 4. Packages (tạo tay theo template package nội bộ ở mục 3)
-#    db, contracts, core, game-sdk, game-registry, ui, api-client, realtime-client, auth, i18n, env, tsconfig
-
-# 5. Xoá lockfile/node_modules con, cài từ root
-rm -rf apps/*/node_modules apps/*/bun.lock apps/*/.git
-bun install
+cp .env.example .env               # đặt BETTER_AUTH_SECRET=$(openssl rand -hex 32)
+bun install                        # cài deps + git hooks (lefthook)
+bun run infra:up
+bun run db:migrate && bun run db:seed
+bun run dev                        # web :3000 · studio :3001 · play :3002 · api :4000 · realtime :4001 · worker :4002
 ```
 
-> Sau khi scaffold: xoá ESLint/Prettier mặc định của Nest và chuyển sang Biome root; gom tsconfig về `packages/tsconfig`.
-
-### 2.1 Root `package.json`
-
-```json
-{
-  "name": "playora",
-  "private": true,
-  "packageManager": "bun@<pin-version>",
-  "workspaces": ["apps/*", "packages/*", "packages/games/*"],
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "biome check .",
-    "format": "biome format --write .",
-    "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
-    "db:generate": "bun --cwd packages/db drizzle-kit generate",
-    "db:migrate": "bun --cwd packages/db drizzle-kit migrate",
-    "db:studio": "bun --cwd packages/db drizzle-kit studio",
-    "db:seed": "bun packages/db/src/seed.ts",
-    "gen:api-client": "bun tooling/scripts/gen-api-client.ts",
-    "gen:template": "bun tooling/scripts/gen-template.ts",
-    "infra:up": "docker compose -f infra/compose/docker-compose.dev.yml up -d",
-    "infra:down": "docker compose -f infra/compose/docker-compose.dev.yml down"
-  }
-}
-```
-
-### 2.2 `turbo.json`
-
-```json
-{
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build":     { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**", "dist/**"] },
-    "dev":       { "cache": false, "persistent": true },
-    "typecheck": { "dependsOn": ["^typecheck"] },
-    "test":      { "dependsOn": ["^build"], "outputs": [] }
-  }
-}
-```
-
-### 2.3 `infra/compose/docker-compose.dev.yml`
-
-```yaml
-services:
-  postgres:
-    image: postgres:17
-    environment: { POSTGRES_USER: playora, POSTGRES_PASSWORD: playora, POSTGRES_DB: playora }
-    ports: ["5432:5432"]
-    volumes: [pg:/var/lib/postgresql/data]
-  valkey:
-    image: valkey/valkey:8
-    ports: ["6379:6379"]
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    environment: { MINIO_ROOT_USER: playora, MINIO_ROOT_PASSWORD: playora123 }
-    ports: ["9000:9000", "9001:9001"]
-    volumes: [minio:/data]
-  mailpit:
-    image: axllent/mailpit
-    ports: ["1025:1025", "8025:8025"]
-volumes: { pg: {}, minio: {} }
-```
-
-> Pin tag image theo digest hoặc patch version khi đưa lên staging/prod.
-
-### 2.4 Cổng dev
-
-| App | Port |
+| Lệnh | Mục đích |
 |---|---|
-| web | 3000 |
-| studio | 3001 |
-| play | 3002 |
-| api | 4000 |
-| realtime | 4001 |
-| worker (health) | 4002 |
+| `bun run lint` / `bun run format` | Biome kiểm tra / tự sửa |
+| `bun run typecheck` | tsc mọi workspace |
+| `bun run test` | Unit + integration (`bun test`); API dùng DB `playora_test` tự tạo |
+| `bun run e2e` | Playwright (tự bật API/Studio/Play nếu chưa chạy) |
+| `bun run ci` | lint + typecheck + test + build như CI |
+| `bun run db:generate` | Sinh migration SQL từ schema (review trước khi commit) |
+| `bun --cwd packages/auth run generate:schema` | Sinh lại bảng Better Auth khi đổi plugin |
+| `bunx shadcn@4.22.1 add <component>` (trong `packages/ui`) | Thêm component UI. **Kiểm tra lại import `cn`** (xem §6.3) |
+| `docker build -f infra/docker/Dockerfile.nest --build-arg APP=@playora/api --build-arg APP_DIR=apps/api .` | Build image service |
 
 ---
 
-## 3. Internal package template
+## 3. Quy trình thêm một tính năng (ví dụ: "games")
 
-```json
-// packages/core/package.json
-{
-  "name": "@playora/core",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "exports": { ".": "./src/index.ts", "./prize": "./src/prize/index.ts" },
-  "scripts": { "typecheck": "tsc --noEmit", "test": "bun test" },
-  "dependencies": { "@playora/contracts": "workspace:*" },
-  "devDependencies": { "@playora/tsconfig": "workspace:*" }
-}
+Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng thứ tự:
+
+1. **Contract** — `packages/contracts/src/api/games.ts`
+   - Schema zod cho request/response (`GameSummary`, `CreateGameBody`…).
+   - Route bằng `defineRoute({ method, path, auth, permission, params, query, body, response })`.
+   - Thêm vào `allRoutes` trong `api/index.ts` (để có OpenAPI và contract test).
+2. **Quyền** (nếu cần resource mới) — `packages/auth/src/permissions.ts`: thêm statement, gán cho các vai trò, thêm test.
+3. **DB** (nếu cần) — schema trong `packages/db/src/schema/*`, rồi `bun run db:generate` và review SQL.
+4. **API** — `apps/api/src/modules/games/`
+   - `games.repository.ts`: mọi method nhận `organizationId` **đầu tiên** và lọc theo nó.
+   - `games.service.ts`: nghiệp vụ; map lỗi DB → `ConflictException({ code, message, details: { field } })`; ghi `AuditService` cho thao tác nhạy cảm.
+   - `games.controller.ts`: chỉ có `@Route(gamesApi.x)` + `@Args()`. Không validate tay, không kiểm quyền tay.
+   - `games.module.ts`, import vào `AppModule`.
+5. **Integration test** — `apps/api/test/games.e2e.test.ts` dùng `createTestApp()`. **Bắt buộc** có test cross-tenant (người org khác nhận 403/404).
+6. **Studio** — `apps/studio/src/app/(app)/orgs/[orgId]/games/`
+   - Đọc: `useRouteQuery(api, gamesApi.list, …)`.
+   - Ghi: `useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`.
+   - Form: `useForm({ resolver: zodResolver(CreateGameBody) })` dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`.
+   - Text qua `useTranslations`; thêm key vào **cả** `vi.json` và `en.json` (test i18n sẽ bắt thiếu).
+7. **E2E** cho luồng chính — `tooling/e2e/tests/*.spec.ts`.
+
+---
+
+## 4. Backend (apps/api)
+
+### 4.1 Pipeline một request
+
+```
+helmet → CORS → [/auth/* → Better Auth] → express.json
+→ ThrottlerGuard (Redis, RATE_LIMIT_PER_MIN/IP)
+→ SessionGuard (contract.auth: public | session | player; mặc định cần session)
+→ OrgAccessGuard (contract.permission + :orgId → member.role → hasPermission)
+→ @Args() validate params/query/body bằng zod của contract → handler
+→ ResponseContractInterceptor (dev/test: response phải khớp contract)
+→ ApiExceptionFilter → { error: { code, message, details?, requestId } }
 ```
 
-- Next.js: `transpilePackages: ['@playora/ui', '@playora/game-sdk', '@playora/contracts', …]` trong `next.config.ts`.
-- NestJS: `tsconfig` bật `experimentalDecorators` và `emitDecoratorMetadata`. Bun đọc được. Nếu fallback Node thì build bằng tsdown/SWC.
+### 4.2 Quy tắc
 
----
-
-## 4. Convention
-
-### 4.1 Code
-
-| Hạng mục | Quy ước |
+| Chủ đề | Quy tắc |
 |---|---|
-| Ngôn ngữ | TypeScript `strict`, `noUncheckedIndexedAccess` |
-| Lint/format | Biome (root `biome.json`); pre-commit bằng `lefthook` chạy `biome check --staged` |
-| Đặt tên | File `kebab-case.ts`; React component `PascalCase.tsx`; Nest `xxx.module.ts`/`xxx.service.ts`/`xxx.controller.ts` |
-| Package scope | `@playora/*`; game: `@playora/game-<key>` |
-| Import | Không import sâu vào package khác ngoài `exports`; không import chéo app |
-| Lỗi | Domain error có `code` (enum trong `contracts/errors.ts`); Nest exception filter map sang HTTP |
-| Env | Mỗi app parse env bằng zod (`@playora/env`) lúc khởi động, sai thì crash sớm |
-| Thời gian | Server dùng UTC; hiển thị theo `event.timezone` |
-| Tiền | Số nguyên VND |
-| Log | pino JSON; luôn kèm `requestId`, `orgId`, `eventId`; không log PII |
+| Route | Luôn khai báo bằng `@Route(contract)`. Chỉ dùng `@Get()` cho endpoint kỹ thuật (vd. `openapi.json`), kèm `@Public()` nếu cần |
+| Tenant | Repository nhận `organizationId` và lọc mọi truy vấn. Guard là lớp bảo vệ thứ hai, không phải duy nhất |
+| Lỗi | Ném `HttpException` với `{ code: ErrorCode.X, message, details? }`. Mã mới phải thêm vào `ErrorCode` **và** i18n `errors.*` |
+| Giao dịch | `repo.transaction(async (tx) => …)`; truyền `tx` vào repository và audit |
+| Log | `nestjs-pino`, JSON ở production, có `x-request-id`; không log PII, cookie, token (đã redact) |
+| Env | Thêm vào `packages/env` (zod) và `.env.example`; app crash ngay khi thiếu |
+| DI | Import class service bằng `import { X }` (không `import type`), vì Nest cần metadata lúc runtime |
+| Decorator trên Bun | `experimentalDecorators` + `emitDecoratorMetadata` phải nằm **trong tsconfig của app** (ADR-002) |
 
-### 4.2 NestJS module layout (`apps/api/src`)
+### 4.3 Job nền
 
-```
-modules/
-  auth/        org/        client/      brand-kit/   asset/
-  event/       game/       template/    player/      play/
-  prize/       award/      analytics/   export/      billing/
-  admin/       audit/      webhook/     privacy/
-common/        # guards (OrgGuard, RolesGuard, PlayerGuard), interceptors, filters, pipes (ZodValidationPipe)
-infra/         # db.provider.ts, redis.provider.ts, queue.provider.ts, storage.provider.ts
-main.ts
-```
-
-Mỗi module chia: `*.controller.ts` (mỏng) → `*.service.ts` (orchestration) → `*.repository.ts` (Drizzle, nhận `orgId`) và gọi `@playora/core` cho logic thuần.
-
-### 4.3 Next.js layout (`apps/studio/src`)
-
-```
-app/
-  (auth)/login/
-  (app)/[orgSlug]/events/            # danh sách
-  (app)/[orgSlug]/events/[eventId]/  # tổng quan, games, prizes, players, reports
-  (app)/[orgSlug]/events/[eventId]/games/[gameId]/edit/
-  (live)/live/[eventId]/host/        # Host Console (layout tối giản)
-  (admin)/admin/                     # MVP admin
-components/   features/   lib/   hooks/
-```
-
-### 4.4 Git
-
-- Trunk-based: nhánh ngắn `feat/LIV-06-shake-race`, `fix/…`; squash merge vào `main`.
-- Commit theo Conventional Commits (`feat(realtime): …`).
-- PR template: liên kết ID PRD, ảnh hoặc video với UI, checklist test thiết bị, ghi chú migration.
-- `main` luôn deploy được lên staging; production deploy bằng tag `vYYYY.MM.DD-N`.
+- **API:** `@Inject(JOBS) jobs: Producer` → `jobs.enqueue('event.export', payload)`.
+- **Worker:** thêm processor vào `apps/worker/src/processors`. TypeScript buộc mọi job đã khai báo phải có processor.
+- **Job mới:** khai báo ở `packages/jobs/src/definitions.ts`.
 
 ---
 
-## 5. Testing
+## 5. Realtime
 
-| Loại | Công cụ | Phạm vi | Chạy khi |
+- `apps/realtime/src/live/` hiện là **spike M0** (TapRaceRoom). M1 thay bằng RoundRunner + LiveServerModule của template (docs/05 §5–6).
+- Client dùng `@playora/realtime-client`: `useLiveRoom({ url, eventId, role, auth })` trả về `view`, `connected` và `serverNow()` (đã đồng bộ với đồng hồ server).
+- Event WS khai báo trong `packages/contracts/src/ws.ts`; input luôn được validate bằng zod phía server.
+
+---
+
+## 6. Frontend
+
+### 6.1 Studio
+
+| Phần | Cách làm |
+|---|---|
+| Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
+| Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
+| Form | react-hook-form + `zodResolver(<schema từ contracts>)`; `applyApiError` gắn lỗi server vào field |
+| UI | Chỉ dùng `@playora/ui/components/*` và token màu (`bg-primary`, `text-muted-foreground`…); không hard-code màu |
+| i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
+| Thông báo | `toast` từ `sonner` |
+| Route có type | `typedRoutes: true`; link động cần `as Route` |
+
+### 6.2 Play / Screen
+
+- Ưu tiên nhẹ: shell người chơi chưa dùng TanStack Query hay next-intl cho tới M1, để giữ bundle nhỏ.
+- Game surface được lazy-load theo template (M1).
+
+### 6.3 Thêm component shadcn
+
+```bash
+cd packages/ui && bunx shadcn@4.22.1 add <name> --yes
+grep -rl 'from "cn"' src/components | xargs sed -i '' 's#from "cn"#from "@playora/ui/lib/utils"#'
+```
+
+CLI hiện ghi sai alias `utils` thành package npm `cn` và tự cài package đó. Phải sửa import như trên, đồng thời gỡ `cn` khỏi `packages/ui/package.json` nếu nó xuất hiện.
+
+---
+
+## 7. Testing
+
+| Lớp | Công cụ | Ở đâu | Bắt buộc khi |
 |---|---|---|---|
-| Unit | `bun test` | `packages/core` (prize, pacing, provably-fair), server module của template, validators | Mọi PR |
-| Integration | `bun test` + Postgres/Valkey (service container CI) | Repository, prize award atomic (test song song 100 request), cross-tenant guard | Mọi PR |
-| E2E | Playwright | Luồng tạo event → publish → player join → chơi → award; Host điều khiển vòng | PR vào `main` (subset), nightly (full) |
-| Realtime | `bun test` + socket.io-client | RoundRunner, resume, ownership lock | Mọi PR |
-| Load | k6 (`tooling/k6`) | 5.000 WS shake race; 1.000 rps draw | Trước mỗi pilot lớn, nightly tuần |
-| Thiết bị thật | Device lab + checklist | Player/Screen | Mỗi release có UI thay đổi |
+| Unit | `bun test` | Cạnh file (`*.test.ts`) | Logic thuần (core, permissions, contracts, client) |
+| Integration API | `bun test` + `createTestApp()` + DB `playora_test` | `apps/api/test/*.e2e.test.ts` | Mọi module API: happy path, validate 400, 401, **cross-tenant 403/404**, conflict |
+| Contract | `ResponseContractInterceptor` (tự bật trong test) | — | Luôn bật ngoài production |
+| E2E | Playwright (desktop + Pixel 7) | `tooling/e2e/tests` | Luồng chính của người dùng; fixture fail khi trình duyệt có lỗi console |
+| Tải | `bun run loadtest:shake` | `tooling/loadtest` | Trước mỗi pilot lớn |
 
-**Test bắt buộc cho prize engine:** property-based (fast-check). Với mọi chuỗi request song song, tổng `issued` ≤ `quantity` và không có `play` nào có 2 award.
-
----
-
-## 6. CI/CD (GitHub Actions)
-
-```yaml
-# .github/workflows/ci.yml (rút gọn)
-name: ci
-on: [pull_request, push]
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    services:
-      postgres: { image: postgres:17, env: { POSTGRES_PASSWORD: test }, ports: ['5432:5432'] }
-      valkey:   { image: valkey/valkey:8, ports: ['6379:6379'] }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run lint
-      - run: bunx turbo run typecheck test build --filter='...[origin/main]'
-        env: { DATABASE_URL: postgres://postgres:test@localhost:5432/postgres, REDIS_URL: redis://localhost:6379 }
-  docker:
-    if: github.ref == 'refs/heads/main'
-    needs: check
-    # build & push image cho từng app thay đổi → GHCR; deploy staging qua Kamal/Dokploy
-```
-
-- **Docker:** `infra/docker/Dockerfile.next` (multi-stage, `output: 'standalone'`), `infra/docker/Dockerfile.nest` (runtime Bun, hoặc Node khi fallback). Dùng `turbo prune <app> --docker` để image nhỏ.
-- **Migration:** job riêng chạy `db:migrate` trước khi deploy app; migration phải tương thích ngược.
-- **Freeze:** workflow production kiểm tra API "event calendar". Có sự kiện `isCritical` trong khung freeze thì chặn deploy (override cần 2 người duyệt).
+DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ liệu test dùng email và slug ngẫu nhiên, nên chạy lại không cần dọn.
 
 ---
 
-## 7. Checklist "Day 1" cho dev mới
+## 8. Git, review, CI/CD
 
-1. `bun install && bun run infra:up && bun run db:migrate && bun run db:seed`
-2. `bun run dev`, mở Studio `localhost:3001` (tài khoản seed `demo@playora.local`)
-3. Mở event demo, rồi Screen `localhost:3002/s/<demo-key>`, rồi Player `localhost:3002/demo-yep` trên điện thoại cùng LAN
-4. Chạy bot: `bun tooling/bots/run.ts --event demo-yep --n 200`
-5. Đọc [05-architecture.md](./05-architecture.md), [07-api-realtime.md](./07-api-realtime.md), và ADR trong `docs/adr/`
+- **Nhánh:** `feat/…`, `fix/…`, `chore/…` tách từ `main`; squash merge.
+- **Commit message:** theo Conventional Commits, lefthook kiểm tra tự động. Ví dụ: `feat(api): add games module`.
+- **pre-commit:** Biome tự format các file đã stage.
+- **CI** (`.github/workflows/ci.yml`):
+  1. `check`: lint, migrate, typecheck, test, build.
+  2. `e2e`: Playwright trên stack thật.
+  3. `docker`: build image cả 6 app.
+- **Docker:** `turbo prune` → cài deps → build → runtime. Service NestJS chạy `bun dist/main.js`; app Next.js chạy standalone trên Node 24. Biến `NEXT_PUBLIC_*` truyền vào bằng build-arg.
+
+---
+
+## 9. Lưu ý đã biết
+
+| Vấn đề | Cách xử lý |
+|---|---|
+| Bun bỏ qua cờ decorator trong tsconfig kế thừa | Khai báo trong tsconfig của từng app NestJS |
+| TypeScript 7 không có JS API cho Next.js | Pin TS 6.0.3 (ADR-007) |
+| `nestjs-zod` chưa hỗ trợ Nest 12 | Dùng `@Route` / `@Args` + `ZodValidationPipe` tự viết |
+| `@nest-lab/throttler-storage-redis` chưa hỗ trợ Nest 12 | `RedisThrottlerStorage` tự viết (Lua, atomic) |
+| Next.js trong Bun isolated linker | App Next phải tự khai báo `typescript` và `@types/node` |
+| Postinstall của `@swc/core`, `@parcel/watcher` bị Bun chặn | Giữ chặn; dùng binary prebuilt |
+| Cổng 5432/6379 hay trùng dự án khác | Dev dùng 54329/63799 |

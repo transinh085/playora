@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./permissions": "./src/permissions.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "generate:schema": "auth generate --config src/generate.config.ts --output ../db/src/schema/auth.ts --yes"
+    "generate:schema": "auth generate --config src/generate.config.ts --output ../db/src/schema/auth.ts --yes",
+    "test": "bun test"
   },
   "dependencies": {
     "@playora/db": "workspace:*",

@@ -7,6 +7,9 @@ const rootEnv = resolve(process.cwd(), '../../.env');
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const config: NextConfig = {
+  // Docker builds set NEXT_OUTPUT=standalone; trace files from the monorepo root.
+  output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
+  outputFileTracingRoot: resolve(process.cwd(), '../..'),
   transpilePackages: ['@playora/ui'],
 };
 

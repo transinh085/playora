@@ -1,19 +1,16 @@
 import 'reflect-metadata';
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { apiEnvSchema, parseEnv } from '@playora/env';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { mountAuth } from './auth/mount-auth';
-import { ApiExceptionFilter } from './common/api-exception.filter';
+import { configureApp } from './bootstrap/configure-app';
 
 const env = parseEnv(apiEnvSchema);
 
-const app = await NestFactory.create(AppModule.forRoot(env), { bodyParser: false });
-app.enableCors({ origin: env.STUDIO_ORIGINS.split(','), credentials: true });
-mountAuth(app);
-app.setGlobalPrefix('v1');
-app.useGlobalFilters(new ApiExceptionFilter());
-app.enableShutdownHooks();
-
+const app = await NestFactory.create(AppModule.forRoot(env), {
+  bodyParser: false,
+  bufferLogs: true,
+});
+configureApp(app, env);
 await app.listen(env.API_PORT);
-Logger.log(`API listening on http://localhost:${env.API_PORT}/v1`, 'Bootstrap');
+app.get(Logger).log(`API listening on ${env.API_PUBLIC_URL}/v1`);
