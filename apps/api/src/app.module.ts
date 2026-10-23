@@ -13,6 +13,7 @@ import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage
 import { InfraModule } from './infra/infra.module';
 import { REDIS } from './infra/tokens';
 import { EventsModule } from './modules/events/events.module';
+import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
@@ -59,6 +60,7 @@ export class AppModule {
           }),
         }),
         EventsModule,
+        GuestsModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [
