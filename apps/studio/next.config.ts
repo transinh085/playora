@@ -15,6 +15,10 @@ const config: NextConfig = {
   outputFileTracingRoot: resolve(process.cwd(), '../..'),
   transpilePackages: ['@playora/ui', '@playora/contracts', '@playora/api-client', '@playora/i18n'],
   typedRoutes: true,
+  env: {
+    NEXT_PUBLIC_PLAY_URL:
+      process.env.NEXT_PUBLIC_PLAY_URL ?? process.env.PLAY_URL ?? 'http://localhost:3002',
+  },
 };
 
 export default withNextIntl(config);

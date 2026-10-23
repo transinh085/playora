@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@playora/contracts": "workspace:*",
+    "@playora/game-sdk": "workspace:*",
     "@playora/realtime-client": "workspace:*",
+    "@playora/templates": "workspace:*",
     "@playora/ui": "workspace:*",
     "next": "16.4.3",
     "qrcode": "1.5.4",

@@ -270,6 +270,22 @@ describe('defineTemplate', () => {
     );
     expect(assets.url('logo')).toBe('https://cdn.playora.vn/org/logo.png');
 
+    // Resolves asset UUIDs stored in config via the render-time assets Record<assetId, url> map
+    const assetUuid = '0195f1e2-1111-7000-8000-000000000001';
+    const resolvedFromIds = resolveTemplateAssets(tpl, {
+      skinKey: 'tet',
+      config: { ...tpl.defaultConfig, heroBanner: assetUuid },
+      assets: {
+        [assetUuid]: 'https://s3.playora.vn/orgs/o1/assets/0195f1e2/original.png?sig=abc',
+      },
+    });
+    expect(resolvedFromIds.url('banner')).toBe(
+      'https://s3.playora.vn/orgs/o1/assets/0195f1e2/original.png?sig=abc',
+    );
+    expect(resolvedFromIds.url(assetUuid)).toBe(
+      'https://s3.playora.vn/orgs/o1/assets/0195f1e2/original.png?sig=abc',
+    );
+
     const cfg = resolveSkinConfig(tpl, 'tet', { durationSec: 45 });
     expect(cfg.accentColor).toBe('#EF4444');
     expect(cfg.durationSec).toBe(45);

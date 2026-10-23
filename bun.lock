@@ -25,7 +25,9 @@
         "@playora/core": "workspace:*",
         "@playora/db": "workspace:*",
         "@playora/env": "workspace:*",
+        "@playora/game-sdk": "workspace:*",
         "@playora/jobs": "workspace:*",
+        "@playora/templates": "workspace:*",
         "better-auth": "1.7.12",
         "drizzle-orm": "0.45.4",
         "exceljs": "4.4.0",
@@ -53,7 +55,9 @@
       "version": "0.0.0",
       "dependencies": {
         "@playora/contracts": "workspace:*",
+        "@playora/game-sdk": "workspace:*",
         "@playora/realtime-client": "workspace:*",
+        "@playora/templates": "workspace:*",
         "@playora/ui": "workspace:*",
         "next": "16.4.3",
         "qrcode": "1.5.4",
@@ -289,6 +293,27 @@
         "react": "^19.0.0",
       },
     },
+    "packages/templates": {
+      "name": "@playora/templates",
+      "version": "0.0.0",
+      "dependencies": {
+        "@playora/contracts": "workspace:*",
+        "@playora/game-sdk": "workspace:*",
+        "@playora/ui": "workspace:*",
+        "zod": "4.6.7",
+      },
+      "devDependencies": {
+        "@playora/tsconfig": "workspace:*",
+        "@types/bun": "1.4.4",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "react": "19.3.1",
+        "react-dom": "19.3.1",
+      },
+      "peerDependencies": {
+        "react": "^19.0.0",
+      },
+    },
     "packages/tsconfig": {
       "name": "@playora/tsconfig",
       "version": "0.0.0",
@@ -310,6 +335,7 @@
       },
       "devDependencies": {
         "@playora/tsconfig": "workspace:*",
+        "@types/bun": "1.4.4",
         "@types/react": "19.3.0",
         "@types/react-dom": "19.3.0",
         "next-themes": "0.4.6",
@@ -733,6 +759,8 @@
     "@playora/realtime-client": ["@playora/realtime-client@workspace:packages/realtime-client"],
 
     "@playora/studio": ["@playora/studio@workspace:apps/studio"],
+
+    "@playora/templates": ["@playora/templates@workspace:packages/templates"],
 
     "@playora/tsconfig": ["@playora/tsconfig@workspace:packages/tsconfig"],
 

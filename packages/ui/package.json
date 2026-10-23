@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./auto-form": "./src/auto-form/index.tsx",
+    "./auto-form/*": "./src/auto-form/*.tsx",
     "./components/*": "./src/components/*.tsx",
     "./game/*": "./src/game/*.tsx",
     "./lib/*": "./src/lib/*.ts",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@playora/tsconfig": "workspace:*",
+    "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "next-themes": "0.4.6",

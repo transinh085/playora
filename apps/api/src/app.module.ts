@@ -15,6 +15,7 @@ import { REDIS } from './infra/tokens';
 import { AssetsModule } from './modules/assets/assets.module';
 import { BrandKitsModule } from './modules/brand-kits/brand-kits.module';
 import { EventsModule } from './modules/events/events.module';
+import { GamesModule } from './modules/games/games.module';
 import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
@@ -27,6 +28,7 @@ import {
   PublicController,
 } from './modules/public/public.controller';
 import { ScreensModule } from './modules/screens/screens.module';
+import { TemplatesModule } from './modules/templates/templates.module';
 
 @Module({})
 export class AppModule {
@@ -95,6 +97,8 @@ export class AppModule {
         BrandKitsModule,
         GuestsModule,
         ScreensModule,
+        TemplatesModule,
+        GamesModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [

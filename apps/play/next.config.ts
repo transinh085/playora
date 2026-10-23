@@ -10,7 +10,19 @@ const config: NextConfig = {
   // Docker builds set NEXT_OUTPUT=standalone; trace files from the monorepo root.
   output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   outputFileTracingRoot: resolve(process.cwd(), '../..'),
-  transpilePackages: ['@playora/ui', '@playora/contracts', '@playora/realtime-client'],
+  transpilePackages: [
+    '@playora/ui',
+    '@playora/contracts',
+    '@playora/realtime-client',
+    '@playora/game-sdk',
+    '@playora/templates',
+  ],
+  env: {
+    NEXT_PUBLIC_STUDIO_ORIGINS:
+      process.env.NEXT_PUBLIC_STUDIO_ORIGINS ??
+      process.env.STUDIO_ORIGINS ??
+      'http://localhost:3001',
+  },
 };
 
 export default config;
