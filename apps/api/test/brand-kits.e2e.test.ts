@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ApiError } from '@playora/api-client';
-import { brandKitsApi, ErrorCode, eventsApi } from '@playora/contracts';
+import { assetsApi, brandKitsApi, ErrorCode, eventsApi } from '@playora/contracts';
 import { createOrg, createTestApp, signUp, type TestApp, uniqueSlug } from './create-test-app';
 
 let t: TestApp;
@@ -33,6 +33,11 @@ describe('brand-kits API', () => {
     const api = t.client(alice);
     const params = { orgId: aliceOrg };
 
+    const logoTicket = await api.call(assetsApi.createUpload, {
+      params,
+      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'logo.png' },
+    });
+
     const created = await api.call(brandKitsApi.create, {
       params,
       body: {
@@ -46,7 +51,7 @@ describe('brand-kits API', () => {
           },
           fontHeading: 'Unbounded',
           fontBody: 'Be Vietnam Pro',
-          logoAssetId: '01950000-0000-7000-8000-000000000001',
+          logoAssetId: logoTicket.assetId,
         },
       },
     });
@@ -62,7 +67,7 @@ describe('brand-kits API', () => {
         },
         fontHeading: 'Unbounded',
         fontBody: 'Be Vietnam Pro',
-        logoAssetId: '01950000-0000-7000-8000-000000000001',
+        logoAssetId: logoTicket.assetId,
       },
     });
 
@@ -135,6 +140,131 @@ describe('brand-kits API', () => {
               background: '#000000',
               text: '#ffffff',
             },
+          },
+        },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+  });
+
+  test('referencing another org asset returns 404 NOT_FOUND; referencing an audio asset as logo returns 400 VALIDATION_FAILED', async () => {
+    const asAlice = t.client(alice);
+    const asBob = t.client(bob);
+
+    const bobImage = await asBob.call(assetsApi.createUpload, {
+      params: { orgId: bobOrg },
+      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'bob-logo.png' },
+    });
+
+    const aliceAudio = await asAlice.call(assetsApi.createUpload, {
+      params: { orgId: aliceOrg },
+      body: { kind: 'audio', mime: 'audio/mpeg', bytes: 64, filename: 'alice-bgm.mp3' },
+    });
+
+    const aliceImage = await asAlice.call(assetsApi.createUpload, {
+      params: { orgId: aliceOrg },
+      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'alice-logo.png' },
+    });
+
+    // Brand kit in org A referencing org B's asset -> 404 NOT_FOUND
+    await expectApiError(
+      asAlice.call(brandKitsApi.create, {
+        params: { orgId: aliceOrg },
+        body: {
+          name: 'Cross-Tenant Asset Kit',
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+            logoAssetId: bobImage.assetId,
+          },
+        },
+      }),
+      404,
+      ErrorCode.NOT_FOUND,
+    );
+
+    // Brand kit in org A referencing unknown clientId -> 404 NOT_FOUND
+    await expectApiError(
+      asAlice.call(brandKitsApi.create, {
+        params: { orgId: aliceOrg },
+        body: {
+          name: 'Unknown Client Kit',
+          clientId: '01950000-0000-7000-8000-000000000999',
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+          },
+        },
+      }),
+      404,
+      ErrorCode.NOT_FOUND,
+    );
+
+    // Referencing an audio asset as logo -> 400 VALIDATION_FAILED
+    await expectApiError(
+      asAlice.call(brandKitsApi.create, {
+        params: { orgId: aliceOrg },
+        body: {
+          name: 'Wrong Kind Logo Kit',
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+            logoAssetId: aliceAudio.assetId,
+          },
+        },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Referencing an image asset as music -> 400 VALIDATION_FAILED
+    await expectApiError(
+      asAlice.call(brandKitsApi.create, {
+        params: { orgId: aliceOrg },
+        body: {
+          name: 'Wrong Kind Music Kit',
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+            musicAssetId: aliceImage.assetId,
+          },
+        },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Also validate on update
+    const kit = await asAlice.call(brandKitsApi.create, {
+      params: { orgId: aliceOrg },
+      body: {
+        name: 'Valid Kit',
+        tokens: {
+          colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+          logoAssetId: aliceImage.assetId,
+          musicAssetId: aliceAudio.assetId,
+        },
+      },
+    });
+
+    await expectApiError(
+      asAlice.call(brandKitsApi.update, {
+        params: { orgId: aliceOrg, brandKitId: kit.id },
+        body: {
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+            logoAssetId: bobImage.assetId,
+          },
+        },
+      }),
+      404,
+      ErrorCode.NOT_FOUND,
+    );
+
+    await expectApiError(
+      asAlice.call(brandKitsApi.update, {
+        params: { orgId: aliceOrg, brandKitId: kit.id },
+        body: {
+          tokens: {
+            colors: { primary: '#7c3aed', background: '#000000', text: '#ffffff' },
+            logoAssetId: aliceAudio.assetId,
           },
         },
       }),

@@ -9,6 +9,13 @@ const { assets } = schema;
 
 export const VARIANT_WIDTHS = [320, 1280, 2560] as const;
 
+const EXPECTED_IMAGE_FORMAT: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpeg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
 export interface AssetProcessorDeps {
   db: Database;
   s3: S3Client;
@@ -45,10 +52,15 @@ export async function processAsset(
   if (!asset) return { skipped: true };
 
   try {
-    const bytes = await s3.file(asset.storageKey).bytes();
-
     if (asset.kind === 'image') {
+      const bytes = await s3.file(asset.storageKey).bytes();
       const meta = await sharp(bytes).metadata();
+      const expectedFormat = EXPECTED_IMAGE_FORMAT[asset.mime];
+      if (!expectedFormat || meta.format !== expectedFormat) {
+        throw new Error(
+          `Image format mismatch for asset ${asset.id}: declared ${asset.mime}, detected ${meta.format ?? 'unknown'}`,
+        );
+      }
       const width = meta.width ?? null;
       const height = meta.height ?? null;
       const variants: Record<
@@ -118,11 +130,12 @@ export async function processAsset(
       return updated;
     }
 
+    const stat = await s3.file(asset.storageKey).stat();
     const [updated] = await db
       .update(assets)
       .set({
         status: 'ready',
-        bytes: bytes.byteLength,
+        bytes: stat.size,
       })
       .where(scope)
       .returning();

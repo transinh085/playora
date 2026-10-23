@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { type brandKitsApi, ErrorCode, type RouteArgs } from '@playora/contracts';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  type AssetKind,
+  type BrandKitTokens,
+  type brandKitsApi,
+  ErrorCode,
+  type RouteArgs,
+} from '@playora/contracts';
 import { AuditService } from '../../common/audit/audit.service';
 import { BrandKitsRepository } from './brand-kits.repository';
 
@@ -19,6 +25,48 @@ export class BrandKitsService {
     private readonly audit: AuditService,
   ) {}
 
+  private async validateReferences(
+    orgId: string,
+    body: { clientId?: string | null; tokens?: BrandKitTokens },
+  ) {
+    if (body.clientId) {
+      const ok = await this.repo.clientExistsInOrg(orgId, body.clientId);
+      if (!ok) {
+        throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Client not found' });
+      }
+    }
+
+    if (body.tokens) {
+      const checks: Array<{
+        id: string | null | undefined;
+        expectedKind: AssetKind;
+        field: string;
+      }> = [
+        { id: body.tokens.logoAssetId, expectedKind: 'image', field: 'tokens.logoAssetId' },
+        {
+          id: body.tokens.backgroundAssetId,
+          expectedKind: 'image',
+          field: 'tokens.backgroundAssetId',
+        },
+        { id: body.tokens.musicAssetId, expectedKind: 'audio', field: 'tokens.musicAssetId' },
+      ];
+
+      for (const check of checks) {
+        if (!check.id) continue;
+        const asset = await this.repo.findAssetInOrg(orgId, check.id);
+        if (!asset) {
+          throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Asset not found' });
+        }
+        if (asset.kind !== check.expectedKind) {
+          throw new BadRequestException({
+            code: ErrorCode.VALIDATION_FAILED,
+            message: `Expected ${check.expectedKind} asset for ${check.field}`,
+          });
+        }
+      }
+    }
+  }
+
   list(orgId: string, query: ListQuery) {
     return this.repo.list(orgId, query);
   }
@@ -32,6 +80,7 @@ export class BrandKitsService {
   }
 
   async create(orgId: string, body: CreateBody) {
+    await this.validateReferences(orgId, body);
     return this.repo.insert(orgId, {
       name: body.name,
       clientId: body.clientId ?? null,
@@ -40,6 +89,7 @@ export class BrandKitsService {
   }
 
   async update(orgId: string, brandKitId: string, body: UpdateBody) {
+    await this.validateReferences(orgId, body);
     const updated = await this.repo.update(orgId, brandKitId, {
       name: body.name,
       clientId: body.clientId,

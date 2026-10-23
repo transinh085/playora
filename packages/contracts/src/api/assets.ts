@@ -9,7 +9,7 @@ export const AssetStatus = z.enum(['pending', 'ready', 'failed']);
 export type AssetStatus = z.infer<typeof AssetStatus>;
 
 export const ALLOWED_ASSET_MIMES: Record<AssetKind, readonly string[]> = {
-  image: ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'],
+  image: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   audio: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/aac'],
   video: ['video/mp4', 'video/webm'],
 };
@@ -45,7 +45,6 @@ export const AssetSummary = z.object({
   bytes: z.number().int().nonnegative(),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
-  storageKey: z.string(),
   variants: AssetVariants,
   status: AssetStatus,
   url: z.string(),

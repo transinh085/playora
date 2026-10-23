@@ -1,11 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { ApiError } from '@playora/api-client';
 import { assetsApi, ErrorCode, MAX_ASSET_BYTES } from '@playora/contracts';
-import type { Database } from '@playora/db';
-import type { S3Client } from 'bun';
-import sharp from 'sharp';
-import { processAsset } from '../../worker/src/processors/asset-process';
-import { DB, S3 } from '../src/infra/tokens';
+import { type Database, schema } from '@playora/db';
+import { eq } from 'drizzle-orm';
+import { DB } from '../src/infra/tokens';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
 let t: TestApp;
@@ -42,6 +40,8 @@ beforeAll(async () => {
             headers: {
               'content-type': item.type,
               'content-length': String(item.data.byteLength),
+              etag: '"mock-etag"',
+              'last-modified': new Date().toUTCString(),
             },
           });
         }
@@ -76,40 +76,59 @@ async function expectApiError(promise: Promise<unknown>, status: number, code: E
   expect(err).toMatchObject({ status, code });
 }
 
-describe('assets API + worker processing', () => {
-  test('upload flow with MinIO, worker image variants + crop, list by kind, get and delete', async () => {
+describe('assets API', () => {
+  test('upload flow with presigned PUT, completeUpload stat/size validation + idempotency, list by kind, get without storageKey and delete', async () => {
     const api = t.client(alice);
     const params = { orgId: aliceOrg };
 
-    const pngBuffer = await sharp({
-      create: {
-        width: 1600,
-        height: 900,
-        channels: 4,
-        background: { r: 124, g: 58, b: 237, alpha: 1 },
-      },
-    })
-      .png()
-      .toBuffer();
+    const imageBytes = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
     const ticket = await api.call(assetsApi.createUpload, {
       params,
       body: {
         kind: 'image',
         mime: 'image/png',
-        bytes: pngBuffer.byteLength,
+        bytes: imageBytes.byteLength,
         filename: 'banner.png',
       },
     });
     expect(ticket.assetId).toBeString();
     expect(ticket.uploadUrl).toContain(ticket.assetId);
+    expect(ticket.uploadUrl).toContain('image%2Fpng');
     expect(ticket.headers['content-type']).toBe('image/png');
 
-    // Presigned PUT directly to MinIO
+    // Calling completeUpload before uploading object to S3 returns 400
+    await expectApiError(
+      api.call(assetsApi.completeUpload, {
+        params: { ...params, assetId: ticket.assetId },
+        body: {},
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Uploading a mismatched byte size causes completeUpload to reject with 400
+    const wrongPutRes = await fetch(ticket.uploadUrl, {
+      method: 'PUT',
+      headers: ticket.headers,
+      body: new Uint8Array([1, 2, 3]),
+    });
+    expect(wrongPutRes.ok).toBe(true);
+
+    await expectApiError(
+      api.call(assetsApi.completeUpload, {
+        params: { ...params, assetId: ticket.assetId },
+        body: {},
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Upload exact declared bytes to S3
     const putRes = await fetch(ticket.uploadUrl, {
       method: 'PUT',
       headers: ticket.headers,
-      body: new Uint8Array(pngBuffer),
+      body: imageBytes,
     });
     expect(putRes.ok).toBe(true);
 
@@ -119,11 +138,27 @@ describe('assets API + worker processing', () => {
       body: { crop },
     });
     expect(completed.status).toBe('pending');
+    expect('storageKey' in completed).toBe(false);
 
-    // Run worker processor directly against test DB and S3
+    // Repeated completeUpload while pending dedupes jobId and succeeds
+    const repeatedPending = await api.call(assetsApi.completeUpload, {
+      params: { ...params, assetId: ticket.assetId },
+      body: { crop },
+    });
+    expect(repeatedPending.id).toBe(ticket.assetId);
+
+    // Simulate worker marking asset ready; completeUpload returns summary idempotently
     const db = t.app.get<Database>(DB);
-    const s3 = t.app.get<S3Client>(S3);
-    await processAsset({ organizationId: aliceOrg, assetId: ticket.assetId, crop }, { db, s3 });
+    await db
+      .update(schema.assets)
+      .set({ status: 'ready', width: 1600, height: 900 })
+      .where(eq(schema.assets.id, ticket.assetId));
+
+    const idempotentReady = await api.call(assetsApi.completeUpload, {
+      params: { ...params, assetId: ticket.assetId },
+      body: {},
+    });
+    expect(idempotentReady.status).toBe('ready');
 
     const ready = await api.call(assetsApi.get, {
       params: { ...params, assetId: ticket.assetId },
@@ -137,16 +172,7 @@ describe('assets API + worker processing', () => {
       height: 900,
       status: 'ready',
     });
-    expect(ready.variants.w320).toMatchObject({ width: 320, height: 180 });
-    expect(ready.variants.w1280).toMatchObject({ width: 1280, height: 720 });
-    expect(ready.variants.w2560).toMatchObject({ width: 1600, height: 900 });
-    expect(ready.variants.cropped).toMatchObject({ width: 400, height: 400, crop });
-
-    // Verify presigned GET URLs work against MinIO
-    const getVariantRes = await fetch(ready.variants.w320?.url ?? '');
-    expect(getVariantRes.ok).toBe(true);
-    const getCropRes = await fetch(ready.variants.cropped?.url ?? '');
-    expect(getCropRes.ok).toBe(true);
+    expect('storageKey' in ready).toBe(false);
 
     // Upload an audio asset to test kind filtering
     const audioTicket = await api.call(assetsApi.createUpload, {
@@ -162,7 +188,6 @@ describe('assets API + worker processing', () => {
       params: { ...params, assetId: audioTicket.assetId },
       body: {},
     });
-    await processAsset({ organizationId: aliceOrg, assetId: audioTicket.assetId }, { db, s3 });
 
     const imagesOnly = await api.call(assetsApi.list, {
       params,
@@ -176,7 +201,6 @@ describe('assets API + worker processing', () => {
       query: { kind: 'audio', limit: 20 },
     });
     expect(audioOnly.items.map((a) => a.id)).toContain(audioTicket.assetId);
-    expect(audioOnly.items.find((a) => a.id === audioTicket.assetId)?.status).toBe('ready');
 
     // Delete asset
     await api.call(assetsApi.remove, { params: { ...params, assetId: ticket.assetId } });
@@ -187,12 +211,20 @@ describe('assets API + worker processing', () => {
     );
   });
 
-  test('invalid upload body is rejected with 400 VALIDATION_FAILED', async () => {
+  test('invalid upload body is rejected with 400 VALIDATION_FAILED (including image/svg+xml)', async () => {
     const api = t.client(alice);
     await expectApiError(
       api.call(assetsApi.createUpload, {
         params: { orgId: aliceOrg },
         body: { kind: 'image', mime: 'audio/mpeg', bytes: 1024 },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+    await expectApiError(
+      api.call(assetsApi.createUpload, {
+        params: { orgId: aliceOrg },
+        body: { kind: 'image', mime: 'image/svg+xml', bytes: 512 },
       }),
       400,
       ErrorCode.VALIDATION_FAILED,

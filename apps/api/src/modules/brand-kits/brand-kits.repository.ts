@@ -3,7 +3,7 @@ import { type Database, schema } from '@playora/db';
 import { and, desc, eq, lt, type SQL } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
-const { brandKits } = schema;
+const { assets, brandKits, clients } = schema;
 
 export type BrandKitRow = typeof brandKits.$inferSelect;
 export type NewBrandKit = Omit<typeof brandKits.$inferInsert, 'organizationId'>;
@@ -35,6 +35,22 @@ export class BrandKitsRepository {
       .select()
       .from(brandKits)
       .where(this.scope(organizationId, eq(brandKits.id, id)));
+    return row;
+  }
+
+  async clientExistsInOrg(organizationId: string, clientId: string) {
+    const [row] = await this.db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.organizationId, organizationId), eq(clients.id, clientId)));
+    return !!row;
+  }
+
+  async findAssetInOrg(organizationId: string, assetId: string) {
+    const [row] = await this.db
+      .select({ id: assets.id, kind: assets.kind })
+      .from(assets)
+      .where(and(eq(assets.organizationId, organizationId), eq(assets.id, assetId)));
     return row;
   }
 

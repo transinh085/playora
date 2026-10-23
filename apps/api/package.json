@@ -38,7 +38,6 @@
     "@playora/api-client": "workspace:*",
     "@playora/tsconfig": "workspace:*",
     "@types/express": "5.0.6",
-    "pino-pretty": "13.2.0",
-    "sharp": "0.35.5"
+    "pino-pretty": "13.2.0"
   }
 }

@@ -1,5 +1,11 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { type AssetVariants, type assetsApi, ErrorCode, type RouteArgs } from '@playora/contracts';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  type AssetVariants,
+  type assetsApi,
+  ErrorCode,
+  MAX_ASSET_BYTES,
+  type RouteArgs,
+} from '@playora/contracts';
 import type { Producer } from '@playora/jobs';
 import type { S3Client } from 'bun';
 import { uuidv7 } from 'uuidv7';
@@ -21,7 +27,6 @@ const MIME_EXTENSIONS: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/webp': 'webp',
   'image/gif': 'gif',
-  'image/svg+xml': 'svg',
   'audio/mpeg': 'mp3',
   'audio/mp3': 'mp3',
   'audio/wav': 'wav',
@@ -52,10 +57,11 @@ export class AssetsService {
         };
       }
     }
+    const { storageKey, ...rest } = row;
     return {
-      ...row,
+      ...rest,
       variants,
-      url: this.s3.presign(row.storageKey, { method: 'GET', expiresIn: 3600 }),
+      url: this.s3.presign(storageKey, { method: 'GET', expiresIn: 3600 }),
     };
   }
 
@@ -78,6 +84,7 @@ export class AssetsService {
     const uploadUrl = this.s3.presign(storageKey, {
       method: 'PUT',
       expiresIn: 900,
+      type: body.mime,
     });
 
     return {
@@ -94,12 +101,39 @@ export class AssetsService {
     if (!asset) {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Asset not found' });
     }
+    if (asset.status !== 'pending') {
+      return this.toSummary(asset);
+    }
 
-    await this.jobs.enqueue('asset.process', {
-      organizationId: orgId,
-      assetId,
-      crop: body.crop,
-    });
+    const stat = await this.s3
+      .file(asset.storageKey)
+      .stat()
+      .catch(() => null);
+    if (!stat) {
+      throw new BadRequestException({
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Uploaded object not found in storage',
+      });
+    }
+    if (stat.size > MAX_ASSET_BYTES || Math.abs(stat.size - asset.bytes) > 0) {
+      throw new BadRequestException({
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Uploaded object size does not match declared bytes',
+      });
+    }
+
+    const cropSuffix = body.crop
+      ? `-${body.crop.x}-${body.crop.y}-${body.crop.w}-${body.crop.h}`
+      : '';
+    await this.jobs.enqueue(
+      'asset.process',
+      {
+        organizationId: orgId,
+        assetId,
+        crop: body.crop,
+      },
+      { jobId: `${assetId}${cropSuffix}` },
+    );
 
     return this.toSummary(asset);
   }

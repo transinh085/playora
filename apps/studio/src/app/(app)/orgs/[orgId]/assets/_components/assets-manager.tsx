@@ -185,7 +185,7 @@ export function AssetsManager({ orgId }: { orgId: string }) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,audio/*,video/mp4,video/webm"
+            accept="image/png,image/jpeg,image/webp,image/gif,audio/*,video/mp4,video/webm"
             className="hidden"
             onChange={handleFileSelect}
           />
@@ -239,7 +239,7 @@ export function AssetsManager({ orgId }: { orgId: string }) {
                 <div className="bg-muted flex aspect-video items-center justify-center overflow-hidden">
                   {asset.kind === 'image' ? (
                     // biome-ignore lint/performance/noImgElement: presigned S3 URLs are dynamic
-                    <img src={thumbUrl} alt={asset.storageKey} className="size-full object-cover" />
+                    <img src={thumbUrl} alt={asset.id} className="size-full object-cover" />
                   ) : asset.kind === 'audio' ? (
                     <Music className="text-muted-foreground size-10" />
                   ) : (
