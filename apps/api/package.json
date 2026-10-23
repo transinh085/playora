@@ -17,6 +17,7 @@
     "@nestjs/throttler": "6.7.1",
     "@playora/auth": "workspace:*",
     "@playora/contracts": "workspace:*",
+    "@playora/core": "workspace:*",
     "@playora/db": "workspace:*",
     "@playora/env": "workspace:*",
     "@playora/jobs": "workspace:*",

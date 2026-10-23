@@ -20,6 +20,7 @@ import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
 import { PublicController } from './modules/public/public.controller';
+import { ScreensModule } from './modules/screens/screens.module';
 
 @Module({})
 export class AppModule {
@@ -42,6 +43,7 @@ export class AppModule {
             redact: [
               'req.headers.cookie',
               'req.headers.authorization',
+              'req.headers["x-screen-key"]',
               'res.headers["set-cookie"]',
             ],
             autoLogging: { ignore: (req) => req.url === '/v1/health' },
@@ -65,6 +67,7 @@ export class AppModule {
         AssetsModule,
         BrandKitsModule,
         GuestsModule,
+        ScreensModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [

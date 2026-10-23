@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { EventNav } from '../_components/event-nav';
 import { EventSettingsForm } from './_components/event-settings-form';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,6 +16,7 @@ export default async function EventSettingsPage({
   const t = await getTranslations('events');
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <EventNav orgId={orgId} eventId={eventId} />
       <h1 className="text-2xl font-semibold">{t('settings')}</h1>
       <EventSettingsForm orgId={orgId} eventId={eventId} />
     </div>

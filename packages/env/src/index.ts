@@ -25,6 +25,7 @@ export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   API_PORT: z.coerce.number().int().positive().default(4000),
   API_PUBLIC_URL: z.url().default('http://localhost:4000'),
+  PLAY_URL: z.url().default('http://localhost:3002'),
   DATABASE_URL: z.url(),
   DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
   REDIS_URL: z.url(),
