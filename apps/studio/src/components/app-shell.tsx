@@ -13,7 +13,17 @@ import {
 } from '@playora/ui/components/dropdown-menu';
 import { Logo } from '@playora/ui/components/logo';
 import { cn } from '@playora/ui/lib/utils';
-import { BarChart3, CalendarDays, Gamepad2, LogOut, Moon, Settings, Sun } from 'lucide-react';
+import {
+  BarChart3,
+  CalendarDays,
+  Gamepad2,
+  ImageIcon,
+  LogOut,
+  Moon,
+  Palette,
+  Settings,
+  Sun,
+} from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -23,6 +33,8 @@ import { authClient } from '@/lib/auth-client';
 
 const nav = [
   { key: 'events', icon: CalendarDays, path: 'events' },
+  { key: 'brandKits', icon: Palette, path: 'brand-kits' },
+  { key: 'assets', icon: ImageIcon, path: 'assets' },
   { key: 'templates', icon: Gamepad2, path: 'templates' },
   { key: 'reports', icon: BarChart3, path: 'reports' },
   { key: 'settings', icon: Settings, path: 'settings' },
