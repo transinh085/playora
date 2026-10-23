@@ -9,7 +9,7 @@ import { configureApp } from '../src/bootstrap/configure-app';
 export const TEST_ORIGIN = 'http://localhost:3001';
 
 /** Boots the real API (same module + configureApp as production) on a random port against `<db>_test`. */
-export async function createTestApp() {
+export async function createTestApp(envOverrides: Record<string, string> = {}) {
   const databaseUrl = await prepareTestDatabase(process.env.DATABASE_URL ?? '');
   const env = parseEnv(apiEnvSchema, {
     ...process.env,
@@ -19,6 +19,7 @@ export async function createTestApp() {
     DATABASE_POOL_MAX: '4',
     RATE_LIMIT_PER_MIN: '100000',
     STUDIO_ORIGINS: TEST_ORIGIN,
+    ...envOverrides,
   });
 
   const app = await NestFactory.create(AppModule.forRoot(env), {

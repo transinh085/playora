@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD COLUMN "form_data" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -1,31 +1,63 @@
-import { Controller, Inject, NotFoundException } from '@nestjs/common';
-import { ErrorCode, publicApi, type RouteArgs } from '@playora/contracts';
-import { type Database, schema } from '@playora/db';
-import { and, eq, isNull } from 'drizzle-orm';
+import { Controller, Headers, Inject, Ip } from '@nestjs/common';
+import { normalizeIp, SkipThrottle, Throttle } from '@nestjs/throttler';
+import { publicApi, type RouteArgs } from '@playora/contracts';
+import type { Database } from '@playora/db';
+import type { ApiEnv } from '@playora/env';
 import { Args, Route } from '../../common/contract/route.decorator';
-import { DB } from '../../infra/tokens';
+import { DB, ENV } from '../../infra/tokens';
+import { AssetsService } from '../assets/assets.service';
+import { PublicRepository } from './public.repository';
+import { PublicService } from './public.service';
 
+export const PUBLIC_THROTTLER = 'public';
+export const PUBLIC_JOIN_DEVICE_THROTTLER = 'publicJoinDevice';
+export const PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN = 20;
+
+export function getPublicJoinDeviceTracker(req: Record<string, unknown>): string {
+  const rawIp = typeof req.ip === 'string' && req.ip.length > 0 ? req.ip : 'unknown';
+  const ip = normalizeIp(rawIp);
+  const body = req.body as { deviceId?: unknown } | undefined;
+  const rawDeviceId = body?.deviceId;
+  const deviceId =
+    typeof rawDeviceId === 'string' && rawDeviceId.trim().length > 0
+      ? rawDeviceId.trim().slice(0, 128)
+      : 'missing';
+  return `${ip}:${deviceId}`;
+}
+
+/**
+ * Public player endpoints (`/p/:slug`, `/p/:slug/join`).
+ * Skips the default 300/min per-IP throttler so hundreds of phones behind venue NAT can join;
+ * applies a high per-IP limit (`PUBLIC_RATE_LIMIT_PER_MIN`) plus a per-(IP + deviceId) bucket on join.
+ */
+@SkipThrottle({ default: true })
 @Controller()
 export class PublicController {
-  constructor(@Inject(DB) private readonly db: Database) {}
+  private readonly publicService: PublicService;
 
+  constructor(@Inject(DB) db: Database, @Inject(ENV) env: ApiEnv, assets: AssetsService) {
+    this.publicService = new PublicService(new PublicRepository(db), assets, env);
+  }
+
+  @SkipThrottle({ [PUBLIC_JOIN_DEVICE_THROTTLER]: true })
   @Route(publicApi.event)
-  async event(@Args() { params }: RouteArgs<typeof publicApi.event>) {
-    const { events } = schema;
-    const [event] = await this.db
-      .select({
-        id: events.id,
-        name: events.name,
-        mode: events.mode,
-        status: events.status,
-        identity: events.identity,
-        startsAt: events.startsAt,
-      })
-      .from(events)
-      .where(and(eq(events.slug, params.slug), isNull(events.deletedAt)));
+  event(@Args() { params }: RouteArgs<typeof publicApi.event>) {
+    return this.publicService.getEvent(params.slug);
+  }
 
-    if (!event)
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
-    return event;
+  @Throttle({
+    [PUBLIC_JOIN_DEVICE_THROTTLER]: {
+      ttl: 60_000,
+      limit: PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
+      getTracker: getPublicJoinDeviceTracker,
+    },
+  })
+  @Route(publicApi.join)
+  join(
+    @Args() { params, body }: RouteArgs<typeof publicApi.join>,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.publicService.join(params.slug, body, { ip, userAgent });
   }
 }

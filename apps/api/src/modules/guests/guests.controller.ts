@@ -64,4 +64,16 @@ export class GuestsController {
       ip,
     });
   }
+
+  @Route(guestsApi.releaseDevice)
+  releaseDevice(
+    @Args() { params }: RouteArgs<typeof guestsApi.releaseDevice>,
+    @CurrentSession() session: AuthSession,
+    @Ip() ip: string,
+  ) {
+    return this.guests.releaseDevice(params.orgId, params.eventId, params.guestId, {
+      userId: session.user.id,
+      ip,
+    });
+  }
 }

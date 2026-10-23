@@ -45,6 +45,7 @@ export const players = pgTable(
     phoneHash: text(),
     deviceId: text(),
     team: text(),
+    formData: jsonb().$type<Record<string, string | boolean>>().notNull().default({}),
     checkedInAt: timestamp({ withTimezone: true }),
     flagged: boolean().notNull().default(false),
     ...timestamps,

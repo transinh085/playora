@@ -41,7 +41,7 @@ import {
 } from '@playora/ui/components/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@playora/ui/components/tabs';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Trash2, Upload, Users } from 'lucide-react';
+import { ArrowLeft, Trash2, Unlock, Upload, Users } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -123,6 +123,14 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
       queryClient.invalidateQueries({ queryKey: routePrefix(guestsApi.list) });
       queryClient.invalidateQueries({ queryKey: routePrefix(guestsApi.listTeams) });
       toast.success(t('guests.deletedOne'));
+    },
+    onError: (error) => toast.error(messageFor(error.code)),
+  });
+
+  const releaseDeviceMutation = useRouteMutation(api, guestsApi.releaseDevice, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: routePrefix(guestsApi.list) });
+      toast.success(t('guests.deviceReleased'));
     },
     onError: (error) => toast.error(messageFor(error.code)),
   });
@@ -481,19 +489,36 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
                             .join(' · ') || '—'}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t('guests.deleteGuest')}
-                            disabled={removeMutation.isPending}
-                            onClick={() =>
-                              removeMutation.mutate({
-                                params: { orgId, eventId, guestId: guest.id },
-                              })
-                            }
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {guest.checkedInAt && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={releaseDeviceMutation.isPending}
+                                onClick={() =>
+                                  releaseDeviceMutation.mutate({
+                                    params: { orgId, eventId, guestId: guest.id },
+                                  })
+                                }
+                              >
+                                <Unlock className="size-3.5" />
+                                {t('guests.releaseDevice')}
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t('guests.deleteGuest')}
+                              disabled={removeMutation.isPending}
+                              onClick={() =>
+                                removeMutation.mutate({
+                                  params: { orgId, eventId, guestId: guest.id },
+                                })
+                              }
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

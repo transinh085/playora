@@ -5,12 +5,17 @@ import { and, asc, desc, eq, ilike, inArray, isNull, lt, or, type SQL, sql } fro
 import { DB } from '../../infra/tokens';
 import type { ValidatedGuestRow } from './guest-file.parser';
 
-const { events, guestListEntries } = schema;
+const { events, guestListEntries, players } = schema;
 
 type GuestRow = typeof guestListEntries.$inferSelect;
 type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
 
-function toGuestEntry(row: GuestRow): GuestEntry {
+interface GuestPlayerState {
+  checkedInAt: Date | null;
+  deviceId: string | null;
+}
+
+function toGuestEntry(row: GuestRow, playerState?: GuestPlayerState): GuestEntry {
   const rawAttrs =
     row.attributes && typeof row.attributes === 'object' && !Array.isArray(row.attributes)
       ? (row.attributes as Record<string, unknown>)
@@ -27,6 +32,8 @@ function toGuestEntry(row: GuestRow): GuestEntry {
     displayName: row.displayName,
     team: row.team,
     attributes,
+    checkedInAt: playerState?.checkedInAt ? playerState.checkedInAt.toISOString() : null,
+    deviceBound: Boolean(playerState?.deviceId),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -109,8 +116,73 @@ export class GuestsRepository {
 
     const hasMore = rows.length > opts.limit;
     const slice = hasMore ? rows.slice(0, opts.limit) : rows;
-    const items = slice.map(toGuestEntry);
+    const playerStateByGuestId = new Map<string, GuestPlayerState>();
+
+    if (slice.length > 0) {
+      const playerRows = await this.db
+        .select({
+          guestListEntryId: players.guestListEntryId,
+          checkedInAt: players.checkedInAt,
+          deviceId: players.deviceId,
+        })
+        .from(players)
+        .where(
+          and(
+            eq(players.organizationId, organizationId),
+            eq(players.eventId, eventId),
+            eq(players.env, 'live'),
+            inArray(
+              players.guestListEntryId,
+              slice.map((r) => r.id),
+            ),
+          ),
+        );
+      for (const p of playerRows) {
+        if (p.guestListEntryId) {
+          playerStateByGuestId.set(p.guestListEntryId, {
+            checkedInAt: p.checkedInAt,
+            deviceId: p.deviceId,
+          });
+        }
+      }
+    }
+
+    const items = slice.map((r) => toGuestEntry(r, playerStateByGuestId.get(r.id)));
     return { items, nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null };
+  }
+
+  async findOne(
+    organizationId: string,
+    eventId: string,
+    guestId: string,
+    tx: Pick<Database, 'select'> = this.db,
+  ): Promise<GuestRow | undefined> {
+    const [row] = await tx
+      .select()
+      .from(guestListEntries)
+      .where(this.scope(organizationId, eventId, eq(guestListEntries.id, guestId)));
+    return row;
+  }
+
+  async releasePlayerDevice(
+    organizationId: string,
+    eventId: string,
+    guestId: string,
+    tx: Pick<Database, 'update'> = this.db,
+  ): Promise<{ id: string } | undefined> {
+    const [row] = await tx
+      .update(players)
+      .set({ deviceId: null, updatedAt: new Date() })
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'live'),
+          eq(players.guestListEntryId, guestId),
+        ),
+      )
+      .returning({ id: players.id });
+    return row;
   }
 
   async findExistingCodes(

@@ -1,11 +1,40 @@
+import { createHash } from 'node:crypto';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { ErrorCode, type eventsApi, type RouteArgs } from '@playora/contracts';
+import {
+  type ConsentItem,
+  ErrorCode,
+  type EventRegistrationForm,
+  type eventsApi,
+  type PublicConsentItem,
+  type PublicRegistrationForm,
+  type RouteArgs,
+} from '@playora/contracts';
 import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
 import { EventsRepository } from './events.repository';
 
 /** Free plan cap until billing lands (docs/02-business-model.md §3.2). */
 export const FREE_PLAYER_LIMIT = 100;
+
+export function versionConsentItem(item: ConsentItem): PublicConsentItem {
+  const payload = item.text.en ? `${item.text.vi}\n${item.text.en}` : item.text.vi;
+  const textHash = createHash('sha256').update(payload).digest('hex');
+  const textVersion = `sha256:${textHash.slice(0, 12)}`;
+  return {
+    purpose: item.purpose,
+    text: item.text,
+    required: item.required,
+    textVersion,
+    textHash,
+  };
+}
+
+export function normalizeRegistrationForm(form: EventRegistrationForm): PublicRegistrationForm {
+  return {
+    fields: form.fields,
+    consents: form.consents.map(versionConsentItem),
+  };
+}
 
 type ListQuery = RouteArgs<typeof eventsApi.list>['query'];
 type CreateBody = RouteArgs<typeof eventsApi.create>['body'];
@@ -53,11 +82,18 @@ export class EventsService {
         slug: body.slug,
         brandKitId: body.brandKitId,
         mode: body.mode,
+        status: body.status,
         identity: body.identity,
+        registrationForm:
+          body.registrationForm === undefined
+            ? undefined
+            : body.registrationForm === null
+              ? null
+              : normalizeRegistrationForm(body.registrationForm),
         timezone: body.timezone,
         startsAt: toDate(body.startsAt),
         endsAt: toDate(body.endsAt),
-        playerLimit: FREE_PLAYER_LIMIT,
+        playerLimit: body.playerLimit ?? FREE_PLAYER_LIMIT,
       });
     } catch (err) {
       if (pgErrorCode(err) === PG_UNIQUE_VIOLATION) {
@@ -84,7 +120,15 @@ export class EventsService {
     const updated = await this.repo.update(orgId, eventId, {
       name: body.name,
       brandKitId: body.brandKitId,
+      status: body.status,
       identity: body.identity,
+      registrationForm:
+        body.registrationForm === undefined
+          ? undefined
+          : body.registrationForm === null
+            ? null
+            : normalizeRegistrationForm(body.registrationForm),
+      playerLimit: body.playerLimit,
       timezone: body.timezone,
       startsAt: toDate(body.startsAt),
       endsAt: toDate(body.endsAt),

@@ -18,6 +18,8 @@ export const GuestEntry = z.object({
   displayName: z.string(),
   team: z.string().nullable(),
   attributes: z.record(z.string(), z.string()),
+  checkedInAt: IsoDateTime.nullable(),
+  deviceBound: z.boolean(),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });
@@ -207,5 +209,15 @@ export const guestsApi = {
     params: EventParams,
     body: AssignRandomTeamsBody,
     response: AssignRandomTeamsResult,
+  }),
+  releaseDevice: defineRoute({
+    method: 'POST',
+    path: '/orgs/:orgId/events/:eventId/guests/:guestId/release-device',
+    summary: 'Clear the bound device of a guest so they can join from a new phone',
+    tags: ['guests'],
+    auth: 'session',
+    permission: { event: ['update'] },
+    params: GuestParams,
+    response: Ok,
   }),
 };

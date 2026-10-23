@@ -220,4 +220,29 @@ export class GuestsService {
       };
     });
   }
+
+  async releaseDevice(orgId: string, eventId: string, guestId: string, actor: Actor) {
+    await this.ensureEvent(orgId, eventId);
+    return this.repo.transaction(async (tx) => {
+      const guest = await this.repo.findOne(orgId, eventId, guestId, tx);
+      if (!guest) {
+        throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Guest not found' });
+      }
+      const released = await this.repo.releasePlayerDevice(orgId, eventId, guestId, tx);
+      await this.audit.record(
+        {
+          organizationId: orgId,
+          actorType: 'user',
+          actorId: actor.userId,
+          action: 'guests.release_device',
+          targetType: 'guest',
+          targetId: guestId,
+          diff: { eventId, externalCode: guest.externalCode, playerId: released?.id ?? null },
+          ip: actor.ip,
+        },
+        tx,
+      );
+      return { ok: true as const };
+    });
+  }
 }

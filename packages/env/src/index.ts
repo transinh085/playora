@@ -33,6 +33,8 @@ export const apiEnvSchema = z.object({
   LOG_LEVEL: logLevel,
   /** Requests per minute per client (IP) across all API instances. */
   RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(300),
+  /** High per-IP rate limit (per minute) for public player endpoints behind venue NAT. */
+  PUBLIC_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(6000),
   /** Express `trust proxy` — number of proxy hops in front of the API (Cloudflare + LB = 2). */
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */

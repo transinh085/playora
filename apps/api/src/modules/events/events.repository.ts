@@ -9,7 +9,18 @@ const { events, brandKits } = schema;
 export type EventRow = typeof events.$inferSelect;
 export type NewEvent = Omit<typeof events.$inferInsert, 'organizationId'>;
 export type EventPatch = Partial<
-  Pick<EventRow, 'name' | 'brandKitId' | 'identity' | 'timezone' | 'startsAt' | 'endsAt'>
+  Pick<
+    EventRow,
+    | 'name'
+    | 'brandKitId'
+    | 'status'
+    | 'identity'
+    | 'registrationForm'
+    | 'playerLimit'
+    | 'timezone'
+    | 'startsAt'
+    | 'endsAt'
+  >
 >;
 
 /**

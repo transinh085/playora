@@ -75,7 +75,7 @@ test('create screen with layout preset in Studio, launch /screen via fragment ke
   await page.getByRole('link', { name: 'Màn hình' }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/screens$/);
   await page.getByRole('button', { name: 'Thu hồi' }).click();
-  await expect(page.getByText('Đã thu hồi')).toBeVisible();
+  await expect(page.getByText('Đã thu hồi').first()).toBeVisible();
 
   await page.goto(launchUrl);
   await expect(page.getByTestId('screen-revoked')).toContainText('Màn hình đã bị thu hồi');

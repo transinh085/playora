@@ -19,7 +19,13 @@ import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
-import { PublicController } from './modules/public/public.controller';
+import {
+  getPublicJoinDeviceTracker,
+  PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
+  PUBLIC_JOIN_DEVICE_THROTTLER,
+  PUBLIC_THROTTLER,
+  PublicController,
+} from './modules/public/public.controller';
 import { ScreensModule } from './modules/screens/screens.module';
 
 @Module({})
@@ -59,7 +65,28 @@ export class AppModule {
         ThrottlerModule.forRootAsync({
           inject: [REDIS],
           useFactory: (redis: Redis) => ({
-            throttlers: [{ name: 'default', ttl: 60_000, limit: env.RATE_LIMIT_PER_MIN }],
+            throttlers: [
+              {
+                name: 'default',
+                ttl: 60_000,
+                limit: env.RATE_LIMIT_PER_MIN,
+                skipIf: (ctx) => ctx.getClass() === PublicController,
+              },
+              {
+                name: PUBLIC_THROTTLER,
+                ttl: 60_000,
+                limit: env.PUBLIC_RATE_LIMIT_PER_MIN,
+                skipIf: (ctx) => ctx.getClass() !== PublicController,
+              },
+              {
+                name: PUBLIC_JOIN_DEVICE_THROTTLER,
+                ttl: 60_000,
+                limit: PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
+                skipIf: (ctx) =>
+                  ctx.getClass() !== PublicController || ctx.getHandler().name !== 'join',
+                getTracker: getPublicJoinDeviceTracker,
+              },
+            ],
             storage: new RedisThrottlerStorage(redis),
           }),
         }),
