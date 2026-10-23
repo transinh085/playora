@@ -83,6 +83,7 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
     defaultValues: {
       fileName: '',
       content: '',
+      encoding: 'text',
       mapping: { externalCode: 'externalCode', displayName: 'displayName', team: 'team' },
     },
   });
@@ -139,17 +140,25 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
     const file = e.target.files?.[0];
     if (!file) return;
     setImportResult(null);
+    const isXlsx = file.name.trim().toLowerCase().endsWith('.xlsx');
+    const encoding = isXlsx ? 'base64' : 'text';
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+      const raw = typeof reader.result === 'string' ? reader.result : '';
+      const content = isXlsx ? raw.replace(/^data:[^,]*;base64,/, '') : raw;
       form.setValue('fileName', file.name, { shouldValidate: true });
-      form.setValue('content', dataUrl, { shouldValidate: true });
+      form.setValue('content', content, { shouldValidate: true });
+      form.setValue('encoding', encoding, { shouldValidate: true });
       previewMutation.mutate({
         params: { orgId, eventId },
-        body: { fileName: file.name, content: dataUrl },
+        body: { fileName: file.name, content, encoding },
       });
     };
-    reader.readAsDataURL(file);
+    if (isXlsx) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
   }
 
   if (eventQuery.isPending) {

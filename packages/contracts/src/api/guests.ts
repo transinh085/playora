@@ -3,7 +3,12 @@ import { AuthId, Id, IsoDateTime, Ok, OrgParams, Page, PageQuery } from './commo
 import { defineRoute } from './route';
 
 export const MAX_GUEST_IMPORT_ROWS = 50_000;
+export const MAX_GUEST_IMPORT_COLUMNS = 50;
+export const MAX_GUEST_FILE_BYTES = 10 * 1024 * 1024;
 export const UNASSIGNED_TEAM_FILTER = '__unassigned__';
+
+export const GuestFileEncoding = z.enum(['text', 'base64']);
+export type GuestFileEncoding = z.infer<typeof GuestFileEncoding>;
 
 export const GuestEntry = z.object({
   id: Id,
@@ -33,8 +38,9 @@ export type GuestColumnMapping = z.infer<typeof GuestColumnMapping>;
 
 export const PreviewGuestsBody = z.object({
   fileName: z.string().trim().min(1).max(255),
-  /** Raw CSV text or base64-encoded CSV/XLSX file content. */
+  /** Raw CSV text (`encoding: 'text'`) or base64-encoded CSV/XLSX content (`encoding: 'base64'`). Multi-sheet XLSX workbooks use the first worksheet. */
   content: z.string().min(1),
+  encoding: z.enum(['text', 'base64']),
 });
 export type PreviewGuestsBody = z.input<typeof PreviewGuestsBody>;
 
@@ -48,8 +54,9 @@ export type PreviewGuestsResponse = z.infer<typeof PreviewGuestsResponse>;
 
 export const ImportGuestsBody = z.object({
   fileName: z.string().trim().min(1).max(255),
-  /** Raw CSV text or base64-encoded CSV/XLSX file content. */
+  /** Raw CSV text (`encoding: 'text'`) or base64-encoded CSV/XLSX content (`encoding: 'base64'`). Multi-sheet XLSX workbooks use the first worksheet. */
   content: z.string().min(1),
+  encoding: z.enum(['text', 'base64']),
   mapping: GuestColumnMapping.default({
     externalCode: 'externalCode',
     displayName: 'displayName',

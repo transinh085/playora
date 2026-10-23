@@ -21,6 +21,13 @@ export function configureApp(app: INestApplication, env: ApiEnv) {
   const server = app.getHttpAdapter().getInstance() as express.Express;
   server.set('trust proxy', env.TRUST_PROXY);
   server.all('/auth/{*path}', toNodeHandler(app.get<Auth>(AUTH)));
+  server.post(
+    [
+      '/v1/orgs/:orgId/events/:eventId/guests/preview',
+      '/v1/orgs/:orgId/events/:eventId/guests/import',
+    ],
+    express.json({ limit: '15mb' }),
+  );
   server.use(express.json({ limit: '1mb' }));
 
   app.setGlobalPrefix('v1');

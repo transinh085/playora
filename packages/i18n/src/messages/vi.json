@@ -54,6 +54,7 @@
   },
   "errors": {
     "VALIDATION_FAILED": "Dữ liệu chưa hợp lệ, vui lòng kiểm tra lại",
+    "PAYLOAD_TOO_LARGE": "Dữ liệu tải lên vượt quá dung lượng cho phép",
     "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn",
     "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này",
     "NOT_FOUND": "Không tìm thấy dữ liệu",

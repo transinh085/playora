@@ -53,7 +53,7 @@ export class GuestsService {
 
   async preview(orgId: string, eventId: string, body: PreviewBody) {
     await this.ensureEvent(orgId, eventId);
-    const sheet = await parseGuestFile(body.fileName, body.content);
+    const sheet = await parseGuestFile(body.fileName, body.content, body.encoding);
     const suggestedMapping = suggestColumnMapping(sheet.headers);
     const sampleRows = sheet.rows.slice(0, 5).map(({ cells }) => {
       const record: Record<string, string> = {};
@@ -75,7 +75,7 @@ export class GuestsService {
 
   async import(orgId: string, eventId: string, body: ImportBody, actor: Actor) {
     await this.ensureEvent(orgId, eventId);
-    const sheet = await parseGuestFile(body.fileName, body.content);
+    const sheet = await parseGuestFile(body.fileName, body.content, body.encoding);
     const { validRows, skipped, errors } = mapAndValidateRows(sheet, body.mapping);
 
     return this.repo.transaction(async (tx) => {

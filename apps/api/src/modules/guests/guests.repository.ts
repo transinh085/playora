@@ -120,7 +120,7 @@ export class GuestsRepository {
     tx: Pick<Database, 'select'> = this.db,
   ): Promise<Set<string>> {
     const existing = new Set<string>();
-    const chunkSize = 1_000;
+    const chunkSize = 5_000;
     for (let i = 0; i < codes.length; i += chunkSize) {
       const chunk = codes.slice(i, i + chunkSize);
       if (chunk.length === 0) continue;
@@ -141,7 +141,7 @@ export class GuestsRepository {
     rows: ValidatedGuestRow[],
     tx: Pick<Database, 'insert'> = this.db,
   ): Promise<void> {
-    const chunkSize = 500;
+    const chunkSize = 2_500;
     const now = new Date();
     for (let i = 0; i < rows.length; i += chunkSize) {
       const chunk = rows.slice(i, i + chunkSize);

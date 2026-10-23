@@ -54,6 +54,7 @@
   },
   "errors": {
     "VALIDATION_FAILED": "Some fields are invalid, please check again",
+    "PAYLOAD_TOO_LARGE": "The uploaded file or request is too large",
     "UNAUTHORIZED": "Your session has expired",
     "FORBIDDEN": "You are not allowed to do this",
     "NOT_FOUND": "Not found",

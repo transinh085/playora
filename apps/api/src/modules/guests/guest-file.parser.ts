@@ -2,7 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import {
   ErrorCode,
   type GuestColumnMapping,
+  type GuestFileEncoding,
   type GuestImportRowError,
+  MAX_GUEST_FILE_BYTES,
+  MAX_GUEST_IMPORT_COLUMNS,
   MAX_GUEST_IMPORT_ROWS,
 } from '@playora/contracts';
 import ExcelJS from 'exceljs';
@@ -88,37 +91,95 @@ function detectFileKind(fileName: string): 'csv' | 'xlsx' {
   });
 }
 
-function decodeCsvText(content: string): string {
-  let raw = content;
-  if (raw.startsWith('data:')) {
-    const commaIdx = raw.indexOf(',');
-    if (commaIdx === -1) {
+export type CsvDelimiter = ',' | ';' | '\t';
+
+function decodeBase64Bytes(content: string): Buffer {
+  const stripped = content.replace(/^data:[^,]*;base64,/, '').replace(/\s+/g, '');
+  if (!stripped || stripped.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(stripped)) {
+    throw new BadRequestException({
+      code: ErrorCode.VALIDATION_FAILED,
+      message: 'Invalid base64 file content',
+      details: { field: 'content' },
+    });
+  }
+  const padding = stripped.endsWith('==') ? 2 : stripped.endsWith('=') ? 1 : 0;
+  const estimatedDecodedBytes = (stripped.length * 3) / 4 - padding;
+  if (estimatedDecodedBytes > MAX_GUEST_FILE_BYTES) {
+    throw new BadRequestException({
+      code: ErrorCode.VALIDATION_FAILED,
+      message: `Decoded file size exceeds maximum of ${MAX_GUEST_FILE_BYTES} bytes`,
+      details: { field: 'content' },
+    });
+  }
+  const buffer = Buffer.from(stripped, 'base64');
+  if (buffer.byteLength > MAX_GUEST_FILE_BYTES) {
+    throw new BadRequestException({
+      code: ErrorCode.VALIDATION_FAILED,
+      message: `Decoded file size exceeds maximum of ${MAX_GUEST_FILE_BYTES} bytes`,
+      details: { field: 'content' },
+    });
+  }
+  return buffer;
+}
+
+function decodeCsvText(content: string, encoding: GuestFileEncoding): string {
+  let raw: string;
+  if (encoding === 'base64') {
+    raw = decodeBase64Bytes(content).toString('utf8');
+  } else {
+    if (Buffer.byteLength(content, 'utf8') > MAX_GUEST_FILE_BYTES) {
       throw new BadRequestException({
         code: ErrorCode.VALIDATION_FAILED,
-        message: 'Invalid data URI content',
+        message: `Decoded file size exceeds maximum of ${MAX_GUEST_FILE_BYTES} bytes`,
         details: { field: 'content' },
       });
     }
-    const meta = raw.slice(0, commaIdx);
-    const data = raw.slice(commaIdx + 1);
-    raw = meta.includes(';base64')
-      ? Buffer.from(data, 'base64').toString('utf8')
-      : decodeURIComponent(data);
-  } else if (
-    !/[\r\n,;\t]/.test(raw) &&
-    /^[A-Za-z0-9+/=\s]+$/.test(raw) &&
-    raw.trim().length % 4 === 0
-  ) {
-    const decoded = Buffer.from(raw.trim(), 'base64').toString('utf8');
-    if (/[\r\n,]/.test(decoded)) {
-      raw = decoded;
-    }
+    raw = content;
   }
   return raw.startsWith('\uFEFF') ? raw.slice(1) : raw;
 }
 
-/** RFC 4180 CSV parser supporting quoted fields, escaped quotes, and CRLF/LF newlines. */
-function parseCsvRows(text: string): string[][] {
+/**
+ * Auto-detects the CSV delimiter from the header line among `,`, `;`, and `\t`
+ * (Vietnamese Excel exports commonly use `;`). Characters inside double quotes are ignored.
+ */
+export function detectCsvDelimiter(text: string): CsvDelimiter {
+  const counts: Record<CsvDelimiter, number> = { ',': 0, ';': 0, '\t': 0 };
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === undefined) continue;
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === '\r' || ch === '\n') {
+      break;
+    } else if (ch === ',' || ch === ';' || ch === '\t') {
+      counts[ch]++;
+    }
+  }
+
+  let best: CsvDelimiter = ',';
+  for (const candidate of [',', ';', '\t'] as const) {
+    if (counts[candidate] > counts[best]) {
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+/** RFC 4180 CSV parser supporting quoted fields, escaped quotes, CRLF/LF newlines, and custom delimiter. */
+function parseCsvRows(text: string, delimiter: CsvDelimiter): string[][] {
   const rows: string[][] = [];
   let currentRow: string[] = [];
   let currentField = '';
@@ -143,7 +204,7 @@ function parseCsvRows(text: string): string[][] {
 
     if (ch === '"') {
       inQuotes = true;
-    } else if (ch === ',') {
+    } else if (ch === delimiter) {
       currentRow.push(currentField);
       currentField = '';
     } else if (ch === '\r') {
@@ -178,9 +239,10 @@ function parseCsvRows(text: string): string[][] {
   return rows;
 }
 
-function parseCsvSheet(content: string): ParsedGuestSheet {
-  const text = decodeCsvText(content);
-  const rawRows = parseCsvRows(text);
+function parseCsvSheet(content: string, encoding: GuestFileEncoding): ParsedGuestSheet {
+  const text = decodeCsvText(content, encoding);
+  const delimiter = detectCsvDelimiter(text);
+  const rawRows = parseCsvRows(text, delimiter);
   if (rawRows.length === 0) {
     throw new BadRequestException({
       code: ErrorCode.VALIDATION_FAILED,
@@ -195,6 +257,14 @@ function parseCsvSheet(content: string): ParsedGuestSheet {
     throw new BadRequestException({
       code: ErrorCode.VALIDATION_FAILED,
       message: 'CSV file has no header row',
+      details: { field: 'content' },
+    });
+  }
+
+  if (headers.length > MAX_GUEST_IMPORT_COLUMNS) {
+    throw new BadRequestException({
+      code: ErrorCode.VALIDATION_FAILED,
+      message: `File exceeds maximum of ${MAX_GUEST_IMPORT_COLUMNS} columns`,
       details: { field: 'content' },
     });
   }
@@ -242,17 +312,23 @@ function cellToString(cell: ExcelJS.Cell): string {
   return cell.text ? cell.text.trim() : '';
 }
 
-async function parseXlsxSheet(content: string): Promise<ParsedGuestSheet> {
-  const stripped = content.replace(/^data:[^,]*;base64,/, '').replace(/\s+/g, '');
-  if (!stripped || !/^[A-Za-z0-9+/]+=*$/.test(stripped)) {
+/**
+ * Parses a base64-encoded XLSX workbook. Multi-sheet workbooks always use the first worksheet
+ * (`workbook.worksheets[0]`); any additional sheets are ignored.
+ */
+async function parseXlsxSheet(
+  content: string,
+  encoding: GuestFileEncoding,
+): Promise<ParsedGuestSheet> {
+  if (encoding !== 'base64') {
     throw new BadRequestException({
       code: ErrorCode.VALIDATION_FAILED,
-      message: 'Invalid base64 XLSX content',
-      details: { field: 'content' },
+      message: 'XLSX files must use base64 encoding',
+      details: { field: 'encoding' },
     });
   }
 
-  const buffer = Buffer.from(stripped, 'base64');
+  const buffer = decodeBase64Bytes(content);
   // XLSX is a PKZIP container starting with 0x50 0x4b 0x03 0x04.
   if (
     buffer.length < 4 ||
@@ -279,6 +355,7 @@ async function parseXlsxSheet(content: string): Promise<ParsedGuestSheet> {
     });
   }
 
+  // Always select the first worksheet when the workbook contains multiple sheets.
   const worksheet = workbook.worksheets[0];
   if (!worksheet) {
     throw new BadRequestException({
@@ -289,7 +366,10 @@ async function parseXlsxSheet(content: string): Promise<ParsedGuestSheet> {
   }
 
   const headerRow = worksheet.getRow(1);
-  const maxCol = Math.max(worksheet.columnCount, headerRow.cellCount);
+  const maxCol = Math.min(
+    Math.max(worksheet.columnCount, headerRow.cellCount),
+    MAX_GUEST_IMPORT_COLUMNS + 64,
+  );
   const rawHeaders: string[] = [];
   for (let col = 1; col <= maxCol; col++) {
     rawHeaders.push(cellToString(headerRow.getCell(col)));
@@ -302,6 +382,14 @@ async function parseXlsxSheet(content: string): Promise<ParsedGuestSheet> {
     throw new BadRequestException({
       code: ErrorCode.VALIDATION_FAILED,
       message: 'XLSX worksheet has no header row',
+      details: { field: 'content' },
+    });
+  }
+
+  if (rawHeaders.length > MAX_GUEST_IMPORT_COLUMNS) {
+    throw new BadRequestException({
+      code: ErrorCode.VALIDATION_FAILED,
+      message: `File exceeds maximum of ${MAX_GUEST_IMPORT_COLUMNS} columns`,
       details: { field: 'content' },
     });
   }
@@ -325,10 +413,14 @@ async function parseXlsxSheet(content: string): Promise<ParsedGuestSheet> {
   return { headers: rawHeaders, rows };
 }
 
-export async function parseGuestFile(fileName: string, content: string): Promise<ParsedGuestSheet> {
+export async function parseGuestFile(
+  fileName: string,
+  content: string,
+  encoding: GuestFileEncoding,
+): Promise<ParsedGuestSheet> {
   const kind = detectFileKind(fileName);
-  if (kind === 'csv') return parseCsvSheet(content);
-  return parseXlsxSheet(content);
+  if (kind === 'csv') return parseCsvSheet(content, encoding);
+  return parseXlsxSheet(content, encoding);
 }
 
 export function suggestColumnMapping(headers: string[]): GuestColumnMapping {

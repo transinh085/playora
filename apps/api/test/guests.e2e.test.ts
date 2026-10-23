@@ -5,9 +5,13 @@ import {
   ErrorCode,
   eventsApi,
   guestsApi,
+  MAX_GUEST_FILE_BYTES,
+  MAX_GUEST_IMPORT_COLUMNS,
+  MAX_GUEST_IMPORT_ROWS,
   UNASSIGNED_TEAM_FILTER,
 } from '@playora/contracts';
 import ExcelJS from 'exceljs';
+import { detectCsvDelimiter } from '../src/modules/guests/guest-file.parser';
 import { createOrg, createTestApp, signUp, type TestApp, uniqueSlug } from './create-test-app';
 
 let t: TestApp;
@@ -42,12 +46,18 @@ async function createEvent(cookie: string, orgId: string) {
   });
 }
 
-async function buildXlsxBase64(rows: string[][]): Promise<string> {
+async function buildXlsxBase64(rows: string[][], extraSheets: string[][][] = []): Promise<string> {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Guests');
   for (const row of rows) {
     ws.addRow(row);
   }
+  extraSheets.forEach((sheetRows, idx) => {
+    const extraWs = wb.addWorksheet(`Sheet${idx + 2}`);
+    for (const row of sheetRows) {
+      extraWs.addRow(row);
+    }
+  });
   const buf = await wb.xlsx.writeBuffer();
   return Buffer.from(buf as ArrayBuffer).toString('base64');
 }
@@ -67,7 +77,7 @@ describe('guests API', () => {
 
     const preview = await api.call(guestsApi.preview, {
       params,
-      body: { fileName: 'guests.csv', content: csv },
+      body: { fileName: 'guests.csv', content: csv, encoding: 'text' },
     });
     expect(preview.headers).toEqual(['ma_nv', 'ho_ten', 'phong_ban', 'ban', 'khu_vuc']);
     expect(preview.totalRows).toBe(3);
@@ -88,6 +98,7 @@ describe('guests API', () => {
       body: {
         fileName: 'guests.csv',
         content: csv,
+        encoding: 'text',
         mapping: { externalCode: 'ma_nv', displayName: 'ho_ten', team: 'phong_ban' },
       },
     });
@@ -111,6 +122,7 @@ describe('guests API', () => {
       body: {
         fileName: 'guests-update.csv',
         content: secondCsv,
+        encoding: 'text',
         mapping: { externalCode: 'ma_nv', displayName: 'ho_ten', team: 'phong_ban' },
       },
     });
@@ -131,24 +143,85 @@ describe('guests API', () => {
     });
   });
 
-  test('imports XLSX files and captures row-level errors with row numbers', async () => {
+  test('auto-detects CSV delimiter among comma, semicolon, and tab from header line', async () => {
+    expect(detectCsvDelimiter('ma_nv,ho_ten,phong_ban\n1,A,B')).toBe(',');
+    expect(detectCsvDelimiter('"ma_nv";"ho, ten";"phong_ban"\n1;A;B')).toBe(';');
+    expect(detectCsvDelimiter('ma_nv\tho_ten\tphong_ban\n1\tA\tB')).toBe('\t');
+
     const api = t.client(alice);
     const event = await createEvent(alice, aliceOrg);
     const params = { orgId: aliceOrg, eventId: event.id };
 
-    const xlsxBase64 = await buildXlsxBase64([
-      ['externalCode', 'displayName', 'team', 'seat'],
-      ['EMP-01', 'Hoàng Minh', 'Product', 'A1'], // row 2: valid
-      ['', 'Missing Code Guest', 'Product', 'A2'], // row 3: missing externalCode
-      ['EMP-02', 'Đặng Thu Thảo', 'Design', 'A3'], // row 4: valid
-      ['EMP-03', '', 'Design', 'A4'], // row 5: missing displayName
-    ]);
+    // Semicolon-separated CSV (Vietnamese Excel export) with comma inside unquoted/quoted values
+    const semicolonCsv = [
+      'ma_nv;ho_ten;phong_ban;ghi_chu',
+      'VN01;Nguyễn Văn An;Kinh doanh;"Bàn 1, Khu VIP"',
+      'VN02;Trần Thị Bình;Kỹ thuật;Tầng 2, Sảnh B',
+    ].join('\r\n');
+
+    const preview = await api.call(guestsApi.preview, {
+      params,
+      body: { fileName: 'vietnamese-excel.csv', content: semicolonCsv, encoding: 'text' },
+    });
+    expect(preview.headers).toEqual(['ma_nv', 'ho_ten', 'phong_ban', 'ghi_chu']);
+    expect(preview.totalRows).toBe(2);
+
+    const semiRes = await api.call(guestsApi.import, {
+      params,
+      body: {
+        fileName: 'vietnamese-excel.csv',
+        content: semicolonCsv,
+        encoding: 'text',
+        mapping: preview.suggestedMapping,
+      },
+    });
+    expect(semiRes.inserted).toBe(2);
+
+    // Tab-separated CSV encoded as base64
+    const tabCsv = ['externalCode\tdisplayName\tteam', 'TAB01\tLê Hoàng\tProduct'].join('\n');
+    const tabRes = await api.call(guestsApi.import, {
+      params,
+      body: {
+        fileName: 'tsv.csv',
+        content: Buffer.from(tabCsv, 'utf8').toString('base64'),
+        encoding: 'base64',
+      },
+    });
+    expect(tabRes.inserted).toBe(1);
+
+    const list = await api.call(guestsApi.list, { params });
+    expect(list.items.map((g) => g.externalCode).sort()).toEqual(['TAB01', 'VN01', 'VN02']);
+    const vn02 = list.items.find((g) => g.externalCode === 'VN02');
+    expect(vn02?.attributes).toEqual({ ghi_chu: 'Tầng 2, Sảnh B' });
+  });
+
+  test('imports XLSX files (using the first worksheet when multiple sheets exist) and captures row-level errors', async () => {
+    const api = t.client(alice);
+    const event = await createEvent(alice, aliceOrg);
+    const params = { orgId: aliceOrg, eventId: event.id };
+
+    const xlsxBase64 = await buildXlsxBase64(
+      [
+        ['externalCode', 'displayName', 'team', 'seat'],
+        ['EMP-01', 'Hoàng Minh', 'Product', 'A1'], // row 2: valid
+        ['', 'Missing Code Guest', 'Product', 'A2'], // row 3: missing externalCode
+        ['EMP-02', 'Đặng Thu Thảo', 'Design', 'A3'], // row 4: valid
+        ['EMP-03', '', 'Design', 'A4'], // row 5: missing displayName
+      ],
+      [
+        [
+          ['externalCode', 'displayName'],
+          ['IGNORED-99', 'Should Ignore Second Sheet'],
+        ],
+      ],
+    );
 
     const result = await api.call(guestsApi.import, {
       params,
       body: {
         fileName: 'guests.xlsx',
         content: xlsxBase64,
+        encoding: 'base64',
         mapping: { externalCode: 'externalCode', displayName: 'displayName', team: 'team' },
       },
     });
@@ -182,7 +255,7 @@ describe('guests API', () => {
 
     await api.call(guestsApi.import, {
       params,
-      body: { fileName: 'list.csv', content: csv },
+      body: { fileName: 'list.csv', content: csv, encoding: 'text' },
     });
 
     // Cursor pagination
@@ -257,7 +330,7 @@ describe('guests API', () => {
 
     await api.call(guestsApi.import, {
       params,
-      body: { fileName: 'teams.csv', content: rows },
+      body: { fileName: 'teams.csv', content: rows, encoding: 'text' },
     });
 
     const assigned = await api.call(guestsApi.assignTeams, {
@@ -274,7 +347,49 @@ describe('guests API', () => {
     expect(afterSummary.totalCount).toBe(10);
   });
 
-  test('validates 400 on bad format, missing headers, duplicate teams, and > 50,000 rows', async () => {
+  test(
+    'imports 50,000 generated CSV rows exceeding the global 1 MB body limit in a reasonable time',
+    async () => {
+      const api = t.client(alice);
+      const event = await createEvent(alice, aliceOrg);
+      const params = { orgId: aliceOrg, eventId: event.id };
+
+      const lines = new Array<string>(MAX_GUEST_IMPORT_ROWS + 1);
+      lines[0] = 'externalCode,displayName,team,tableZone';
+      for (let i = 1; i <= MAX_GUEST_IMPORT_ROWS; i++) {
+        const code = `NV${String(i).padStart(5, '0')}`;
+        lines[i] = `${code},Nguyễn Văn Khách Mời ${i},Team ${(i % 10) + 1},Zone-${(i % 20) + 1}`;
+      }
+      const largeCsv = lines.join('\n');
+      expect(Buffer.byteLength(largeCsv, 'utf8')).toBeGreaterThan(2 * 1024 * 1024);
+
+      const startedAt = performance.now();
+      const result = await api.call(guestsApi.import, {
+        params,
+        body: {
+          fileName: '50k-guests.csv',
+          content: largeCsv,
+          encoding: 'text',
+          mapping: { externalCode: 'externalCode', displayName: 'displayName', team: 'team' },
+        },
+      });
+      const elapsedMs = performance.now() - startedAt;
+
+      expect(result).toEqual({
+        inserted: MAX_GUEST_IMPORT_ROWS,
+        updated: 0,
+        skipped: 0,
+        errors: [],
+      });
+      expect(elapsedMs).toBeLessThan(20_000);
+
+      const teams = await api.call(guestsApi.listTeams, { params });
+      expect(teams.totalCount).toBe(MAX_GUEST_IMPORT_ROWS);
+    },
+    { timeout: 30_000 },
+  );
+
+  test('validates 400/413 on bad format, encoding mismatch, column/row/size limits, and oversized JSON bodies', async () => {
     const api = t.client(alice);
     const event = await createEvent(alice, aliceOrg);
     const params = { orgId: aliceOrg, eventId: event.id };
@@ -283,17 +398,61 @@ describe('guests API', () => {
     await expectApiError(
       api.call(guestsApi.import, {
         params,
-        body: { fileName: 'guests.txt', content: 'externalCode,displayName\nA,B' },
+        body: {
+          fileName: 'guests.txt',
+          content: 'externalCode,displayName\nA,B',
+          encoding: 'text',
+        },
       }),
       400,
       ErrorCode.VALIDATION_FAILED,
     );
 
-    // Invalid XLSX content
+    // XLSX must use base64 encoding -> 400 when encoding is 'text'
     await expectApiError(
       api.call(guestsApi.import, {
         params,
-        body: { fileName: 'guests.xlsx', content: 'not-a-zip-file' },
+        body: {
+          fileName: 'guests.xlsx',
+          content: 'externalCode,displayName\nA,B',
+          encoding: 'text',
+        },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Invalid XLSX content with base64 encoding
+    await expectApiError(
+      api.call(guestsApi.import, {
+        params,
+        body: {
+          fileName: 'guests.xlsx',
+          content: Buffer.from('not-a-zip-file').toString('base64'),
+          encoding: 'base64',
+        },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Exceeding 50 columns limit
+    const tooManyColsHeader = Array.from(
+      { length: MAX_GUEST_IMPORT_COLUMNS + 1 },
+      (_, i) => `col_${i + 1}`,
+    ).join(',');
+    const tooManyColsRow = Array.from({ length: MAX_GUEST_IMPORT_COLUMNS + 1 }, () => 'val').join(
+      ',',
+    );
+    await expectApiError(
+      api.call(guestsApi.import, {
+        params,
+        body: {
+          fileName: 'wide.csv',
+          content: `${tooManyColsHeader}\n${tooManyColsRow}`,
+          encoding: 'text',
+          mapping: { externalCode: 'col_1', displayName: 'col_2' },
+        },
       }),
       400,
       ErrorCode.VALIDATION_FAILED,
@@ -306,6 +465,7 @@ describe('guests API', () => {
         body: {
           fileName: 'guests.csv',
           content: 'colA,colB\n1,2',
+          encoding: 'text',
           mapping: { externalCode: 'missing_col', displayName: 'colB' },
         },
       }),
@@ -325,15 +485,64 @@ describe('guests API', () => {
 
     // Exceeding 50,000 rows limit
     const header = 'externalCode,displayName\n';
-    const tooManyRows = header + Array.from({ length: 50_001 }, (_, i) => `${i},N`).join('\n');
+    const tooManyRows =
+      header + Array.from({ length: MAX_GUEST_IMPORT_ROWS + 1 }, (_, i) => `${i},N`).join('\n');
     await expectApiError(
       api.call(guestsApi.import, {
         params,
-        body: { fileName: 'huge.csv', content: tooManyRows },
+        body: { fileName: 'huge.csv', content: tooManyRows, encoding: 'text' },
       }),
       400,
       ErrorCode.VALIDATION_FAILED,
     );
+
+    // Decoded size > 10 MB (under 15 MB JSON body limit, caught by decoded size guard -> 400)
+    const over10MbText = `externalCode,displayName\n1,${'A'.repeat(MAX_GUEST_FILE_BYTES + 1024)}`;
+    await expectApiError(
+      api.call(guestsApi.import, {
+        params,
+        body: { fileName: 'over10mb.csv', content: over10MbText, encoding: 'text' },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Global 1 MB JSON body limit still applies to other routes -> 413 PAYLOAD_TOO_LARGE
+    await expectApiError(
+      api.call(guestsApi.assignTeams, {
+        params,
+        body: { teams: ['A', 'B'.repeat(1_200_000)] },
+      }),
+      413,
+      ErrorCode.PAYLOAD_TOO_LARGE,
+    );
+
+    // Route-scoped 15 MB JSON body limit rejects > 15 MB payload -> 413 PAYLOAD_TOO_LARGE
+    const over15MbContent = 'A'.repeat(16 * 1024 * 1024);
+    await expectApiError(
+      api.call(guestsApi.import, {
+        params,
+        body: { fileName: 'over15mb.csv', content: over15MbContent, encoding: 'text' },
+      }),
+      413,
+      ErrorCode.PAYLOAD_TOO_LARGE,
+    );
+
+    // Malformed JSON body returns standard 400 VALIDATION_FAILED error shape
+    const badJsonRes = await fetch(
+      `${t.baseUrl}/v1/orgs/${aliceOrg}/events/${event.id}/guests/import`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: alice },
+        body: '{"fileName": "broken.csv", ',
+      },
+    );
+    expect(badJsonRes.status).toBe(400);
+    const badJsonBody = (await badJsonRes.json()) as {
+      error: { code: string; message: string };
+    };
+    expect(badJsonBody.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(typeof badJsonBody.error.message).toBe('string');
   });
 
   test('anonymous requests are rejected with 401', async () => {
@@ -344,7 +553,7 @@ describe('guests API', () => {
     await expectApiError(
       t.client().call(guestsApi.import, {
         params,
-        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A' },
+        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A', encoding: 'text' },
       }),
       401,
       ErrorCode.UNAUTHORIZED,
@@ -366,7 +575,7 @@ describe('guests API', () => {
     await expectApiError(
       asBob.call(guestsApi.import, {
         params: aliceParams,
-        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A' },
+        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A', encoding: 'text' },
       }),
       403,
       ErrorCode.FORBIDDEN,
@@ -381,7 +590,7 @@ describe('guests API', () => {
     await expectApiError(
       asBob.call(guestsApi.preview, {
         params: crossTenantParams,
-        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A' },
+        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A', encoding: 'text' },
       }),
       404,
       ErrorCode.NOT_FOUND,
@@ -389,7 +598,7 @@ describe('guests API', () => {
     await expectApiError(
       asBob.call(guestsApi.import, {
         params: crossTenantParams,
-        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A' },
+        body: { fileName: 'a.csv', content: 'externalCode,displayName\n1,A', encoding: 'text' },
       }),
       404,
       ErrorCode.NOT_FOUND,
