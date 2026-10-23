@@ -1,7 +1,8 @@
 'use client';
 
 import { useLiveRoom } from '@playora/realtime-client/react';
-import { Button } from '@playora/ui/components/button';
+import { GameButton } from '@playora/ui/game/game-button';
+import { GameRoot } from '@playora/ui/game/game-root';
 import { useEffect, useRef, useState } from 'react';
 import { formatCountdown, REALTIME_URL, SPIKE_EVENT } from '@/lib/live';
 import { type PlayerView, TEAMS } from '../types';
@@ -80,58 +81,68 @@ export default function SpikePlayerPage() {
 
   if (!query) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-6">
-        <h1 className="text-2xl font-extrabold">Lắc điện thoại đua</h1>
-        <input
-          className="h-12 rounded-lg border border-input bg-background px-3"
-          placeholder="Tên của bạn"
-          value={name}
-          maxLength={40}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select
-          className="h-12 rounded-lg border border-input bg-background px-3"
-          value={team}
-          onChange={(e) => setTeam(e.target.value)}
-        >
-          {TEAMS.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-        <Button className="h-12 text-base" onClick={join}>
-          Tham gia
-        </Button>
-      </main>
+      <GameRoot className="flex flex-col">
+        <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 p-6">
+          <h1 className="font-game text-2xl font-bold text-balance">Lắc điện thoại đua</h1>
+          <input
+            className="h-14 rounded-game border border-game-border bg-game-surface px-4 text-lg outline-none placeholder:text-game-muted focus-visible:ring-4 focus-visible:ring-game-fg/40"
+            placeholder="Tên của bạn"
+            value={name}
+            maxLength={40}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <select
+            className="h-14 rounded-game border border-game-border bg-game-surface px-4 text-lg outline-none focus-visible:ring-4 focus-visible:ring-game-fg/40"
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+          >
+            {TEAMS.map((t) => (
+              <option key={t} className="text-black">
+                {t}
+              </option>
+            ))}
+          </select>
+          <GameButton size="lg" className="mt-2" onClick={join}>
+            Tham gia
+          </GameButton>
+        </main>
+      </GameRoot>
     );
   }
 
   const playing = view?.status === 'playing';
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-6 p-6 text-center select-none">
-      <p className="text-sm opacity-60">
-        {connected ? 'Đã kết nối' : 'Đang kết nối…'} · cảm biến: {motion}
-      </p>
-      <p className="text-lg font-semibold">
-        {playing
-          ? `Lắc đi! ${formatCountdown(view?.endsAt ?? null, now)}`
-          : view?.status === 'result'
-            ? 'Hết giờ!'
-            : 'Chờ MC bắt đầu…'}
-      </p>
-      <p className="text-7xl font-extrabold tabular-nums">{view?.score ?? 0}</p>
-      <p className="opacity-70">
-        Hạng #{view?.rank ?? '-'} · Đội {team}: {view?.teamScore ?? 0}
-      </p>
-      <button
-        type="button"
-        disabled={!playing}
-        onPointerDown={() => {
-          pending.current++;
-        }}
-        className="size-44 rounded-full bg-primary text-xl font-extrabold text-primary-foreground shadow-lg active:scale-95 disabled:opacity-40"
-      >
-        {motion === 'granted' ? 'LẮC hoặc CHẠM' : 'CHẠM'}
-      </button>
-    </main>
+    <GameRoot className="flex flex-col">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 p-6 text-center select-none">
+        <p className="text-sm text-game-muted">
+          {connected ? 'Đã kết nối' : 'Đang kết nối…'} · cảm biến: {motion}
+        </p>
+        <p className="font-game text-lg font-bold">
+          {playing
+            ? `Lắc đi! ${formatCountdown(view?.endsAt ?? null, now)}`
+            : view?.status === 'result'
+              ? 'Hết giờ!'
+              : 'Chờ MC bắt đầu…'}
+        </p>
+        <p
+          key={view?.score}
+          className="animate-score-pop font-game text-7xl font-extrabold tabular-nums"
+        >
+          {view?.score ?? 0}
+        </p>
+        <p className="text-game-muted">
+          Hạng #{view?.rank ?? '-'} · Đội {team}: {view?.teamScore ?? 0}
+        </p>
+        <GameButton
+          size="tap"
+          disabled={!playing}
+          onPointerDown={() => {
+            pending.current++;
+          }}
+        >
+          {motion === 'granted' ? 'Lắc / Chạm' : 'Chạm'}
+        </GameButton>
+      </main>
+    </GameRoot>
   );
 }

@@ -1,3 +1,4 @@
+import { GameRoot } from '@playora/ui/game/game-root';
 import { notFound } from 'next/navigation';
 
 interface PublicEvent {
@@ -22,10 +23,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   if (!event) notFound();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-3 p-6 text-center">
-      <p className="text-sm uppercase tracking-widest opacity-60">Chào mừng đến</p>
-      <h1 className="text-3xl font-extrabold">{event.name}</h1>
-      <p className="opacity-70">Sự kiện chưa bắt đầu. Vui lòng chờ MC mở cổng tham gia.</p>
-    </main>
+    <GameRoot asChild>
+      <main className="mx-auto flex max-w-md flex-col justify-center gap-3 p-6 text-center">
+        <p className="text-game-muted">Chào mừng đến</p>
+        <h1 className="font-game text-3xl font-bold text-balance">{event.name}</h1>
+        <p className="text-game-muted">Sự kiện chưa bắt đầu. Vui lòng chờ MC mở cổng tham gia.</p>
+      </main>
+    </GameRoot>
   );
 }

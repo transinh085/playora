@@ -1,83 +1,245 @@
+/* biome-ignore-all lint/complexity/noImportantStyles: the reduced-motion reset must beat every component transition */
 /*
- * Playora design tokens (shadcn/ui v4 convention). Apps import this after `@import "tailwindcss";`
- * and add `@source` for packages/ui so component classes are generated.
- * Brand color is violet; game skins override tokens per event at runtime.
+ * Playora design tokens. Spec: docs/13-design-system.md.
+ * Apps import this after `@import "tailwindcss";` and add `@source` for packages/ui.
+ *
+ * Three layers:
+ *   1. Primitives  (--violet-*, --ink-*, --spotlight-*, --stage-*, --team-*): raw OKLCH values, never used
+ *      directly in components.
+ *   2. Studio      (shadcn names: --background, --primary…): the console for organisers. Light + `.dark`.
+ *   3. Game        (--game-*): everything players and the LED screen see. Swapped per event by a skin
+ *      (`data-skin`) and then by the customer's brand kit (inline vars from `brandKitVars()`).
  */
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* ── 1. Primitives ─────────────────────────────────────────────────────────────── */
+  --violet-50: oklch(0.97 0.02 293);
+  --violet-100: oklch(0.94 0.04 293);
+  --violet-200: oklch(0.88 0.08 293);
+  --violet-300: oklch(0.79 0.13 293);
+  --violet-400: oklch(0.68 0.19 293);
+  --violet-500: oklch(0.58 0.23 293);
+  --violet-600: oklch(0.49 0.24 293);
+  --violet-700: oklch(0.42 0.21 293);
+  --violet-800: oklch(0.35 0.17 293);
+  --violet-900: oklch(0.28 0.13 293);
+
+  /* Neutrals carry a faint violet bias so greys sit with the brand instead of looking default. */
+  --ink-50: oklch(0.985 0.003 290);
+  --ink-100: oklch(0.966 0.006 290);
+  --ink-200: oklch(0.925 0.01 290);
+  --ink-300: oklch(0.87 0.014 290);
+  --ink-400: oklch(0.71 0.02 290);
+  --ink-500: oklch(0.555 0.022 290);
+  --ink-600: oklch(0.44 0.022 290);
+  --ink-700: oklch(0.37 0.02 290);
+  --ink-800: oklch(0.27 0.018 290);
+  --ink-900: oklch(0.205 0.016 290);
+  --ink-950: oklch(0.155 0.014 290);
+
+  /* Spotlight: the warm stage-light gold. The one loud colour in the system. */
+  --spotlight-300: oklch(0.91 0.11 85);
+  --spotlight-400: oklch(0.85 0.16 82);
+  --spotlight-500: oklch(0.78 0.17 75);
+  --spotlight-600: oklch(0.66 0.15 65);
+
+  /* Stage: the dark hall behind the LED wall. */
+  --stage-950: oklch(0.15 0.055 292);
+  --stage-900: oklch(0.2 0.075 292);
+  --stage-800: oklch(0.27 0.1 292);
+
+  /* Team / answer colours: 8 hues spaced for distinctness on dark and light grounds.
+     Always pair with a shape or label (see AnswerTile) so colour is never the only cue. */
+  --team-1: oklch(0.68 0.2 25);
+  --team-2: oklch(0.64 0.17 255);
+  --team-3: oklch(0.83 0.16 88);
+  --team-4: oklch(0.7 0.17 150);
+  --team-5: oklch(0.65 0.2 305);
+  --team-6: oklch(0.76 0.12 210);
+  --team-7: oklch(0.73 0.17 55);
+  --team-8: oklch(0.73 0.16 350);
+
+  --medal-gold: oklch(0.84 0.15 85);
+  --medal-silver: oklch(0.86 0.015 260);
+  --medal-bronze: oklch(0.7 0.11 55);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-stage: 640ms;
+
+  /* ── 2. Studio ─────────────────────────────────────────────────────────────────── */
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: var(--ink-950);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: var(--ink-950);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.49 0.24 293);
+  --popover-foreground: var(--ink-950);
+  --primary: var(--violet-600);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.49 0.24 293);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.49 0.24 293);
+  --secondary: var(--ink-100);
+  --secondary-foreground: var(--ink-900);
+  --muted: var(--ink-100);
+  --muted-foreground: var(--ink-500);
+  --accent: var(--violet-50);
+  --accent-foreground: var(--violet-800);
+  --destructive: oklch(0.577 0.235 27);
+  --border: var(--ink-200);
+  --input: var(--ink-200);
+  --ring: var(--violet-500);
+
+  --success: oklch(0.56 0.15 152);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.16 70);
+  --warning-foreground: oklch(0.28 0.07 60);
+  --info: oklch(0.56 0.16 255);
+  --info-foreground: oklch(0.985 0 0);
+  /* "On air": an event that is live right now. */
+  --live: oklch(0.6 0.23 25);
+  --live-foreground: oklch(0.985 0 0);
+
+  --chart-1: var(--violet-500);
+  --chart-2: var(--team-6);
+  --chart-3: var(--spotlight-500);
+  --chart-4: var(--team-4);
+  --chart-5: var(--team-1);
+
+  --sidebar: var(--ink-50);
+  --sidebar-foreground: var(--ink-950);
+  --sidebar-primary: var(--violet-600);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.49 0.24 293);
+  --sidebar-accent: var(--ink-100);
+  --sidebar-accent-foreground: var(--ink-900);
+  --sidebar-border: var(--ink-200);
+  --sidebar-ring: var(--violet-500);
+
+  /* ── 3. Game (default skin: classic) ───────────────────────────────────────────── */
+  --game-bg: var(--stage-950);
+  --game-glow: oklch(0.42 0.2 293 / 55%);
+  --game-fg: oklch(0.98 0.01 290);
+  --game-muted: oklch(0.98 0.01 290 / 66%);
+  --game-surface: oklch(1 0 0 / 7%);
+  --game-border: oklch(1 0 0 / 14%);
+  --game-primary: var(--spotlight-400);
+  --game-primary-fg: var(--stage-950);
+  --game-accent: var(--violet-400);
+  --game-accent-fg: oklch(0.99 0 0);
+  --game-urgent: oklch(0.7 0.22 25);
+  --game-radius: 1.25rem;
+  --game-font: var(--font-display);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.65 0.21 293);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: var(--ink-950);
+  --foreground: var(--ink-50);
+  --card: var(--ink-900);
+  --card-foreground: var(--ink-50);
+  --popover: var(--ink-900);
+  --popover-foreground: var(--ink-50);
+  --primary: var(--violet-400);
+  --primary-foreground: var(--ink-950);
+  --secondary: var(--ink-800);
+  --secondary-foreground: var(--ink-50);
+  --muted: var(--ink-800);
+  --muted-foreground: var(--ink-400);
+  --accent: oklch(0.3 0.06 293);
+  --accent-foreground: var(--violet-100);
+  --destructive: oklch(0.704 0.191 22);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.21 293);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.65 0.21 293);
-  --sidebar-primary-foreground: oklch(0.145 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: var(--violet-400);
+
+  --success: oklch(0.72 0.16 152);
+  --success-foreground: var(--ink-950);
+  --warning: oklch(0.8 0.15 75);
+  --warning-foreground: var(--ink-950);
+  --info: oklch(0.7 0.14 255);
+  --info-foreground: var(--ink-950);
+  --live: oklch(0.66 0.22 25);
+  --live-foreground: oklch(0.99 0 0);
+
+  --chart-1: var(--violet-400);
+
+  --sidebar: var(--ink-900);
+  --sidebar-foreground: var(--ink-50);
+  --sidebar-primary: var(--violet-400);
+  --sidebar-primary-foreground: var(--ink-950);
+  --sidebar-accent: var(--ink-800);
+  --sidebar-accent-foreground: var(--ink-50);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.21 293);
+  --sidebar-ring: var(--violet-400);
+}
+
+/* ── Skins (theme packs). Keys match `skins` in lib/game-theme.ts. ─────────────────── */
+[data-skin="classic"] {
+  --game-bg: var(--stage-950);
+  --game-glow: oklch(0.42 0.2 293 / 55%);
+  --game-fg: oklch(0.98 0.01 290);
+  --game-muted: oklch(0.98 0.01 290 / 66%);
+  --game-surface: oklch(1 0 0 / 7%);
+  --game-border: oklch(1 0 0 / 14%);
+  --game-primary: var(--spotlight-400);
+  --game-primary-fg: var(--stage-950);
+  --game-accent: var(--violet-400);
+  --game-accent-fg: oklch(0.99 0 0);
+  --game-urgent: oklch(0.7 0.22 25);
+}
+
+/* YEP gala: midnight navy and champagne, the ballroom look of year-end parties. */
+[data-skin="yep"] {
+  --game-bg: oklch(0.17 0.05 262);
+  --game-glow: oklch(0.45 0.12 250 / 50%);
+  --game-fg: oklch(0.97 0.015 85);
+  --game-muted: oklch(0.97 0.015 85 / 64%);
+  --game-surface: oklch(1 0 0 / 7%);
+  --game-border: oklch(0.86 0.09 85 / 22%);
+  --game-primary: oklch(0.86 0.1 85);
+  --game-primary-fg: oklch(0.2 0.05 262);
+  --game-accent: oklch(0.72 0.11 245);
+  --game-accent-fg: oklch(0.17 0.05 262);
+  --game-urgent: oklch(0.72 0.2 25);
+}
+
+/* Tết: lì xì red, gold leaf, hoa đào pink. */
+[data-skin="tet"] {
+  --game-bg: oklch(0.34 0.14 25);
+  --game-glow: oklch(0.62 0.2 35 / 55%);
+  --game-fg: oklch(0.97 0.03 88);
+  --game-muted: oklch(0.97 0.03 88 / 72%);
+  --game-surface: oklch(0.2 0.08 25 / 35%);
+  --game-border: oklch(0.88 0.14 88 / 30%);
+  --game-primary: oklch(0.87 0.15 90);
+  --game-primary-fg: oklch(0.3 0.12 25);
+  --game-accent: oklch(0.82 0.1 355);
+  --game-accent-fg: oklch(0.3 0.12 25);
+  --game-urgent: oklch(0.99 0.01 90);
+}
+
+/* Day: light ground for booths, kiosks and H5 games played outdoors or in bright halls. */
+[data-skin="day"] {
+  --game-bg: var(--ink-50);
+  --game-glow: oklch(0.9 0.07 293 / 70%);
+  --game-fg: var(--ink-950);
+  --game-muted: var(--ink-500);
+  --game-surface: oklch(1 0 0);
+  --game-border: var(--ink-200);
+  --game-primary: var(--violet-600);
+  --game-primary-fg: oklch(0.99 0 0);
+  --game-accent: var(--spotlight-400);
+  --game-accent-fg: var(--ink-950);
+  --game-urgent: oklch(0.58 0.23 25);
 }
 
 @theme inline {
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-game: var(--game-font), ui-sans-serif, system-ui, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -96,6 +258,14 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-live: var(--live);
+  --color-live-foreground: var(--live-foreground);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -109,10 +279,115 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-spotlight: var(--spotlight-400);
+  --color-stage: var(--stage-950);
+
+  --color-game-bg: var(--game-bg);
+  --color-game-fg: var(--game-fg);
+  --color-game-muted: var(--game-muted);
+  --color-game-surface: var(--game-surface);
+  --color-game-border: var(--game-border);
+  --color-game-primary: var(--game-primary);
+  --color-game-primary-fg: var(--game-primary-fg);
+  --color-game-accent: var(--game-accent);
+  --color-game-accent-fg: var(--game-accent-fg);
+  /* Last seconds of a timer; must contrast with both --game-bg and --game-primary. */
+  --color-game-urgent: var(--game-urgent);
+  --color-team-1: var(--team-1);
+  --color-team-2: var(--team-2);
+  --color-team-3: var(--team-3);
+  --color-team-4: var(--team-4);
+  --color-team-5: var(--team-5);
+  --color-team-6: var(--team-6);
+  --color-team-7: var(--team-7);
+  --color-team-8: var(--team-8);
+  --color-medal-gold: var(--medal-gold);
+  --color-medal-silver: var(--medal-silver);
+  --color-medal-bronze: var(--medal-bronze);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-game: var(--game-radius);
+
+  /* Stage type scale, in container-height units of <Stage>. Readable from the back of the hall:
+     body copy never goes below stage-sm (≈ 32px on a 1080p wall). */
+  --text-stage-sm: 3cqh;
+  --text-stage-sm--line-height: 1.3;
+  --text-stage-base: 3.8cqh;
+  --text-stage-base--line-height: 1.3;
+  --text-stage-lg: 5cqh;
+  --text-stage-lg--line-height: 1.2;
+  --text-stage-xl: 7cqh;
+  --text-stage-xl--line-height: 1.1;
+  --text-stage-2xl: 10cqh;
+  --text-stage-2xl--line-height: 1.05;
+  --text-stage-hero: 18cqh;
+  --text-stage-hero--line-height: 1;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Damped spring with one overshoot; used for score pops and reveals. */
+  --ease-spring: linear(
+    0,
+    0.013 0.6%,
+    0.05 1.2%,
+    0.2 2.6%,
+    0.43 4.3%,
+    0.73 6.6%,
+    0.95 8.6%,
+    1.08 10.6%,
+    1.14 12.4%,
+    1.15 13.9%,
+    1.12 16.4%,
+    1.04 20.3%,
+    0.99 24.3%,
+    0.97 28.4%,
+    0.98 33.5%,
+    1 42%,
+    1
+  );
+
+  --animate-live-pulse: live-pulse 1.6s var(--ease-in-out) infinite;
+  --animate-score-pop: score-pop var(--duration-slow) var(--ease-spring);
+  --animate-rise-in: rise-in var(--duration-stage) var(--ease-out) both;
+
+  @keyframes live-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklch, currentColor 55%, transparent);
+    }
+    60% {
+      box-shadow: 0 0 0 0.35em transparent;
+    }
+  }
+  @keyframes score-pop {
+    from {
+      transform: scale(1.18);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5em);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Stage-lit ground for game surfaces: a soft cone of light from above the stage. */
+@utility game-backdrop {
+  background-color: var(--game-bg);
+  background-image: radial-gradient(120% 70% at 50% -12%, var(--game-glow), transparent 62%);
+  color: var(--game-fg);
 }
 
 @layer base {
@@ -121,5 +396,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

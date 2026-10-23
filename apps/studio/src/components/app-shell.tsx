@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@playora/ui/components/dropdown-menu';
+import { Logo } from '@playora/ui/components/logo';
 import { cn } from '@playora/ui/lib/utils';
 import { BarChart3, CalendarDays, Gamepad2, LogOut, Moon, Settings, Sun } from 'lucide-react';
 import type { Route } from 'next';
@@ -45,8 +46,8 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   return (
     <div className="grid min-h-dvh md:grid-cols-[240px_1fr]">
       <aside className="bg-sidebar text-sidebar-foreground hidden flex-col gap-4 border-r p-4 md:flex">
-        <Link href="/" className="px-2 text-lg font-bold">
-          {t('common.appName')}
+        <Link href="/" className="px-2" aria-label={t('common.appName')}>
+          <Logo />
         </Link>
         {current && (
           <DropdownMenu>

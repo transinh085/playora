@@ -5,12 +5,14 @@
   "type": "module",
   "exports": {
     "./components/*": "./src/components/*.tsx",
+    "./game/*": "./src/game/*.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./styles.css": "./src/styles.css"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "peerDependencies": {
     "react": "^19.0.0",

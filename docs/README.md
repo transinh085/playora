@@ -9,7 +9,7 @@ Cập nhật: 23/10/2026 · Trạng thái: **v1.0**, đã định hình sản ph
 | Bạn là | Đọc |
 |---|---|
 | Nhà đầu tư, lãnh đạo, đối tác | [03-proposal.md](./03-proposal.md) → [00-product-strategy.md](./00-product-strategy.md) |
-| PM, Designer | [00-product-strategy.md](./00-product-strategy.md) → [prd.md](./prd.md) → [12-builder-spec.md](./12-builder-spec.md) → [04-game-catalog.md](./04-game-catalog.md) |
+| PM, Designer | [00-product-strategy.md](./00-product-strategy.md) → [prd.md](./prd.md) → [12-builder-spec.md](./12-builder-spec.md) → [04-game-catalog.md](./04-game-catalog.md) → [13-design-system.md](./13-design-system.md) |
 | Developer | [00-product-strategy.md](./00-product-strategy.md) → [05-architecture.md](./05-architecture.md) → [12-builder-spec.md](./12-builder-spec.md) → [06](./06-data-model.md) / [07](./07-api-realtime.md) → [10-dev-setup-conventions.md](./10-dev-setup-conventions.md) |
 | BD, Sales | [02-business-model.md](./02-business-model.md) → [01-market-research.md](./01-market-research.md) → [11-game-builder-research.md](./11-game-builder-research.md) |
 
@@ -31,6 +31,7 @@ Cập nhật: 23/10/2026 · Trạng thái: **v1.0**, đã định hình sản ph
 | [10-dev-setup-conventions.md](./10-dev-setup-conventions.md) | Scaffold monorepo, convention, CI/CD, testing |
 | [11-game-builder-research.md](./11-game-builder-research.md) | Nghiên cứu sâu builder: Guandayun/凡科, Trung Quốc, quốc tế, Việt Nam |
 | [12-builder-spec.md](./12-builder-spec.md) | Đặc tả builder (tính năng lõi) và phân kỳ theo M1–M4 |
+| [13-design-system.md](./13-design-system.md) | Design system: token 3 tầng, skin + brand kit, component Studio và game/LED |
 
 ## Quy ước
 

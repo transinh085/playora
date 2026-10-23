@@ -16,3 +16,4 @@
 ## Ghi chú
 - shadcn CLI 4.22 ghi sai alias `utils` thành package `cn` trong monorepo. Quy trình sửa nằm ở docs/10 §6.3.
 - Shell người chơi (`apps/play`) giữ tối giản để đạt mục tiêu bundle ≤ 200 KB.
+- Design system (token 3 tầng, skin, component game) mô tả ở [docs/13](../13-design-system.md). Font: Be Vietnam Pro (text) + Unbounded (display), cả hai subset `vietnamese`.

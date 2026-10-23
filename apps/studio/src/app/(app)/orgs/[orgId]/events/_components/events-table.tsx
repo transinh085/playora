@@ -2,7 +2,6 @@
 
 import { useRouteQuery } from '@playora/api-client/react';
 import { eventsApi } from '@playora/contracts';
-import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
 import { Skeleton } from '@playora/ui/components/skeleton';
 import {
@@ -14,6 +13,7 @@ import {
   TableRow,
 } from '@playora/ui/components/table';
 import { useFormatter, useTranslations } from 'next-intl';
+import { EventStatusBadge } from '@/components/event-status-badge';
 import { api } from '@/lib/api';
 
 export function EventsTable({ orgId }: { orgId: string }) {
@@ -72,9 +72,7 @@ export function EventsTable({ orgId }: { orgId: string }) {
                 : '—'}
             </TableCell>
             <TableCell>
-              <Badge variant={event.status === 'live' ? 'default' : 'secondary'}>
-                {t(`events.statuses.${event.status}`)}
-              </Badge>
+              <EventStatusBadge status={event.status} />
             </TableCell>
           </TableRow>
         ))}

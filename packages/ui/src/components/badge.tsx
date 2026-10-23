@@ -16,6 +16,11 @@ const badgeVariants = cva(
           'border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         ghost: '[a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 [a&]:hover:underline',
+        success: 'bg-success/12 text-success dark:bg-success/18',
+        warning: 'bg-warning/18 text-warning-foreground dark:text-warning',
+        info: 'bg-info/12 text-info dark:bg-info/18',
+        /** On air. Pair with <LiveDot />. */
+        live: 'bg-live text-live-foreground',
       },
     },
     defaultVariants: {
@@ -42,4 +47,16 @@ function Badge({
   );
 }
 
-export { Badge, badgeVariants };
+/** Pulsing "on air" dot for live events, rounds and connections. */
+function LiveDot({ className, ...props }: React.ComponentProps<'span'>) {
+  return (
+    <span
+      data-slot="live-dot"
+      aria-hidden
+      className={cn('size-1.5 shrink-0 animate-live-pulse rounded-full bg-current', className)}
+      {...props}
+    />
+  );
+}
+
+export { Badge, badgeVariants, LiveDot };

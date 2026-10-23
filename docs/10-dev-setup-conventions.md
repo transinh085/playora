@@ -23,7 +23,7 @@ packages/
   jobs/         queue + payload schema + producer
   core/         logic thuần (quay số provably-fair…), không I/O
   game-sdk/     interface template game (M1)
-  ui/           shadcn/ui + design tokens (./components/*, ./lib/utils, ./styles.css)
+  ui/           design system: tokens (./styles.css), shadcn (./components/*), game/LED (./game/*), ./lib/*
   i18n/         messages vi/en (vi là chuẩn)
   env/          zod schema env theo app
   tsconfig/     base, library, nestjs, nextjs
@@ -149,7 +149,7 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 | Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
 | Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
 | Form | react-hook-form + `zodResolver(<schema từ contracts>)`; `applyApiError` gắn lỗi server vào field |
-| UI | Chỉ dùng `@playora/ui/components/*` và token màu (`bg-primary`, `text-muted-foreground`…); không hard-code màu |
+| UI | Chỉ dùng `@playora/ui/components/*` và token màu (`bg-primary`, `text-muted-foreground`…); không hard-code màu. Xem [13-design-system.md](./13-design-system.md) |
 | i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
 | Thông báo | `toast` từ `sonner` |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
@@ -158,6 +158,7 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 
 - Ưu tiên nhẹ: shell người chơi chưa dùng TanStack Query hay next-intl cho tới M1, để giữ bundle nhỏ.
 - Game surface được lazy-load theo template (M1).
+- Bề mặt người chơi bọc trong `GameRoot`, màn LED trong `Stage` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([13-design-system.md](./13-design-system.md)).
 
 ### 6.3 Thêm component shadcn
 
