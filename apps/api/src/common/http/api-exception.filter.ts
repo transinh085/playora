@@ -15,6 +15,7 @@ const statusToCode: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.FORBIDDEN]: ErrorCode.FORBIDDEN,
   [HttpStatus.NOT_FOUND]: ErrorCode.NOT_FOUND,
   [HttpStatus.CONFLICT]: ErrorCode.CONFLICT,
+  [HttpStatus.PAYLOAD_TOO_LARGE]: ErrorCode.PAYLOAD_TOO_LARGE,
   [HttpStatus.TOO_MANY_REQUESTS]: ErrorCode.RATE_LIMITED,
 };
 
@@ -37,6 +38,24 @@ export class ApiExceptionFilter implements ExceptionFilter {
           ? (payload as ApiErrorBody['error'])
           : { code: statusToCode[status] ?? ErrorCode.INTERNAL, message: exception.message };
       res.status(status).json({ error: { ...error, requestId } } satisfies ApiErrorBody);
+      return;
+    }
+
+    const httpStatus =
+      typeof exception === 'object' && exception !== null
+        ? 'status' in exception && typeof exception.status === 'number'
+          ? exception.status
+          : 'statusCode' in exception && typeof exception.statusCode === 'number'
+            ? exception.statusCode
+            : undefined
+        : undefined;
+    const mappedCode = httpStatus !== undefined ? statusToCode[httpStatus] : undefined;
+    if (httpStatus !== undefined && mappedCode !== undefined) {
+      const message =
+        exception instanceof Error && exception.message ? exception.message : 'Request failed';
+      res.status(httpStatus).json({
+        error: { code: mappedCode, message, requestId },
+      } satisfies ApiErrorBody);
       return;
     }
 

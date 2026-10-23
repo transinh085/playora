@@ -15,6 +15,7 @@ import { REDIS } from './infra/tokens';
 import { AssetsModule } from './modules/assets/assets.module';
 import { BrandKitsModule } from './modules/brand-kits/brand-kits.module';
 import { EventsModule } from './modules/events/events.module';
+import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
@@ -63,6 +64,7 @@ export class AppModule {
         EventsModule,
         AssetsModule,
         BrandKitsModule,
+        GuestsModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [
