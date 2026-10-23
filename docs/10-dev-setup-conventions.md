@@ -66,7 +66,7 @@ bun run dev                        # web :3000 · studio :3001 · play :3002 · 
 | `bun run e2e` | Playwright (tự bật API/Studio/Play nếu chưa chạy) |
 | `bun run ci` | lint + typecheck + test + build như CI |
 | `bun run db:generate` | Sinh migration SQL từ schema (review trước khi commit) |
-| `bun --cwd packages/auth run generate:schema` | Sinh lại bảng Better Auth khi đổi plugin |
+| `bun run --cwd packages/auth generate:schema` | Sinh lại bảng Better Auth khi đổi plugin |
 | `bunx shadcn@4.22.1 add <component>` (trong `packages/ui`) | Thêm component UI. **Kiểm tra lại import `cn`** (xem §6.3) |
 | `docker build -f infra/docker/Dockerfile.nest --build-arg APP=@playora/api --build-arg APP_DIR=apps/api .` | Build image service |
 

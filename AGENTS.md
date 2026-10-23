@@ -41,7 +41,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Never validate or authorize by hand in controllers — the contract does it.
 - New error → add to `ErrorCode` **and** `packages/i18n` `errors.*` (a test enforces it).
 - Server decides every game outcome and prize; clients only render. Never add a way to pre-select lottery winners.
-- Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun --cwd packages/auth run generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
+- Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun run --cwd packages/auth generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
 - UI: only `@playora/ui/components/*` and theme tokens (`bg-primary`, `text-muted-foreground`), no hard-coded colors. Adding a shadcn component: follow `docs/10` §6.3 (CLI writes a bogus `cn` import).
