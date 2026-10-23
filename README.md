@@ -1,0 +1,60 @@
+# Playora
+
+> Nền tảng dựng và vận hành game tương tác *tại sự kiện*: sân khấu LED, điện thoại khán giả, booth. **"Cả hội trường cùng chơi."**
+
+Tài liệu sản phẩm và kỹ thuật: [`docs/`](./docs/README.md). Bắt đầu từ [`docs/00-product-strategy.md`](./docs/00-product-strategy.md).
+
+## Yêu cầu
+
+- [Bun](https://bun.sh) 1.4.x (`npm i -g bun` hoặc installer chính thức)
+- Docker (OrbStack / Docker Desktop)
+- Node 24 (Next.js CLI chạy trên Node)
+
+## Chạy lần đầu
+
+```bash
+cp .env.example .env                 # rồi đặt BETTER_AUTH_SECRET=$(openssl rand -hex 32)
+bun install
+bun run infra:up                     # Postgres :54329, Valkey :63799, MinIO :9000/:9001, Mailpit :8025
+bun run db:migrate
+bun run db:seed                      # org demo + event "demo-yep" + 500 khách mời
+bun run dev                          # mọi app qua Turborepo
+```
+
+| App | URL | Mô tả |
+|---|---|---|
+| `apps/web` | http://localhost:3000 | Landing |
+| `apps/studio` | http://localhost:3001 | Studio (builder); `/login` đăng nhập/đăng ký |
+| `apps/play` | http://localhost:3002 | Player (`/demo-yep`), spike shake race (`/spike/*`) |
+| `apps/api` | http://localhost:4000/v1 | REST API (NestJS); Better Auth tại `/auth/*` |
+| `apps/realtime` | ws://localhost:4001/live | Socket.IO gateway (NestJS) |
+| `apps/worker` | http://localhost:4002 | BullMQ worker (health) |
+
+## Lệnh thường dùng
+
+```bash
+bun run lint            # Biome (lint + format check); bun run format để tự sửa
+bun run typecheck       # tsc trên mọi workspace
+bun run test            # bun test
+bun run build
+bun run db:generate     # sinh migration SQL từ schema Drizzle (review trước khi commit)
+bun --cwd packages/auth run generate:schema   # sinh lại bảng Better Auth khi đổi plugin
+bun run loadtest:shake --n 5000 --duration 60 # spike S0-3 (cần `ulimit -n 65536`)
+```
+
+## Thử spike shake race (S0-3, S0-4)
+
+1. `bun run dev`
+2. Màn hình LED: http://localhost:3002/spike/screen
+3. MC: http://localhost:3002/spike/host (host key = `REALTIME_HOST_KEY`)
+4. Người chơi: mở `http://<IP-LAN>:3002/spike/player` trên điện thoại. Cảm biến lắc trên iOS cần HTTPS; khi chạy HTTP sẽ tự chuyển sang chế độ chạm. Nhớ thêm origin LAN vào `REALTIME_CORS_ORIGINS`.
+
+## Cấu trúc
+
+```
+apps/       web · studio · play (Next.js 16)  |  api · realtime · worker (NestJS 12 trên Bun)
+packages/   db (Drizzle) · auth (Better Auth) · contracts (zod) · core (logic thuần) · game-sdk · ui · env · tsconfig
+tooling/    loadtest
+infra/      compose (dev)
+docs/       sản phẩm, kiến trúc, ADR
+```

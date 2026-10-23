@@ -1,0 +1,21 @@
+/* Shared design tokens. Each Next.js app imports this after `@import "tailwindcss";`. */
+@theme {
+  --color-brand: #6d28d9;
+  --color-brand-foreground: #ffffff;
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-surface: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-border: #e2e8f0;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0b1020;
+    --color-foreground: #e2e8f0;
+    --color-surface: #111827;
+    --color-muted: #1f2937;
+    --color-border: #334155;
+  }
+}

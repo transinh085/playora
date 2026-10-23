@@ -1,0 +1,17 @@
+{
+  "name": "@playora/loadtest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "shake": "bun --env-file=../../.env shake-race.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@playora/contracts": "workspace:*",
+    "socket.io-client": "4.8.4"
+  },
+  "devDependencies": {
+    "@playora/tsconfig": "workspace:*"
+  }
+}

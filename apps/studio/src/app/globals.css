@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@playora/ui/styles.css";
+@source "../../../../packages/ui/src";
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}

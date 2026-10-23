@@ -1,0 +1,1 @@
+{ "extends": "@playora/tsconfig/library.json", "include": ["src"] }
