@@ -57,7 +57,6 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 ## Parallel agents (Orca worktrees)
 
 Several agents may work at once, each in its own Orca worktree (setup: `orca.yaml` copies `.env`, runs `bun install` and `db:migrate`). They share one Postgres/Valkey and the fixed dev ports 3000–4002, so:
-
 - `bun run ci` and `bun test` are safe in parallel (API tests listen on a random port and use random test data).
 - Do **not** leave `bun run dev` running, and run `bun run e2e` only when no other worktree is running it — Playwright reuses whatever server is on those ports, which may belong to another worktree.
 - Migrations are shared: never run `db:generate` for someone else's schema change, and coordinate before merging two branches that both add migrations (renumber the later one).
@@ -69,12 +68,12 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 
 ## Where things are
 
-| Need | Look at |
-|---|---|
-| Reference backend module | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts` |
-| Reference Studio page | `apps/studio/src/app/(app)/orgs/[orgId]/events/` |
-| Request pipeline (guards, filters) | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts` |
-| Realtime (M0 spike, to be replaced in M1) | `apps/realtime/src/live/` |
-| Game template interfaces | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
-| Background jobs | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/` |
-| Decisions and their reasons | `docs/adr/` |
+| Need                                      | Look at                                                                                |
+| ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| Reference backend module                  | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
+| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
+| Request pipeline (guards, filters)        | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
+| Realtime (M0 spike, to be replaced in M1) | `apps/realtime/src/live/`                                                              |
+| Game template interfaces                  | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
+| Background jobs                           | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
+| Decisions and their reasons               | `docs/adr/`                                                                            |
