@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@playora/ui/components/table';
+import type { Route } from 'next';
+import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { EventStatusBadge } from '@/components/event-status-badge';
 import { api } from '@/lib/api';
@@ -61,7 +63,14 @@ export function EventsTable({ orgId }: { orgId: string }) {
       <TableBody>
         {query.data.items.map((event) => (
           <TableRow key={event.id}>
-            <TableCell className="font-medium">{event.name}</TableCell>
+            <TableCell className="font-medium">
+              <Link
+                href={`/orgs/${orgId}/events/${event.id}/guests` as Route}
+                className="hover:underline"
+              >
+                {event.name}
+              </Link>
+            </TableCell>
             <TableCell className="text-muted-foreground">/{event.slug}</TableCell>
             <TableCell>
               {event.startsAt
