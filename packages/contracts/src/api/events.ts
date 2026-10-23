@@ -19,6 +19,7 @@ export type IdentityMode = z.infer<typeof IdentityMode>;
 export const EventSummary = z.object({
   id: Id,
   organizationId: AuthId,
+  brandKitId: Id.nullable(),
   slug: Slug,
   name: z.string(),
   mode: EventMode,
@@ -37,6 +38,7 @@ export const CreateEventBody = z
   .object({
     name: z.string().trim().min(1).max(120),
     slug: Slug,
+    brandKitId: Id.nullable().optional(),
     mode: EventMode.default('live'),
     identity: IdentityMode.default('anonymous'),
     timezone: z.string().default('Asia/Ho_Chi_Minh'),
@@ -52,6 +54,7 @@ export type CreateEventBody = z.input<typeof CreateEventBody>;
 export const UpdateEventBody = z
   .object({
     name: z.string().trim().min(1).max(120),
+    brandKitId: Id.nullable(),
     identity: IdentityMode,
     timezone: z.string(),
     startsAt: IsoDateTime.nullable(),

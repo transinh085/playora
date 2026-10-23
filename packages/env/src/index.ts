@@ -5,6 +5,13 @@ const logLevel = z
   .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
   .default('info');
 
+const s3Env = {
+  S3_ENDPOINT: z.url().default('http://localhost:9000'),
+  S3_BUCKET: z.string().min(1).default('playora-dev'),
+  S3_ACCESS_KEY: z.string().min(1).default('playora'),
+  S3_SECRET_KEY: z.string().min(1).default('playora123'),
+};
+
 export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -20,6 +27,7 @@ export const apiEnvSchema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
   STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
+  ...s3Env,
 });
 
 export const realtimeEnvSchema = z.object({
@@ -37,6 +45,7 @@ export const workerEnvSchema = z.object({
   WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4002),
   DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
+  ...s3Env,
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

@@ -21,4 +21,21 @@ describe('org permissions', () => {
     expect(hasPermission('viewer, operator', { live: ['operate'] })).toBe(true);
     expect(hasPermission('member', { event: ['read'] })).toBe(false);
   });
+
+  test('owner, admin and editor have full asset and brandKit permissions; operator and viewer read-only', () => {
+    for (const role of ['owner', 'admin', 'editor'] as const) {
+      expect(hasPermission(role, { asset: ['create', 'read', 'update', 'delete'] })).toBe(true);
+      expect(hasPermission(role, { brandKit: ['create', 'read', 'update', 'delete'] })).toBe(true);
+    }
+    for (const role of ['operator', 'viewer'] as const) {
+      expect(hasPermission(role, { asset: ['read'] })).toBe(true);
+      expect(hasPermission(role, { brandKit: ['read'] })).toBe(true);
+      expect(hasPermission(role, { asset: ['create'] })).toBe(false);
+      expect(hasPermission(role, { asset: ['update'] })).toBe(false);
+      expect(hasPermission(role, { asset: ['delete'] })).toBe(false);
+      expect(hasPermission(role, { brandKit: ['create'] })).toBe(false);
+      expect(hasPermission(role, { brandKit: ['update'] })).toBe(false);
+      expect(hasPermission(role, { brandKit: ['delete'] })).toBe(false);
+    }
+  });
 });

@@ -10,6 +10,8 @@ export const statements = {
   event: ['create', 'read', 'update', 'delete'],
   game: ['create', 'read', 'update', 'delete', 'publish'],
   prize: ['create', 'read', 'update', 'delete'],
+  asset: ['create', 'read', 'update', 'delete'],
+  brandKit: ['create', 'read', 'update', 'delete'],
   live: ['operate'],
   export: ['create'],
   audit: ['read'],
@@ -21,6 +23,8 @@ const content = {
   event: ['create', 'read', 'update', 'delete'],
   game: ['create', 'read', 'update', 'delete', 'publish'],
   prize: ['create', 'read', 'update', 'delete'],
+  asset: ['create', 'read', 'update', 'delete'],
+  brandKit: ['create', 'read', 'update', 'delete'],
   live: ['operate'],
 } as const;
 
@@ -28,8 +32,21 @@ export const roles = {
   owner: ac.newRole({ ...ownerAc.statements, ...content, export: ['create'], audit: ['read'] }),
   admin: ac.newRole({ ...adminAc.statements, ...content, export: ['create'], audit: ['read'] }),
   editor: ac.newRole({ ...content, event: ['create', 'read', 'update'] }),
-  operator: ac.newRole({ event: ['read'], game: ['read'], prize: ['read'], live: ['operate'] }),
-  viewer: ac.newRole({ event: ['read'], game: ['read'], prize: ['read'] }),
+  operator: ac.newRole({
+    event: ['read'],
+    game: ['read'],
+    prize: ['read'],
+    asset: ['read'],
+    brandKit: ['read'],
+    live: ['operate'],
+  }),
+  viewer: ac.newRole({
+    event: ['read'],
+    game: ['read'],
+    prize: ['read'],
+    asset: ['read'],
+    brandKit: ['read'],
+  }),
 };
 
 export type OrgRole = keyof typeof roles;

@@ -4,12 +4,12 @@ import { type Database, schema } from '@playora/db';
 import { and, desc, eq, isNull, lt, type SQL } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
-const { events } = schema;
+const { events, brandKits } = schema;
 
 export type EventRow = typeof events.$inferSelect;
 export type NewEvent = Omit<typeof events.$inferInsert, 'organizationId'>;
 export type EventPatch = Partial<
-  Pick<EventRow, 'name' | 'identity' | 'timezone' | 'startsAt' | 'endsAt'>
+  Pick<EventRow, 'name' | 'brandKitId' | 'identity' | 'timezone' | 'startsAt' | 'endsAt'>
 >;
 
 /**
@@ -53,6 +53,14 @@ export class EventsRepository {
       .from(events)
       .where(this.scope(organizationId, eq(events.id, id)));
     return row;
+  }
+
+  async brandKitExistsInOrg(organizationId: string, brandKitId: string) {
+    const [row] = await this.db
+      .select({ id: brandKits.id })
+      .from(brandKits)
+      .where(and(eq(brandKits.organizationId, organizationId), eq(brandKits.id, brandKitId)));
+    return !!row;
   }
 
   async insert(organizationId: string, data: NewEvent) {

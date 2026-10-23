@@ -36,3 +36,5 @@ export const roundStatus = pgEnum('round_status', [
   'closed',
 ]);
 export const dataEnv = pgEnum('data_env', ['live', 'rehearsal']);
+export const assetKind = pgEnum('asset_kind', ['image', 'audio', 'video']);
+export const assetStatus = pgEnum('asset_status', ['pending', 'ready', 'failed']);
