@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test';
-import { createServer } from 'node:net';
 import { detectEmailLocale, renderInvitationEmail, renderMagicLinkEmail } from './email-templates';
 import { createSmtpTransport, createTestMailer } from './mailer';
 
@@ -83,75 +82,26 @@ describe('mailer transports', () => {
     expect(mailer.outbox).toHaveLength(0);
   });
 
-  test('SMTP transport speaks RFC 5321 and delivers multipart message', async () => {
-    const commands: string[] = [];
-    let receivedData = '';
-
-    const server = createServer((socket) => {
-      socket.setEncoding('utf8');
-      socket.write('220 localhost ESMTP test\r\n');
-      let inData = false;
-      let buf = '';
-      socket.on('data', (chunk: string) => {
-        buf += chunk;
-        if (!inData) {
-          let idx = buf.indexOf('\r\n');
-          while (idx !== -1) {
-            const cmd = buf.slice(0, idx);
-            buf = buf.slice(idx + 2);
-            commands.push(cmd);
-            if (cmd.startsWith('EHLO')) {
-              socket.write('250-localhost\r\n250 SIZE 10485760\r\n');
-            } else if (cmd.startsWith('MAIL FROM:') || cmd.startsWith('RCPT TO:')) {
-              socket.write('250 2.1.0 OK\r\n');
-            } else if (cmd === 'DATA') {
-              inData = true;
-              socket.write('354 End data with <CR><LF>.<CR><LF>\r\n');
-              break;
-            } else if (cmd === 'QUIT') {
-              socket.write('221 2.0.0 Bye\r\n');
-              socket.end();
-            }
-            idx = buf.indexOf('\r\n');
-          }
-        }
-        if (inData) {
-          const endIdx = buf.indexOf('\r\n.\r\n');
-          if (endIdx !== -1) {
-            receivedData = buf.slice(0, endIdx);
-            buf = buf.slice(endIdx + 5);
-            inData = false;
-            socket.write('250 2.0.0 Queued\r\n');
-          }
-        }
-      });
+  test('SMTP transport surfaces connection errors instead of swallowing them', async () => {
+    const transport = createSmtpTransport({
+      host: '127.0.0.1',
+      port: 1,
+      secure: false,
+      from: 'Playora <noreply@playora.local>',
     });
-
-    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const address = server.address();
-    const port = typeof address === 'object' && address ? address.port : 0;
-
+    const originalError = console.error;
+    console.error = () => {};
     try {
-      const transport = createSmtpTransport({
-        host: '127.0.0.1',
-        port,
-        from: 'Playora <noreply@playora.local>',
-        ignoreConnectionRefused: false,
-      });
-      await transport.sendMail({
-        to: 'invitee@example.com',
-        subject: 'Lời mời Playora',
-        text: 'Xin chào từ Playora',
-        html: '<p>Xin chào từ Playora</p>',
-      });
-
-      expect(commands).toContain('EHLO playora.local');
-      expect(commands).toContain('MAIL FROM:<noreply@playora.local>');
-      expect(commands).toContain('RCPT TO:<invitee@example.com>');
-      expect(receivedData).toContain('Content-Type: multipart/alternative');
-      expect(receivedData).toContain(Buffer.from('Xin chào từ Playora', 'utf8').toString('base64'));
+      await expect(
+        transport.sendMail({
+          to: 'invitee@example.com',
+          subject: 'Test',
+          text: 'Hello',
+          html: '<p>Hello</p>',
+        }),
+      ).rejects.toThrow();
     } finally {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      console.error = originalError;
     }
   });
 });

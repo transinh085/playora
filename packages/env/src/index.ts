@@ -27,6 +27,7 @@ export const apiEnvSchema = z.object({
   /** SMTP settings for transactional emails (Mailpit on 1025 in dev). */
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_SECURE: z.stringbool().default(false),
   SMTP_FROM: z.string().default('Playora <noreply@playora.local>'),
   SMTP_USER: optionalString,
   SMTP_PASS: optionalString,
