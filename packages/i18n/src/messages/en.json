@@ -19,7 +19,18 @@
     "signUp": "Sign up",
     "signOut": "Sign out",
     "toSignUp": "No account yet? Sign up",
-    "toSignIn": "Already have an account? Sign in"
+    "toSignIn": "Already have an account? Sign in",
+    "sendMagicLink": "Send magic link",
+    "magicLinkSent": "Sign-in link sent to {email}. Check your inbox.",
+    "continueWithGoogle": "Continue with Google",
+    "orDivider": "Or",
+    "inviteTitle": "Organization invitation",
+    "inviteDescription": "{inviter} invited you to join {organization} as {role}.",
+    "acceptInvite": "Accept invitation",
+    "declineInvite": "Decline",
+    "inviteAccepted": "Joined {organization}",
+    "inviteError": "This invitation was not found, has expired, or belongs to a different account.",
+    "switchAccount": "Sign in with another account"
   },
   "onboarding": {
     "title": "Create your first organization",
@@ -65,5 +76,37 @@
     "PRIZE_OUT_OF_STOCK": "This prize is out of stock",
     "DRAW_POOL_EMPTY": "No eligible players left to draw",
     "INTERNAL": "Something went wrong on our side, please retry"
+  },
+  "members": {
+    "title": "Members",
+    "description": "Manage organization members, roles, and pending invitations.",
+    "invite": "Invite member",
+    "inviteDescription": "Send an email invitation to join this organization.",
+    "email": "Email",
+    "role": "Role",
+    "sendInvite": "Send invitation",
+    "invited": "Invitation sent to {email}",
+    "resent": "Invitation resent to {email}",
+    "cancelled": "Cancelled invitation for {email}",
+    "roleUpdated": "Member role updated",
+    "removed": "Member removed from organization",
+    "left": "You left the organization",
+    "memberColumn": "Member",
+    "actionsColumn": "Actions",
+    "you": "You",
+    "remove": "Remove member",
+    "leave": "Leave organization",
+    "pendingTitle": "Pending invitations",
+    "pendingEmpty": "No pending invitations.",
+    "expiresAt": "Expires",
+    "resend": "Resend",
+    "cancelInvite": "Cancel invitation",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "editor": "Editor",
+      "operator": "Operator",
+      "viewer": "Viewer"
+    }
   }
 }
