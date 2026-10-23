@@ -19,7 +19,18 @@
     "signUp": "Đăng ký",
     "signOut": "Đăng xuất",
     "toSignUp": "Chưa có tài khoản? Đăng ký",
-    "toSignIn": "Đã có tài khoản? Đăng nhập"
+    "toSignIn": "Đã có tài khoản? Đăng nhập",
+    "sendMagicLink": "Gửi liên kết đăng nhập",
+    "magicLinkSent": "Đã gửi liên kết đăng nhập tới {email}. Vui lòng kiểm tra hộp thư.",
+    "continueWithGoogle": "Tiếp tục với Google",
+    "orDivider": "Hoặc",
+    "inviteTitle": "Lời mời tham gia tổ chức",
+    "inviteDescription": "{inviter} đã mời bạn tham gia {organization} với vai trò {role}.",
+    "acceptInvite": "Chấp nhận lời mời",
+    "declineInvite": "Từ chối",
+    "inviteAccepted": "Đã tham gia {organization}",
+    "inviteError": "Lời mời không tồn tại, đã hết hạn hoặc không dành cho tài khoản hiện tại.",
+    "switchAccount": "Đăng nhập bằng tài khoản khác"
   },
   "onboarding": {
     "title": "Tạo tổ chức đầu tiên",
@@ -65,5 +76,37 @@
     "PRIZE_OUT_OF_STOCK": "Giải thưởng đã hết",
     "DRAW_POOL_EMPTY": "Không còn người phù hợp để quay số",
     "INTERNAL": "Đã có lỗi hệ thống, vui lòng thử lại"
+  },
+  "members": {
+    "title": "Thành viên",
+    "description": "Quản lý thành viên, phân quyền và lời mời tham gia tổ chức.",
+    "invite": "Mời thành viên",
+    "inviteDescription": "Gửi email lời mời tham gia tổ chức.",
+    "email": "Email",
+    "role": "Vai trò",
+    "sendInvite": "Gửi lời mời",
+    "invited": "Đã gửi lời mời tới {email}",
+    "resent": "Đã gửi lại lời mời tới {email}",
+    "cancelled": "Đã huỷ lời mời tới {email}",
+    "roleUpdated": "Đã cập nhật vai trò thành viên",
+    "removed": "Đã xoá thành viên khỏi tổ chức",
+    "left": "Đã rời khỏi tổ chức",
+    "memberColumn": "Thành viên",
+    "actionsColumn": "Thao tác",
+    "you": "Bạn",
+    "remove": "Xoá khỏi tổ chức",
+    "leave": "Rời tổ chức",
+    "pendingTitle": "Lời mời đang chờ",
+    "pendingEmpty": "Không có lời mời nào đang chờ.",
+    "expiresAt": "Hết hạn",
+    "resend": "Gửi lại",
+    "cancelInvite": "Huỷ lời mời",
+    "roles": {
+      "owner": "Chủ sở hữu",
+      "admin": "Quản trị viên",
+      "editor": "Biên tập viên",
+      "operator": "Vận hành",
+      "viewer": "Người xem"
+    }
   }
 }

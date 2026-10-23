@@ -4,6 +4,10 @@ const nodeEnv = z.enum(['development', 'test', 'production']).default('developme
 const logLevel = z
   .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
   .default('info');
+const optionalString = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined));
 
 export const apiEnvSchema = z.object({
   NODE_ENV: nodeEnv,
@@ -20,6 +24,16 @@ export const apiEnvSchema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
   STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
+  /** SMTP settings for transactional emails (Mailpit on 1025 in dev). */
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_SECURE: z.stringbool().default(false),
+  SMTP_FROM: z.string().default('Playora <noreply@playora.local>'),
+  SMTP_USER: optionalString,
+  SMTP_PASS: optionalString,
+  /** Optional Google OAuth credentials (ORG-01); enabled only when both are present. */
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
 });
 
 export const realtimeEnvSchema = z.object({

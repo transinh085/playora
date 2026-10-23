@@ -26,6 +26,18 @@ export class InfraModule implements OnApplicationShutdown {
       secret: env.BETTER_AUTH_SECRET,
       baseURL: env.API_PUBLIC_URL,
       trustedOrigins: env.STUDIO_ORIGINS.split(','),
+      smtp: {
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        secure: env.SMTP_SECURE,
+        from: env.SMTP_FROM,
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+      },
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
     });
     // BullMQ needs its own connection without per-request retry limits.
     const jobs = createProducer(new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }));
