@@ -44,8 +44,16 @@ apps/*  →  packages/*               (app không import app)
 contracts, i18n, env  →  không phụ thuộc package nội bộ nào (core → contracts)
 db  →  (drizzle, postgres)          auth  →  db
 api-client  →  contracts
-ui  →  (react, radix, tailwind)     không biết gì về API
+ui  →  (react, antd, tailwind)      không biết gì về API
 ```
+
+**Ranh giới import cưỡng chế bằng linter (`biome.json` `noRestrictedImports`):**
+
+1. **`packages/{contracts,core,game-sdk,i18n,env}/**`**: Cấm `@playora/db`, `@playora/auth`, `@nestjs/*`, `drizzle-orm`, `ioredis`, `next`, `antd` (đảm bảo package logic thuần, không dính DB/framework; `game-sdk` được phép dùng `react` type như `ComponentType`).
+2. **`packages/ui/**`**: Cấm `@playora/api-client`, `@playora/db` (UI chỉ nhận dữ liệu/props thuần hoặc contract schema qua form adapter, không phụ thuộc client API hay tầng DB).
+3. **`apps/api/src/modules/*/**`**: Cấm `../*/*.repository` (cấm truy cập repository xuyên module; dữ liệu từ module khác phải gọi qua Service của module đó; hiện tại **không có ngoại lệ** nào).
+4. **`apps/studio/src/app/**`**: Cấm `@/app/**` và `**/_components/**` (tầng routing Next.js mỏng ≤ 30 dòng; component thuộc feature được đóng gói tại `features/<feature>/components`).
+5. **Toàn repo**: Cấm `react-hook-form`, `radix-ui`, `sonner`, `@playora/ui/components/*` (chặn tái phát sau khi đã dọn dẹp chuyển hoàn toàn sang Ant Design và form adapter mới).
 
 ---
 
