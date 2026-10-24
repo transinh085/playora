@@ -1,1 +1,0 @@
-{ "extends": "@playora/tsconfig/base.json", "include": ["*.ts"] }

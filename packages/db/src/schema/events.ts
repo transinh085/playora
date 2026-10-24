@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createdAt, id, orgId, timestamps } from './_shared';
 import { user } from './auth';
-import { eventMode, eventStatus, gameStatus, identityMode } from './enums';
+import { eventStatus, gameStatus, identityMode } from './enums';
 
 export const clients = pgTable(
   'clients',
@@ -48,7 +48,6 @@ export const events = pgTable(
     brandKitId: uuid().references(() => brandKits.id, { onDelete: 'set null' }),
     slug: text().notNull(),
     name: text().notNull(),
-    mode: eventMode().notNull().default('live'),
     status: eventStatus().notNull().default('draft'),
     timezone: text().notNull().default('Asia/Ho_Chi_Minh'),
     startsAt: timestamp({ withTimezone: true }),
@@ -62,24 +61,6 @@ export const events = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex().on(t.slug), index().on(t.organizationId, t.status), index().on(t.startsAt)],
-);
-
-export const eventScreens = pgTable(
-  'event_screens',
-  {
-    id: id(),
-    organizationId: orgId(),
-    eventId: uuid()
-      .notNull()
-      .references(() => events.id, { onDelete: 'cascade' }),
-    name: text().notNull(),
-    /** sha256 of the screen key; the raw key is shown once in Studio. */
-    screenKeyHash: text().notNull(),
-    layout: jsonb(),
-    revokedAt: timestamp({ withTimezone: true }),
-    ...timestamps,
-  },
-  (t) => [uniqueIndex().on(t.screenKeyHash)],
 );
 
 export const games = pgTable(

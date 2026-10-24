@@ -39,32 +39,32 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await page.getByTestId('add-game-button').click();
   const galleryDialog = page.getByTestId('template-gallery-dialog');
   await expect(galleryDialog).toBeVisible();
-  await galleryDialog.getByTestId('template-card-tap-race').click();
-  await galleryDialog.getByTestId('new-game-name-input').fill('Đua chạm Vòng 1');
+  await galleryDialog.getByTestId('template-card-spin-wheel').click();
+  await galleryDialog.getByTestId('new-game-name-input').fill('Vòng quay Vòng 1');
   await galleryDialog.getByTestId('confirm-add-game').click();
 
   const gameRows = page.locator('[data-testid^="game-row-"]');
   await expect(galleryDialog).toBeHidden();
-  await expect(gameRows.filter({ hasText: 'Đua chạm Vòng 1' })).toHaveCount(1);
+  await expect(gameRows.filter({ hasText: 'Vòng quay Vòng 1' })).toHaveCount(1);
 
   // Add second game from template gallery
   await page.getByTestId('add-game-button').click();
-  await galleryDialog.getByTestId('template-card-tap-race').click();
-  await galleryDialog.getByTestId('new-game-name-input').fill('Đua chạm Chung kết');
+  await galleryDialog.getByTestId('template-card-spin-wheel').click();
+  await galleryDialog.getByTestId('new-game-name-input').fill('Vòng quay Chung kết');
   await galleryDialog.getByTestId('confirm-add-game').click();
 
   await expect(galleryDialog).toBeHidden();
-  await expect(gameRows.filter({ hasText: 'Đua chạm Chung kết' })).toHaveCount(1);
+  await expect(gameRows.filter({ hasText: 'Vòng quay Chung kết' })).toHaveCount(1);
 
   // Reorder games (move second game up) and delete it
   await expect(gameRows).toHaveCount(2);
 
   await gameRows.nth(1).locator('[data-testid^="game-move-up-"]').click();
-  await expect(gameRows.nth(0)).toContainText('Đua chạm Chung kết');
+  await expect(gameRows.nth(0)).toContainText('Vòng quay Chung kết');
 
   await gameRows.nth(0).locator('[data-testid^="game-delete-"]').click();
   await expect(gameRows).toHaveCount(1);
-  await expect(gameRows.nth(0)).toContainText('Đua chạm Vòng 1');
+  await expect(gameRows.nth(0)).toContainText('Vòng quay Vòng 1');
 
   // Open 3-column Game Editor
   await gameRows.nth(0).locator('[data-testid^="game-edit-"]').click();
@@ -72,26 +72,16 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await expect(page.getByTestId('editor-groups-column')).toBeVisible();
   await expect(page.getByTestId('editor-preview-column')).toBeVisible();
   await expect(page.getByTestId('editor-properties-column')).toBeVisible();
+  await expect(page.getByTestId('preview-frame-wrapper')).toBeVisible();
 
-  // Toggle between Mobile and Screen 16:9 preview surfaces
-  await expect(page.getByTestId('preview-frame-wrapper')).toHaveAttribute('data-surface', 'player');
-  await page.getByTestId('preview-toggle-screen').click();
-  await expect(page.getByTestId('preview-frame-wrapper')).toHaveAttribute('data-surface', 'screen');
-  await page.getByTestId('preview-toggle-mobile').click();
-  await expect(page.getByTestId('preview-frame-wrapper')).toHaveAttribute('data-surface', 'player');
-
-  // Interact with live preview iframe (tap button increments score in local test room)
+  // Interact with live preview iframe (click spin CTA -> wheel spins and shows result)
   const previewFrame = page.frameLocator('[data-testid="preview-iframe"]');
-  await expect(previewFrame.getByTestId('tap-race-player')).toBeVisible();
-  await expect(previewFrame.getByTestId('tap-race-score')).toHaveText('0');
-  await previewFrame.getByTestId('tap-race-tap-button').click();
-  await expect(previewFrame.getByTestId('tap-race-score')).toHaveText('1');
+  await expect(previewFrame.getByTestId('spin-wheel-player')).toBeVisible();
+  await previewFrame.getByTestId('spin-wheel-start').click();
+  await expect(previewFrame.getByTestId('spin-wheel-result')).toBeVisible({ timeout: 10_000 });
 
   // Edit a field in auto-form and save draft
-  await page
-    .getByRole('radiogroup', { name: 'Chế độ thi đấu' })
-    .getByRole('button', { name: 'Cá nhân' })
-    .click();
+  await page.getByLabel('Số vòng quay value').fill('7');
   await page.getByTestId('save-draft-button').click();
   await expect(page.getByText('Đã lưu bản nháp').first()).toBeVisible();
 
@@ -104,10 +94,7 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await expect(page.getByTestId('published-version-badge')).toContainText('Đã xuất bản v1');
 
   // Editing a non-hotEditable field after publish keeps working on draft and shows lock warning
-  await page
-    .getByRole('radiogroup', { name: 'Chế độ thi đấu' })
-    .getByRole('button', { name: 'Theo đội' })
-    .click();
+  await page.getByLabel('Số vòng quay value').fill('8');
   await expect(page.getByTestId('locked-field-warning')).toContainText(
     'Thay đổi không ảnh hưởng người chơi đã tham gia',
   );

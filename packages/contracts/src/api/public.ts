@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BrandFont, BrandKitColors } from './brand-kits';
 import { Id, IsoDateTime, Slug } from './common';
-import { EventMode, EventStatus, IdentityMode, LocalizedCopy, RegistrationField } from './events';
+import { EventStatus, IdentityMode, LocalizedCopy, RegistrationField } from './events';
 import { defineRoute } from './route';
 
 export const PublicConsentItem = z.object({
@@ -32,7 +32,6 @@ export const PublicEvent = z.object({
   id: Id,
   slug: Slug,
   name: z.string(),
-  mode: EventMode,
   status: EventStatus,
   identity: IdentityMode,
   startsAt: IsoDateTime.nullable(),

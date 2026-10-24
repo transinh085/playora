@@ -96,40 +96,30 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     const { items } = await api.call(templatesApi.list);
 
     expect(items.length).toBeGreaterThanOrEqual(1);
-    const tapRace = items.find((item) => item.id === 'tap-race');
-    expect(tapRace).toBeDefined();
-    expect(tapRace).toMatchObject({
-      id: 'tap-race',
+    const spinWheel = items.find((item) => item.id === 'spin-wheel');
+    expect(spinWheel).toBeDefined();
+    expect(spinWheel).toMatchObject({
+      id: 'spin-wheel',
       version: '1.0.0',
-      kind: 'live',
-      name: { vi: 'Đua chạm tốc độ', en: 'Tap Race' },
-      tags: ['yep', 'tet', 'team', 'live'],
+      kind: 'instant',
+      name: { vi: 'Vòng quay may mắn', en: 'Lucky Spin Wheel' },
+      tags: ['instant', 'tet', 'chung'],
       skins: [
-        { key: 'yep', name: { vi: 'YEP Sang Trọng', en: 'YEP Gala' }, tags: ['yep'] },
-        { key: 'tet', name: { vi: 'Tết Đinh Mùi', en: 'Lunar New Year' }, tags: ['tet'] },
+        { key: 'chung', name: { vi: 'Mặc định', en: 'Default' }, tags: ['chung'] },
+        { key: 'tet', name: { vi: 'Tết Rực Rỡ', en: 'Lunar New Year' }, tags: ['tet'] },
       ],
       defaultConfig: {
-        durationSec: 60,
-        maxDeltaPerInput: 8,
-        minInputIntervalMs: 200,
-        topN: 10,
-        mode: 'team',
-        trackColor: '#F59E0B',
-        runnerSprite: '/assets/tap-race/horse.png',
+        spins: 5,
+        durationMs: 3000,
         copy: {
-          title: { vi: 'Đua chạm tốc độ', en: 'Tap Race' },
-          cta: { vi: 'Chạm liên tục để bứt tốc!', en: 'Tap fast to sprint!' },
+          title: { vi: 'Vòng quay may mắn', en: 'Lucky Spin Wheel' },
+          cta: { vi: 'Quay ngay', en: 'Spin now' },
         },
       },
     });
-    expect(tapRace?.assetSlots.map((s) => s.key)).toEqual([
-      'runner',
-      'background',
-      'sponsorLogo',
-      'bgm',
-    ]);
-    expect(tapRace?.formDescriptor.groups).toEqual(['gameplay', 'appearance', 'content']);
-    expect(tapRace?.formDescriptor.hotEditablePaths).toEqual(['copy.title', 'copy.cta']);
+    expect(spinWheel?.assetSlots.map((s) => s.key)).toEqual(['background', 'centerLogo']);
+    expect(spinWheel?.formDescriptor.groups).toEqual(['gameplay', 'appearance', 'content']);
+    expect(spinWheel?.formDescriptor.hotEditablePaths).toEqual(['copy.title', 'copy.cta']);
   });
 
   test('create, list ordered by sortOrder, get, patch valid/invalid config with field paths, reorder, publish (versions increment, configHash stable, immutable), and soft-delete', async () => {
@@ -142,30 +132,29 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     // 1. Create two games; draftConfig is initialized from template defaultConfig
     const g1 = await api.call(gamesApi.create, {
       params: { orgId: aliceOrg, eventId: event.id },
-      body: { templateId: 'tap-race', name: 'Vòng 1: Khởi động', skinKey: 'yep' },
+      body: { templateId: 'spin-wheel', name: 'Vòng 1: Khởi động', skinKey: 'chung' },
     });
     expect(g1).toMatchObject({
       organizationId: aliceOrg,
       eventId: event.id,
-      templateId: 'tap-race',
-      templateKey: 'tap-race',
+      templateId: 'spin-wheel',
+      templateKey: 'spin-wheel',
       templateVersion: '1.0.0',
-      skinKey: 'yep',
+      skinKey: 'chung',
       name: 'Vòng 1: Khởi động',
       status: 'draft',
       currentVersionId: null,
       currentVersion: null,
       sortOrder: 0,
       draftConfig: {
-        durationSec: 60,
-        mode: 'team',
-        trackColor: '#F59E0B',
+        spins: 5,
+        durationMs: 3000,
       },
     });
 
     const g2 = await api.call(gamesApi.create, {
       params: { orgId: aliceOrg, eventId: event.id },
-      body: { templateId: 'tap-race', name: 'Vòng 2: Chung kết', skinKey: 'tet' },
+      body: { templateId: 'spin-wheel', name: 'Vòng 2: Chung kết', skinKey: 'tet' },
     });
     expect(g2.sortOrder).toBe(1);
 
@@ -184,26 +173,25 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     // 4. Patch with valid config
     const validDraft = {
       ...g1.draftConfig,
-      durationSec: 90,
-      mode: 'solo',
-      trackColor: '#EF4444',
+      spins: 7,
+      durationMs: 4500,
       copy: {
-        title: { vi: 'Đua nước rút YEP', en: 'YEP Sprint' },
-        cta: { vi: 'Bấm thật nhanh!', en: 'Tap fast!' },
+        title: { vi: 'Vòng quay YEP', en: 'YEP Spin' },
+        cta: { vi: 'Quay ngay!', en: 'Spin now!' },
       },
     };
     const updated = await api.call(gamesApi.update, {
       params: { orgId: aliceOrg, gameId: g1.id },
       body: {
-        name: 'Vòng 1: Đua nước rút',
+        name: 'Vòng 1: Quay trúng thưởng',
         skinKey: 'tet',
         draftConfig: validDraft,
       },
     });
-    expect(updated.name).toBe('Vòng 1: Đua nước rút');
+    expect(updated.name).toBe('Vòng 1: Quay trúng thưởng');
     expect(updated.skinKey).toBe('tet');
-    expect(updated.draftConfig.durationSec).toBe(90);
-    expect(updated.draftConfig.mode).toBe('solo');
+    expect(updated.draftConfig.spins).toBe(7);
+    expect(updated.draftConfig.durationMs).toBe(4500);
 
     // 5. Patch with invalid config returns 400 VALIDATION_FAILED with field paths
     const invalidErr = await expectApiError(
@@ -212,8 +200,8 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
         body: {
           draftConfig: {
             ...validDraft,
-            durationSec: 999,
-            trackColor: 'not-a-hex-color',
+            spins: 99,
+            segments: [],
             copy: {
               title: { vi: '' },
               cta: { vi: 'OK' },
@@ -229,8 +217,8 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
       body?: { fieldErrors?: Record<string, string[]> };
     };
     const fieldErrors = details?.fieldErrors ?? details?.body?.fieldErrors ?? {};
-    expect(fieldErrors.durationSec).toBeDefined();
-    expect(fieldErrors.trackColor).toBeDefined();
+    expect(fieldErrors.spins).toBeDefined();
+    expect(fieldErrors.segments).toBeDefined();
     expect(fieldErrors['copy.title.vi']).toBeDefined();
 
     // 6. Reorder games
@@ -249,7 +237,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     expect(pub1.version).toBe(1);
     expect(pub1.configHash).toMatch(/^[0-9a-f]{64}$/);
-    expect(pub1.config.durationSec).toBe(90);
+    expect(pub1.config.spins).toBe(7);
     expect(pub1.game.status).toBe('published');
     expect(pub1.game.currentVersionId).toBe(pub1.id);
     expect(pub1.game.currentVersion).toBe(1);
@@ -266,7 +254,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     // 9. Modifying draftConfig after publish and publishing v3 leaves v1 and v2 immutable
     const modifiedDraft = {
       ...validDraft,
-      durationSec: 45,
+      spins: 4,
     };
     await api.call(gamesApi.update, {
       params: { orgId: aliceOrg, gameId: g1.id },
@@ -278,7 +266,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     expect(pub3.version).toBe(3);
     expect(pub3.configHash).not.toBe(pub1.configHash);
-    expect(pub3.config.durationSec).toBe(45);
+    expect(pub3.config.spins).toBe(4);
 
     const versions = await api.call(gamesApi.listVersions, {
       params: { orgId: aliceOrg, gameId: g1.id },
@@ -286,10 +274,10 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     expect(versions.items).toHaveLength(3);
     expect(versions.items[0]?.id).toBe(pub1.id);
     expect(versions.items[0]?.version).toBe(1);
-    expect(versions.items[0]?.config.durationSec).toBe(90);
+    expect(versions.items[0]?.config.spins).toBe(7);
     expect(versions.items[0]?.configHash).toBe(pub1.configHash);
     expect(versions.items[2]?.version).toBe(3);
-    expect(versions.items[2]?.config.durationSec).toBe(45);
+    expect(versions.items[2]?.config.spins).toBe(4);
 
     // 10. Audit log was recorded on publish
     const db = t.app.get<Database>(DB);
@@ -330,12 +318,12 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     const game = await asAlice.call(gamesApi.create, {
       params: { orgId: aliceOrg, eventId: event.id },
-      body: { templateId: 'tap-race', name: 'Asset Game' },
+      body: { templateId: 'spin-wheel', name: 'Asset Game' },
     });
 
     const aliceImage = await asAlice.call(assetsApi.createUpload, {
       params: { orgId: aliceOrg },
-      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'runner.png' },
+      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'logo.png' },
     });
     const aliceAudio = await asAlice.call(assetsApi.createUpload, {
       params: { orgId: aliceOrg },
@@ -343,20 +331,20 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     const bobImage = await asBob.call(assetsApi.createUpload, {
       params: { orgId: bobOrg },
-      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'bob-runner.png' },
+      body: { kind: 'image', mime: 'image/png', bytes: 64, filename: 'bob-logo.png' },
     });
 
-    // Same-org image asset ID in runnerSprite is accepted; API returns assets Record<assetId, url>
+    // Same-org image asset ID in centerLogo is accepted; API returns assets Record<assetId, url>
     const updatedOk = await asAlice.call(gamesApi.update, {
       params: { orgId: aliceOrg, gameId: game.id },
       body: {
         draftConfig: {
           ...game.draftConfig,
-          runnerSprite: aliceImage.assetId,
+          centerLogo: aliceImage.assetId,
         },
       },
     });
-    expect(updatedOk.draftConfig.runnerSprite).toBe(aliceImage.assetId);
+    expect(updatedOk.draftConfig.centerLogo).toBe(aliceImage.assetId);
     expect(typeof updatedOk.assets[aliceImage.assetId]).toBe('string');
     expect(updatedOk.assets[aliceImage.assetId]).toContain(aliceImage.assetId);
 
@@ -364,14 +352,14 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     const publishedWithAsset = await asAlice.call(gamesApi.publish, {
       params: { orgId: aliceOrg, gameId: game.id },
     });
-    expect(publishedWithAsset.config.runnerSprite).toBe(aliceImage.assetId);
+    expect(publishedWithAsset.config.centerLogo).toBe(aliceImage.assetId);
     expect(publishedWithAsset.assets[aliceImage.assetId]).toContain(aliceImage.assetId);
     expect(publishedWithAsset.game.assets[aliceImage.assetId]).toContain(aliceImage.assetId);
 
     const listedVersions = await asAlice.call(gamesApi.listVersions, {
       params: { orgId: aliceOrg, gameId: game.id },
     });
-    expect(listedVersions.items[0]?.config.runnerSprite).toBe(aliceImage.assetId);
+    expect(listedVersions.items[0]?.config.centerLogo).toBe(aliceImage.assetId);
     expect(listedVersions.items[0]?.assets[aliceImage.assetId]).toContain(aliceImage.assetId);
 
     // Passing a URL instead of an asset UUID is rejected with 400 VALIDATION_FAILED
@@ -381,7 +369,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
         body: {
           draftConfig: {
             ...game.draftConfig,
-            runnerSprite: updatedOk.assets[aliceImage.assetId],
+            centerLogo: updatedOk.assets[aliceImage.assetId],
           },
         },
       }),
@@ -390,16 +378,16 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     );
     const urlFieldErrors =
       (urlErr.details as { fieldErrors?: Record<string, string[]> })?.fieldErrors ?? {};
-    expect(urlFieldErrors.runnerSprite).toBeDefined();
+    expect(urlFieldErrors.centerLogo).toBeDefined();
 
-    // Another org's asset ID in runnerSprite is rejected with 400 VALIDATION_FAILED on runnerSprite
+    // Another org's asset ID in centerLogo is rejected with 400 VALIDATION_FAILED on centerLogo
     const crossOrgErr = await expectApiError(
       asAlice.call(gamesApi.update, {
         params: { orgId: aliceOrg, gameId: game.id },
         body: {
           draftConfig: {
             ...game.draftConfig,
-            runnerSprite: bobImage.assetId,
+            centerLogo: bobImage.assetId,
           },
         },
       }),
@@ -408,16 +396,16 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     );
     const crossFieldErrors =
       (crossOrgErr.details as { fieldErrors?: Record<string, string[]> })?.fieldErrors ?? {};
-    expect(crossFieldErrors.runnerSprite).toBeDefined();
+    expect(crossFieldErrors.centerLogo).toBeDefined();
 
-    // Audio asset in image slot runnerSprite is rejected with 400 VALIDATION_FAILED
+    // Audio asset in image slot centerLogo is rejected with 400 VALIDATION_FAILED
     const wrongKindErr = await expectApiError(
       asAlice.call(gamesApi.update, {
         params: { orgId: aliceOrg, gameId: game.id },
         body: {
           draftConfig: {
             ...game.draftConfig,
-            runnerSprite: aliceAudio.assetId,
+            centerLogo: aliceAudio.assetId,
           },
         },
       }),
@@ -426,7 +414,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     );
     const kindFieldErrors =
       (wrongKindErr.details as { fieldErrors?: Record<string, string[]> })?.fieldErrors ?? {};
-    expect(kindFieldErrors.runnerSprite).toBeDefined();
+    expect(kindFieldErrors.centerLogo).toBeDefined();
   });
 
   test('concurrent publishes serialize via SELECT ... FOR UPDATE and produce versions 1..5 without 500', async () => {
@@ -437,7 +425,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     const game = await asAlice.call(gamesApi.create, {
       params: { orgId: aliceOrg, eventId: event.id },
-      body: { templateId: 'tap-race', name: 'Concurrent Game' },
+      body: { templateId: 'spin-wheel', name: 'Concurrent Game' },
     });
 
     const results = await Promise.all(
@@ -469,7 +457,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     });
     const aliceGame = await asAlice.call(gamesApi.create, {
       params: { orgId: aliceOrg, eventId: aliceEvent.id },
-      body: { templateId: 'tap-race', name: 'Alice Game' },
+      body: { templateId: 'spin-wheel', name: 'Alice Game' },
     });
 
     // 401 for anonymous requests
@@ -497,7 +485,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     await expectApiError(
       asAlice.call(gamesApi.create, {
         params: { orgId: aliceOrg, eventId: aliceEvent.id },
-        body: { templateId: 'tap-race', name: '' },
+        body: { templateId: 'spin-wheel', name: '' },
       }),
       400,
       ErrorCode.VALIDATION_FAILED,
@@ -512,7 +500,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     await expectApiError(
       asViewer.call(gamesApi.create, {
         params: { orgId: aliceOrg, eventId: aliceEvent.id },
-        body: { templateId: 'tap-race', name: 'Viewer Game' },
+        body: { templateId: 'spin-wheel', name: 'Viewer Game' },
       }),
       403,
       ErrorCode.FORBIDDEN,
@@ -562,7 +550,7 @@ describe('templates & games API (BLD-01, BLD-02, BLD-08)', () => {
     await expectApiError(
       asBob.call(gamesApi.create, {
         params: { orgId: bobOrg, eventId: aliceEvent.id },
-        body: { templateId: 'tap-race', name: 'Cross Tenant' },
+        body: { templateId: 'spin-wheel', name: 'Cross Tenant' },
       }),
       404,
       ErrorCode.NOT_FOUND,

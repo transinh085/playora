@@ -21,14 +21,13 @@ bun run db:seed                      # org demo + event "demo-yep" + 500 khách 
 bun run dev                          # mọi app qua Turborepo
 ```
 
-| App             | URL                      | Mô tả                                            |
-| --------------- | ------------------------ | ------------------------------------------------ |
-| `apps/web`      | http://localhost:3000    | Landing                                          |
-| `apps/studio`   | http://localhost:3001    | Studio (builder); `/login` đăng nhập/đăng ký     |
-| `apps/play`     | http://localhost:3002    | Player (`/demo-yep`) & screen (`/s/[screenKey]`) |
-| `apps/api`      | http://localhost:4000/v1 | REST API (NestJS); Better Auth tại `/auth/*`     |
-| `apps/realtime` | ws://localhost:4001/live | Socket.IO gateway (NestJS)                       |
-| `apps/worker`   | http://localhost:4002    | BullMQ worker (health)                           |
+| App           | URL                      | Mô tả                                        |
+| ------------- | ------------------------ | -------------------------------------------- |
+| `apps/web`    | http://localhost:3000    | Landing                                      |
+| `apps/studio` | http://localhost:3001    | Studio (builder); `/login` đăng nhập/đăng ký |
+| `apps/play`   | http://localhost:3002    | Player (`/demo-yep`)                         |
+| `apps/api`    | http://localhost:4000/v1 | REST API (NestJS); Better Auth tại `/auth/*` |
+| `apps/worker` | http://localhost:4002    | BullMQ worker (health)                       |
 
 ## Lệnh thường dùng
 
@@ -41,7 +40,6 @@ bun run ci              # như CI: lint + typecheck + test + build
 bun run build
 bun run db:generate     # sinh migration SQL từ schema Drizzle (review trước khi commit)
 bun --cwd packages/auth run generate:schema   # sinh lại bảng Better Auth khi đổi plugin
-bun run loadtest:shake --n 5000 --duration 60 # spike S0-3 (cần `ulimit -n 65536`)
 ```
 
 Thêm tính năng mới: làm theo [`docs/10-dev-setup-conventions.md` §3](./docs/10-dev-setup-conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games). Module `events` là mẫu chuẩn từ contract đến API, test và Studio.
@@ -49,8 +47,8 @@ Thêm tính năng mới: làm theo [`docs/10-dev-setup-conventions.md` §3](./do
 ## Cấu trúc
 
 ```
-apps/       web · studio · play (Next.js 16)  |  api · realtime · worker (NestJS 12 trên Bun)
-packages/   contracts (zod) · api-client · realtime-client · db (Drizzle) · auth (Better Auth + RBAC) · jobs (BullMQ)
+apps/       web · studio · play (Next.js 16)  |  api · worker (NestJS 12 trên Bun)
+packages/   contracts (zod) · api-client · db (Drizzle) · auth (Better Auth + RBAC) · jobs (BullMQ)
             core · game-sdk · ui (shadcn) · i18n · env · tsconfig
 tooling/    e2e (Playwright) · loadtest · scripts
 infra/      compose (dev) · docker (Dockerfile.nest, Dockerfile.next)

@@ -17,7 +17,7 @@ import {
   type RegistrationField,
   type RouteArgs,
 } from '@playora/contracts';
-import { PLAYER_TOKEN_TTL_S, signLiveToken } from '@playora/core/live';
+import { PLAYER_SESSION_TTL_S, signPlayerSession } from '@playora/core/session';
 import type { ApiEnv } from '@playora/env';
 import { z } from 'zod';
 import { ENV } from '../../infra/tokens';
@@ -159,7 +159,6 @@ export class PublicService {
       id: event.id,
       slug: event.slug,
       name: event.name,
-      mode: event.mode,
       status: event.status,
       identity: event.identity,
       startsAt: event.startsAt ? event.startsAt.toISOString() : null,
@@ -414,18 +413,17 @@ export class PublicService {
     const finalDisplayName = player.displayName ?? 'Người chơi';
     const finalTeam = player.team ?? null;
     const nowS = Math.floor(Date.now() / 1000);
-    const playerToken = signLiveToken(
+    const playerToken = signPlayerSession(
       {
         kind: 'player',
         organizationId: orgId,
         eventId,
         sub: player.id,
         displayName: finalDisplayName,
-        team: finalTeam,
-        env: 'live',
-        exp: nowS + PLAYER_TOKEN_TTL_S,
+        ver: 1,
+        exp: nowS + PLAYER_SESSION_TTL_S,
       },
-      this.env.LIVE_TOKEN_SECRET,
+      this.env.PLAYER_SESSION_SECRET,
     );
 
     return {

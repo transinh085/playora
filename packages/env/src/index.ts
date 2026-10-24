@@ -16,9 +16,9 @@ const s3Env = {
   S3_SECRET_KEY: z.string().min(1).default('playora123'),
 };
 
-/** Shared by API (issues) and realtime (verifies) handshake tokens — see @playora/core/live. */
-const liveTokenEnv = {
-  LIVE_TOKEN_SECRET: z.string().min(32),
+/** Signs and verifies player session tokens — see @playora/core/session. */
+const playerSessionEnv = {
+  PLAYER_SESSION_SECRET: z.string().min(32),
 };
 
 export const apiEnvSchema = z.object({
@@ -50,17 +50,7 @@ export const apiEnvSchema = z.object({
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
   ...s3Env,
-  ...liveTokenEnv,
-});
-
-export const realtimeEnvSchema = z.object({
-  NODE_ENV: nodeEnv,
-  REALTIME_PORT: z.coerce.number().int().positive().default(4001),
-  DATABASE_URL: z.url(),
-  REDIS_URL: z.url(),
-  ...liveTokenEnv,
-  /** Comma-separated list of origins allowed to open a socket. */
-  REALTIME_CORS_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
+  ...playerSessionEnv,
 });
 
 export const workerEnvSchema = z.object({
@@ -72,7 +62,6 @@ export const workerEnvSchema = z.object({
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
-export type RealtimeEnv = z.infer<typeof realtimeEnvSchema>;
 export type WorkerEnv = z.infer<typeof workerEnvSchema>;
 
 /** Parse env at boot and crash early with a readable message when something is missing. */

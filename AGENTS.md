@@ -8,7 +8,7 @@ Playora is a gamified campaign builder: branded prize minigames (spin wheel, scr
 
 ## Stack
 
-Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, realtime, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · shadcn/ui + Tailwind v4 · Biome · TypeScript 6 (not 7).
+Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · shadcn/ui + Tailwind v4 · Biome · TypeScript 6 (not 7).
 
 ## Commands
 
@@ -68,12 +68,11 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 
 ## Where things are
 
-| Need                                    | Look at                                                                                |
-| --------------------------------------- | -------------------------------------------------------------------------------------- |
-| Reference backend module                | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
-| Reference Studio page                   | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
-| Request pipeline (guards, filters)      | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
-| Realtime engine (LiveRoom, RoundRunner) | `apps/realtime/src/live/`, `docs/05-architecture.md` §5–6                              |
-| Game template interfaces                | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
-| Background jobs                         | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
-| Decisions and their reasons             | `docs/adr/`                                                                            |
+| Need                               | Look at                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------- |
+| Reference backend module           | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
+| Reference Studio page              | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
+| Request pipeline (guards, filters) | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
+| Game template interfaces           | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
+| Background jobs                    | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
+| Decisions and their reasons        | `docs/adr/`                                                                            |

@@ -1,14 +1,71 @@
-import type { HostCommand, RoundStatus } from '@playora/contracts';
 import type { ComponentType } from 'react';
 import type { z } from 'zod';
 
-/** See docs/04-game-catalog.md §1 and docs/12-builder-spec.md §2.1. */
-export type GameKind = 'instant' | 'skill' | 'live' | 'draw' | 'display';
-export type Audience = 'player' | 'screen' | 'host';
+/** See docs/04-game-catalog.md §1, docs/12-builder-spec.md §2.1, and ADR-012 §3. */
+export type GameKind = 'instant' | 'skill';
 export type Locale = 'vi' | 'en';
 export type LocalizedText = Partial<Record<Locale, string>> & { vi: string };
 export type SemVer = `${number}.${number}.${number}`;
 export type AssetMediaType = 'image' | 'audio' | 'video';
+
+export type PrizeType =
+  | 'physical'
+  | 'voucher_code'
+  | 'e_gift'
+  | 'digital'
+  | 'points'
+  | 'consolation'
+  | 'no_prize';
+
+/** Server-decided play outcome; client only renders. */
+export type PlayOutcome =
+  | {
+      kind: 'win';
+      prize: { id: string; name: LocalizedText; type: PrizeType; imageUrl?: string };
+      voucherCode?: string;
+    }
+  | { kind: 'lose' }
+  | { kind: 'out_of_stock' };
+
+/** instant: transforms a server-decided outcome into display data (e.g. target wheel segment). Runs on server. */
+export interface InstantServerModule<C, D> {
+  present(outcome: PlayOutcome, config: C, rng: () => number): D;
+}
+
+/** skill: validates player submission (score, duration) before prize evaluation. Runs on server. */
+export interface SkillServerModule<C, Sub, D = undefined> {
+  submissionSchema: z.ZodType<Sub>;
+  validate(
+    sub: Sub,
+    ctx: { config: C; startedAt: number; endedAt: number },
+  ): { ok: true; score: number } | { ok: false; reason: string };
+  /** Score >= threshold qualifies for a prize evaluation (`score_threshold`). */
+  qualifies(score: number, config: C): boolean;
+  present?(outcome: PlayOutcome, config: C, rng: () => number): D;
+}
+
+export type PlaySessionState =
+  | 'ready'
+  | 'starting'
+  | 'playing'
+  | 'submitting'
+  | 'done'
+  | 'blocked'
+  | 'error';
+
+export type PlayBlockedReason = 'not_open' | 'no_plays_left' | 'ended' | 'flagged';
+
+/** Player surface talks only to the session and does not know about HTTP APIs. */
+export interface PlaySession<D, Sub = never> {
+  state: PlaySessionState;
+  remaining: { today: number | null; total: number | null };
+  /** instant: start plays immediately and populates `result`. skill: enters `'playing'`. */
+  start(): Promise<void>;
+  /** skill only: submits the play payload for validation and outcome resolution. */
+  submit(sub: Sub): Promise<void>;
+  result: { outcome: PlayOutcome; display: D } | null;
+  blockedReason?: PlayBlockedReason;
+}
 
 export interface AssetSlot {
   key: string;
@@ -51,88 +108,16 @@ export interface AssetResolver {
   readonly all: Readonly<Record<string, string>>;
 }
 
-export interface ClockReader {
-  /** Estimated server timestamp in milliseconds (`clientNow + offsetMs`). */
-  now(): number;
-  /** Estimated clock offset (`serverTime - clientTime`) in milliseconds. */
-  readonly offsetMs: number;
-}
-
-export interface RoomClient<V = unknown, A = unknown> {
-  status: RoundStatus;
-  view: V | null;
-  serverNow(): number;
-  send(action: A): void;
-}
-
-export interface SurfaceProps<C, V = unknown> {
+export interface PlayerProps<C, D, Sub = never> {
   config: C;
   brand: BrandKit;
   assets: AssetResolver;
   skin?: string;
-  status: RoundStatus;
-  state: V | null;
-  clock: ClockReader;
   locale: Locale;
   quality: 'high' | 'low';
-}
-
-export interface PlayerProps<C, V = unknown, A = unknown> extends SurfaceProps<C, V> {
-  player?: PlayerRef;
-  send(action: A): void;
-  room?: RoomClient<V, A>;
-}
-
-export interface ScreenProps<C, V = unknown> extends SurfaceProps<C, V> {
-  room?: RoomClient<V>;
-}
-
-export interface HostPanelProps<C, V = unknown, A = unknown> extends SurfaceProps<C, V> {
-  send(action: A): void;
-  command(cmd: HostCommand): Promise<void>;
-  room?: RoomClient<V, A>;
-}
-
-export interface PlayerRef {
-  playerId: string;
-  displayName: string;
-  team?: string;
-}
-
-export interface RoomContext<C> {
-  eventId: string;
-  roundId: string;
-  config: C;
-  status: RoundStatus;
-  players: ReadonlyMap<string, PlayerRef>;
-  now(): number;
-  setStatus(status: RoundStatus): void;
-}
-
-export interface RoundResult {
-  ranking: Array<{ playerId: string; score: number; team?: string }>;
-  teams?: Array<{ team: string; score: number }>;
-}
-
-/**
- * Server-authoritative module for a live game template; runs inside `apps/realtime`.
- * Handlers may either mutate `state` in place (returning `void`) or return a new `S`.
- */
-export interface LiveServerModule<C, S, A = unknown, PV = unknown, SV = unknown> {
-  kind?: 'live';
-  /** Zod schema used to validate incoming player actions before `onPlayerAction`. */
-  actionSchema?: z.ZodType<A>;
-  /** Server tick frequency in Hz (default 10). */
-  tickHz?: number;
-  init(config: C, ctx: RoomContext<C>): S;
-  onPlayerJoin?(state: S, player: PlayerRef, ctx: RoomContext<C>): S | undefined;
-  onPlayerLeave?(state: S, playerId: string, ctx: RoomContext<C>): S | undefined;
-  onPlayerAction(state: S, player: PlayerRef, action: A, ctx: RoomContext<C>): S | undefined;
-  onTick?(state: S, ctx: RoomContext<C>): S | undefined;
-  onHostCommand?(state: S, cmd: HostCommand, ctx: RoomContext<C>): S | undefined;
-  toPlayerView(state: S, player: PlayerRef, ctx: RoomContext<C>): PV;
-  toScreenView(state: S, ctx: RoomContext<C>): SV;
-  finalize(state: S, ctx: RoomContext<C>): RoundResult;
+  session: PlaySession<D, Sub>;
+  /** Signals the Play shell to transition to the standard result screen. */
+  onFinished(): void;
 }
 
 export type Lazy<T> = () => Promise<{ default: T } | T>;

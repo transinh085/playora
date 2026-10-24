@@ -9,7 +9,7 @@ import {
   guestsApi,
   publicApi,
 } from '@playora/contracts';
-import { PLAYER_TOKEN_TTL_S, verifyLiveToken } from '@playora/core/live';
+import { PLAYER_SESSION_TTL_S, verifyPlayerSession } from '@playora/core/session';
 import { type Database, schema } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
 import { eq } from 'drizzle-orm';
@@ -179,7 +179,7 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       team: null,
     });
 
-    const claims = verifyLiveToken(first.playerToken, env.LIVE_TOKEN_SECRET);
+    const claims = verifyPlayerSession(first.playerToken, env.PLAYER_SESSION_SECRET);
     expect(claims).not.toBeNull();
     expect(claims).toMatchObject({
       kind: 'player',
@@ -187,10 +187,9 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       eventId: event.id,
       sub: first.player.id,
       displayName: 'Minh Anh',
-      team: null,
-      env: 'live',
+      ver: 1,
     });
-    expect(claims?.exp).toBeGreaterThanOrEqual(beforeS + PLAYER_TOKEN_TTL_S - 5);
+    expect(claims?.exp).toBeGreaterThanOrEqual(beforeS + PLAYER_SESSION_TTL_S - 5);
 
     // Idempotent re-join with same deviceId returns the exact same player row
     const second = await anonClient.call(publicApi.join, {
@@ -267,15 +266,14 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
     expect(guestsAfterJoin.items[0]?.checkedInAt).toBeTruthy();
     expect(guestsAfterJoin.items[0]?.deviceBound).toBe(true);
 
-    const claims = verifyLiveToken(joined.playerToken, env.LIVE_TOKEN_SECRET);
+    const claims = verifyPlayerSession(joined.playerToken, env.PLAYER_SESSION_SECRET);
     expect(claims).toMatchObject({
       kind: 'player',
       organizationId: aliceOrg,
       eventId: event.id,
       sub: joined.player.id,
       displayName: 'Nguyễn Văn A',
-      team: 'Kinh doanh',
-      env: 'live',
+      ver: 1,
     });
 
     // Idempotent re-join with same guest code + same deviceId returns same player and preserves original checkedInAt

@@ -21,7 +21,6 @@
     "db:seed": "bun run --cwd packages/db seed",
     "infra:up": "docker compose -f infra/compose/docker-compose.dev.yml up -d",
     "infra:down": "docker compose -f infra/compose/docker-compose.dev.yml down",
-    "loadtest:shake": "bun --env-file=.env tooling/loadtest/shake-race.ts",
     "e2e": "bun run --cwd tooling/e2e e2e",
     "prepare": "lefthook install || true",
     "ci": "bun run lint && turbo run typecheck test build"

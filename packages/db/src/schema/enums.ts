@@ -1,6 +1,5 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const eventMode = pgEnum('event_mode', ['live', 'campaign']);
 export const eventStatus = pgEnum('event_status', [
   'draft',
   'scheduled',
@@ -27,14 +26,6 @@ export const prizeType = pgEnum('prize_type', [
   'no_prize',
 ]);
 export const awardStatus = pgEnum('award_status', ['issued', 'notified', 'redeemed', 'void']);
-export const roundStatus = pgEnum('round_status', [
-  'idle',
-  'lobby',
-  'countdown',
-  'playing',
-  'result',
-  'closed',
-]);
 export const dataEnv = pgEnum('data_env', ['live', 'rehearsal']);
 export const assetKind = pgEnum('asset_kind', ['image', 'audio', 'video']);
 export const assetStatus = pgEnum('asset_status', ['pending', 'ready', 'failed']);
