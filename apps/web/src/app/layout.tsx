@@ -1,3 +1,4 @@
+import { AntdRegistry, StudioProvider } from '@playora/ui/providers';
 import type { Metadata } from 'next';
 import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
 import './globals.css';
@@ -16,7 +17,11 @@ export const metadata: Metadata = { title: 'Playora — Cả hội trường cù
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={`${font.variable} ${display.variable}`}>
-      <body className="min-h-dvh font-sans antialiased">{children}</body>
+      <body className="min-h-dvh font-sans antialiased">
+        <AntdRegistry>
+          <StudioProvider mode="light">{children}</StudioProvider>
+        </AntdRegistry>
+      </body>
     </html>
   );
 }

@@ -1,19 +1,7 @@
-import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
-import { Badge, LiveDot } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
-import { Label } from '@playora/ui/components/label';
-import { Logo, LogoMark } from '@playora/ui/components/logo';
-import { AlertTriangle, CheckCircle2, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
+import { Logo, LogoMark } from '@/components/logo';
 import { GamePreview } from './_components/game-preview';
+import { StudioPreview } from './_components/studio-preview';
 
 export const metadata: Metadata = {
   title: 'Playora Design System',
@@ -36,7 +24,7 @@ const SCALES = [
     note: 'Ánh đèn sân khấu: nút chơi, điểm, top 1',
     steps: [300, 400, 500, 600],
   },
-  { name: 'stage', note: 'Nền hội trường sau màn LED', steps: [800, 900, 950] },
+  { name: 'stage', note: 'Nền đêm cho skin sân khấu', steps: [800, 900, 950] },
 ];
 
 const TEAM_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -85,12 +73,12 @@ export default function DesignSystemPage() {
       <header className="grid gap-6 pb-12">
         <Logo className="text-xl" />
         <h1 className="max-w-3xl font-display text-4xl leading-[1.15] font-bold tracking-tight text-balance sm:text-5xl">
-          Một hệ thống cho bàn làm việc, điện thoại và màn LED.
+          Một hệ thống cho bàn làm việc và bề mặt người chơi.
         </h1>
         <p className="max-w-2xl text-lg text-muted-foreground">
-          Studio yên tĩnh để agency dựng sự kiện nhanh. Game sáng như sân khấu, đọc được từ cuối hội
-          trường, và đổi da theo từng sự kiện bằng skin và brand kit. Đặc tả đầy đủ ở
-          docs/13-design-system.md.
+          Studio yên tĩnh trên Ant Design v6 để agency dựng chiến dịch nhanh. Bề mặt người chơi sáng
+          như sân khấu, bấm được bằng một ngón và đổi da theo từng sự kiện bằng skin cùng brand kit.
+          Đặc tả đầy đủ ở docs/13-design-system.md.
         </p>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           {[
@@ -114,7 +102,7 @@ export default function DesignSystemPage() {
       <Section
         id="mau"
         title="Màu"
-        lead="Ba tầng token: primitive (OKLCH) → semantic cho Studio → --game-* cho người chơi và màn LED. Component chỉ dùng hai tầng sau."
+        lead="Ba tầng token: primitive → ThemeConfig cho Studio → --game-* cho người chơi và kiosk. Component chỉ dùng hai tầng sau."
       >
         <div className="grid gap-5">
           {SCALES.map((scale) => (
@@ -139,14 +127,14 @@ export default function DesignSystemPage() {
             <div className="flex items-baseline gap-3">
               <span className="font-mono text-sm font-medium">--team-1…8</span>
               <span className="text-sm text-muted-foreground">
-                Màu đội và đáp án. Luôn đi kèm hình hoặc nhãn.
+                Màu đội thi đấu. Luôn đi kèm nhãn tên đội.
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
               {TEAM_NUMBERS.map((n) => (
                 <div
                   key={n}
-                  className="grid h-14 place-items-center rounded-lg text-sm font-semibold text-[oklch(0.18_0.04_290)]"
+                  className="grid h-14 place-items-center rounded-lg text-sm font-semibold text-stage"
                   style={{ background: `var(--team-${n})` }}
                 >
                   {n}
@@ -192,75 +180,20 @@ export default function DesignSystemPage() {
             ))}
           </div>
         </div>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Trên màn LED dùng thang text-stage-* (đơn vị cqh của khung Stage): chữ nội dung không nhỏ
-          hơn stage-sm, khoảng 32px trên tường 1080p, đọc được từ 25–30 m.
-        </p>
       </Section>
 
       <Section
         id="studio"
-        title="Studio"
-        lead="Công cụ làm việc: mật độ vừa, ít màu, trạng thái rõ. Màu thương hiệu chỉ dành cho hành động chính và trạng thái đang chọn."
+        title="Studio (Ant Design v6)"
+        lead="Công cụ làm việc dựng trên Ant Design v6 và StudioProvider: mật độ vừa, ít màu, trạng thái rõ. Màu thương hiệu chỉ dành cho hành động chính và trạng thái đang chọn."
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <Button>
-            <Plus /> Tạo sự kiện
-          </Button>
-          <Button variant="outline">Chơi thử</Button>
-          <Button variant="secondary">Lưu nháp</Button>
-          <Button variant="ghost">Huỷ</Button>
-          <Button variant="destructive">Xoá game</Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">Nháp</Badge>
-          <Badge variant="info">Đã lên lịch</Badge>
-          <Badge variant="live">
-            <LiveDot /> Đang diễn ra
-          </Badge>
-          <Badge variant="secondary">Đã kết thúc</Badge>
-          <Badge variant="success">Đã check-in</Badge>
-          <Badge variant="warning">Thiếu ảnh nền</Badge>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>YEP ABC 2026</CardTitle>
-              <CardDescription>Thứ Bảy, 19/12/2026 · 18:30 · Gem Center, Q.1</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="ds-event-name">Tên sự kiện</Label>
-                <Input id="ds-event-name" defaultValue="YEP ABC 2026" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="ds-slug">Đường dẫn</Label>
-                <Input id="ds-slug" defaultValue="yep-abc" aria-invalid />
-                <p className="text-sm text-destructive">Đường dẫn này đã có sự kiện khác dùng.</p>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="grid content-start gap-3">
-            <Alert variant="warning">
-              <AlertTriangle />
-              <AlertTitle>Còn 2 mục trước khi publish</AlertTitle>
-              <AlertDescription>
-                Thêm ảnh nền cho màn LED và chơi thử ít nhất một lần.
-              </AlertDescription>
-            </Alert>
-            <Alert variant="success">
-              <CheckCircle2 />
-              <AlertTitle>Đã chơi thử với 600 bot</AlertTitle>
-              <AlertDescription>Độ trễ trung vị 84 ms, không có lỗi kết nối.</AlertDescription>
-            </Alert>
-          </div>
-        </div>
+        <StudioPreview />
       </Section>
 
       <Section
         id="game"
         title="Game & skin"
-        lead="Mọi bề mặt người chơi thấy đều đọc --game-*. Skin (theme pack) đổi cả bộ token; brand kit của khách đè lên sau, và chữ tự đổi sáng/tối để luôn đọc được."
+        lead="Mọi bề mặt người chơi thấy đều bọc trong GameRoot (PlayProvider + --game-*). Skin đổi cả bộ token; brand kit của khách đè lên sau, và chữ tự đổi sáng/tối để luôn đọc được."
       >
         <GamePreview />
       </Section>

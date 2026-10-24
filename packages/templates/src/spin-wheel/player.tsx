@@ -2,8 +2,9 @@
 
 import type { BrandKit, LocalizedText, PlayerProps } from '@playora/game-sdk';
 import { GameButton } from '@playora/ui/game/game-button';
+import { GameResult } from '@playora/ui/game/game-result';
 import { GameRoot } from '@playora/ui/game/game-root';
-import type { BrandKitTheme, Skin as UiSkin } from '@playora/ui/lib/game-theme';
+import type { BrandKitTheme, Skin as UiSkin } from '@playora/ui/theme';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SpinWheelConfig, SpinWheelDisplay } from './definition';
 
@@ -16,7 +17,7 @@ function pickText(text: LocalizedText | undefined, locale: 'vi' | 'en', fallback
 }
 
 function toUiSkin(skin?: string): UiSkin {
-  if (skin === 'tet' || skin === 'yep' || skin === 'classic') return skin;
+  if (skin === 'tet' || skin === 'yep' || skin === 'day' || skin === 'classic') return skin;
   return 'classic';
 }
 
@@ -135,6 +136,18 @@ export function SpinWheelPlayer({
 
   const canSpin = !isAnimating && session.state !== 'starting' && session.state !== 'blocked';
 
+  const resultTitle = activeResult
+    ? activeResult.outcome.kind === 'win'
+      ? pickText(activeResult.outcome.prize.name, locale, 'Chúc mừng bạn đã trúng thưởng!')
+      : activeResult.outcome.kind === 'out_of_stock'
+        ? locale === 'en'
+          ? 'Out of stock'
+          : 'Đã hết quà'
+        : locale === 'en'
+          ? 'Better luck next time'
+          : 'Chúc bạn may mắn lần sau'
+    : null;
+
   return (
     <GameRoot
       data-testid="spin-wheel-player"
@@ -220,31 +233,13 @@ export function SpinWheelPlayer({
       </div>
 
       <footer className="flex w-full max-w-sm flex-col items-center gap-3">
-        {activeResult ? (
-          <div
+        {activeResult && resultTitle ? (
+          <GameResult
             data-testid="spin-wheel-result"
-            data-outcome={activeResult.outcome.kind}
-            className="w-full rounded-game border border-game-border bg-game-surface px-4 py-3 text-center backdrop-blur-sm"
-          >
-            <p className="font-game text-base font-bold">
-              {activeResult.outcome.kind === 'win'
-                ? pickText(
-                    activeResult.outcome.prize.name,
-                    locale,
-                    'Chúc mừng bạn đã trúng thưởng!',
-                  )
-                : activeResult.outcome.kind === 'out_of_stock'
-                  ? locale === 'en'
-                    ? 'Out of stock'
-                    : 'Đã hết quà'
-                  : locale === 'en'
-                    ? 'Better luck next time'
-                    : 'Chúc bạn may mắn lần sau'}
-            </p>
-            {landedSegment ? (
-              <p className="mt-1 text-xs opacity-80">{pickText(landedSegment.label, locale, '')}</p>
-            ) : null}
-          </div>
+            outcome={activeResult.outcome.kind}
+            title={resultTitle}
+            description={landedSegment ? pickText(landedSegment.label, locale, '') : undefined}
+          />
         ) : null}
 
         <GameButton

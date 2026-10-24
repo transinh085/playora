@@ -1,5 +1,5 @@
-import { Button } from '@playora/ui/components/button';
-import { Logo } from '@playora/ui/components/logo';
+import { Button } from 'antd';
+import { Logo } from '@/components/logo';
 
 export default function Landing() {
   return (
@@ -9,12 +9,17 @@ export default function Landing() {
         Cả hội trường cùng chơi.
       </h1>
       <p className="max-w-2xl text-lg text-muted-foreground">
-        Dựng game tương tác cho YEP, hội nghị và activation trong 30 phút. Hàng nghìn người chơi
-        cùng lúc trên màn hình LED, giải thưởng minh bạch, báo cáo ngay sau sự kiện.
+        Dựng minigame trúng thưởng cho YEP, hội nghị và chiến dịch thương hiệu trong 30 phút. Thay
+        skin theo mùa, kiểm soát tỷ lệ và kho giải minh bạch, báo cáo tức thì.
       </p>
       <div>
-        <Button asChild className="h-12 px-6 text-base">
-          <a href="mailto:hello@playora.vn">Đặt lịch demo</a>
+        <Button
+          type="primary"
+          size="large"
+          href="mailto:hello@playora.vn"
+          className="h-12 px-6 text-base font-semibold"
+        >
+          Đặt lịch demo
         </Button>
       </div>
     </main>

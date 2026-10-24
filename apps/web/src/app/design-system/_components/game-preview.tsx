@@ -1,16 +1,14 @@
 'use client';
 
-import { AnswerTile } from '@playora/ui/game/answer-tile';
 import { Countdown } from '@playora/ui/game/countdown';
 import { GameButton } from '@playora/ui/game/game-button';
+import { GameResult } from '@playora/ui/game/game-result';
 import { GameRoot } from '@playora/ui/game/game-root';
 import { JoinPanel } from '@playora/ui/game/join-panel';
 import { Leaderboard } from '@playora/ui/game/leaderboard';
-import { Stage } from '@playora/ui/game/stage';
 import { TeamBar } from '@playora/ui/game/team-bar';
-import type { BrandKitTheme, Skin } from '@playora/ui/lib/game-theme';
-import { skins } from '@playora/ui/lib/game-theme';
-import { cn } from '@playora/ui/lib/utils';
+import { type BrandKitTheme, type Skin, skins } from '@playora/ui/theme';
+import { Segmented, Switch, Tag } from 'antd';
 import { useState } from 'react';
 
 const SKIN_LABEL: Record<Skin, string> = {
@@ -18,6 +16,13 @@ const SKIN_LABEL: Record<Skin, string> = {
   yep: 'YEP Gala',
   tet: 'Tết',
   day: 'Day (booth)',
+};
+
+const COMPARE_SKIN: Record<Skin, Skin> = {
+  classic: 'tet',
+  yep: 'day',
+  tet: 'yep',
+  day: 'classic',
 };
 
 const TEAMS = [
@@ -35,117 +40,141 @@ const TOP = [
   { id: 'e', name: 'Võ Minh Khôi', score: 340, meta: 'Vận hành' },
 ];
 
-const ANSWERS = ['Vịnh Hạ Long', 'Phong Nha – Kẻ Bàng', 'Phố cổ Hội An', 'Tràng An'];
-
-/** Example brand kit: a bank in red/white, to show the brand layer overriding a skin. */
+/** Example brand kit: a bank in red/gold, to show the brand layer overriding a skin. */
 const SAMPLE_BRAND: BrandKitTheme = { primary: '#e30613', accent: '#ffcc00', radius: 'soft' };
+
+function SkinShowcaseCard({
+  skin,
+  brand,
+  badgeLabel,
+}: {
+  skin: Skin;
+  brand?: BrandKitTheme;
+  badgeLabel: string;
+}) {
+  const max = Math.max(...TEAMS.map((t) => t.score));
+
+  return (
+    <GameRoot
+      skin={skin}
+      brand={brand}
+      data-testid={`game-preview-skin-${skin}`}
+      className="grid min-h-0 w-full content-start gap-5 rounded-3xl border-4 border-foreground/15 p-6"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <Tag
+          variant="filled"
+          className="m-0 border-0 px-3 py-0.5 font-game text-xs font-bold"
+          styles={{
+            root: {
+              backgroundColor: 'var(--game-surface)',
+              color: 'var(--game-fg)',
+            },
+          }}
+        >
+          {badgeLabel}: {SKIN_LABEL[skin]}
+        </Tag>
+        <div className="text-3xl">
+          <Countdown seconds={4} />
+        </div>
+      </div>
+
+      <JoinPanel
+        className="rounded-game border border-game-border bg-game-surface p-3 text-sm"
+        url="playora.vn/yep-abc"
+        code="4821"
+        qr={<div className="size-full rounded-xs border border-game-border bg-game-fg/15" />}
+      />
+
+      <div className="grid gap-2.5 text-sm">
+        {TEAMS.map((t, i) => (
+          <TeamBar
+            key={t.team}
+            name={t.team}
+            score={t.score}
+            max={max}
+            team={i + 1}
+            leading={t.score === max}
+          />
+        ))}
+      </div>
+
+      <Leaderboard highlightId="b" entries={TOP.slice(0, 3)} className="text-sm" />
+
+      <GameResult
+        outcome="win"
+        title="Chúc mừng! Bạn trúng Giải Nhất"
+        description="Ô vòng quay: Lộc Xuân"
+      />
+
+      <div className="flex flex-col items-center gap-3 pt-1">
+        <GameButton size="tap">Chạm!</GameButton>
+        <div className="grid w-full gap-2.5 sm:grid-cols-3">
+          <GameButton variant="primary" size="md">
+            Quay ngay
+          </GameButton>
+          <GameButton variant="accent" size="md">
+            Nhận quà
+          </GameButton>
+          <GameButton variant="surface" size="md">
+            Thể lệ
+          </GameButton>
+        </div>
+      </div>
+    </GameRoot>
+  );
+}
 
 export function GamePreview() {
   const [skin, setSkin] = useState<Skin>('classic');
   const [branded, setBranded] = useState(false);
-  const [picked, setPicked] = useState<number | null>(2);
   const brand = branded ? SAMPLE_BRAND : undefined;
-  const max = Math.max(...TEAMS.map((t) => t.score));
+  const secondarySkin = COMPARE_SKIN[skin];
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-center gap-2">
-        {skins.map((s) => (
-          <button
-            key={s}
-            type="button"
-            aria-pressed={skin === s}
-            onClick={() => setSkin(s)}
-            className={cn(
-              'h-9 rounded-full border px-4 text-sm font-medium transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
-              skin === s && 'border-primary bg-primary text-primary-foreground hover:bg-primary',
-            )}
-          >
-            {SKIN_LABEL[s]}
-          </button>
-        ))}
-        <label className="ml-auto flex items-center gap-2 text-sm">
-          <input
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Segmented<Skin>
+          options={skins.map((s) => ({ label: SKIN_LABEL[s], value: s }))}
+          value={skin}
+          onChange={(val) => setSkin(val)}
+        />
+        <label
+          htmlFor="brand-kit-toggle"
+          className="flex cursor-pointer items-center gap-2 text-sm"
+        >
+          <Switch
             id="brand-kit-toggle"
-            type="checkbox"
             checked={branded}
-            onChange={(e) => setBranded(e.target.checked)}
-            className="size-4 accent-(--primary)"
+            onChange={(checked) => setBranded(checked)}
           />
-          Áp brand kit mẫu (đỏ #E30613)
+          <span>Áp brand kit mẫu (đỏ #E30613)</span>
         </label>
       </div>
 
-      <Stage
-        fit="container"
-        skin={skin}
-        brand={brand}
-        className="grid grid-cols-[2fr_3fr] gap-[4cqw]"
-      >
-        <section className="flex min-w-0 flex-col gap-[2.5cqh]">
-          <h3 className="font-game text-stage-xl font-bold text-balance">Lắc điện thoại đua</h3>
-          <JoinPanel
-            className="text-stage-sm"
-            url="playora.vn/yep-abc"
-            code="4821"
-            qr={
-              <div className="size-full bg-[repeating-conic-gradient(#000_0_25%,#fff_0_50%)] bg-size-[18%_18%]" />
-            }
-          />
-          <div className="text-stage-hero">
-            <Countdown seconds={4} />
-          </div>
-          <div className="mt-auto grid gap-[2cqh] text-stage-sm">
-            {TEAMS.map((t, i) => (
-              <TeamBar
-                key={t.team}
-                name={t.team}
-                score={t.score}
-                max={max}
-                team={i + 1}
-                leading={t.score === max}
-              />
-            ))}
-          </div>
-        </section>
-        <Leaderboard className="content-start text-stage-base" entries={TOP} />
-      </Stage>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SkinShowcaseCard skin={skin} brand={brand} badgeLabel="Skin đang chọn" />
+        <SkinShowcaseCard skin={secondarySkin} brand={brand} badgeLabel="So sánh skin" />
+      </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <GameRoot
-          skin={skin}
-          brand={brand}
-          className="mx-auto grid min-h-0 w-full max-w-[360px] content-start gap-3 rounded-[2rem] border-8 border-foreground p-5"
-        >
-          <p className="text-sm text-game-muted">Câu 3/10 · còn 12 giây</p>
-          <p className="font-game text-xl font-bold text-balance">
-            Di sản nào được UNESCO công nhận đầu tiên?
-          </p>
-          {ANSWERS.map((a, i) => (
-            <AnswerTile
-              key={a}
-              index={i}
-              state={picked === null ? 'idle' : picked === i ? 'selected' : 'muted'}
-              onClick={() => setPicked(i)}
-            >
-              {a}
-            </AnswerTile>
-          ))}
-        </GameRoot>
-
-        <GameRoot
-          skin={skin}
-          brand={brand}
-          className="mx-auto grid min-h-0 w-full max-w-[360px] content-start justify-items-center gap-5 rounded-[2rem] border-8 border-foreground p-5 text-center"
-        >
-          <p className="text-sm text-game-muted">Đội Marketing · Hạng #2</p>
-          <p className="font-game text-6xl font-extrabold tabular-nums">412</p>
-          <GameButton size="tap">Chạm!</GameButton>
-          <div className="grid w-full gap-3">
-            <GameButton>Tham gia</GameButton>
-            <GameButton variant="surface">Xem thể lệ</GameButton>
-          </div>
-        </GameRoot>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {skins.map((s) => (
+          <GameRoot
+            key={s}
+            skin={s}
+            brand={brand}
+            className="grid min-h-0 content-start gap-3 rounded-2xl border border-foreground/15 p-4"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-game text-sm font-bold">{SKIN_LABEL[s]}</span>
+              <Countdown seconds={s === 'tet' ? 3 : 12} className="text-lg" />
+            </div>
+            <p className="text-xs text-game-muted">Vòng quay may mắn · 3 lượt còn lại</p>
+            <GameButton variant="primary" size="md" className="w-full">
+              Quay ngay
+            </GameButton>
+          </GameRoot>
+        ))}
       </div>
     </div>
   );

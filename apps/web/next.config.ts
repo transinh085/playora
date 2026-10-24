@@ -11,6 +11,9 @@ const config: NextConfig = {
   output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   outputFileTracingRoot: resolve(process.cwd(), '../..'),
   transpilePackages: ['@playora/ui'],
+  experimental: {
+    optimizePackageImports: ['antd'],
+  },
 };
 
 export default config;

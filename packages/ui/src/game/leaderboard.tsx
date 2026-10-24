@@ -1,5 +1,8 @@
+'use client';
+
 import { cn } from '@playora/ui/lib/utils';
-import * as React from 'react';
+import { Tag } from 'antd';
+import type * as React from 'react';
 
 export interface LeaderboardEntry {
   id: string;
@@ -9,46 +12,66 @@ export interface LeaderboardEntry {
   meta?: string;
 }
 
-const MEDALS = ['bg-medal-gold', 'bg-medal-silver', 'bg-medal-bronze'];
+const MEDAL_VARS = ['var(--medal-gold)', 'var(--medal-silver)', 'var(--medal-bronze)'] as const;
+const MEDAL_CLASSES = ['bg-medal-gold', 'bg-medal-silver', 'bg-medal-bronze'] as const;
+
+export type LeaderboardProps = React.ComponentProps<'ol'> & {
+  entries: LeaderboardEntry[];
+  highlightId?: string;
+};
 
 /**
- * Ranked list for the screen (sizes follow the parent font size, so wrap it in `text-stage-lg` on a
- * Stage) and for the phone result view. `highlightId` marks the viewer's own row.
+ * Ranked list for the phone result view built with Ant Design `Tag` badges.
+ * `highlightId` marks the viewer's own row.
  */
-function Leaderboard({
-  entries,
-  highlightId,
-  className,
-  ...props
-}: React.ComponentProps<'ol'> & { entries: LeaderboardEntry[]; highlightId?: string }) {
+function Leaderboard({ entries, highlightId, className, ...props }: LeaderboardProps) {
   return (
     <ol data-slot="leaderboard" className={cn('grid gap-[0.35em]', className)} {...props}>
-      {entries.map((entry, i) => (
-        <li
-          key={entry.id}
-          data-me={entry.id === highlightId || undefined}
-          className="flex animate-rise-in items-center gap-[0.6em] rounded-game bg-game-surface px-[0.7em] py-[0.4em] data-me:ring-2 data-me:ring-game-primary"
-          style={{ animationDelay: `${i * 60}ms` }}
-        >
-          <span
-            className={cn(
-              'grid size-[1.6em] shrink-0 place-items-center rounded-full font-game text-[0.75em] font-bold tabular-nums',
-              i < 3 ? `${MEDALS[i]} text-[oklch(0.2_0.04_290)]` : 'text-game-muted',
-            )}
+      {entries.map((entry, i) => {
+        const isTop3 = i < 3;
+        return (
+          <li
+            key={entry.id}
+            data-me={entry.id === highlightId || undefined}
+            className="flex animate-rise-in items-center gap-[0.6em] rounded-game bg-game-surface px-[0.7em] py-[0.4em] data-me:ring-2 data-me:ring-game-primary"
+            style={{ animationDelay: `${i * 60}ms` }}
           >
-            {i + 1}
-          </span>
-          <span className="min-w-0 flex-1 truncate font-semibold">{entry.name}</span>
-          {entry.meta && (
-            <span className="hidden truncate text-[0.7em] text-game-muted sm:inline">
-              {entry.meta}
+            <Tag
+              variant="filled"
+              className={cn(
+                'm-0 grid size-[1.6em] shrink-0 place-items-center rounded-full border-0 p-0 font-game text-[0.75em] font-bold tabular-nums',
+                isTop3 ? `${MEDAL_CLASSES[i]} text-stage` : 'bg-transparent text-game-muted',
+              )}
+              styles={{
+                root: {
+                  backgroundColor: isTop3 ? MEDAL_VARS[i] : 'transparent',
+                  color: isTop3 ? 'var(--stage-950)' : 'var(--game-muted)',
+                },
+              }}
+            >
+              {i + 1}
+            </Tag>
+            <span className="min-w-0 flex-1 truncate font-semibold">{entry.name}</span>
+            {entry.meta && (
+              <Tag
+                variant="filled"
+                className="m-0 hidden truncate border-0 bg-transparent px-[0.5em] py-0 text-[0.7em] text-game-muted sm:inline-block"
+                styles={{
+                  root: {
+                    backgroundColor: 'transparent',
+                    color: 'var(--game-muted)',
+                  },
+                }}
+              >
+                {entry.meta}
+              </Tag>
+            )}
+            <span className="font-game font-bold tabular-nums">
+              {entry.score.toLocaleString('vi-VN')}
             </span>
-          )}
-          <span className="font-game font-bold tabular-nums">
-            {entry.score.toLocaleString('vi-VN')}
-          </span>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ol>
   );
 }
