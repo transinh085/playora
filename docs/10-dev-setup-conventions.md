@@ -89,9 +89,9 @@ Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng th�
    - `games.controller.ts`: chỉ có `@Route(gamesApi.x)` + `@Args()`. Không validate tay, không kiểm quyền tay.
    - `games.module.ts`, import vào `AppModule`.
 5. **Integration test** — `apps/api/test/games.e2e.test.ts` dùng `createTestApp()`. **Bắt buộc** có test cross-tenant (người org khác nhận 403/404).
-6. **Studio** — `apps/studio/src/app/(app)/orgs/[orgId]/games/`
-   - Đọc: `useRouteQuery(api, gamesApi.list, …)`.
-   - Ghi: `useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`.
+6. **Studio** — `apps/studio/src/features/games/` + route mỏng ở `apps/studio/src/app/(app)/orgs/[orgId]/events/[eventId]/games/`
+   - `features/games/api.ts`: gom hook đọc (`useRouteQuery(api, gamesApi.list, …)`) và ghi (`useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`).
+   - `features/games/components/*`: UI của feature; `page.tsx` trong `app/**` chỉ đọc `params`, khai báo `metadata` và render component từ `@/features/*` (≤ 30 dòng).
    - Form: `useForm({ resolver: zodResolver(CreateGameBody) })` dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`.
    - Text qua `useTranslations`; thêm key vào **cả** `vi.json` và `en.json` (test i18n sẽ bắt thiếu).
 7. **E2E** cho luồng chính — `tooling/e2e/tests/*.spec.ts`.
@@ -170,6 +170,23 @@ grep -rl 'from "cn"' src/components | xargs sed -i '' 's#from "cn"#from "@playor
 ```
 
 CLI hiện ghi sai alias `utils` thành package npm `cn` và tự cài package đó. Phải sửa import như trên, đồng thời gỡ `cn` khỏi `packages/ui/package.json` nếu nó xuất hiện.
+
+### 6.4 Cấu trúc thư mục frontend
+
+```
+apps/studio/src/
+  app/                       # CHỈ routing: page/layout mỏng (≤ 30 dòng), metadata, đọc params
+  features/<feature>/        # events, guests, games, brand-kits, assets, members, auth
+    api.ts                   # hook dữ liệu: useEvent(), useUpdateEvent()… (useRouteQuery/useRouteMutation + invalidateQueries)
+    components/              # UI của feature
+    lib/                     # helper thuần + *.test.ts (nếu có)
+  components/                # shell dùng chung (app-shell…)
+  lib/                       # api client, env, auth/permissions
+```
+
+- `app/**` chỉ import `@/features/**`, `@/components/**`, `@/lib/**` — không import chéo file khác trong `app/**` và không đặt `_components` trong `app/**`.
+- `features/<a>` không import `features/<b>/components` (có thể dùng hook dữ liệu từ `features/<b>/api`).
+- Mọi truy vấn/mutation (`useRouteQuery`, `useRouteMutation`, `invalidateQueries`) đặt trong `features/<feature>/api.ts`, giữ nguyên query key của `@playora/api-client/react`.
 
 ---
 

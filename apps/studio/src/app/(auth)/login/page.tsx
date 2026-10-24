@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { LoginForm } from './_components/login-form';
+import { LoginForm } from '@/features/auth/components/login-form';
 
 export default function LoginPage() {
   const googleEnabled = Boolean(

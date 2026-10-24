@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { CreateEventDialog } from './_components/create-event-dialog';
-import { EventsTable } from './_components/events-table';
+import { CreateEventDialog } from '@/features/events/components/create-event-dialog';
+import { EventsTable } from '@/features/events/components/events-table';
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations('events'))('title') };

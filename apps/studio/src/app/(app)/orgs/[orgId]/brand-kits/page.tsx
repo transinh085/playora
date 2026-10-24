@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { BrandKitsManager } from './_components/brand-kits-manager';
+import { BrandKitsManager } from '@/features/brand-kits/components/brand-kits-manager';
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations('brandKits'))('title') };

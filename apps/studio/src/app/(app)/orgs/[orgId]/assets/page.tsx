@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { AssetsManager } from './_components/assets-manager';
+import { AssetsManager } from '@/features/assets/components/assets-manager';
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations('assets'))('title') };
