@@ -23,15 +23,15 @@ import { useRouter } from 'next/navigation';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { authClient } from '@/lib/auth-client';
 import {
   assignableRolesFor,
-  authClient,
-  canManageMembers,
+  can,
   isOrgRole,
   isOwnerRole,
   type OrgRole,
   parseMemberRoles,
-} from '@/lib/auth-client';
+} from '@/lib/permissions';
 import { useInvalidateOrgMembers, useOrgMembers } from '../api';
 import { InviteMemberDialog } from './invite-member-dialog';
 
@@ -73,7 +73,7 @@ export function MembersView({ orgId }: { orgId: string }) {
   const currentUserId = session?.user.id;
   const currentMember = org.members.find((m) => m.userId === currentUserId);
   const myRole = currentMember?.role ?? 'viewer';
-  const canManage = canManageMembers(myRole);
+  const canManage = can(myRole, { member: ['create'] });
   const actorIsOwner = isOwnerRole(myRole);
   const ownerCount = org.members.filter((m) => isOwnerRole(m.role)).length;
   const assignableRoles = assignableRolesFor(myRole);

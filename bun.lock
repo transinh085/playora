@@ -80,6 +80,7 @@
       "dependencies": {
         "@hookform/resolvers": "6.0.0",
         "@playora/api-client": "workspace:*",
+        "@playora/auth": "workspace:*",
         "@playora/contracts": "workspace:*",
         "@playora/i18n": "workspace:*",
         "@playora/ui": "workspace:*",
