@@ -21,7 +21,7 @@ Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design syste
 | **Slido / Mentimeter** | Màn trình chiếu sạch, một thông tin chính mỗi lúc; mã tham gia số cho người ở xa | Giao diện quá trung tính, thiếu không khí sự kiện |
 | **Linear / Vercel (Geist)** | Studio yên tĩnh: neutral có chủ đích, màu thương hiệu chỉ cho hành động chính, mật độ vừa | Dark-first mặc định (người dùng Studio làm việc ban ngày) |
 | **凡科互动 / Guandayun** | **1 cơ chế × N skin** theo mùa; skin là tầng token chứ không phải template mới | Trang trí dày đặc, nhiều hiệu ứng nhấp nháy |
-| **Radix Colors / shadcn** | Thang màu theo bậc, token ngữ nghĩa, OKLCH | — |
+| **Ant Design / Radix Colors** | Thang màu theo bậc, token ngữ nghĩa, OKLCH | — |
 
 ## 2. Nguyên tắc
 
@@ -79,7 +79,7 @@ Không dùng chữ in hoa toàn bộ cho nhãn; không thêm "eyebrow" trên ti�
 
 | Token | Giá trị | Ghi chú |
 |---|---|---|
-| `--radius` | 0.625rem | Studio (shadcn `rounded-md/lg/xl`) |
+| `--radius` | 0.625rem | Studio (`rounded-md/lg/xl`, antd `borderRadius`) |
 | `--game-radius` / `rounded-game` | 1.25rem | Mềm, "đồ chơi"; brand kit chọn `square / soft / round` |
 | `--duration-fast/base/slow/stage` | 120 / 200 / 320 / 640 ms | |
 | `ease-out`, `ease-in-out`, `ease-spring` | | `ease-spring` có một nhịp nảy, cho điểm và reveal |

@@ -11,7 +11,6 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@hookform/resolvers": "6.0.0",
     "@playora/api-client": "workspace:*",
     "@playora/auth": "workspace:*",
     "@playora/contracts": "workspace:*",
@@ -28,8 +27,6 @@
     "qrcode": "1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-hook-form": "7.90.0",
-    "sonner": "2.0.8",
     "zod": "4.6.7"
   },
   "devDependencies": {

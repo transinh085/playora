@@ -6,13 +6,11 @@
  * Three layers:
  *   1. Primitives  (--violet-*, --ink-*, --spotlight-*, --stage-*, --team-*): raw OKLCH values, never used
  *      directly in components.
- *   2. Studio      (shadcn names: --background, --primary…): the console for organisers. Light + `.dark`.
+ *   2. Studio / Semantic (--background, --foreground, --border… bridged to Ant Design tokens): the console for organisers. Light + `.dark`.
  *   3. Game        (--game-*): everything players and the LED screen see. Swapped per event by a skin
  *      (`data-skin`) and then by the customer's brand kit (inline vars from `brandKitVars()`).
  */
 @layer theme, base, antd, components, utilities;
-
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -74,51 +72,26 @@
   --duration-slow: 320ms;
   --duration-stage: 640ms;
 
-  /* ── 2. Studio ─────────────────────────────────────────────────────────────────── */
+  /* ── 2. Studio / Semantic (bridged to Ant Design) ─────────────────────────────── */
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: var(--ink-950);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--ink-950);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--ink-950);
-  --primary: var(--violet-600);
+  --background: var(--ant-color-bg-layout, var(--ink-50));
+  --foreground: var(--ant-color-text, var(--ink-950));
+  --muted-foreground: var(--ant-color-text-secondary, var(--ink-500));
+  --border: var(--ant-color-border, var(--ink-200));
+  --primary: var(--ant-color-primary, var(--violet-600));
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: var(--ink-100);
-  --secondary-foreground: var(--ink-900);
-  --muted: var(--ink-100);
-  --muted-foreground: var(--ink-500);
-  --accent: var(--violet-50);
-  --accent-foreground: var(--violet-800);
-  --destructive: oklch(0.577 0.235 27);
-  --border: var(--ink-200);
-  --input: var(--ink-200);
-  --ring: var(--violet-500);
 
-  --success: oklch(0.56 0.15 152);
+  --success: var(--ant-color-success, oklch(0.56 0.15 152));
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.75 0.16 70);
+  --warning: var(--ant-color-warning, oklch(0.75 0.16 70));
   --warning-foreground: oklch(0.28 0.07 60);
-  --info: oklch(0.56 0.16 255);
+  --info: var(--ant-color-info, oklch(0.56 0.16 255));
   --info-foreground: oklch(0.985 0 0);
+  --destructive: var(--ant-color-error, oklch(0.577 0.235 27));
+  --destructive-foreground: oklch(0.985 0 0);
   /* "On air": an event that is live right now. */
   --live: oklch(0.6 0.23 25);
   --live-foreground: oklch(0.985 0 0);
-
-  --chart-1: var(--violet-500);
-  --chart-2: var(--team-6);
-  --chart-3: var(--spotlight-500);
-  --chart-4: var(--team-4);
-  --chart-5: var(--team-1);
-
-  --sidebar: var(--ink-50);
-  --sidebar-foreground: var(--ink-950);
-  --sidebar-primary: var(--violet-600);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: var(--ink-100);
-  --sidebar-accent-foreground: var(--ink-900);
-  --sidebar-border: var(--ink-200);
-  --sidebar-ring: var(--violet-500);
 
   /* ── 3. Game (default skin: classic) ───────────────────────────────────────────── */
   --game-bg: var(--stage-950);
@@ -137,44 +110,23 @@
 }
 
 .dark {
-  --background: var(--ink-950);
-  --foreground: var(--ink-50);
-  --card: var(--ink-900);
-  --card-foreground: var(--ink-50);
-  --popover: var(--ink-900);
-  --popover-foreground: var(--ink-50);
-  --primary: var(--violet-400);
+  --background: var(--ant-color-bg-layout, var(--ink-950));
+  --foreground: var(--ant-color-text, var(--ink-50));
+  --muted-foreground: var(--ant-color-text-secondary, var(--ink-400));
+  --border: var(--ant-color-border, oklch(1 0 0 / 10%));
+  --primary: var(--ant-color-primary, var(--violet-400));
   --primary-foreground: var(--ink-950);
-  --secondary: var(--ink-800);
-  --secondary-foreground: var(--ink-50);
-  --muted: var(--ink-800);
-  --muted-foreground: var(--ink-400);
-  --accent: oklch(0.3 0.06 293);
-  --accent-foreground: var(--violet-100);
-  --destructive: oklch(0.704 0.191 22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--violet-400);
 
-  --success: oklch(0.72 0.16 152);
+  --success: var(--ant-color-success, oklch(0.72 0.16 152));
   --success-foreground: var(--ink-950);
-  --warning: oklch(0.8 0.15 75);
+  --warning: var(--ant-color-warning, oklch(0.8 0.15 75));
   --warning-foreground: var(--ink-950);
-  --info: oklch(0.7 0.14 255);
+  --info: var(--ant-color-info, oklch(0.7 0.14 255));
   --info-foreground: var(--ink-950);
+  --destructive: var(--ant-color-error, oklch(0.704 0.191 22));
+  --destructive-foreground: var(--ink-950);
   --live: oklch(0.66 0.22 25);
   --live-foreground: oklch(0.99 0 0);
-
-  --chart-1: var(--violet-400);
-
-  --sidebar: var(--ink-900);
-  --sidebar-foreground: var(--ink-50);
-  --sidebar-primary: var(--violet-400);
-  --sidebar-primary-foreground: var(--ink-950);
-  --sidebar-accent: var(--ink-800);
-  --sidebar-accent-foreground: var(--ink-50);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--violet-400);
 }
 
 /* ── Skins (theme packs). Keys match `skins` in lib/game-theme.ts. ─────────────────── */
@@ -244,22 +196,12 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -268,19 +210,6 @@
   --color-info-foreground: var(--info-foreground);
   --color-live: var(--live);
   --color-live-foreground: var(--live-foreground);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 
   --color-spotlight: var(--spotlight-400);
   --color-stage: var(--stage-950);
@@ -394,7 +323,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;

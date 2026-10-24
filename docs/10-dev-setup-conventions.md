@@ -22,7 +22,7 @@ packages/
   core/         logic thuần, không I/O: prize engine, pacing, quota, provably-fair (bốc thăm cuối chương trình)
   game-sdk/     interface template game (instant / skill / draw)
   templates/    registry template (client + ./server)
-  ui/           design system: tokens (./styles.css), shadcn (./components/*), game surface (./game/*), ./lib/*
+  ui/           design system: tokens, theme, providers, form, auto-form, game surface, ./styles.css
   i18n/         messages vi/en (vi là chuẩn)
   env/          zod schema env theo app
   tsconfig/     base, library, nestjs, nextjs
@@ -68,7 +68,6 @@ bun run dev                        # web :3000 · studio :3001 · play :3002 · 
 | `bun run ci` | lint + typecheck + test + build như CI |
 | `bun run db:generate` | Sinh migration SQL từ schema (review trước khi commit) |
 | `bun run --cwd packages/auth generate:schema` | Sinh lại bảng Better Auth khi đổi plugin |
-| `bunx shadcn@4.22.1 add <component>` (trong `packages/ui`) | Thêm component UI. **Kiểm tra lại import `cn`** (xem §6.3) |
 | `docker build -f infra/docker/Dockerfile.nest --build-arg APP=@playora/api --build-arg APP_DIR=apps/api .` | Build image service |
 
 ---
