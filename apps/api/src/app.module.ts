@@ -9,6 +9,7 @@ import { OrgAccessGuard } from './common/auth/org-access.guard';
 import { SessionGuard } from './common/auth/session.guard';
 import { CommonModule } from './common/common.module';
 import { ResponseContractInterceptor } from './common/contract/response-contract.interceptor';
+import { getRouteContract } from './common/contract/route.decorator';
 import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage';
 import { InfraModule } from './infra/infra.module';
 import { REDIS } from './infra/tokens';
@@ -70,20 +71,22 @@ export class AppModule {
                 name: 'default',
                 ttl: 60_000,
                 limit: env.RATE_LIMIT_PER_MIN,
-                skipIf: (ctx) => ctx.getClass() === PublicController,
+                skipIf: (ctx) => Boolean(getRouteContract(ctx)?.rateLimit),
               },
               {
                 name: PUBLIC_THROTTLER,
                 ttl: 60_000,
                 limit: env.PUBLIC_RATE_LIMIT_PER_MIN,
-                skipIf: (ctx) => ctx.getClass() !== PublicController,
+                skipIf: (ctx) => {
+                  const rateLimit = getRouteContract(ctx)?.rateLimit;
+                  return rateLimit !== 'public' && rateLimit !== 'publicJoinDevice';
+                },
               },
               {
                 name: PUBLIC_JOIN_DEVICE_THROTTLER,
                 ttl: 60_000,
                 limit: PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
-                skipIf: (ctx) =>
-                  ctx.getClass() !== PublicController || ctx.getHandler().name !== 'join',
+                skipIf: (ctx) => getRouteContract(ctx)?.rateLimit !== 'publicJoinDevice',
                 getTracker: getPublicJoinDeviceTracker,
               },
             ],

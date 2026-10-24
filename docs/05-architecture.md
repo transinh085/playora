@@ -71,7 +71,7 @@ Cập nhật: 24/10/2026 · Owner: Tech Lead · v2.1: bỏ realtime/live engine 
 | State (editor/runtime) | **Zustand** | Nhẹ, dùng được ngoài React (game loop) |
 | Game rendering | **PixiJS v8** (game hành động: hứng quà, đập logo), DOM/CSS + **Motion** (vòng quay, cào thẻ, mở hộp, UI) | Nhẹ hơn Phaser; WebGL/WebGPU; tree-shake được |
 | Backend framework | **NestJS 12.2** (thuần ESM) | Module hoá, DI, guard/interceptor, ecosystem |
-| Validation | **zod 4.6** + `ZodValidationPipe` tự viết (`nestjs-zod` chưa hỗ trợ Nest 12; ADR-005) | DTO từ contracts, sinh OpenAPI |
+| Validation | **zod 4.6** qua `@Route` / `@Args` đọc contract (`nestjs-zod` chưa hỗ trợ Nest 12; ADR-005) | DTO từ contracts, sinh OpenAPI |
 | ORM | **Drizzle ORM 0.45** + **drizzle-kit 0.31** (migrations), driver `postgres` 3.4 (ADR-003) | Type-safe SQL, migration SQL rõ ràng; postgres.js chạy cả Bun và Node |
 | Database | **PostgreSQL 17+** (managed), **PgBouncer** (transaction pooling) | JSONB cho config, partition cho analytics |
 | Cache / queue | **Valkey/Redis 7+**; **BullMQ** | Rate limit, idempotency key, ZSET leaderboard (skill), job queue |

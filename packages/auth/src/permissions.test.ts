@@ -7,8 +7,8 @@ describe('org permissions', () => {
     expect(hasPermission('editor', { event: ['delete'] })).toBe(false);
   });
 
-  test('operators run live shows and only read content', () => {
-    expect(hasPermission('operator', { live: ['operate'] })).toBe(true);
+  test('operators only read content and cannot update events', () => {
+    expect(hasPermission('operator', { event: ['read'] })).toBe(true);
     expect(hasPermission('operator', { event: ['update'] })).toBe(false);
   });
 
@@ -18,7 +18,7 @@ describe('org permissions', () => {
   });
 
   test('multi-role members get the union and unknown roles grant nothing', () => {
-    expect(hasPermission('viewer, operator', { live: ['operate'] })).toBe(true);
+    expect(hasPermission('viewer, editor', { game: ['publish'] })).toBe(true);
     expect(hasPermission('member', { event: ['read'] })).toBe(false);
   });
 

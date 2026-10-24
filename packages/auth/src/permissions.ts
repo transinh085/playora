@@ -12,7 +12,6 @@ export const statements = {
   prize: ['create', 'read', 'update', 'delete'],
   asset: ['create', 'read', 'update', 'delete'],
   brandKit: ['create', 'read', 'update', 'delete'],
-  live: ['operate'],
   export: ['create'],
   audit: ['read'],
 } as const;
@@ -25,7 +24,6 @@ const content = {
   prize: ['create', 'read', 'update', 'delete'],
   asset: ['create', 'read', 'update', 'delete'],
   brandKit: ['create', 'read', 'update', 'delete'],
-  live: ['operate'],
 } as const;
 
 export const roles = {
@@ -38,7 +36,6 @@ export const roles = {
     prize: ['read'],
     asset: ['read'],
     brandKit: ['read'],
-    live: ['operate'],
   }),
   viewer: ac.newRole({
     event: ['read'],

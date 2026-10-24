@@ -206,7 +206,7 @@ DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ li
 |---|---|
 | Bun bỏ qua cờ decorator trong tsconfig kế thừa | Khai báo trong tsconfig của từng app NestJS |
 | TypeScript 7 không có JS API cho Next.js | Pin TS 6.0.3 (ADR-007) |
-| `nestjs-zod` chưa hỗ trợ Nest 12 | Dùng `@Route` / `@Args` + `ZodValidationPipe` tự viết |
+| `nestjs-zod` chưa hỗ trợ Nest 12 | Dùng `@Route` / `@Args` đọc zod contract (không cần `ZodValidationPipe`) |
 | `@nest-lab/throttler-storage-redis` chưa hỗ trợ Nest 12 | `RedisThrottlerStorage` tự viết (Lua, atomic) |
 | Next.js trong Bun isolated linker | App Next phải tự khai báo `typescript` và `@types/node` |
 | Postinstall của `@swc/core`, `@parcel/watcher` bị Bun chặn | Giữ chặn; dùng binary prebuilt |

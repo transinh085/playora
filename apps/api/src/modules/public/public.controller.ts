@@ -1,5 +1,5 @@
 import { Controller, Headers, Inject, Ip } from '@nestjs/common';
-import { normalizeIp, SkipThrottle, Throttle } from '@nestjs/throttler';
+import { normalizeIp } from '@nestjs/throttler';
 import { publicApi, type RouteArgs } from '@playora/contracts';
 import type { Database } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
@@ -29,8 +29,8 @@ export function getPublicJoinDeviceTracker(req: Record<string, unknown>): string
  * Public player endpoints (`/p/:slug`, `/p/:slug/join`).
  * Skips the default 300/min per-IP throttler so hundreds of phones behind venue NAT can join;
  * applies a high per-IP limit (`PUBLIC_RATE_LIMIT_PER_MIN`) plus a per-(IP + deviceId) bucket on join.
+ * Rate limit tiers are declared on the contracts (`publicApi.event`, `publicApi.join`).
  */
-@SkipThrottle({ default: true })
 @Controller()
 export class PublicController {
   private readonly publicService: PublicService;
@@ -39,19 +39,11 @@ export class PublicController {
     this.publicService = new PublicService(new PublicRepository(db), assets, env);
   }
 
-  @SkipThrottle({ [PUBLIC_JOIN_DEVICE_THROTTLER]: true })
   @Route(publicApi.event)
   event(@Args() { params }: RouteArgs<typeof publicApi.event>) {
     return this.publicService.getEvent(params.slug);
   }
 
-  @Throttle({
-    [PUBLIC_JOIN_DEVICE_THROTTLER]: {
-      ttl: 60_000,
-      limit: PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
-      getTracker: getPublicJoinDeviceTracker,
-    },
-  })
   @Route(publicApi.join)
   join(
     @Args() { params, body }: RouteArgs<typeof publicApi.join>,

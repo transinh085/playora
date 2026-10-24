@@ -10,6 +10,7 @@
     },
     "dev": { "cache": false, "persistent": true },
     "typecheck": { "dependsOn": ["^typecheck"] },
-    "test": { "outputs": [] }
+    "test": { "outputs": [] },
+    "@playora/api#test": { "cache": false }
   }
 }

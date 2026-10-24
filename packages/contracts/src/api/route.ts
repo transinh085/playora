@@ -12,6 +12,8 @@ export type RouteAuth = 'public' | 'session' | 'player';
 /** Shape of an org permission check; mirrors `@playora/auth` statements without depending on it. */
 export type RoutePermission = Record<string, readonly string[]>;
 
+export type RouteRateLimit = 'public' | 'publicJoinDevice';
+
 export interface RouteDef {
   method: HttpMethod;
   /** Express-style path without the `/v1` prefix, e.g. `/orgs/:orgId/events/:eventId`. */
@@ -27,6 +29,8 @@ export interface RouteDef {
   response: z.ZodType;
   /** HTTP status on success (default 200). */
   status?: number;
+  /** Optional rate limit tier: 'public' (e.g. player shell) or 'publicJoinDevice' (e.g. join with deviceId). */
+  rateLimit?: RouteRateLimit;
 }
 
 export function defineRoute<const R extends RouteDef>(route: R): R {
