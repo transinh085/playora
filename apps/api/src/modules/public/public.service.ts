@@ -8,21 +8,24 @@ import {
 import {
   BrandKitTokens,
   ErrorCode,
-  EventRegistrationForm,
   type JoinEventResponse,
   type PublicBrandKit,
   type PublicEvent,
-  type PublicRegistrationForm,
   type publicApi,
-  type RegistrationField,
   type RouteArgs,
 } from '@playora/contracts';
+import {
+  buildNewConsentRecords,
+  DEFAULT_PLAYER_DISPLAY_NAME,
+  parseRegistrationForm,
+  reconcileExistingPlayer,
+  resolveDisplayName,
+  validateRegistration,
+} from '@playora/core/registration';
 import { PLAYER_SESSION_TTL_S, signPlayerSession } from '@playora/core/session';
 import type { ApiEnv } from '@playora/env';
-import { z } from 'zod';
 import { ENV } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
-import { normalizeRegistrationForm } from '../events/events.service';
 import { type PlayerRow, PublicRepository } from './public.repository';
 
 type JoinBody = RouteArgs<typeof publicApi.join>['body'];
@@ -30,74 +33,6 @@ type JoinBody = RouteArgs<typeof publicApi.join>['body'];
 export interface JoinRequestMeta {
   ip?: string;
   userAgent?: string;
-}
-
-const NAME_FIELD_KEYS = new Set([
-  'name',
-  'fullname',
-  'full_name',
-  'displayname',
-  'display_name',
-  'ho_ten',
-  'hoten',
-]);
-
-const MAX_FORM_FIELD_VALUE_LENGTH = 500;
-
-function parseRegistrationForm(raw: unknown): PublicRegistrationForm {
-  if (!raw) return { fields: [], consents: [] };
-  const parsed = EventRegistrationForm.safeParse(raw);
-  if (!parsed.success) return { fields: [], consents: [] };
-  return normalizeRegistrationForm(parsed.data);
-}
-
-function normalizeConsentsInput(input: JoinBody['consents']): Map<string, boolean> {
-  const map = new Map<string, boolean>();
-  if (!input) return map;
-  if (Array.isArray(input)) {
-    for (const item of input) {
-      map.set(item.purpose, item.granted);
-    }
-  } else {
-    for (const [purpose, granted] of Object.entries(input)) {
-      map.set(purpose, granted);
-    }
-  }
-  return map;
-}
-
-function resolveDisplayNameFromFields(
-  fields: Record<string, string | boolean> | undefined,
-  formFields: RegistrationField[],
-): string | null {
-  if (!fields) return null;
-  for (const f of formFields) {
-    if (NAME_FIELD_KEYS.has(f.key.toLowerCase())) {
-      const val = fields[f.key];
-      if (typeof val === 'string' && val.trim().length > 0) {
-        return val.trim().slice(0, 120);
-      }
-    }
-  }
-  for (const f of formFields) {
-    if (f.type === 'text') {
-      const val = fields[f.key];
-      if (typeof val === 'string' && val.trim().length > 0) {
-        return val.trim().slice(0, 120);
-      }
-    }
-  }
-  return null;
-}
-
-function resolveDisplayName(
-  explicitName: string | undefined,
-  fields: Record<string, string | boolean> | undefined,
-  formFields: RegistrationField[],
-): string {
-  const trimmed = explicitName?.trim();
-  if (trimmed) return trimmed;
-  return resolveDisplayNameFromFields(fields, formFields) ?? 'Người chơi';
 }
 
 @Injectable()
@@ -119,28 +54,18 @@ export class PublicService {
     if (!parsed.success) return null;
 
     const { colors, fontHeading, fontBody, logoAssetId, backgroundAssetId } = parsed.data;
+    const getUrl = (id?: string | null) =>
+      id
+        ? this.assets
+            .get(organizationId, id)
+            .then((a) => a.url)
+            .catch(() => null)
+        : Promise.resolve(null);
     const [logoUrl, backgroundUrl] = await Promise.all([
-      logoAssetId
-        ? this.assets
-            .get(organizationId, logoAssetId)
-            .then((a) => a.url)
-            .catch(() => null)
-        : Promise.resolve(null),
-      backgroundAssetId
-        ? this.assets
-            .get(organizationId, backgroundAssetId)
-            .then((a) => a.url)
-            .catch(() => null)
-        : Promise.resolve(null),
+      getUrl(logoAssetId),
+      getUrl(backgroundAssetId),
     ]);
-
-    return {
-      colors,
-      fontHeading,
-      fontBody,
-      logoUrl,
-      backgroundUrl,
-    };
+    return { colors, fontHeading, fontBody, logoUrl, backgroundUrl };
   }
 
   async getEvent(slug: string): Promise<PublicEvent> {
@@ -169,91 +94,9 @@ export class PublicService {
     };
   }
 
-  private validateFormAndConsents(formConfig: PublicRegistrationForm, body: JoinBody) {
-    const consentsMap = normalizeConsentsInput(body.consents);
-
-    for (const consent of formConfig.consents) {
-      const granted = consentsMap.get(consent.purpose) === true;
-      if (consent.required && !granted) {
-        throw new BadRequestException({
-          code: ErrorCode.VALIDATION_FAILED,
-          message: 'Vui lòng đồng ý với điều khoản bắt buộc',
-          details: { field: `consents.${consent.purpose}` },
-        });
-      }
-    }
-
-    const fieldsRecord = body.fields ?? {};
-    const formData: Record<string, string | boolean> = {};
-
-    for (const field of formConfig.fields) {
-      const rawVal = fieldsRecord[field.key];
-      if (field.type === 'checkbox') {
-        if (field.required && rawVal !== true) {
-          throw new BadRequestException({
-            code: ErrorCode.VALIDATION_FAILED,
-            message: `Trường "${field.label.vi}" là bắt buộc`,
-            details: { field: `fields.${field.key}` },
-          });
-        }
-        if (typeof rawVal === 'boolean') {
-          formData[field.key] = rawVal;
-        }
-        continue;
-      }
-
-      const strVal =
-        typeof rawVal === 'string' ? rawVal.trim().slice(0, MAX_FORM_FIELD_VALUE_LENGTH) : '';
-      if (field.required && strVal.length === 0) {
-        throw new BadRequestException({
-          code: ErrorCode.VALIDATION_FAILED,
-          message: `Trường "${field.label.vi}" là bắt buộc`,
-          details: { field: `fields.${field.key}` },
-        });
-      }
-
-      if (strVal.length > 0) {
-        if (field.type === 'email' && !z.email().safeParse(strVal).success) {
-          throw new BadRequestException({
-            code: ErrorCode.VALIDATION_FAILED,
-            message: 'Email không hợp lệ',
-            details: { field: `fields.${field.key}` },
-          });
-        }
-        if (field.type === 'phone' && !/^[0-9+\-\s()]{7,20}$/.test(strVal)) {
-          throw new BadRequestException({
-            code: ErrorCode.VALIDATION_FAILED,
-            message: 'Số điện thoại không hợp lệ',
-            details: { field: `fields.${field.key}` },
-          });
-        }
-        if (field.type === 'select' && field.options?.length && !field.options.includes(strVal)) {
-          throw new BadRequestException({
-            code: ErrorCode.VALIDATION_FAILED,
-            message: 'Lựa chọn không hợp lệ',
-            details: { field: `fields.${field.key}` },
-          });
-        }
-        if (field.type === 'phone') {
-          // TODO(PDPL): move phone to phoneEnc/phoneHash once the crypto helper lands
-          formData[field.key] = strVal;
-        } else {
-          formData[field.key] = strVal;
-        }
-      }
-    }
-
-    return { consentsMap, formData };
-  }
-
   async join(slug: string, body: JoinBody, meta: JoinRequestMeta = {}): Promise<JoinEventResponse> {
     const event = await this.repo.findEventBySlug(slug);
-    if (!event) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
-    }
-
-    // Draft events are treated as 404 on join until rehearsal mode lands (EVT-09).
-    if (event.status === 'draft') {
+    if (!event || event.status === 'draft') {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
     }
     if (event.status !== 'scheduled' && event.status !== 'live') {
@@ -264,11 +107,18 @@ export class PublicService {
     }
 
     const formConfig = parseRegistrationForm(event.registrationForm);
-    const { consentsMap, formData } = this.validateFormAndConsents(formConfig, body);
+    const validation = validateRegistration(formConfig, body);
+    if (!validation.ok) {
+      throw new BadRequestException({
+        code: validation.error.code,
+        message: validation.error.message,
+        details: { field: validation.error.field },
+      });
+    }
+    const { consentsMap, formData } = validation;
 
     const orgId = event.organizationId;
     const eventId = event.id;
-
     const cleanDeviceId = body.deviceId?.trim() ?? '';
     if (!cleanDeviceId) {
       throw new BadRequestException({
@@ -277,7 +127,6 @@ export class PublicService {
         details: { field: 'deviceId' },
       });
     }
-
     if (event.identity === 'guest_list' && !body.code?.trim()) {
       throw new BadRequestException({
         code: ErrorCode.VALIDATION_FAILED,
@@ -323,47 +172,18 @@ export class PublicService {
       let playerRow: PlayerRow;
 
       if (existing) {
-        const existingFormData =
-          existing.formData &&
-          typeof existing.formData === 'object' &&
-          !Array.isArray(existing.formData)
-            ? (existing.formData as Record<string, string | boolean>)
-            : {};
-        const mergedFormData: Record<string, string | boolean> = {
-          ...existingFormData,
-          ...formData,
-        };
-        const formDataChanged = Object.entries(formData).some(
-          ([k, v]) => existingFormData[k] !== v,
-        );
-
-        const resolvedFromForm = resolveDisplayNameFromFields(formData, formConfig.fields);
-        const nextDisplayName =
-          event.identity === 'guest_list'
-            ? displayName
-            : body.displayName?.trim() || resolvedFromForm || existing.displayName || displayName;
-        const nextTeam = event.identity === 'guest_list' ? team : existing.team;
-        const needsUpdate =
-          !existing.checkedInAt ||
-          existing.displayName !== nextDisplayName ||
-          existing.team !== nextTeam ||
-          existing.deviceId !== cleanDeviceId ||
-          formDataChanged;
-
-        playerRow = needsUpdate
-          ? await this.repo.updatePlayer(
-              orgId,
-              existing.id,
-              {
-                displayName: nextDisplayName,
-                team: nextTeam,
-                checkedInAt: existing.checkedInAt ?? now,
-                deviceId: cleanDeviceId,
-                formData: mergedFormData,
-              },
-              tx,
-            )
-          : existing;
+        const patch = reconcileExistingPlayer({
+          existing,
+          isGuestList: event.identity === 'guest_list',
+          explicitDisplayName: body.displayName,
+          defaultDisplayName: displayName,
+          guestTeam: team,
+          deviceId: cleanDeviceId,
+          formData,
+          formFields: formConfig.fields,
+          now,
+        });
+        playerRow = patch ? await this.repo.updatePlayer(orgId, existing.id, patch, tx) : existing;
       } else {
         const liveCount = await this.repo.countLivePlayers(orgId, eventId, tx);
         if (liveCount >= event.playerLimit) {
@@ -393,26 +213,19 @@ export class PublicService {
         const existingPurposes = existing
           ? await this.repo.findConsentPurposes(orgId, playerRow.id, tx)
           : new Set<string>();
-        const newConsents = formConfig.consents
-          .filter((c) => !existingPurposes.has(c.purpose))
-          .map((c) => ({
-            playerId: playerRow.id,
-            purpose: c.purpose,
-            granted: consentsMap.get(c.purpose) === true,
-            textVersion: c.textVersion,
-            textHash: c.textHash,
-            ip: meta.ip ?? null,
-            userAgent: meta.userAgent ?? null,
-          }));
+        const newConsents = buildNewConsentRecords(
+          formConfig.consents,
+          consentsMap,
+          existingPurposes,
+          { playerId: playerRow.id, ip: meta.ip, userAgent: meta.userAgent },
+        );
         await this.repo.insertConsents(orgId, newConsents, tx);
       }
 
       return playerRow;
     });
 
-    const finalDisplayName = player.displayName ?? 'Người chơi';
-    const finalTeam = player.team ?? null;
-    const nowS = Math.floor(Date.now() / 1000);
+    const finalDisplayName = player.displayName ?? DEFAULT_PLAYER_DISPLAY_NAME;
     const playerToken = signPlayerSession(
       {
         kind: 'player',
@@ -421,18 +234,14 @@ export class PublicService {
         sub: player.id,
         displayName: finalDisplayName,
         ver: 1,
-        exp: nowS + PLAYER_SESSION_TTL_S,
+        exp: Math.floor(Date.now() / 1000) + PLAYER_SESSION_TTL_S,
       },
       this.env.PLAYER_SESSION_SECRET,
     );
 
     return {
       playerToken,
-      player: {
-        id: player.id,
-        displayName: finalDisplayName,
-        team: finalTeam,
-      },
+      player: { id: player.id, displayName: finalDisplayName, team: player.team ?? null },
     };
   }
 }

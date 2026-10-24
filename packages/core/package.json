@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
     "./draw": "./src/draw/index.ts",
     "./prize": "./src/prize/index.ts",
+    "./registration": "./src/registration/index.ts",
+    "./registration/validate": "./src/registration/validate.ts",
     "./session": "./src/session/index.ts"
   },
   "scripts": {

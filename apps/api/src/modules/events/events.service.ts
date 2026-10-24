@@ -1,14 +1,6 @@
-import { createHash } from 'node:crypto';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import {
-  type ConsentItem,
-  ErrorCode,
-  type EventRegistrationForm,
-  type eventsApi,
-  type PublicConsentItem,
-  type PublicRegistrationForm,
-  type RouteArgs,
-} from '@playora/contracts';
+import { ErrorCode, type eventsApi, type RouteArgs } from '@playora/contracts';
+import { normalizeRegistrationForm } from '@playora/core/registration';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
@@ -16,26 +8,6 @@ import { EventsRepository } from './events.repository';
 
 /** Free plan cap until billing lands (docs/02-business-model.md §3.2). */
 export const FREE_PLAYER_LIMIT = 100;
-
-export function versionConsentItem(item: ConsentItem): PublicConsentItem {
-  const payload = item.text.en ? `${item.text.vi}\n${item.text.en}` : item.text.vi;
-  const textHash = createHash('sha256').update(payload).digest('hex');
-  const textVersion = `sha256:${textHash.slice(0, 12)}`;
-  return {
-    purpose: item.purpose,
-    text: item.text,
-    required: item.required,
-    textVersion,
-    textHash,
-  };
-}
-
-export function normalizeRegistrationForm(form: EventRegistrationForm): PublicRegistrationForm {
-  return {
-    fields: form.fields,
-    consents: form.consents.map(versionConsentItem),
-  };
-}
 
 type ListQuery = RouteArgs<typeof eventsApi.list>['query'];
 type CreateBody = RouteArgs<typeof eventsApi.create>['body'];
