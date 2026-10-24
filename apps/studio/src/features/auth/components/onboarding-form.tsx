@@ -1,22 +1,11 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Slug } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
-import { Label } from '@playora/ui/components/label';
+import { useZodForm } from '@playora/ui/form';
+import { App, Button, Card, Form, Input } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { z } from 'zod';
 import { authClient } from '@/lib/auth-client';
 
@@ -35,56 +24,64 @@ const slugify = (value: string) =>
 
 export function OnboardingForm() {
   const t = useTranslations('onboarding');
+  const tCommon = useTranslations('common');
   const router = useRouter();
-  const form = useForm<Values>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: '', slug: '' },
-  });
+  const { message } = App.useApp();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function onSubmit(values: Values) {
-    const { data, error } = await authClient.organization.create(values);
-    if (error || !data) {
-      form.setError('slug', { message: error?.message });
-      return;
+  const { form, rules, parse } = useZodForm(schema);
+
+  async function onSubmit(rawValues: Values) {
+    setIsSubmitting(true);
+    try {
+      const values = parse(rawValues);
+      const { data, error } = await authClient.organization.create(values);
+      if (error || !data) {
+        form.setFields([
+          {
+            name: 'slug',
+            errors: [error?.message ?? tCommon('unknownError')],
+          },
+        ]);
+        return;
+      }
+      message.success(values.name);
+      router.replace(`/orgs/${data.id}/events`);
+      router.refresh();
+    } finally {
+      setIsSubmitting(false);
     }
-    toast.success(values.name);
-    router.replace(`/orgs/${data.id}/events`);
-    router.refresh();
   }
 
-  const { errors, isSubmitting } = form.formState;
   return (
     <div className="mx-auto flex max-w-lg flex-col py-16">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">{t('orgName')}</Label>
-              <Input
-                id="name"
-                aria-invalid={!!errors.name}
-                {...form.register('name', {
-                  onChange: (e) =>
-                    form.setValue('slug', slugify(e.target.value), { shouldValidate: true }),
-                })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="slug">{t('orgSlug')}</Label>
-              <Input id="slug" aria-invalid={!!errors.slug} {...form.register('slug')} />
-              {errors.slug && <p className="text-destructive text-sm">{errors.slug.message}</p>}
-            </div>
-          </CardContent>
-          <CardFooter className="mt-6">
-            <Button type="submit" disabled={isSubmitting}>
+      <Card title={<span className="text-xl font-semibold">{t('title')}</span>}>
+        <p className="mb-6 text-sm text-[var(--ant-color-text-secondary)]">{t('description')}</p>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ name: '', slug: '' }}
+          onFinish={onSubmit}
+        >
+          <Form.Item name="name" label={t('orgName')} rules={rules}>
+            <Input
+              id="name"
+              onChange={(e) => {
+                const slug = slugify(e.target.value);
+                form.setFieldValue('slug', slug);
+                form.validateFields(['slug']).catch(() => {});
+              }}
+            />
+          </Form.Item>
+          <Form.Item name="slug" label={t('orgSlug')} rules={rules}>
+            <Input id="slug" />
+          </Form.Item>
+          <Form.Item className="mb-0 mt-6">
+            <Button type="primary" htmlType="submit" loading={isSubmitting}>
               {t('submit')}
             </Button>
-          </CardFooter>
-        </form>
+          </Form.Item>
+        </Form>
       </Card>
     </div>
   );

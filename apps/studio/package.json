@@ -17,6 +17,7 @@
     "@playora/i18n": "workspace:*",
     "@playora/ui": "workspace:*",
     "@tanstack/react-query": "5.104.5",
+    "antd": "6.6.5",
     "better-auth": "1.7.12",
     "lucide-react": "1.61.0",
     "next": "16.4.3",

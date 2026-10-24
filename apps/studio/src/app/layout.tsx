@@ -1,3 +1,4 @@
+import { AntdRegistry } from '@playora/ui/providers';
 import type { Metadata } from 'next';
 import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -24,7 +25,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${font.variable} ${display.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased">
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
+          <AntdRegistry>
+            <Providers>{children}</Providers>
+          </AntdRegistry>
         </NextIntlClientProvider>
       </body>
     </html>

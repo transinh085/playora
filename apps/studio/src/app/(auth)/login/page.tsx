@@ -6,7 +6,7 @@ export default function LoginPage() {
     process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim(),
   );
   return (
-    <main className="bg-muted/40 flex min-h-dvh items-center justify-center p-6">
+    <main className="flex min-h-dvh items-center justify-center p-6 bg-[var(--ant-color-bg-layout)]">
       <Suspense>
         <LoginForm googleEnabled={googleEnabled} />
       </Suspense>

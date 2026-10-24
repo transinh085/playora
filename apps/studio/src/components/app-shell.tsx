@@ -1,18 +1,7 @@
 'use client';
 
 import type { MyOrg } from '@playora/contracts';
-import { Avatar, AvatarFallback } from '@playora/ui/components/avatar';
-import { Button } from '@playora/ui/components/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@playora/ui/components/dropdown-menu';
-import { Logo } from '@playora/ui/components/logo';
-import { cn } from '@playora/ui/lib/utils';
+import { Avatar, Button, Dropdown, Layout, Menu, type MenuProps } from 'antd';
 import {
   BarChart3,
   CalendarDays,
@@ -30,6 +19,9 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { authClient } from '@/lib/auth-client';
+import { Logo } from './logo';
+
+const { Sider, Header, Content } = Layout;
 
 const nav = [
   { key: 'events', icon: CalendarDays, path: 'events' },
@@ -55,88 +47,125 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     router.refresh();
   }
 
+  const activeNav = current
+    ? nav.find(({ path }) => pathname.startsWith(`/orgs/${current.id}/${path}`))
+    : undefined;
+  const selectedNavKey = activeNav?.key;
+
+  const orgMenuItems: MenuProps['items'] = orgs.map((org) => ({
+    key: org.id,
+    label: org.name,
+    onClick: () => router.push(`/orgs/${org.id}/events`),
+  }));
+
+  const navMenuItems: MenuProps['items'] = current
+    ? nav.map(({ key, icon: Icon, path }) => {
+        const href = `/orgs/${current.id}/${path}`;
+        return {
+          key,
+          icon: <Icon className="size-4" />,
+          label: <Link href={href as Route}>{t(`nav.${key}`)}</Link>,
+        };
+      })
+    : [];
+
   return (
-    <div className="grid min-h-dvh md:grid-cols-[240px_1fr]">
-      <aside className="bg-sidebar text-sidebar-foreground hidden flex-col gap-4 border-r p-4 md:flex">
-        <Link href="/" className="px-2" aria-label={t('common.appName')}>
-          <Logo />
-        </Link>
-        {current && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="justify-start truncate">
-                {current.name}
+    <Layout className="min-h-dvh">
+      <Sider
+        width={240}
+        breakpoint="md"
+        collapsedWidth={0}
+        trigger={null}
+        className="border-r border-[var(--ant-color-border-secondary)]"
+      >
+        <div className="flex h-full flex-col gap-4 p-4">
+          <Link href="/" className="px-2 py-1" aria-label={t('common.appName')}>
+            <Logo />
+          </Link>
+          {current && (
+            <Dropdown
+              menu={{
+                items: orgMenuItems,
+                selectedKeys: [current.id],
+              }}
+              trigger={['click']}
+            >
+              <Button className="w-full justify-between truncate text-left">
+                <span className="truncate">{current.name}</span>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              {orgs.map((org) => (
-                <DropdownMenuItem
-                  key={org.id}
-                  onSelect={() => router.push(`/orgs/${org.id}/events`)}
-                >
-                  {org.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        {current && (
-          <nav className="grid gap-1">
-            {nav.map(({ key, icon: Icon, path }) => {
-              const href = `/orgs/${current.id}/${path}`;
-              const active = pathname.startsWith(href);
-              return (
-                <Link
-                  key={key}
-                  href={href as Route}
-                  className={cn(
-                    'hover:bg-sidebar-accent flex items-center gap-2 rounded-md px-2 py-2 text-sm',
-                    active && 'bg-sidebar-accent font-medium',
-                  )}
-                >
-                  <Icon className="size-4" />
-                  {t(`nav.${key}`)}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-      </aside>
-      <div className="flex min-w-0 flex-col">
-        <header className="flex h-14 items-center justify-end gap-2 border-b px-4">
+            </Dropdown>
+          )}
+          {current && (
+            <nav className="grid gap-1">
+              <Menu
+                mode="inline"
+                selectedKeys={selectedNavKey ? [selectedNavKey] : []}
+                items={navMenuItems}
+                className="border-none bg-transparent"
+              />
+            </nav>
+          )}
+        </div>
+      </Sider>
+      <Layout className="flex min-w-0 flex-col">
+        <Header
+          style={{ height: 56, lineHeight: 'normal', padding: '0 16px' }}
+          className="flex items-center justify-end gap-2 border-b border-[var(--ant-color-border-secondary)]"
+        >
           <Button
-            variant="ghost"
-            size="icon"
+            type="text"
+            shape="circle"
             aria-label="Theme"
+            icon={
+              resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />
+            }
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          />
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'user-info',
+                  type: 'group',
+                  label: (
+                    <div className="py-1">
+                      <div className="font-medium text-[var(--ant-color-text)]">
+                        {session?.user.name}
+                      </div>
+                      <div className="text-xs text-[var(--ant-color-text-secondary)]">
+                        {session?.user.email}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: 'sign-out',
+                  icon: <LogOut className="size-4" />,
+                  label: t('auth.signOut'),
+                  danger: true,
+                  onClick: signOut,
+                },
+              ],
+            }}
+            placement="bottomRight"
+            trigger={['click']}
           >
-            {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="size-8">
-                  <AvatarFallback>
-                    {session?.user.name?.slice(0, 1).toUpperCase() ?? '?'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="font-normal">
-                <div className="font-medium">{session?.user.name}</div>
-                <div className="text-muted-foreground text-xs">{session?.user.email}</div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={signOut}>
-                <LogOut />
-                {t('auth.signOut')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
-      </div>
-    </div>
+            <button
+              type="button"
+              className="cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none"
+              aria-label="User menu"
+            >
+              <Avatar size={32} className="cursor-pointer">
+                {session?.user.name?.slice(0, 1).toUpperCase() ?? '?'}
+              </Avatar>
+            </button>
+          </Dropdown>
+        </Header>
+        <Content className="flex-1 p-6">{children}</Content>
+      </Layout>
+    </Layout>
   );
 }

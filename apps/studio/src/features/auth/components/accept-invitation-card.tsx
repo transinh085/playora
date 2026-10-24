@@ -1,20 +1,10 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@playora/ui/components/card';
-import { Skeleton } from '@playora/ui/components/skeleton';
+import { App, Button, Card, Skeleton, Typography } from 'antd';
 import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { authClient, isOrgRole } from '@/lib/auth-client';
 import { useInvalidateMyOrgs, useInvitation } from '../api';
 
@@ -23,6 +13,7 @@ export function AcceptInvitationCard() {
   const t = useTranslations();
   const router = useRouter();
   const invalidateMyOrgs = useInvalidateMyOrgs();
+  const { message } = App.useApp();
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -48,7 +39,7 @@ export function AcceptInvitationCard() {
         return;
       }
       await invalidateMyOrgs();
-      toast.success(
+      message.success(
         t('auth.inviteAccepted', { organization: invitationQuery.data.organizationName }),
       );
       router.replace(`/orgs/${invitationQuery.data.organizationId}/events` as Route);
@@ -84,49 +75,60 @@ export function AcceptInvitationCard() {
   const roleKey = invitation?.role && isOrgRole(invitation.role) ? invitation.role : 'viewer';
 
   return (
-    <main className="bg-muted/40 flex min-h-dvh items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-xl">{t('auth.inviteTitle')}</CardTitle>
-          {invitation && (
-            <CardDescription>
-              {t('auth.inviteDescription', {
-                inviter: invitation.inviterEmail,
-                organization: invitation.organizationName,
-                role: t(`members.roles.${roleKey}`),
-              })}
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {(sessionPending || invitationQuery.isPending) && (
-            <div className="grid gap-2">
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-5 w-1/2" />
-            </div>
-          )}
-          {invitationQuery.isError && (
-            <p className="text-destructive text-sm">{t('auth.inviteError')}</p>
-          )}
-          {actionError && <p className="text-destructive text-sm">{actionError}</p>}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <main className="flex min-h-dvh items-center justify-center p-6 bg-[var(--ant-color-bg-layout)]">
+      <Card
+        className="w-full max-w-md"
+        title={<span className="text-xl font-semibold">{t('auth.inviteTitle')}</span>}
+      >
+        {invitation && (
+          <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
+            {t('auth.inviteDescription', {
+              inviter: invitation.inviterEmail,
+              organization: invitation.organizationName,
+              role: t(`members.roles.${roleKey}`),
+            })}
+          </p>
+        )}
+
+        {(sessionPending || invitationQuery.isPending) && (
+          <div className="py-2">
+            <Skeleton active paragraph={{ rows: 2 }} />
+          </div>
+        )}
+
+        {invitationQuery.isError && (
+          <div className="mb-3">
+            <Typography.Text type="danger" className="text-sm">
+              {t('auth.inviteError')}
+            </Typography.Text>
+          </div>
+        )}
+
+        {actionError && (
+          <div className="mb-3">
+            <Typography.Text type="danger" className="text-sm">
+              {actionError}
+            </Typography.Text>
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
           {invitation && (
             <>
-              <Button type="button" variant="outline" disabled={submitting} onClick={onDecline}>
+              <Button disabled={submitting} onClick={onDecline}>
                 {t('auth.declineInvite')}
               </Button>
-              <Button type="button" disabled={submitting} onClick={onAccept}>
+              <Button type="primary" loading={submitting} onClick={onAccept}>
                 {t('auth.acceptInvite')}
               </Button>
             </>
           )}
           {invitationQuery.isError && (
-            <Button type="button" variant="outline" className="w-full" onClick={onSwitchAccount}>
+            <Button className="w-full" onClick={onSwitchAccount}>
               {t('auth.switchAccount')}
             </Button>
           )}
-        </CardFooter>
+        </div>
       </Card>
     </main>
   );
