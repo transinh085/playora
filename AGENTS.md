@@ -32,7 +32,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 3. **DB** — schema in `packages/db/src/schema/`, then `bun run db:generate`; commit the generated SQL.
 4. **API** — `apps/api/src/modules/<feature>/`: repository (every method takes `organizationId` first and filters by it) → service → controller using only `@Route(contract)` + `@Args()`.
 5. **Integration test** — `apps/api/test/<feature>.e2e.test.ts` with `createTestApp()`; must cover happy path, 400, 401 and **cross-tenant 403/404**.
-6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use `zodResolver(<contract schema>)` + `applyApiError`; all text via next-intl with keys in **both** `vi.json` and `en.json`.
+6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use antd `Form` + `useZodForm(<contract schema>)` + `applyApiError` from `@playora/ui/form`; toast/confirm via `App.useApp()`; all text via next-intl with keys in **both** `vi.json` and `en.json`.
 7. **E2E** for the main user flow in `tooling/e2e/tests/`.
 
 ## Hard rules
@@ -44,7 +44,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun run --cwd packages/auth generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
-- UI: only `@playora/ui/components/*` and theme tokens (`bg-primary`, `text-muted-foreground`), no hard-coded colors. Adding a shadcn component: follow `docs/10` §6.3 (CLI writes a bogus `cn` import).
+- UI: use components from `antd` and providers/theme/form helpers from `@playora/ui/{providers,theme,form,game}` (ADR-013); toast/confirm via `App.useApp()` (never static `message.*`); Tailwind only for layout/spacing, no hard-coded colors.
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 
 ## Git

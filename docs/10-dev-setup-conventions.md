@@ -150,10 +150,10 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 |---|---|
 | Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
 | Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
-| Form | react-hook-form + `zodResolver(<schema từ contracts>)`; `applyApiError` gắn lỗi server vào field |
-| UI | Chỉ dùng `@playora/ui/components/*` và token màu (`bg-primary`, `text-muted-foreground`…); không hard-code màu. Xem [13-design-system.md](./13-design-system.md) |
+| Form | antd `Form` + `useZodForm(<schema từ contracts>)` (`@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
+| UI | Dùng component từ `antd`, provider/theme từ `@playora/ui/{providers,theme}`; Tailwind chỉ cho layout/spacing; không hard-code màu. Xem [13-design-system.md](./13-design-system.md) và [ADR-013](./adr/013-antd-ui.md) |
 | i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
-| Thông báo | `toast` từ `sonner` |
+| Thông báo | `const { message, notification, modal } = App.useApp()` từ `antd` (không dùng static `message.*`) |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
 
 ### 6.2 Play (Player / Kiosk)
@@ -162,14 +162,17 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 - Game surface được lazy-load theo template (M1).
 - Bề mặt người chơi (và kiosk ở M3) bọc trong `GameRoot` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([13-design-system.md](./13-design-system.md)).
 
-### 6.3 Thêm component shadcn
+### 6.3 Thêm component antd
 
-```bash
-cd packages/ui && bunx shadcn@4.22.1 add <name> --yes
-grep -rl 'from "cn"' src/components | xargs sed -i '' 's#from "cn"#from "@playora/ui/lib/utils"#'
+Import trực tiếp từ `antd` (đã cấu hình `optimizePackageImports: ['antd']` trong Next.js):
+
+```tsx
+import { App, Button, Form, Input, Modal } from 'antd';
+import { applyApiError, useZodForm } from '@playora/ui/form';
 ```
 
-CLI hiện ghi sai alias `utils` thành package npm `cn` và tự cài package đó. Phải sửa import như trên, đồng thời gỡ `cn` khỏi `packages/ui/package.json` nếu nó xuất hiện.
+- Không tự bọc lại `ConfigProvider` ở từng màn hình; dùng `StudioProvider` (Studio) hoặc `PlayProvider` / `GameRoot` (Play) kết hợp `AntdRegistry` ở root `layout.tsx`.
+- Ở `apps/play`, chỉ dùng các component nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Radio`, `Select`, `Result`, `Modal`, `Skeleton`, `Alert`, `Tag`, `Empty`); **không** import `DatePicker`, `Table`, `ColorPicker`, `Upload` để giữ ngân sách First Load JS ([ADR-013](./adr/013-antd-ui.md)).
 
 ### 6.4 Cấu trúc thư mục frontend
 

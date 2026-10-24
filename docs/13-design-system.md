@@ -8,9 +8,9 @@ Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design syste
 
 | Bề mặt | Người dùng | Nhu cầu | Họ component |
 |---|---|---|---|
-| **Studio** (`apps/studio`) | PM agency, HR, marketer | Dựng nhanh, ít lỗi, đọc trạng thái trong một cái liếc | `@playora/ui/components/*` (shadcn) |
-| **Player / Host / Kiosk** (`apps/play`) | Khách mời cầm điện thoại, MC | Bấm được bằng một ngón khi đang đứng, không cần đọc hướng dẫn | `@playora/ui/game/*` |
-| **Screen** (LED, máy chiếu) | Cả hội trường, xem từ 25–30 m | Chữ to, tương phản cao, trình diễn | `@playora/ui/game/*` trong `<Stage>` |
+| **Studio** (`apps/studio`) | PM agency, HR, marketer | Dựng nhanh, ít lỗi, đọc trạng thái trong một cái liếc | `antd` trong `StudioProvider` (`@playora/ui/providers`) |
+| **Player / Host / Kiosk** (`apps/play`) | Khách mời cầm điện thoại, MC | Bấm được bằng một ngón khi đang đứng, không cần đọc hướng dẫn | `@playora/ui/game/*` (dựng trên `antd` + `PlayProvider`) |
+| **Screen** (LED, máy chiếu) | Cả hội trường, xem từ 25–30 m | Chữ to, tương phản cao, trình diễn | *(Đã gỡ ở v2.1 — ADR-011)* |
 
 ## 1. Tham chiếu và bài học
 
@@ -33,18 +33,18 @@ Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design syste
 
 ## 3. Token
 
-Định nghĩa trong `packages/ui/src/styles.css`, ba tầng:
+Định nghĩa ở hai nơi đồng bộ (`packages/ui/src/theme/tokens.ts` cho `ThemeConfig` của Ant Design v6 và `packages/ui/src/styles.css` cho CSS custom properties + `@layer theme, base, antd, components, utilities;`), ba tầng:
 
 ```
-Primitive  --violet-*, --ink-*, --spotlight-*, --stage-*, --team-1…8, --medal-*   (không dùng trực tiếp)
+Primitive  tokens.ts (violet, ink, spotlight, stage, team, medal) + styles.css (--violet-*, --ink-*…)
    │
-   ├─► Studio  --background, --primary, --muted-foreground, --success, --warning, --info, --live …
-   │           (tên theo shadcn; light ở :root, dark ở .dark)
+   ├─► Studio  getStudioTheme('light' | 'dark') → ThemeConfig antd (defaultAlgorithm / darkAlgorithm)
+   │           bọc qua StudioProvider (StyleProvider layer + ConfigProvider + App)
    │
-   └─► Game    --game-bg, --game-fg, --game-muted, --game-surface, --game-border,
-               --game-primary(-fg), --game-accent(-fg), --game-urgent, --game-glow,
-               --game-radius, --game-font
-               (đổi theo [data-skin], rồi brand kit ghi đè bằng inline style)
+   └─► Game    resolveGameTheme({ skin, brand }) → ThemeConfig antd + biến CSS --game-*
+               (--game-bg, --game-fg, --game-muted, --game-surface, --game-border,
+                --game-primary(-fg), --game-accent(-fg), --game-urgent, --game-glow,
+                --game-radius, --game-font; đổi theo [data-skin] và brandKitVars)
 ```
 
 ### 3.1 Màu
@@ -112,38 +112,35 @@ Brand kit:
 
 ## 5. Component
 
-### Studio (`@playora/ui/components/*`)
+### Studio (`antd` + `@playora/ui/{providers,form,theme}`)
 
-shadcn/ui new-york, thêm:
+Sử dụng trực tiếp component từ `antd` (`Button`, `Table`, `Form`, `Input`, `Select`, `Modal`, `Tabs`, `Collapse`, `Tag`, `Alert`, `Upload`, `ColorPicker`, `Popconfirm`…) bên trong `AntdRegistry` + `StudioProvider` ([ADR-013](./adr/013-antd-ui.md)):
 
-| Component | Bổ sung |
+| Thành phần | Quy ước |
 |---|---|
-| `Badge` | variant `success`, `warning`, `info`, `live`; `<LiveDot />` |
-| `Alert` | variant `warning`, `success` (pre-flight checklist, kết quả chơi thử) |
+| `Form` | Kết hợp `useZodForm(<contract schema>)` + `zodRule` + `applyApiError(form, err, messageFor)` từ `@playora/ui/form` |
+| Toast / Confirm | `const { message, notification, modal } = App.useApp()` (không gọi static `message.*`) |
+| `Tag` / `Badge` | Trạng thái sự kiện (`event-status-badge.tsx`): draft → default · scheduled → processing/info · **live → error + chấm** · ended → default · archived → default |
 | `Logo`, `LogoMark` | Nút play dưới chấm spotlight; wordmark viết thường. Ẩn khi white-label |
-
-Trạng thái event map trong `apps/studio/src/components/event-status-badge.tsx`: draft → outline · scheduled → info · **live → live + chấm** · ended → secondary · archived → ghost.
 
 ### Game (`@playora/ui/game/*`)
 
 | Component | Dùng ở | Ghi chú |
 |---|---|---|
-| `GameRoot` | Player, Host, Kiosk | Gắn skin + brand kit, nền `game-backdrop` |
-| `Stage` | Screen | Khung tỉ lệ cố định (mặc định 16:9), size container cho `text-stage-*`, vùng an toàn 5%. `fit="container"` cho preview trong builder |
-| `GameButton` | Player, Host | `primary | accent | surface`; `md | lg | tap` (nút tròn 192 px cho game chạm/lắc) |
-| `AnswerTile` | Quiz (cả hai màn) | Màu `team-1…4` + hình ▲◆●■; trạng thái `idle | selected | correct | wrong | muted` |
-| `TeamBar` | Screen | Thanh tiến độ đội, đội dẫn đầu phát sáng |
-| `Leaderboard` | Screen, kết quả trên Player | Top 3 huy chương; `highlightId` cho dòng của chính người chơi |
-| `Countdown` | Screen, Player | Đổi sang `--game-urgent` và nảy mỗi giây ở 5 giây cuối |
-| `JoinPanel` | Screen idle/lobby | QR (truyền vào), URL ngắn, mã tham gia số |
+| `GameRoot` | Player, Kiosk | Bọc `PlayProvider` + gắn skin & brand kit (`resolveGameTheme`), nền `game-backdrop` |
+| `GameButton` | Player | `primary \| accent \| surface`; `md \| lg \| tap` (cảm giác nút 3D qua token/styles, không hard-code màu) |
+| `TeamBar` | Player | Thanh tiến độ đội, đội dẫn đầu phát sáng |
+| `Leaderboard` | Kết quả trên Player | Top 3 huy chương; `highlightId` cho dòng của chính người chơi |
+| `Countdown` | Player | Đổi sang `--game-urgent` và nảy mỗi giây ở 5 giây cuối |
+| `JoinPanel` | Player / Kiosk lobby | QR (truyền vào), URL ngắn, mã tham gia |
 
-Kích thước component game theo `font-size` của cha (đơn vị `em`), nên cùng một `Leaderboard` dùng được trong `text-stage-lg` trên LED và `text-base` trên điện thoại.
+Kích thước component game theo `font-size` của cha (đơn vị `em`). Trên `apps/play`, chỉ dùng các component antd nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Result`, `Modal`…), **không** dùng `DatePicker`, `Table`, `ColorPicker`.
 
 ## 6. Quy tắc khi code
 
-- Không hard-code màu. Studio dùng token shadcn; bề mặt người chơi chỉ dùng `--game-*` và `--team-*`. Primitive (`--violet-500`…) chỉ dùng trong `styles.css`.
-- Bề mặt game luôn nằm trong `GameRoot` hoặc `Stage`.
+- Không hard-code màu. Component lấy màu/radius/font từ `ThemeConfig` của antd (`@playora/ui/theme`); phần template tự vẽ (SVG/canvas) dùng `--game-*` và `--team-*`. Tailwind CSS chỉ dùng cho layout/spacing (`flex`, `grid`, `gap`, `p-*`).
+- Bề mặt game luôn nằm trong `GameRoot`.
 - Thêm class theme mới (cỡ chữ, radius, font) thì khai báo luôn trong `extendTailwindMerge` ở `lib/utils.ts`, nếu không `cn()` sẽ âm thầm xoá class.
-- Nút cho người chơi cao ≥ 56 px (`GameButton md`); vùng chạm chính đặt ở nửa dưới màn hình.
+- Nút cho người chơi cao ≥ 56 px (`GameButton md` / `controlHeightLG: 56`); vùng chạm chính đặt ở nửa dưới màn hình.
 - Copy: động từ rõ ("Tham gia", "Chơi thử", "Publish" → toast "Đã publish"); lỗi nói rõ chuyện gì xảy ra và cách sửa.
 - Kiểm tra mọi thay đổi token ở `/design-system` với cả 4 skin và bật brand kit mẫu.

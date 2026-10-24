@@ -10,6 +10,8 @@
  *   3. Game        (--game-*): everything players and the LED screen see. Swapped per event by a skin
  *      (`data-skin`) and then by the customer's brand kit (inline vars from `brandKitVars()`).
  */
+@layer theme, base, antd, components, utilities;
+
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));

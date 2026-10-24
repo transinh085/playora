@@ -5,13 +5,13 @@
 ## Quyết định
 | Lớp | Lựa chọn |
 |---|---|
-| UI | shadcn/ui (style new-york, Radix qua package `radix-ui`) đặt trong `packages/ui`, Tailwind CSS v4, token OKLCH; app import `@playora/ui/components/*` |
+| UI | ~~shadcn/ui (style new-york, Radix qua package `radix-ui`) đặt trong `packages/ui`, Tailwind CSS v4, token OKLCH; app import `@playora/ui/components/*`~~ — **Superseded một phần bởi [ADR-013](./013-antd-ui.md)** (Ant Design v6 + `@playora/ui/{theme,providers}`) |
 | Server state | TanStack Query 5 qua `@playora/api-client/react` |
-| Form | react-hook-form 7 + `@hookform/resolvers` (zod 4) |
+| Form | ~~react-hook-form 7 + `@hookform/resolvers` (zod 4)~~ — **Superseded một phần bởi [ADR-013](./013-antd-ui.md)** (antd `Form` + `@playora/ui/form` `useZodForm`) |
 | i18n | next-intl 4, **không** có tiền tố locale trong URL Studio; locale lấy từ cookie; type key từ `vi.json`; test đảm bảo en đủ key và mọi `ErrorCode` đều có message |
 | Theme | next-themes (class `dark`) |
 | Auth gate | `proxy.ts` (Next 16) kiểm tra cookie Better Auth; server layout xác thực thật qua API |
-| Toast | sonner |
+| Toast | ~~sonner~~ — **Superseded một phần bởi [ADR-013](./013-antd-ui.md)** (`App.useApp()` của antd) |
 
 ## Ghi chú
 - shadcn CLI 4.22 ghi sai alias `utils` thành package `cn` trong monorepo. Quy trình sửa nằm ở docs/10 §6.3.
