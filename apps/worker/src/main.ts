@@ -14,8 +14,9 @@ const workers = app.get(WorkersService);
 
 // Liveness for the orchestrator; the worker has no other HTTP surface.
 createServer((_req, res) => {
-  res.writeHead(200, { 'content-type': 'application/json' });
-  res.end(JSON.stringify({ status: 'ok', workers: workers.running }));
+  const isHealthy = workers.isHealthy;
+  res.writeHead(isHealthy ? 200 : 503, { 'content-type': 'application/json' });
+  res.end(JSON.stringify({ status: isHealthy ? 'ok' : 'down', workers: workers.running }));
 }).listen(env.WORKER_HEALTH_PORT, () =>
   Logger.log(`Worker health on http://localhost:${env.WORKER_HEALTH_PORT}`, 'Bootstrap'),
 );

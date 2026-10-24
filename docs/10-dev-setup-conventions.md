@@ -121,7 +121,7 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 | Lỗi | Ném `HttpException` với `{ code: ErrorCode.X, message, details? }`. Mã mới phải thêm vào `ErrorCode` **và** i18n `errors.*` |
 | Giao dịch | `repo.transaction(async (tx) => …)`; truyền `tx` vào repository và audit |
 | Log | `nestjs-pino`, JSON ở production, có `x-request-id`; không log PII, cookie, token (đã redact) |
-| Env | Thêm vào `packages/env` (zod) và `.env.example`; app crash ngay khi thiếu |
+| Env | Thêm vào `packages/env` (zod) và `.env.example`; app crash ngay khi thiếu; production bắt buộc secret tường minh (từ chối secret mặc định dev) |
 | DI | Import class service bằng `import { X }` (không `import type`), vì Nest cần metadata lúc runtime |
 | Decorator trên Bun | `experimentalDecorators` + `emitDecoratorMetadata` phải nằm **trong tsconfig của app** (ADR-002) |
 

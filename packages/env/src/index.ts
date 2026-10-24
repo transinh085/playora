@@ -9,57 +9,89 @@ const optionalString = z
   .optional()
   .transform((v) => (v && v.trim().length > 0 ? v.trim() : undefined));
 
+export const DEV_DEFAULT_S3_ACCESS_KEY = 'playora';
+export const DEV_DEFAULT_S3_SECRET_KEY = 'playora123';
+
 const s3Env = {
   S3_ENDPOINT: z.url().default('http://localhost:9000'),
   S3_BUCKET: z.string().min(1).default('playora-dev'),
-  S3_ACCESS_KEY: z.string().min(1).default('playora'),
-  S3_SECRET_KEY: z.string().min(1).default('playora123'),
+  S3_ACCESS_KEY: z.string().min(1).default(DEV_DEFAULT_S3_ACCESS_KEY),
+  S3_SECRET_KEY: z.string().min(1).default(DEV_DEFAULT_S3_SECRET_KEY),
 };
+
+function refineProductionS3<
+  T extends {
+    NODE_ENV: 'development' | 'test' | 'production';
+    S3_ACCESS_KEY: string;
+    S3_SECRET_KEY: string;
+  },
+>(data: T, ctx: z.RefinementCtx) {
+  if (data.NODE_ENV === 'production') {
+    if (data.S3_ACCESS_KEY === DEV_DEFAULT_S3_ACCESS_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['S3_ACCESS_KEY'],
+        message: `S3_ACCESS_KEY must not use the dev default ("${DEV_DEFAULT_S3_ACCESS_KEY}") in production`,
+      });
+    }
+    if (data.S3_SECRET_KEY === DEV_DEFAULT_S3_SECRET_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['S3_SECRET_KEY'],
+        message: `S3_SECRET_KEY must not use the dev default ("${DEV_DEFAULT_S3_SECRET_KEY}") in production`,
+      });
+    }
+  }
+}
 
 /** Signs and verifies player session tokens — see @playora/core/session. */
 const playerSessionEnv = {
   PLAYER_SESSION_SECRET: z.string().min(32),
 };
 
-export const apiEnvSchema = z.object({
-  NODE_ENV: nodeEnv,
-  API_PORT: z.coerce.number().int().positive().default(4000),
-  API_PUBLIC_URL: z.url().default('http://localhost:4000'),
-  PLAY_URL: z.url().default('http://localhost:3002'),
-  DATABASE_URL: z.url(),
-  DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
-  REDIS_URL: z.url(),
-  BETTER_AUTH_SECRET: z.string().min(32),
-  LOG_LEVEL: logLevel,
-  /** Requests per minute per client (IP) across all API instances. */
-  RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(300),
-  /** High per-IP rate limit (per minute) for public player endpoints behind venue NAT. */
-  PUBLIC_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(6000),
-  /** Express `trust proxy` — number of proxy hops in front of the API (Cloudflare + LB = 2). */
-  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
-  /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
-  STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
-  /** SMTP settings for transactional emails (Mailpit on 1025 in dev). */
-  SMTP_HOST: z.string().default('localhost'),
-  SMTP_PORT: z.coerce.number().int().positive().default(1025),
-  SMTP_SECURE: z.stringbool().default(false),
-  SMTP_FROM: z.string().default('Playora <noreply@playora.local>'),
-  SMTP_USER: optionalString,
-  SMTP_PASS: optionalString,
-  /** Optional Google OAuth credentials (ORG-01); enabled only when both are present. */
-  GOOGLE_CLIENT_ID: optionalString,
-  GOOGLE_CLIENT_SECRET: optionalString,
-  ...s3Env,
-  ...playerSessionEnv,
-});
+export const apiEnvSchema = z
+  .object({
+    NODE_ENV: nodeEnv,
+    API_PORT: z.coerce.number().int().positive().default(4000),
+    API_PUBLIC_URL: z.url().default('http://localhost:4000'),
+    PLAY_URL: z.url().default('http://localhost:3002'),
+    DATABASE_URL: z.url(),
+    DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
+    REDIS_URL: z.url(),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    LOG_LEVEL: logLevel,
+    /** Requests per minute per client (IP) across all API instances. */
+    RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(300),
+    /** High per-IP rate limit (per minute) for public player endpoints behind venue NAT. */
+    PUBLIC_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(6000),
+    /** Express `trust proxy` — number of proxy hops in front of the API (Cloudflare + LB = 2). */
+    TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+    /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
+    STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
+    /** SMTP settings for transactional emails (Mailpit on 1025 in dev). */
+    SMTP_HOST: z.string().default('localhost'),
+    SMTP_PORT: z.coerce.number().int().positive().default(1025),
+    SMTP_SECURE: z.stringbool().default(false),
+    SMTP_FROM: z.string().default('Playora <noreply@playora.local>'),
+    SMTP_USER: optionalString,
+    SMTP_PASS: optionalString,
+    /** Optional Google OAuth credentials (ORG-01); enabled only when both are present. */
+    GOOGLE_CLIENT_ID: optionalString,
+    GOOGLE_CLIENT_SECRET: optionalString,
+    ...s3Env,
+    ...playerSessionEnv,
+  })
+  .superRefine(refineProductionS3);
 
-export const workerEnvSchema = z.object({
-  NODE_ENV: nodeEnv,
-  WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4002),
-  DATABASE_URL: z.url(),
-  REDIS_URL: z.url(),
-  ...s3Env,
-});
+export const workerEnvSchema = z
+  .object({
+    NODE_ENV: nodeEnv,
+    WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4002),
+    DATABASE_URL: z.url(),
+    REDIS_URL: z.url(),
+    ...s3Env,
+  })
+  .superRefine(refineProductionS3);
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
 export type WorkerEnv = z.infer<typeof workerEnvSchema>;

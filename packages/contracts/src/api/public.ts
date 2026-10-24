@@ -70,6 +70,23 @@ export const JoinEventResponse = z.object({
 });
 export type JoinEventResponse = z.infer<typeof JoinEventResponse>;
 
+export const HealthLivenessResponse = z.object({
+  status: z.literal('ok'),
+  uptimeSec: z.number(),
+});
+export type HealthLivenessResponse = z.infer<typeof HealthLivenessResponse>;
+
+export const HealthReadyResponse = z.object({
+  status: z.enum(['ok', 'down']),
+  db: z.enum(['ok', 'down']),
+  redis: z.enum(['ok', 'down']),
+  migrations: z.object({
+    status: z.enum(['ok', 'missing', 'down']),
+    latestJournal: z.string().optional(),
+  }),
+});
+export type HealthReadyResponse = z.infer<typeof HealthReadyResponse>;
+
 export const publicApi = {
   event: defineRoute({
     method: 'GET',
@@ -93,14 +110,17 @@ export const publicApi = {
   health: defineRoute({
     method: 'GET',
     path: '/health',
-    summary: 'Liveness and dependency status',
+    summary: 'Liveness status',
     tags: ['system'],
     auth: 'public',
-    response: z.object({
-      status: z.enum(['ok', 'degraded']),
-      db: z.enum(['ok', 'down']),
-      redis: z.enum(['ok', 'down']),
-      uptimeSec: z.number(),
-    }),
+    response: HealthLivenessResponse,
+  }),
+  ready: defineRoute({
+    method: 'GET',
+    path: '/health/ready',
+    summary: 'Readiness and dependency status',
+    tags: ['system'],
+    auth: 'public',
+    response: HealthReadyResponse,
   }),
 };

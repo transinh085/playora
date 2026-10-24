@@ -45,6 +45,10 @@ export class WorkersService implements OnModuleInit, OnModuleDestroy {
     return this.workers.filter((w) => w.isRunning()).length;
   }
 
+  get isHealthy() {
+    return this.running > 0;
+  }
+
   private async process(job: Job) {
     const name = job.name as JobName;
     const def = jobs[name];

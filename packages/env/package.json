@@ -7,12 +7,14 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@playora/tsconfig": "workspace:*"
+    "@playora/tsconfig": "workspace:*",
+    "@types/bun": "1.4.4"
   }
 }
