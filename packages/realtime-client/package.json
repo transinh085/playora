@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@playora/contracts": "workspace:*",
+    "@playora/game-sdk": "workspace:*",
     "socket.io-client": "4.8.4"
   },
   "peerDependencies": {

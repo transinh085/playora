@@ -1,4 +1,3 @@
-export const SPIKE_EVENT = 'spike';
 export const REALTIME_URL = process.env.NEXT_PUBLIC_REALTIME_URL ?? 'http://localhost:4001';
 
 export function formatCountdown(endsAt: number | null, now: number) {

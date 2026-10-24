@@ -1,11 +1,17 @@
 import { Injectable, type OnModuleDestroy } from '@nestjs/common';
+import type { SocketRole } from '@playora/contracts';
 
 const SAMPLE_MS = 500;
 
-/** Cheap in-process counters for the spike; M1 exports these via OpenTelemetry. */
 @Injectable()
 export class LiveMetrics implements OnModuleDestroy {
   connections = 0;
+  rooms = 0;
+  socketsByRole: Record<SocketRole, number> = {
+    player: 0,
+    screen: 0,
+    host: 0,
+  };
   inputs = 0;
   broadcasts = 0;
   /** Worst event-loop delay seen in the last sample window. */
@@ -22,9 +28,21 @@ export class LiveMetrics implements OnModuleDestroy {
     clearInterval(this.timer);
   }
 
+  onConnect(role: SocketRole) {
+    this.connections++;
+    this.socketsByRole[role]++;
+  }
+
+  onDisconnect(role: SocketRole) {
+    this.connections = Math.max(0, this.connections - 1);
+    this.socketsByRole[role] = Math.max(0, this.socketsByRole[role] - 1);
+  }
+
   snapshot() {
     const snap = {
       connections: this.connections,
+      rooms: this.rooms,
+      socketsByRole: { ...this.socketsByRole },
       inputs: this.inputs,
       broadcasts: this.broadcasts,
       eventLoopLagMs: this.eventLoopLagMs,

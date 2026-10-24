@@ -124,16 +124,37 @@ export interface TapRacePlayerView {
   serverTs: number;
 }
 
-function rankedRacers(state: TapRaceState): TapRaceRacer[] {
-  return Object.values(state.racers).sort((a, b) => b.score - a.score);
+interface DerivedTapRaceView {
+  ranked: TapRaceRacer[];
+  rankById: Map<string, number>;
+  teams: Array<{ team: string; score: number }>;
+  teamScoreByKey: Map<string, number>;
 }
 
-function computeTeamTotals(state: TapRaceState): Array<{ team: string; score: number }> {
-  const totals = new Map<string, number>();
-  for (const r of Object.values(state.racers)) {
-    totals.set(r.team, (totals.get(r.team) ?? 0) + r.score);
+const derivedViewCache = new WeakMap<TapRaceState, DerivedTapRaceView>();
+
+function getDerivedView(state: TapRaceState): DerivedTapRaceView {
+  const cached = derivedViewCache.get(state);
+  if (cached) return cached;
+
+  const ranked = Object.values(state.racers).sort((a, b) => b.score - a.score);
+  const rankById = new Map<string, number>();
+  const teamScoreByKey = new Map<string, number>();
+
+  for (let i = 0; i < ranked.length; i++) {
+    const r = ranked[i];
+    if (!r) continue;
+    rankById.set(r.id, i + 1);
+    teamScoreByKey.set(r.team, (teamScoreByKey.get(r.team) ?? 0) + r.score);
   }
-  return [...totals].map(([team, score]) => ({ team, score })).sort((a, b) => b.score - a.score);
+
+  const teams = [...teamScoreByKey]
+    .map(([team, score]) => ({ team, score }))
+    .sort((a, b) => b.score - a.score);
+
+  const derived: DerivedTapRaceView = { ranked, rankById, teams, teamScoreByKey };
+  derivedViewCache.set(state, derived);
+  return derived;
 }
 
 function resetRacerScores(racers: Record<string, TapRaceRacer>): Record<string, TapRaceRacer> {
@@ -178,18 +199,16 @@ export const tapRaceServer: LiveServerModule<
     _ctx: RoomContext<TapRaceConfig>,
   ): TapRaceState {
     if (state.racers[player.playerId]) return state;
+    state.racers[player.playerId] = {
+      id: player.playerId,
+      name: player.displayName,
+      team: player.team ?? 'Chung',
+      score: 0,
+      lastInputAt: Number.NEGATIVE_INFINITY,
+    };
     return {
-      ...state,
-      racers: {
-        ...state.racers,
-        [player.playerId]: {
-          id: player.playerId,
-          name: player.displayName,
-          team: player.team ?? 'Chung',
-          score: 0,
-          lastInputAt: Number.NEGATIVE_INFINITY,
-        },
-      },
+      endsAt: state.endsAt,
+      racers: state.racers,
     };
   },
 
@@ -202,10 +221,10 @@ export const tapRaceServer: LiveServerModule<
     if (ctx.status !== 'lobby' || !state.racers[playerId]) {
       return state;
     }
-    const { [playerId]: _removed, ...remaining } = state.racers;
+    delete state.racers[playerId];
     return {
-      ...state,
-      racers: remaining,
+      endsAt: state.endsAt,
+      racers: state.racers,
     };
   },
 
@@ -247,16 +266,11 @@ export const tapRaceServer: LiveServerModule<
     }
 
     const delta = Math.min(action.d, ctx.config.maxDeltaPerInput);
+    racer.score += delta;
+    racer.lastInputAt = now;
     return {
-      ...state,
-      racers: {
-        ...state.racers,
-        [player.playerId]: {
-          ...racer,
-          score: racer.score + delta,
-          lastInputAt: now,
-        },
-      },
+      endsAt: state.endsAt,
+      racers: state.racers,
     };
   },
 
@@ -268,7 +282,7 @@ export const tapRaceServer: LiveServerModule<
   },
 
   toScreenView(state: TapRaceState, ctx: RoomContext<TapRaceConfig>): TapRaceScreenView {
-    const ranked = rankedRacers(state);
+    const { ranked, teams } = getDerivedView(state);
     return {
       status: ctx.status,
       online: ranked.length,
@@ -276,7 +290,7 @@ export const tapRaceServer: LiveServerModule<
       top: ranked
         .slice(0, ctx.config.topN)
         .map(({ id, name, team, score }) => ({ id, name, team, score })),
-      teams: computeTeamTotals(state),
+      teams,
       serverTs: ctx.now(),
     };
   },
@@ -286,30 +300,30 @@ export const tapRaceServer: LiveServerModule<
     player: PlayerRef,
     ctx: RoomContext<TapRaceConfig>,
   ): TapRacePlayerView {
-    const ranked = rankedRacers(state);
-    const index = ranked.findIndex((r) => r.id === player.playerId);
-    const racer = index >= 0 ? ranked[index] : undefined;
-    const teams = new Map(computeTeamTotals(state).map((t) => [t.team, t.score]));
+    const { ranked, rankById, teamScoreByKey } = getDerivedView(state);
+    const racer = state.racers[player.playerId];
+    const rank = rankById.get(player.playerId) ?? ranked.length + 1;
     const teamKey = racer?.team ?? player.team ?? 'Chung';
 
     return {
       status: ctx.status,
       endsAt: state.endsAt,
       score: racer?.score ?? 0,
-      rank: index >= 0 ? index + 1 : ranked.length + 1,
-      teamScore: teams.get(teamKey) ?? 0,
+      rank,
+      teamScore: teamScoreByKey.get(teamKey) ?? 0,
       serverTs: ctx.now(),
     };
   },
 
   finalize(state: TapRaceState, _ctx: RoomContext<TapRaceConfig>): RoundResult {
+    const { ranked, teams } = getDerivedView(state);
     return {
-      ranking: rankedRacers(state).map((r) => ({
+      ranking: ranked.map((r) => ({
         playerId: r.id,
         score: r.score,
         team: r.team,
       })),
-      teams: computeTeamTotals(state),
+      teams,
     };
   },
 };

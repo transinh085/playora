@@ -18,6 +18,7 @@ import { EventsModule } from './modules/events/events.module';
 import { GamesModule } from './modules/games/games.module';
 import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
+import { LiveModule } from './modules/live/live.module';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
 import {
@@ -99,6 +100,7 @@ export class AppModule {
         ScreensModule,
         TemplatesModule,
         GamesModule,
+        LiveModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [

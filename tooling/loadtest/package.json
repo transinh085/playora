@@ -9,7 +9,11 @@
   },
   "dependencies": {
     "@playora/contracts": "workspace:*",
-    "socket.io-client": "4.8.4"
+    "@playora/core": "workspace:*",
+    "@playora/db": "workspace:*",
+    "drizzle-orm": "0.45.4",
+    "socket.io-client": "4.8.4",
+    "uuidv7": "1.2.1"
   },
   "devDependencies": {
     "@playora/tsconfig": "workspace:*"

@@ -11,7 +11,9 @@ import {
 import { hashScreenKey } from '@playora/core/live';
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
-import { DB } from '../src/infra/tokens';
+import type { Redis } from 'ioredis';
+import { DB, REDIS } from '../src/infra/tokens';
+import { SCREEN_REVOKED_CHANNEL } from '../src/modules/screens/screens.service';
 import {
   createOrg,
   createTestApp,
@@ -230,37 +232,63 @@ describe('screens API (LIV-02, BLD-11)', () => {
     expect(updated.layout.custom).toEqual({ width: 3840, height: 1200 });
     expect(updated.layout.showEventTitle).toBe(false);
 
-    // 5. Rotate key -> returns new key once, invalidates old key (401)
-    const oldKey = created.key;
-    const rotated = await api.call(screensApi.rotate, {
-      params: { ...eventParams, screenId: created.id },
+    // 5. Rotate key -> returns new key once, invalidates old key (401), and publishes OLD hash on live:screen.revoked
+    const redis = t.app.get<Redis>(REDIS);
+    const sub = redis.duplicate();
+    const revokedEvents: Array<{ eventId: string; screenKeyHash: string }> = [];
+    sub.on('message', (channel, msg) => {
+      if (channel === SCREEN_REVOKED_CHANNEL) {
+        revokedEvents.push(JSON.parse(msg) as { eventId: string; screenKeyHash: string });
+      }
     });
-    expect(rotated.key).not.toBe(oldKey);
-    expect(rotated.launchUrl).toBe(`http://localhost:3002/screen#k=${rotated.key}`);
+    await sub.subscribe(SCREEN_REVOKED_CHANNEL);
 
-    // Old key -> 401 UNAUTHORIZED
-    await expectApiError(
-      screenClient(oldKey).call(screensApi.session),
-      401,
-      ErrorCode.UNAUTHORIZED,
-    );
+    try {
+      const oldKey = created.key;
+      const rotated = await api.call(screensApi.rotate, {
+        params: { ...eventParams, screenId: created.id },
+      });
+      expect(rotated.key).not.toBe(oldKey);
+      expect(rotated.launchUrl).toBe(`http://localhost:3002/screen#k=${rotated.key}`);
 
-    // New key -> 200 with updated screen name and layout
-    const rotatedSession = await screenClient(rotated.key).call(screensApi.session);
-    expect(rotatedSession.screen.name).toBe('Màn LED Sảnh Đón Khách');
-    expect(rotatedSession.layout.aspect).toBe('custom');
+      await Bun.sleep(30);
+      expect(revokedEvents).toContainEqual({
+        eventId: event.id,
+        screenKeyHash: hashScreenKey(oldKey),
+      });
 
-    // 6. Revoke -> sets revokedAt, session with rotated key now returns 401 UNAUTHORIZED
-    const revoked = await api.call(screensApi.revoke, {
-      params: { ...eventParams, screenId: created.id },
-    });
-    expect(revoked.revokedAt).not.toBeNull();
+      // Old key -> 401 UNAUTHORIZED
+      await expectApiError(
+        screenClient(oldKey).call(screensApi.session),
+        401,
+        ErrorCode.UNAUTHORIZED,
+      );
 
-    await expectApiError(
-      screenClient(rotated.key).call(screensApi.session),
-      401,
-      ErrorCode.UNAUTHORIZED,
-    );
+      // New key -> 200 with updated screen name and layout
+      const rotatedSession = await screenClient(rotated.key).call(screensApi.session);
+      expect(rotatedSession.screen.name).toBe('Màn LED Sảnh Đón Khách');
+      expect(rotatedSession.layout.aspect).toBe('custom');
+
+      // 6. Revoke -> sets revokedAt, publishes rotated key hash on live:screen.revoked, session now returns 401
+      const revoked = await api.call(screensApi.revoke, {
+        params: { ...eventParams, screenId: created.id },
+      });
+      expect(revoked.revokedAt).not.toBeNull();
+
+      await Bun.sleep(30);
+      expect(revokedEvents).toContainEqual({
+        eventId: event.id,
+        screenKeyHash: hashScreenKey(rotated.key),
+      });
+
+      await expectApiError(
+        screenClient(rotated.key).call(screensApi.session),
+        401,
+        ErrorCode.UNAUTHORIZED,
+      );
+    } finally {
+      await sub.quit();
+    }
 
     // 7. Verify audit log entries for create, rotate, and revoke
     const audits = await db

@@ -50,8 +50,13 @@ export class ScreensRepository {
       .orderBy(desc(eventScreens.id));
   }
 
-  async findById(organizationId: string, eventId: string, screenId: string) {
-    const [row] = await this.db
+  async findById(
+    organizationId: string,
+    eventId: string,
+    screenId: string,
+    tx: Pick<Database, 'select'> = this.db,
+  ) {
+    const [row] = await tx
       .select()
       .from(eventScreens)
       .where(

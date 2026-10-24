@@ -61,8 +61,6 @@ export const realtimeEnvSchema = z.object({
   ...liveTokenEnv,
   /** Comma-separated list of origins allowed to open a socket. */
   REALTIME_CORS_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
-  /** M0 spike only: shared key for host sockets. Replaced by organizer session tickets in M1. */
-  REALTIME_HOST_KEY: z.string().min(8).default('dev-host-key'),
 });
 
 export const workerEnvSchema = z.object({

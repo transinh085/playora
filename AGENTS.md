@@ -68,12 +68,12 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 
 ## Where things are
 
-| Need                                      | Look at                                                                                |
-| ----------------------------------------- | -------------------------------------------------------------------------------------- |
-| Reference backend module                  | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
-| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
-| Request pipeline (guards, filters)        | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
-| Realtime (M0 spike, to be replaced in M1) | `apps/realtime/src/live/`                                                              |
-| Game template interfaces                  | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
-| Background jobs                           | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
-| Decisions and their reasons               | `docs/adr/`                                                                            |
+| Need                                    | Look at                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| Reference backend module                | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
+| Reference Studio page                   | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
+| Request pipeline (guards, filters)      | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
+| Realtime engine (LiveRoom, RoundRunner) | `apps/realtime/src/live/`, `docs/05-architecture.md` §5–6                              |
+| Game template interfaces                | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
+| Background jobs                         | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
+| Decisions and their reasons             | `docs/adr/`                                                                            |

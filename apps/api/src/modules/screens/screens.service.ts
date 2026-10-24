@@ -1,5 +1,11 @@
 import { randomBytes } from 'node:crypto';
-import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   BrandKitTokens,
   buildEventJoinUrl,
@@ -13,10 +19,13 @@ import {
 } from '@playora/contracts';
 import { hashScreenKey } from '@playora/core/live';
 import type { ApiEnv } from '@playora/env';
+import type { Redis } from 'ioredis';
 import { AuditService } from '../../common/audit/audit.service';
-import { ENV } from '../../infra/tokens';
+import { ENV, REDIS } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
 import { type EventScreenRow, ScreensRepository } from './screens.repository';
+
+export const SCREEN_REVOKED_CHANNEL = 'live:screen.revoked';
 
 type CreateBody = RouteArgs<typeof screensApi.create>['body'];
 type UpdateBody = RouteArgs<typeof screensApi.update>['body'];
@@ -30,11 +39,14 @@ const generateRawScreenKey = () => randomBytes(32).toString('base64url');
 
 @Injectable()
 export class ScreensService {
+  private readonly logger = new Logger(ScreensService.name);
+
   constructor(
     private readonly repo: ScreensRepository,
     private readonly assets: AssetsService,
     private readonly audit: AuditService,
     @Inject(ENV) private readonly env: ApiEnv,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
   private toSummary(row: EventScreenRow) {
@@ -160,7 +172,7 @@ export class ScreensService {
     if (!updated) {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Screen not found' });
     }
-    // TODO(realtime): publish screen.revoked on Redis so live sockets with this key are dropped immediately
+    await this.publishScreenRevoked(eventId, updated.screenKeyHash);
     return this.toSummary(updated);
   }
 
@@ -168,8 +180,10 @@ export class ScreensService {
     const rawKey = generateRawScreenKey();
     const screenKeyHash = hashScreenKey(rawKey);
 
-    const updated = await this.repo.transaction(async (tx) => {
+    const rotated = await this.repo.transaction(async (tx) => {
       await this.ensureEventExists(orgId, eventId, tx);
+      const existing = await this.repo.findById(orgId, eventId, screenId, tx);
+      if (!existing) return null;
       const row = await this.repo.update(
         orgId,
         eventId,
@@ -192,19 +206,31 @@ export class ScreensService {
           tx,
         );
       }
-      return row;
+      return row ? { updated: row, oldScreenKeyHash: existing.screenKeyHash } : null;
     });
 
-    if (!updated) {
+    if (!rotated) {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Screen not found' });
     }
-    // TODO(realtime): publish screen.revoked on Redis so live sockets with this key are dropped immediately
+    await this.publishScreenRevoked(eventId, rotated.oldScreenKeyHash);
 
     return {
-      ...this.toSummary(updated),
+      ...this.toSummary(rotated.updated),
       key: rawKey,
       launchUrl: buildScreenLaunchUrl(this.env.PLAY_URL, rawKey),
     };
+  }
+
+  // The revoke is already committed; a Redis outage must not turn it into a 500.
+  // Realtime also re-checks the key on every reconnect.
+  private async publishScreenRevoked(eventId: string, screenKeyHash: string) {
+    try {
+      await this.redis.publish(SCREEN_REVOKED_CHANNEL, JSON.stringify({ eventId, screenKeyHash }));
+    } catch (err) {
+      this.logger.warn(
+        `Failed to publish ${SCREEN_REVOKED_CHANNEL} for event ${eventId}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
 
   async session(rawScreenKey: string | undefined) {

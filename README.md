@@ -21,14 +21,14 @@ bun run db:seed                      # org demo + event "demo-yep" + 500 khách 
 bun run dev                          # mọi app qua Turborepo
 ```
 
-| App             | URL                      | Mô tả                                               |
-| --------------- | ------------------------ | --------------------------------------------------- |
-| `apps/web`      | http://localhost:3000    | Landing                                             |
-| `apps/studio`   | http://localhost:3001    | Studio (builder); `/login` đăng nhập/đăng ký        |
-| `apps/play`     | http://localhost:3002    | Player (`/demo-yep`), spike shake race (`/spike/*`) |
-| `apps/api`      | http://localhost:4000/v1 | REST API (NestJS); Better Auth tại `/auth/*`        |
-| `apps/realtime` | ws://localhost:4001/live | Socket.IO gateway (NestJS)                          |
-| `apps/worker`   | http://localhost:4002    | BullMQ worker (health)                              |
+| App             | URL                      | Mô tả                                            |
+| --------------- | ------------------------ | ------------------------------------------------ |
+| `apps/web`      | http://localhost:3000    | Landing                                          |
+| `apps/studio`   | http://localhost:3001    | Studio (builder); `/login` đăng nhập/đăng ký     |
+| `apps/play`     | http://localhost:3002    | Player (`/demo-yep`) & screen (`/s/[screenKey]`) |
+| `apps/api`      | http://localhost:4000/v1 | REST API (NestJS); Better Auth tại `/auth/*`     |
+| `apps/realtime` | ws://localhost:4001/live | Socket.IO gateway (NestJS)                       |
+| `apps/worker`   | http://localhost:4002    | BullMQ worker (health)                           |
 
 ## Lệnh thường dùng
 
@@ -43,13 +43,6 @@ bun run db:generate     # sinh migration SQL từ schema Drizzle (review trướ
 bun --cwd packages/auth run generate:schema   # sinh lại bảng Better Auth khi đổi plugin
 bun run loadtest:shake --n 5000 --duration 60 # spike S0-3 (cần `ulimit -n 65536`)
 ```
-
-## Thử spike shake race (S0-3, S0-4)
-
-1. `bun run dev`
-2. Màn hình LED: http://localhost:3002/spike/screen
-3. MC: http://localhost:3002/spike/host (host key = `REALTIME_HOST_KEY`)
-4. Người chơi: mở `http://<IP-LAN>:3002/spike/player` trên điện thoại. Cảm biến lắc trên iOS cần HTTPS; khi chạy HTTP sẽ tự chuyển sang chế độ chạm. Nhớ thêm origin LAN vào `REALTIME_CORS_ORIGINS`.
 
 Thêm tính năng mới: làm theo [`docs/10-dev-setup-conventions.md` §3](./docs/10-dev-setup-conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games). Module `events` là mẫu chuẩn từ contract đến API, test và Studio.
 

@@ -9,10 +9,10 @@ Cập nhật: 23/10/2026 · Áp dụng cho mọi code trong repo · Quyết đ�
 ```
 apps/
   api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json
-  realtime/     NestJS + Socket.IO — namespace /live (M0: spike shake race)
+  realtime/     NestJS + Socket.IO — namespace /live (LiveRoom + RoundRunner)
   worker/       NestJS standalone + BullMQ — xử lý job từ @playora/jobs
   studio/       Next.js 16 — builder cho organizer (đăng nhập, org, events…)
-  play/         Next.js 16 — player shell /[slug], screen, spike /spike/*
+  play/         Next.js 16 — player shell /[slug], screen /screen, preview /preview
   web/          Next.js 16 — landing
 packages/
   contracts/    zod: route contracts (REST), WS events, ErrorCode — NGUỒN CHÂN LÝ
@@ -29,7 +29,7 @@ packages/
   tsconfig/     base, library, nestjs, nextjs
 tooling/
   e2e/          Playwright (desktop + mobile)
-  loadtest/     spike realtime
+  loadtest/     realtime load test (shake-race.ts)
   scripts/      check-commit-msg…
 infra/
   compose/      Postgres :54329, Valkey :63799, MinIO, Mailpit
@@ -134,7 +134,7 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 
 ## 5. Realtime
 
-- `apps/realtime/src/live/` hiện là **spike M0** (TapRaceRoom). M1 thay bằng RoundRunner + LiveServerModule của template (docs/05 §5–6).
+- `apps/realtime/src/live/`: `LiveRoom` (actor mỗi event) + `RoundRunner` chạy `LiveServerModule` của template lấy từ `@playora/templates/server` (docs/05 §5–6).
 - Client dùng `@playora/realtime-client`: `useLiveRoom({ url, eventId, role, auth })` trả về `view`, `connected` và `serverNow()` (đã đồng bộ với đồng hồ server).
 - Event WS khai báo trong `packages/contracts/src/ws.ts`; input luôn được validate bằng zod phía server.
 
