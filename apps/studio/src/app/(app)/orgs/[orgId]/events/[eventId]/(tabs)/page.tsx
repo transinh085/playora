@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { GuestsView } from '@/features/guests/components/guests-view';
+import { EventOverview } from '@/features/events/components/event-overview';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations('guests'))('title') };
+  return { title: (await getTranslations('overview'))('title') };
 }
 
 export default async function EventDetailPage({
@@ -12,5 +12,5 @@ export default async function EventDetailPage({
   params: Promise<{ orgId: string; eventId: string }>;
 }) {
   const { orgId, eventId } = await params;
-  return <GuestsView orgId={orgId} eventId={eventId} />;
+  return <EventOverview orgId={orgId} eventId={eventId} />;
 }

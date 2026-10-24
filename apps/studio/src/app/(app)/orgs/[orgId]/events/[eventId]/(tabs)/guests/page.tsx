@@ -1,16 +1,11 @@
-import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { GuestsView } from '@/features/guests/components/guests-view';
+import type { Route } from 'next';
+import { redirect } from 'next/navigation';
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations('guests'))('title') };
-}
-
-export default async function EventGuestsPage({
+export default async function EventGuestsRedirectPage({
   params,
 }: {
   params: Promise<{ orgId: string; eventId: string }>;
 }) {
   const { orgId, eventId } = await params;
-  return <GuestsView orgId={orgId} eventId={eventId} />;
+  redirect(`/orgs/${orgId}/events/${eventId}/players` as Route);
 }

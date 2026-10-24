@@ -28,7 +28,7 @@ test('configure event identity, registration form and consent in Studio, then pl
 
   // Import guest list
   await page.getByRole('link', { name: 'YEP Join 2026' }).click();
-  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/guests$/);
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
 
   const csvContent = [
     'externalCode,displayName,team',
@@ -46,8 +46,7 @@ test('configure event identity, registration form and consent in Studio, then pl
   await expect(page.getByText('Đã thêm 2, cập nhật 0, bỏ qua 0 dòng.').first()).toBeVisible();
 
   // Configure event participation settings
-  await page.getByRole('link', { name: 'Quay lại sự kiện' }).click();
-  await page.getByRole('link', { name: 'Cài đặt sự kiện' }).click();
+  await page.getByTestId('event-tab-settings').click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/settings$/);
 
   await page.getByRole('combobox', { name: 'Trạng thái' }).click();
@@ -68,7 +67,7 @@ test('configure event identity, registration form and consent in Studio, then pl
 
   await page.getByRole('button', { name: 'Lưu' }).click();
   await expect(page.getByText('Đã lưu cài đặt sự kiện')).toBeVisible();
-  const guestsUrl = page.url().replace(/\/settings$/, '/guests');
+  const guestsUrl = page.url().replace(/\/settings$/, '/players');
 
   // Player opens the join page
   await page.goto(`http://localhost:3002/${slug}`);

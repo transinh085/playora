@@ -27,7 +27,7 @@ test('import guest list CSV, assign random balanced teams, and configure join QR
   await createDialog.getByRole('button', { name: 'Tạo' }).click();
 
   await page.getByRole('link', { name: 'YEP Guests 2026' }).click();
-  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/guests$/);
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
 
   // Join QR card updates URL with optional ?t=<zone>
   await expect(page.getByTestId('join-url')).toContainText(`/${slug}`);

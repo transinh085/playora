@@ -27,7 +27,7 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await createEventDialog.getByRole('button', { name: 'Tạo' }).click();
 
   await page.getByRole('link', { name: 'YEP Builder 2026' }).click();
-  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/guests$/);
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
 
   // Navigate to "Trò chơi" via EventNav
   await page.getByRole('link', { name: 'Trò chơi' }).click();
