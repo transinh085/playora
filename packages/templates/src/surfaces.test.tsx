@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import {
   type EditorPanelProps,
   getTemplateSurfaces,
-  SpinWheelPlayer,
   spinWheelTemplate,
   type TemplateSurfaces,
   type WidgetProps,
@@ -59,7 +58,8 @@ describe('TemplateSurfaces editor escape hatches (§2.5)', () => {
   test('supports optional editorWidgets and editorPanels on TemplateSurfaces and passes editorWidgets to AutoForm', () => {
     const baseSurface = getTemplateSurfaces('spin-wheel', '1.0.0');
     expect(baseSurface).toBeDefined();
-    expect(baseSurface?.Player).toBe(SpinWheelPlayer);
+    expect(baseSurface?.Player).toBeDefined();
+    expect((baseSurface?.Player as { $$typeof?: symbol })?.$$typeof).toBe(Symbol.for('react.lazy'));
     expect(baseSurface?.editorWidgets).toBeUndefined();
     expect(baseSurface?.editorPanels).toBeUndefined();
 

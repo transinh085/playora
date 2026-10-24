@@ -18,7 +18,7 @@ import {
 } from './server';
 
 describe('@playora/templates registry', () => {
-  test('every registry entry has surfaces (id@version -> { Player }) and a server module, and getTemplate returns the identical schema object from client and server entries', () => {
+  test('every registry entry has surfaces (id@version -> { Player }) and a server module, and getTemplate returns the identical schema object from client and server entries', async () => {
     expect(registryTemplates.length).toBeGreaterThanOrEqual(1);
     expect(templates).toBe(registryTemplates);
     expect(serverTemplates).toBe(registryTemplates);
@@ -27,7 +27,10 @@ describe('@playora/templates registry', () => {
       const key = `${entry.id}@${entry.version}`;
       const entrySurfaces = surfaces[key];
       expect(entrySurfaces).toBeDefined();
-      expect(typeof entrySurfaces?.Player).toBe('function');
+      expect(entrySurfaces?.Player).toBeDefined();
+      expect((entrySurfaces?.Player as { $$typeof?: symbol })?.$$typeof).toBe(
+        Symbol.for('react.lazy'),
+      );
       expect(getTemplateSurfaces(entry.id, entry.version)).toBe(entrySurfaces);
 
       expect(entry.server).toBeDefined();
@@ -47,7 +50,20 @@ describe('@playora/templates registry', () => {
     expect(tpl?.version).toBe('1.0.0');
     expect(tpl?.kind).toBe('instant');
     expect(tpl?.skins.map((s) => s.key)).toEqual(['chung', 'tet']);
-    expect(surfaces['spin-wheel@1.0.0']?.Player).toBe(SpinWheelPlayer);
+    const spinWheelSurface = surfaces['spin-wheel@1.0.0'];
+    expect(spinWheelSurface?.Player).toBeDefined();
+    expect((spinWheelSurface?.Player as { $$typeof?: symbol })?.$$typeof).toBe(
+      Symbol.for('react.lazy'),
+    );
+    const lazyPayload = (
+      spinWheelSurface?.Player as
+        | { _payload?: { _result?: () => Promise<{ default: unknown }> } }
+        | undefined
+    )?._payload;
+    if (lazyPayload?._result) {
+      const loaded = await lazyPayload._result();
+      expect(loaded.default).toBe(SpinWheelPlayer);
+    }
 
     expect(getTemplate('spin-wheel', '1.0.0')).toBe(tpl);
     expect(getTemplate('spin-wheel', '9.9.9')).toBeUndefined();

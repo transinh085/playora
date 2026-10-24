@@ -15,6 +15,7 @@ import {
   toPlayOutcome,
 } from '@playora/game-sdk';
 import { getTemplate, getTemplateSurfaces } from '@playora/templates';
+import { Skeleton } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
@@ -185,16 +186,24 @@ function PreviewSurface() {
 
   return (
     <div className="min-h-dvh w-full" data-testid="preview-surface-player">
-      <PlayerComponent
-        config={resolvedConfig}
-        brand={brand}
-        assets={assets}
-        skin={activeSkinKey}
-        locale={locale}
-        quality="high"
-        session={session}
-        onFinished={() => {}}
-      />
+      <Suspense
+        fallback={
+          <div className="flex min-h-dvh flex-col items-center justify-center p-6">
+            <Skeleton active paragraph={{ rows: 6 }} />
+          </div>
+        }
+      >
+        <PlayerComponent
+          config={resolvedConfig}
+          brand={brand}
+          assets={assets}
+          skin={activeSkinKey}
+          locale={locale}
+          quality="high"
+          session={session}
+          onFinished={() => {}}
+        />
+      </Suspense>
     </div>
   );
 }
