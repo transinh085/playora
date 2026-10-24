@@ -8,6 +8,8 @@ Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.1) �
 
 **Mục tiêu:** người tổ chức không cần kỹ thuật dựng được một game có thương hiệu, có giải thưởng, chống gian lận và đo lường được trong **≤ 30 phút**, chạy trên cả hai bề mặt: điện thoại và kiosk.
 
+> **v3.0 ([00](./00-product-strategy.md)):** người dùng chính là chủ SME, **Studio mobile-first**. Mục tiêu mới: publish từ template **≤ 5 phút trên điện thoại** (M2; M1 ≤ 10 phút), cấu hình nâng cao mở theo từng lớp. Các mục bên dưới đã được đánh dấu **[v3]** ở chỗ thay đổi; tầng Client/agency (§2, §5) lùi về M4. Đầu vào: [14 §4.2](./14-guandayun-teardown.md#42-builder-sửa-12-builder-specmd).
+
 **Nguyên tắc (rút ra từ nghiên cứu):**
 
 1. **Engine cố định + cấu hình** (giống 凡科/Guandayun, Drimify). Không có canvas tự do ở v1. Template là code; người dùng chỉ đổi cấu hình, asset và skin.
@@ -43,6 +45,18 @@ Organization ──► Client (Brand) ──► Event ──► Game (instance) 
 | `server` | Map kết quả → hiển thị (instant) hoặc validator điểm (skill) | `validate()` |
 | `editor` | Gợi ý nhóm field, widget, preset độ khó | preset Dễ/Vừa/Khó |
 | `hotEditable` | Danh sách field được sửa khi campaign đang chạy (không cần version mới) | `copy.*`, `sponsor.*` |
+
+### 2.2 Engine và renderer [v3]
+
+Template không còn là một game riêng lẻ mà là **renderer × skin trên một engine** dùng chung logic server:
+
+| Engine | Logic server | Renderer (template) |
+|---|---|---|
+| **Instant-win** | Prize engine quyết định kết quả trước, client chỉ diễn hoạt cảnh | Vòng quay, cào thẻ, mở hộp/hộp mù (M1); đập trứng, lật thẻ bốc thăm, lưới 9 ô, gacha, lắc điện thoại (M2); mưa quà, thả đèn ước, gieo xúc xắc (sau) |
+| **Skill + điểm** | Khung chung: thời gian, điểm, asset slot cộng/trừ; validator điểm phía server; thắng theo `score_threshold` hoặc `rank_based` | Hứng quà (M1); đếm tiền, chạm nhanh, đập logo, lật cặp, ghép hình (M2); match-3, né trái/phải, xếp tầng (sau) |
+| **Giữ chân** | Trạng thái người chơi qua nhiều ngày: chuỗi điểm danh, số dư điểm, bộ thẻ đã sưu tầm | Điểm danh, bốc mỗi ngày (M2); hub điểm thưởng, sưu tầm thẻ không rủ bạn (M3) |
+
+Thêm một renderer mới không được đụng vào prize engine. Đây là cách 凡科 có 1.709 template trên 111 engine ([14 §1](./14-guandayun-teardown.md#1-tóm-tắt)).
 
 ---
 
@@ -99,6 +113,32 @@ Mỗi màn có: nền (ảnh/màu/video ngắn), tiêu đề, nội dung rich te
 - **Chơi thử** dùng dữ liệu `env=rehearsal`. **Bot** gọi `tooling/bots` để giả lập N người chơi, giống "测试机器人" của 凡科.
 - **Tự lưu nháp** mỗi 2 s khi có thay đổi; có undo/redo (lịch sử patch JSON).
 - **Pre-flight checklist** trước khi publish: đủ asset bắt buộc, giải có số lượng, tổng xác suất hợp lệ, consent đã cấu hình, thời gian hợp lệ, cảnh báo pháp lý theo loại chương trình, đã chơi thử ≥ 1 lần.
+- **[v3] Thứ tự trong tab Giải thưởng:** chọn **cách phát giải** (`mode`, §6.2) trước, sau đó chỉ hiện các trường mà mode đó cần (học từ 派奖方式 của 凡科). Tab "Luật & điều kiện" vẫn tách riêng.
+- **[v3] Link nháp chơi thử:** chia sẻ QR/link nháp cho tối đa N người thật (mặc định 20) chơi thử trước khi publish, không tính quota, dữ liệu `env=rehearsal`.
+
+### 4.1b Bố cục mobile [v3]
+
+Bố cục 3 cột ở trên chỉ dùng cho màn hình rộng. Trên điện thoại (bản chính):
+
+```
+┌─────────────────────────┐
+│ ← Tên game      [Publish]│
+│                          │
+│   PREVIEW toàn màn hình  │   chạm vào phần tử trong preview
+│   (player runtime thật)  │   → mở đúng nhóm cấu hình
+│                          │
+│ ‹ Cover · Game · Kết quả ›│   vuốt để đổi màn
+├─────────────────────────┤
+│ [Ảnh] [Giải] [Luật] [Thêm]│   thanh tab dưới
+└─────────────────────────┘
+   ▲ bottom sheet: form của tab đang chọn (nửa màn / toàn màn)
+```
+
+- **Ảnh:** chụp hoặc chọn ảnh cho từng asset slot, **tự xoá nền**, cắt theo tỷ lệ của slot.
+- **Giải:** chọn cách phát giải → danh sách giải → số lượng → giới hạn mỗi người.
+- **Luật:** lượt chơi, khung giờ, form; mỗi luật hiện bằng một câu dễ hiểu ("Mỗi khách quay 1 lần/ngày").
+- **Thêm:** brand kit, kênh/QR, nâng cao.
+- Không có kéo-thả bố cục ([00 §4](./00-product-strategy.md#4-định-vị)).
 
 ### 4.2 Auto-form từ zod
 
@@ -221,7 +261,7 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 |---|---|---|
 | Ẩn danh | `deviceId` (localStorage); Turnstile (chống gian lận mức Chuẩn) | M1 |
 | Guest list | Import Excel (mã NV, tên, phòng ban, đội); người chơi nhập mã hoặc quét QR cá nhân | M1 |
-| **Mã tham gia** | Một người một mã / một lần một mã / mã dùng chung; import tối đa 50.000 mã/lần; sinh mã hàng loạt và in QR | M3 |
+| **Mã tham gia** | Một người một mã / một lần một mã / mã dùng chung; import tối đa 50.000 mã/lần (凡科 giới hạn 5.000/lần, cần chốt lại); sinh mã hàng loạt và in QR. **[v3]** Mỗi mã có QR riêng (quét là tự điền mã); lượt chỉ bị trừ khi người chơi thực sự chơi | M3 |
 | Form bắt buộc | Field builder + consent | M1 |
 | OTP SĐT / email | ZNS ưu tiên, SMS dự phòng; chặn đầu số ảo và email dùng một lần | M2 |
 | Zalo | Đăng nhập Zalo / Zalo Mini App (lấy SĐT đã xác thực) | M4 |
@@ -274,6 +314,11 @@ Bỏ ở v2.1 (run-of-show, Screen editor, Host Console, template live; xem [00 
 
 M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi quà tại quầy bắt đầu từ M2.
 
+> **[v3]** Đổi quà tại quầy (điểm đổi, staff mode) **lên M1**, vì kịch bản lõi của SME là QR tại quầy → quay → đổi quà. Bổ sung:
+> - **Vai trò "chỉ đổi quà"** trong `packages/auth/src/permissions.ts`: không xem hay sửa được campaign.
+> - **Đổi quà không hoàn tác**; muốn sửa đổi nhầm thì owner phải mở lại, có ghi audit và lý do.
+> - **Cập nhật vận chuyển hàng loạt** (CSV mã vận đơn) cho giải gửi bưu điện (M2).
+
 - **Điểm đổi quà (M2):** organizer tạo "điểm đổi" (quầy/cửa hàng) và **mã PIN nhân viên** cho từng điểm.
 - **Staff mode (M2)** (trên web Studio, giao diện mobile): quét QR của người trúng → xem giải → xác nhận → `redeemed`. Chống đổi hai lần.
 - **Tự đổi** (self-redeem, M3): người chơi nhập PIN do nhân viên đưa (học từ 凡科 自助核销).
@@ -293,6 +338,10 @@ M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi
 | Archived | Chỉ đọc |
 | Deleted | **Thùng rác 14 ngày** rồi xoá cứng (học từ 凡科) |
 
+- **[v3] Tự publish khi đến giờ bắt đầu** (Published scheduled → Live tự động).
+- **[v3] Kéo dài sau khi kết thúc:** đặt lại giờ kết thúc trên campaign Ended để quay lại Live, giữ nguyên dữ liệu (có audit).
+- **[v3] Không cho xoá khi đang Live**; chỉ được Pause/End, rồi mới xoá.
+- **[v3] Hiển thị chống gian lận:** danh sách campaign hiện số lượt đã kiểm / đã chặn; mỗi người chơi bị gắn cờ có lý do (§8).
 - **Nhân bản** event hoặc game (giữ config, skin, giải; xoá dữ liệu người chơi).
 - **Lưu thành template riêng** của org/agency (M4): tái sử dụng cho khách khác.
 
@@ -314,6 +363,12 @@ M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi
 ## 14. Phân kỳ theo giai đoạn MVP
 
 Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn).
+
+> **[v3] Bảng dưới đây vẫn theo lộ trình v2.1 và cần làm lại.** Các thay đổi đã chốt:
+> - M1: Studio mobile-first (§4.1b), khung engine instant-win và skill (§2.2), chụp ảnh → asset, **đổi quà tại quầy + vai trò nhân viên** (từ M2), link nháp chơi thử.
+> - M2: renderer mới (§2.2), điểm danh và bốc mỗi ngày, chợ template lọc theo ngành.
+> - M3: hub điểm thưởng, sưu tầm thẻ, **Zalo** (từ M4).
+> - M4: client workspace/white-label/reseller (từ M2), up hoá đơn để được lượt.
 
 | Hạng mục builder | M1 "Tết Campaign" (assisted) | M2 Self-serve & Agency | M3 Booth & Activation | M4 Scale & Platform | Later |
 |---|---|---|---|---|---|

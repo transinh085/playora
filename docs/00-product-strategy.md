@@ -1,31 +1,33 @@
 # 00 — Chiến lược sản phẩm Playora
 
-Phiên bản: v2.1 · 24/10/2026 · Owner: Head of Product · Tài liệu "nguồn chân lý" về định hình sản phẩm. Mọi tài liệu khác phải nhất quán với file này.
+Phiên bản: **v3.0 (bản nháp)** · 25/10/2026 · Owner: Head of Product · Tài liệu "nguồn chân lý" về định hình sản phẩm. Mọi tài liệu khác phải nhất quán với file này.
 
-> Cơ sở: [01-market-research.md](./01-market-research.md), [11-game-builder-research.md](./11-game-builder-research.md). Thay đổi so với v1.0 và v2.0 được tóm tắt ở §10.
+> Cơ sở: [01-market-research.md](./01-market-research.md), [11-game-builder-research.md](./11-game-builder-research.md), [14-guandayun-teardown.md](./14-guandayun-teardown.md). Thay đổi so với các bản trước được tóm tắt ở §10.
+>
+> **Chưa đồng bộ với v3.0:** [01](./01-market-research.md) (vẫn nói live/LED), [02](./02-business-model.md) (ICP agency, giá theo campaign), [prd.md](./prd.md), [04](./04-game-catalog.md), [12 §14](./12-builder-spec.md#14-phân-kỳ-theo-giai-đoạn-mvp). Cần cập nhật sau khi bản này được duyệt.
 
 ---
 
 ## 1. Một câu định nghĩa sản phẩm
 
-> **Playora là nền tảng dựng minigame có thưởng cho chiến dịch marketing tại Việt Nam, bán qua agency. Dựng trong 30 phút từ template × skin theo mùa, giải thưởng được kiểm soát chặt và minh bạch, chạy online và tại booth.**
+> **Playora là builder minigame có thưởng cho SME Việt Nam, làm trên điện thoại. Chủ quán chọn mẫu, chụp ảnh sản phẩm, đặt quà và có game mang thương hiệu của mình trong vài phút. Giải thưởng được kiểm soát chặt, đổi quà ngay tại quầy, và có tính năng giữ chân khách quay lại.**
 
-- **Category:** *Gamified Campaign Builder* (builder minigame có thưởng). Không phải "phần mềm quay số", không phải "slide tương tác/quiz".
-- **Tagline:** *"Dựng minigame có thưởng trong 30 phút."*
+- **Category:** *Mobile Game Campaign Builder*. Hình mẫu sản phẩm là 凡科互动 / Guandayun ([14](./14-guandayun-teardown.md)), nhưng chỉ lấy mảng hoạt động marketing, không làm cả bộ SaaS.
+- **Tagline:** *"Chụp ảnh sản phẩm, có ngay minigame của quán."* `[GĐ]`
 
 ---
 
-## 2. Vấn đề và cơ hội (rút từ nghiên cứu)
+## 2. Vấn đề và cơ hội
 
 | Sự thật thị trường | Hệ quả chiến lược |
 |---|---|
-| Minigame có thưởng (vòng quay, cào, mở quà, hứng quà) là **ngân sách lặp lại** của brand: Tết, 8/3, Trung thu, sinh nhật brand, ra mắt sản phẩm, khai trương | **Minigame campaign là lõi**: đây là nơi có tần suất mua và doanh thu |
-| 凡科/Guandayun thắng nhờ **kho template × skin theo mùa rất lớn**, prize engine và participation rules đầy đủ, **mạng lưới đại lý OEM**; big screen chỉ là phụ | Đi đúng mô hình này: builder + skin theo mùa + prize engine + kênh agency/white-label |
-| WOAY (VN) đã có ~11 game, OTP, Zalo login, Open API, nhưng bán theo quota lượt/tháng, ít skin theo mùa, không có lớp agency/white-label | Không đối đầu ở "số lượng game". Thắng bằng **độ rộng skin theo mùa, builder nhanh, prize engine kiểm soát chi phí và lớp agency** |
-| Nỗi sợ số 1 của brand là **giải hết sớm hoặc vượt ngân sách**, và bị nghi gian lận | **Prize engine là lý do khách tin**: pacing, giới hạn, ngân sách, Prize Simulator, log kiểm chứng |
-| Quiz/poll (Kahoot, Slido, Mentimeter, AhaSlides) đã rất tốt, có bản miễn phí | **Không làm quiz.** Không cạnh tranh được và không phải nhu cầu của brand campaign |
-| Quay số và check-in LED đã là hàng phổ thông (0,25–4 triệu đ/sự kiện); game sân khấu realtime cần vận hành tại chỗ, theo mùa, khó tự phục vụ | **Không làm game LED/sân khấu.** Chỉ giữ "bốc thăm cuối chương trình" online, minh bạch, như một tính năng của campaign |
-| Builder quốc tế đắt (USD/EUR), không có Zalo, không có văn hoá Tết, không hiểu thể lệ khuyến mại VN | Lợi thế bản địa: Zalo/ZNS, VietQR, hoá đơn VAT, skin Tết/lễ VN, mẫu thể lệ khuyến mại và biên bản |
+| 凡科 có 1.709 template nhưng chỉ chạy trên **111 engine**. Phần lớn các game bốc thăm dùng chung một logic, chỉ khác cách hiển thị ([14 §1](./14-guandayun-teardown.md#1-tóm-tắt)) | **Cần ít engine, nhiều renderer và skin.** Kho mẫu lớn đến từ dây chuyền sản xuất skin, không phải từ số cơ chế |
+| Editor của 凡科 **chỉ chạy trên PC**; điện thoại chỉ dùng để đổi quà và lấy mã. WOAY quảng cáo "5 phút", nhưng phần tuỳ biến được nêu chỉ là màu, logo và ảnh quà | **Mobile-first và builder linh hoạt hơn** là chỗ đối thủ đang để trống |
+| Chủ SME (F&B, spa, gym, nha khoa, bán lẻ) không có designer hay dev, và vận hành cửa hàng bằng điện thoại | Builder phải dùng được bằng một tay, chạy từ template, publish mặc định ≤ 5 phút |
+| SME cần lý do để khách **quay lại**, không chỉ một lần quay số dịp Tết | **Giữ chân** (điểm danh, bốc thăm mỗi ngày, hub điểm thưởng, sưu tầm thẻ) là lý do SME trả thuê bao |
+| Nỗi sợ của chủ quán là phát quà quá tay, bị khách gian lận, và nhân viên đổi quà sai | Prize engine (tồn kho, giới hạn, ngân sách, rải đều) cộng với **đổi quà tại quầy** là phần lõi ngay từ đầu |
+| Quiz/poll (Kahoot, Slido, AhaSlides) đã rất tốt và có bản miễn phí | **Không làm quiz** |
+| Ở VN, Zalo đóng vai trò của WeChat | Zalo (OA, ZNS, đăng nhập) là kênh lõi, không phải tính năng cuối lộ trình |
 
 ---
 
@@ -33,105 +35,119 @@ Phiên bản: v2.1 · 24/10/2026 · Owner: Head of Product · Tài liệu "ngu�
 
 | Thứ tự | Phân khúc | Vai trò | Vì sao |
 |---|---|---|---|
-| **#1** | **Agency digital / activation / sự kiện** (5–50 nhân sự) | **Người mua + kênh phân phối** | Mỗi agency mang theo hàng chục brand và nhiều campaign/năm; cần white-label; đau nhất là "dev minigame chậm, đắt, không kiểm soát được giải" |
-| **#2** | **Brand marketing tầm trung** (FMCG, chuỗi F&B, bán lẻ chuỗi, bank, bảo hiểm, BĐS) | Người dùng cuối của agency; mua trực tiếp gói tự phục vụ ở M2+ | Ngân sách campaign theo mùa, cần lead hợp pháp và kiểm soát chi phí giải |
-| #3 | **HR / Internal comms** (doanh nghiệp 200–3.000 nhân sự) | Dùng gói campaign thường cho minigame nội bộ (lì xì đầu năm, Family Day, tri ân) | Theo mùa; không có tính năng riêng cho nhóm này |
-| Không ưu tiên | Shop nhỏ, SME bán lẻ rất nhỏ | Phục vụ qua gói Free (watermark) | ARPA thấp, chi phí hỗ trợ cao |
+| **#1** | **SME có điểm bán hoặc fanpage**: chuỗi F&B nhỏ (1–30 điểm), cà phê/trà sữa, spa/làm đẹp, gym, nha khoa, bán lẻ, shop online | **Người dùng và người mua** (tự phục vụ) | Số lượng lớn, tự quyết, cần kéo khách tới cửa hàng và giữ khách quay lại. Đây cũng là tệp khách chính của 凡科 |
+| #2 | **Agency nhỏ và freelancer marketing** | Kênh bán lại (M4: reseller/OEM như mô hình đại lý của 凡科) | Mỗi agency mang theo nhiều SME |
+| #3 | Brand tầm trung, HR | Dùng chung gói; không có tính năng riêng | |
 
-**Persona chính:** *Linh, PM agency*, cần "vòng quay Tết có logo khách, 3 tuần, 5.000 giải, không được hết giải trong ngày đầu, có báo cáo gửi client mỗi tuần".
+**Persona chính:** *Chị Hà, chủ 3 quán trà sữa.* Chị muốn "vòng quay Tết có ảnh ly trà sữa của quán, mỗi khách quay 1 lần/ngày, quà là topping và giảm 10%, nhân viên quét mã đổi tại quầy", và muốn tự làm trên điện thoại trong giờ nghỉ.
 
 ---
 
 ## 4. Định vị
 
-**Với** agency và brand marketing tại Việt Nam,
-**khi** cần một minigame có thưởng cho chiến dịch, booth hay sự kiện,
-**Playora** là builder minigame có thưởng
-**giúp** dựng game có thương hiệu trong 30 phút từ hàng trăm tổ hợp cơ chế × skin theo mùa, kiểm soát giải thưởng và ngân sách (pacing, giới hạn, mô phỏng trước khi chạy), và có báo cáo gửi client,
-**khác với** WOAY (ít skin theo mùa, quota lượt/tháng, không có lớp agency), phần mềm quay số (chỉ có quay số), slide tương tác (chỉ có quiz/poll) hay thuê dev làm riêng (chậm, đắt, khó kiểm soát giải).
+**Với** chủ SME tại Việt Nam,
+**khi** muốn kéo khách tới cửa hàng và giữ họ quay lại,
+**Playora** là builder minigame có thưởng chạy trên điện thoại,
+**giúp** dựng game mang đúng sản phẩm và thương hiệu của quán (chụp ảnh sản phẩm thành vật phẩm trong game), đặt luật chơi và quà linh hoạt, đổi quà tại quầy và giữ chân khách,
+**khác với** WOAY (tuỳ biến chủ yếu ở màu, logo và ảnh quà; bán theo quota lượt), vòng quay miễn phí (không quản lý giải, không đổi quà) và 凡科 (chỉ có ở Trung Quốc, soạn trên PC, gắn với WeChat).
+
+**Ba chiều linh hoạt của builder** (theo thứ tự đầu tư):
+
+1. **Asset:** thay mọi asset slot; chụp ảnh và tự xoá nền ngay trên điện thoại.
+2. **Luật và giải:** cách phát giải, lượt chơi, khung giờ, quà theo ngày, giới hạn mỗi người, mã tham gia. Viết bằng câu dễ hiểu ("Mỗi khách quay 1 lần/ngày").
+3. **Flow:** bật/tắt form, chọn trường thu thập, màn kết quả, nút gọi Zalo hoặc đặt bàn.
+
+**Không** làm editor bố cục tự do (kéo vị trí phần tử).
 
 ---
 
-## 5. Kiến trúc sản phẩm: 2 bề mặt + 1 builder + 1 lõi
+## 5. Kiến trúc sản phẩm
 
 ```
-                 ┌──────────────── PLAYORA STUDIO (Builder) ────────────────┐
-                 │ Template gallery · Editor (flow + form + preview) · Skin │
-                 │ Brand kit · Prize setup + Simulator · Channels · Reports │
-                 └───────────────┬──────────────────────────────────────────┘
-                                 │ publish (game version bất biến)
-                 ┌───────────────┴───────────────┐
-                 ▼                               ▼
-        PLAYER (phone) — LÕI              BOOTH (Kiosk/Tablet)
-        Link/QR/Zalo, không cài app       Activation, triển lãm
-        Minigame có thưởng, nhiều ngày    Auto-reset, staff đổi quà
-                 └───────────────┬───────────────┘
-                                 ▼
-       PLAYORA CORE: Play Engine (instant + skill) · Prize & Participation Engine ·
-       Anti-fraud · Identity & Consent · Data & Insights · Billing/Quota
+           ┌──────────── PLAYORA STUDIO (mobile-first, có bản desktop) ────────────┐
+           │ Chợ template (lọc theo ngành, dịp, mục tiêu) · Editor (preview toàn   │
+           │ màn hình + bottom sheet) · Chụp ảnh → asset · Brand kit · Giải · Luật │
+           │ · Kênh/QR · Báo cáo · Đổi quà (vai trò nhân viên)                     │
+           └───────────────┬────────────────────────────────────────────────────────┘
+                           │ publish (game version bất biến)
+                 ┌─────────┴──────────┐
+                 ▼                    ▼
+        PLAYER (điện thoại) — LÕI   BOOTH (kiosk/tablet tại quầy)
+        Link/QR/Zalo, không cài app
+                 └─────────┬──────────┘
+                           ▼
+ PLAYORA CORE
+ · Engine instant-win (1 logic, nhiều renderer: vòng quay, cào, mở hộp, đập trứng, lật thẻ, lưới 9 ô, gacha, lắc…)
+ · Engine skill + điểm (1 khung: thời gian, điểm, asset slot cộng/trừ: hứng quà, chạm nhanh, đếm tiền, match-3…)
+ · Engine giữ chân (điểm danh, bốc mỗi ngày, hub điểm thưởng, sưu tầm thẻ)
+ · Prize & Participation · Đổi quà · Anti-fraud · Identity & Consent · Data · Billing/Quota
 ```
 
 **Ba trụ giá trị (theo thứ tự đầu tư):**
 
-1. **Builder + thư viện minigame:** template × skin × brand kit, flow chuẩn (Cover → Form → Game → Kết quả → Quà của tôi), auto-form, preview thật. *Lõi.*
-2. **Prize & Trust:** prize engine (tỷ lệ, tồn kho, pacing, giới hạn, ngân sách), Prize Simulator, voucher, đổi quà, bốc thăm cuối chương trình minh bạch, chống gian lận, log kiểm chứng. *Lý do khách tin và trả tiền.*
-3. **Agency layer:** client workspace, white-label, báo cáo gửi client, template riêng, reseller/OEM. *Lý do khách ở lại và kênh tăng trưởng.*
+1. **Builder mobile và thư viện:** template × skin × brand kit, chụp ảnh thành asset, dựng từ template trong ≤ 5 phút. *Lõi.*
+2. **Prize, đổi quà và tin cậy:** prize engine, đổi quà tại quầy, chống gian lận, log kiểm chứng. *Lý do khách tin.*
+3. **Giữ chân:** điểm danh, bốc mỗi ngày, hub điểm, sưu tầm thẻ. *Lý do khách trả thuê bao và ở lại.*
 
 ---
 
 ## 6. Nguyên tắc sản phẩm
 
-1. **Giải thưởng không được sai.** Server quyết định mọi kết quả trước khi client animate; 0 vượt tồn kho, 0 vượt ngân sách, 0 vượt giới hạn người chơi. Đúng đắn của prize engine đứng trên mọi tính năng mới.
-2. **Cơ chế ít, skin nhiều.** Mỗi cơ chế mới phải đáng giá ≥ 10 skin. Gallery = cơ chế × skin × dịp. Ra skin theo mùa đều đặn quan trọng hơn ra cơ chế mới.
-3. **Builder là sản phẩm, không phải công cụ nội bộ.** Đội Playora dựng campaign cho khách **bằng chính Studio**. Cái gì đội ops thấy khó thì khách cũng sẽ thấy khó.
-4. **Minh bạch mặc định.** Log kiểm chứng được; không có tính năng "định trước người trúng". Quà không ngẫu nhiên đi qua "Tặng quà theo danh sách", ghi rõ.
-5. **Một engine, hai bề mặt.** Cùng một game version chạy được trên điện thoại (campaign) và kiosk (booth). Không fork logic theo bề mặt.
-6. **Agency là khách hàng hạng nhất.** Mọi màn hình đều nghĩ tới trường hợp "một người quản lý 20 client".
+1. **Giải thưởng không được sai.** Server quyết định mọi kết quả trước khi client animate. Không bao giờ vượt tồn kho, ngân sách hay giới hạn người chơi.
+2. **Engine ít, renderer và skin nhiều.** Cơ chế mới phải là một renderer trên engine có sẵn, trừ khi nó đáng giá ≥ 10 skin. Ra skin theo mùa đều đặn quan trọng hơn ra engine mới.
+3. **Chủ quán dùng một tay.** Mọi màn Studio phải làm được trên điện thoại. Desktop là phần mở rộng, không phải bản chính.
+4. **Nhanh mặc định, sâu khi cần.** Publish từ template ≤ 5 phút; cấu hình nâng cao mở theo từng lớp.
+5. **Builder là sản phẩm.** Đội Playora dựng hộ khách **bằng chính Studio trên điện thoại**. Cái gì đội thấy khó thì khách cũng sẽ thấy khó.
+6. **Minh bạch mặc định.** Không có tính năng định trước người trúng, không có số liệu ảo (người tham gia ảo, phiếu ảo, robot điểm). Quà không ngẫu nhiên đi qua "Tặng quà theo danh sách".
 
 ### Không làm (ít nhất đến hết 2027)
 
-- **Quiz / poll / slide tương tác** (Kahoot, Slido, Mentimeter, AhaSlides đã làm tốt và có bản miễn phí).
-- **Game LED / sân khấu realtime nhiều người**, Host Console, màn hình lớn (cần vận hành tại chỗ, theo mùa, kéo nguồn lực khỏi builder). Engine đã viết được lưu ở tag git `archive/live-engine`.
-- Canvas kéo-thả tự do hoặc editor logic kiểu Epub360.
-- Cash/red packet, cá cược, đổi thưởng ra tiền.
-- Cơ chế ép chia sẻ kiểu "裂变" (trái policy Zalo/FB); chỉ "thêm lượt khi chia sẻ" có giới hạn.
-- Event management đầy đủ (bán vé, agenda, seating).
-- Check-in bằng khuôn mặt (dữ liệu sinh trắc học nhạy cảm theo PDPL).
+- **Quiz / poll / bình chọn / dự đoán.**
+- **Game LED / sân khấu realtime** (code lưu ở tag `archive/live-engine`).
+- **Editor bố cục tự do**, canvas kéo-thả, editor logic kiểu Epub360.
+- **Thương mại**: flash sale, mua nhóm, mặc cả, phân phối hoa hồng.
+- **Bộ SaaS đầy đủ** như 凡科 (web, shop, CRM, quản lý cửa hàng).
+- Lì xì tiền mặt, cá cược, chia quỹ thưởng, đổi thưởng ra tiền.
+- Cơ chế ép rủ bạn bè (gom like, trợ lực, chạy tiếp sức); chỉ cho "thêm lượt khi chia sẻ" có giới hạn.
+- Số liệu ảo và upload sẵn danh sách người trúng.
+- Check-in bằng khuôn mặt (dữ liệu sinh trắc học theo PDPL).
 
 ---
 
 ## 7. Lộ trình MVP theo giai đoạn
 
-| Mã | Giai đoạn | Thời gian | Câu hỏi cần trả lời | Phạm vi cốt lõi | Gate để đi tiếp |
-|---|---|---|---|---|---|
-| **M0** | Discovery & Foundation | 26/10 – 06/11/2026 | Agency/brand có trả tiền cho minigame campaign dựng bằng builder không? | Phỏng vấn agency + brand, pre-sale campaign Tết; monorepo, design system, builder nền (đã có) | ≥ 3 cọc pilot campaign Tết |
-| **M1** | **MVP "Tết Campaign"** | 09/11 – 11/12/2026, pilot 12/12/2026 – 06/02/2027 (Tết) | Agency có dựng và chạy được campaign minigame thật bằng builder không? Prize engine có giữ đúng kho và ngân sách không? | **Play engine** (instant + skill); **prize engine v1** (tỷ lệ/tỷ lệ tổng/100% trúng, tồn kho, giới hạn người/ngày, ngân sách, rải đều theo thời gian, khung giờ); voucher pool; **4 minigame**: vòng quay, cào thẻ, mở hộp quà (skin đập trứng, lì xì), hứng quà; skin Tết + chung; chống gian lận mức Chuẩn (Turnstile, rate limit, thiết bị); link theo kênh; dashboard + export | 10+ campaign trả phí, ≥ 50.000 lượt chơi hợp lệ, **0 sai lệch giải**, ≥ 3 campaign **agency tự dựng**, NPS ≥ 40 |
-| **M2** | **Self-serve & Agency** | 22/02 – 30/04/2027 (8/3, 30/4) | Khách có tự dựng và tự trả tiền không? Agency có bán lại không? | **Prize Simulator**, pacing đầy đủ (theo đợt, xả kho cuối); OTP ZNS/SMS; +4 minigame (lật thẻ, ghép hình, đập logo, lì xì rơi) và theme pack theo mùa; flow chuẩn chỉnh từng màn, pre-flight; thông báo trúng qua email/ZNS; bốc thăm cuối chương trình (commit–reveal); đổi quà staff mode; client workspace, white-label cơ bản; gói tự phục vụ + Agency (PayOS); báo cáo PDF + biên bản | ≥ 30 khách trả phí, ≥ 8 agency trả phí, ≥ 60% campaign tự dựng không cần hỗ trợ |
-| **M3** | **Booth & Activation** | 03/05 – 30/07/2027 (hè, Trung thu sớm) | Mở rộng sang booth/activation tại chỗ có tăng ARPA agency không? | Kiosk mode (online), mã tham gia/nắp chai, requirements trước khi chơi; funnel theo kênh; +minigame theo mùa (Trung thu) | ≥ 10 activation trả phí, ARPA agency tăng ≥ 30% |
-| **M4** | **Scale & Platform** | 08 – 12/2027 (bán YEP + Tết 2028 từ 09) | Có nhân rộng được qua kênh không? | Zalo login/Mini App; webhook/API; custom domain; e-gift (UrBox/ViHat); AI draft; template riêng của org; reseller/OEM; kiosk offline; SSO | 50 agency, 1.000 campaign/sự kiện mùa Tết 2028, MRR theo kế hoạch |
-| Later | Platform & SEA | 2028 | | Game SDK công khai + marketplace; SEA (en/id/th); OCR hoá đơn; ClickHouse | |
+Ưu tiên **xây đúng và bền** hơn là chạy theo mùa. Tết 2027 là **mùa để học**, không phải mốc doanh thu.
 
-**Lý do sắp xếp như vậy:**
-- **M1 phải kịp Tết 2027**, mùa ngân sách minigame lớn nhất năm. Toàn bộ nguồn lực dồn cho builder, play engine và prize engine.
-- **M2 rơi vào 8/3 và 30/4:** campaign ngắn, nhiều, cần tự phục vụ và Simulator để agency tự tin bán.
-- **M3 vào mùa hè và activation (05–07):** booth dùng chung engine với campaign.
-- **M4 chuẩn bị Tết 2028:** quy mô và kênh.
+| Mã | Giai đoạn | Thời gian `[GĐ]` | Câu hỏi cần trả lời | Phạm vi cốt lõi | Gate để đi tiếp |
+|---|---|---|---|---|---|
+| **M0** | Discovery | 26/10 – 15/11/2026 | SME có muốn tự dựng minigame trên điện thoại không? Vì sao họ bỏ WOAY hoặc vòng quay miễn phí? | Phỏng vấn ≥ 15 SME (F&B, spa, gym, bán lẻ); tự dựng một game trên WOAY bằng điện thoại và đo thời gian; prototype editor mobile | ≥ 10/15 SME muốn dùng thử; xác định được 3 điểm WOAY làm khó |
+| **M1** | **Builder mobile + instant-win** | 16/11/2026 – 28/02/2027 (pilot Tết) | Chủ quán có tự dựng và chạy được game trên điện thoại không? Prize engine và đổi quà có đúng không? | Studio mobile-first; **khung engine instant-win** (vòng quay, cào thẻ, mở hộp) và **khung skill** (hứng quà); chụp ảnh → asset; brand kit; prize engine v1 (tỷ lệ, tồn kho, giới hạn, ngân sách, rải đều, khung giờ); voucher; **đổi quà tại quầy + vai trò nhân viên**; link/QR theo kênh; chơi thử bằng link nháp; gói Free (soạn đầy đủ, khoá theo người chơi và số lần publish); dựng hộ miễn phí 10–20 SME | ≥ 10 SME tự dựng trên điện thoại; trung vị thời gian publish từ template ≤ 10 phút; **0 sai lệch giải**; ≥ 5 SME sẵn sàng trả tiền |
+| **M2** | **Self-serve + giữ chân v1** | 03 – 05/2027 (8/3, 30/4) | SME có tự trả thuê bao không? Tính năng giữ chân có giữ được khách không? | Thanh toán thuê bao (PayOS/VietQR); +renderer instant-win (đập trứng, lật thẻ, lưới 9 ô, gacha, lắc); +skill (đếm tiền, chạm nhanh, đập logo, lật cặp, ghép hình); **điểm danh + bốc mỗi ngày**; OTP ZNS/SMS; Prize Simulator; chợ template công khai lọc theo ngành và dịp (SEO); theme pack theo mùa | ≥ 50 SME trả phí; retention tháng thứ 2 ≥ 60% |
+| **M3** | **Giữ chân v2 + Zalo** | 06 – 09/2027 (hè, Trung thu) | Giữ chân có tăng ARPA và retention không? | **Hub điểm thưởng**, **sưu tầm thẻ** (không rủ bạn); Zalo OA/đăng nhập/ZNS; mã tham gia có QR riêng; kiosk tại quầy | ≥ 200 SME trả phí; ≥ 40% dùng tính năng giữ chân |
+| **M4** | **Scale + kênh** | 10 – 12/2027 (Tết 2028) | Có nhân rộng qua kênh được không? | Agency/reseller; tích hợp POS (KiotViet, Sapo, Haravan); **up hoá đơn để được lượt** (duyệt tay, OCR về sau); AI sinh skin từ brand kit; webhook/API | 1.000 SME trả phí mùa Tết 2028 |
+| Later | Platform & SEA | 2028 | | Game SDK công khai và marketplace; SEA | |
+
+**Lý do sắp xếp:**
+- M1 dồn vào **builder mobile và hai khung engine**, vì đây là phần khó sao chép và mọi thứ sau đều xây trên nó. Chỉ 4 renderer nhưng khung phải đúng.
+- Đổi quà tại quầy lên M1, vì kịch bản chính của SME là QR tại quầy → quay → đổi quà.
+- Giữ chân vào M2–M3, khi đã có khách để đo retention.
+- Zalo vào M3, sớm hơn M4 cũ, vì đây là kênh của SME.
 
 ---
 
 ## 8. Chỉ số
 
-| Cấp | Chỉ số | Mục tiêu |
+| Cấp | Chỉ số | Mục tiêu `[GĐ]` |
 |---|---|---|
-| **North Star** | **Lượt chơi hợp lệ trên campaign/sự kiện trả phí / tháng** | 50.000 (pilot) → 2.000.000 (12/2027) |
-| Builder (lõi) | % campaign khách **tự dựng** không cần Playora hỗ trợ | M1 ≥ 25% · M2 ≥ 60% · M4 ≥ 80% |
-| Builder | Thời gian trung vị từ tạo đến publish | M1 ≤ 60 phút · M2 ≤ 30 phút |
+| **North Star** | **Số SME có ít nhất một campaign đang chạy với người chơi hợp lệ trong tháng** | 10 (pilot) → 1.000 (12/2027) |
+| Builder (lõi) | Trung vị thời gian từ chọn template đến publish (trên điện thoại) | M1 ≤ 10 phút · M2 ≤ 5 phút |
+| Builder | % campaign tự dựng không cần hỗ trợ | M1 ≥ 50% · M2 ≥ 80% |
+| Builder | % campaign dùng ảnh của chính SME (chụp hoặc upload) | ≥ 60% |
 | Prize | Sai lệch tồn kho / vượt ngân sách / vượt giới hạn | 0 |
-| Prize | % campaign hết giải trước 80% thời lượng (khi bật rải đều) | ≤ 5% |
-| Player | Tỷ lệ mở link/quét QR → chơi lượt đầu | ≥ 70% |
-| Kinh doanh | Paying customers / agency trả phí | M2: 30/8 · M4: 300/50 |
-| Kinh doanh | ARPA agency | ≥ 5 triệu đ/tháng (M4) |
-| Hài lòng | NPS organizer | ≥ 40 (M1) → ≥ 50 (M4) |
+| Player | Tỷ lệ quét QR → chơi lượt đầu | ≥ 70% |
+| Giữ chân | % người chơi quay lại trong 7 ngày (campaign bật giữ chân) | ≥ 25% |
+| Kinh doanh | SME trả phí · retention thuê bao tháng 2 | M2: 50 · ≥ 60% |
+| Hài lòng | NPS chủ SME | ≥ 40 |
 
 ---
 
@@ -139,25 +155,33 @@ Phiên bản: v2.1 · 24/10/2026 · Owner: Head of Product · Tài liệu "ngu�
 
 | # | Giả định | Kiểm chứng ở | Bằng chứng cần có | Nếu sai thì |
 |---|---|---|---|---|
-| A1 | Agency/brand chọn Playora thay vì WOAY vì skin theo mùa + kiểm soát giải + white-label | M0 (pre-sale), M1 | ≥ 3 cọc pilot; lý do chọn được ghi lại trong phỏng vấn | Tập trung hẳn vào agency white-label/OEM; cạnh tranh bằng giá theo campaign |
-| A2 | Agency sẽ **tự dựng** bằng builder thay vì nhờ dev | M1, M2 | ≥ 3 agency tự dựng trong pilot; ≥ 60% ở M2 | Chuyển sang "managed service + template", tăng ops |
-| A3 | Prize engine giữ đúng kho và ngân sách dưới tải campaign (đỉnh vài trăm lượt/giây) | M1 | Test 1 triệu lượt mô phỏng + load test: 0 sai lệch | Khoá chặt hơn (serialize theo campaign), giảm tốc độ phát giải |
-| A4 | Chống gian lận mức Chuẩn (không OTP) đủ cho campaign Tết M1 | M1 | Tỷ lệ lượt bị gắn cờ < 5%, không có khiếu nại "hết giải vì bot" | Đưa OTP ZNS/SMS lên sớm; bắt buộc form SĐT duy nhất |
-| A5 | Skin theo mùa là lý do chọn đủ mạnh (khách chọn theo dịp, không theo cơ chế) | M1, M2 | ≥ 50% campaign dùng skin theo mùa; tỷ lệ chọn skin Tết | Đầu tư thêm cơ chế và tuỳ biến hơn là skin |
+| A1 | SME chọn Playora thay vì WOAY hay vòng quay miễn phí vì builder linh hoạt hơn (ảnh sản phẩm của chính họ, luật và giải sâu hơn) | M0, M1 | Lý do chọn được ghi trong phỏng vấn; ≥ 60% campaign dùng ảnh riêng | Cạnh tranh bằng kho skin theo mùa và giá |
+| A2 | Chủ SME tự dựng được trên điện thoại trong ≤ 10 phút | M1 | Đo thời gian của ≥ 10 SME | Thêm wizard, giảm cấu hình mặc định, tăng dựng hộ |
+| A3 | SME trả **thuê bao** cho minigame, không chỉ mua một lần theo mùa | M2 | Retention tháng 2 ≥ 60% | Bán theo campaign hoặc theo mùa, giữ thuê bao cho gói có giữ chân |
+| A4 | Tính năng giữ chân làm khách quay lại và làm SME ở lại | M2, M3 | Người chơi quay lại 7 ngày ≥ 25% | Tập trung vào campaign theo mùa |
+| A5 | SEO, chợ template công khai và gói Free kéo được SME với CAC thấp | M2 | CAC ≤ 3 tháng thuê bao | Đẩy kênh agency/reseller và POS lên sớm |
+| A6 | Prize engine giữ đúng tồn kho và ngân sách dưới tải | M1 | Test 1 triệu lượt mô phỏng + load test: 0 sai lệch | Khoá chặt hơn (serialize theo campaign) |
 
 ---
 
 ## 10. Thay đổi so với v1.0
 
-| Hạng mục | v1.0 | v2.0 | Lý do |
+| Hạng mục | v2.1 | **v3.0** | Lý do |
 |---|---|---|---|
-| Lõi sản phẩm | Game LED nhiều người tại sự kiện (wedge) | **Minigame có thưởng cho campaign** (online trước, booth dùng chung engine) | Ngân sách lặp lại theo mùa nằm ở campaign; mô hình 凡科 |
-| Live LED | Lõi | Add-on (v2.0) → **bỏ hẳn (v2.1)** | Tập trung vào minigame và builder |
-| Quiz | `live-quiz` trong M1 | **Bỏ**, vào mục "Không làm" | Kahoot/Slido/AhaSlides đã làm tốt và miễn phí |
-| WOAY | Không đối đầu ở online | **Đối thủ trực tiếp**; thắng bằng skin theo mùa, prize engine, lớp agency, builder nhanh | Đổi lõi |
-| M1 | "YEP Live": check-in wall, quiz, shake race, lucky draw | **"Tết Campaign"**: vòng quay, cào thẻ, mở hộp quà, hứng quà + prize engine v1 | Kịp mùa Tết 2027 |
-| Prize engine | Đầy đủ ở M3 | **v1 ở M1** (tỷ lệ, tồn kho, giới hạn, ngân sách, rải đều); Simulator ở M2 | Campaign không chạy được nếu thiếu |
-| North Star | Người chơi trên sự kiện trả phí | **Lượt chơi hợp lệ trên campaign/sự kiện trả phí** | Đo đúng giá trị campaign |
-| ICP #2 | HR / Internal comms | **Brand marketing tầm trung**; HR dùng gói campaign thường | Đổi lõi |
+| ICP #1 | Agency digital/activation | **SME có điểm bán hoặc fanpage** | Chưa có khách agency; mô hình 凡科 thắng nhờ SME số lượng lớn |
+| Agency | Người mua và kênh, white-label ở M2 | **Kênh bán lại ở M4** | Theo ICP mới |
+| Hình mẫu | 凡科 về sản phẩm, agency về kinh doanh | **凡科 cả sản phẩm và đối tượng khách**, chỉ lấy mảng hoạt động marketing | [14](./14-guandayun-teardown.md) |
+| Khác biệt với WOAY | Skin theo mùa, prize engine, lớp agency | **Builder linh hoạt hơn** (asset, luật/giải, flow) và **mobile-first** | Quyết định 24–25/10/2026 |
+| Studio | Desktop (editor 3 cột) | **Mobile-first** (preview toàn màn hình + bottom sheet) | SME vận hành bằng điện thoại; 凡科 chỉ có PC |
+| Kiến trúc game | Từng template là một game | **2 engine (instant-win, skill + điểm) với nhiều renderer**, cộng engine giữ chân | 1.709 template của 凡科 chạy trên 111 engine |
+| Giữ chân | Không có | **Có** (điểm danh, bốc mỗi ngày ở M2; hub điểm, sưu tầm thẻ ở M3) | Lý do SME trả thuê bao |
+| Up hoá đơn để được lượt | M4 | **M4** (giai đoạn sau) | Quyết định 25/10/2026 |
+| Đổi quà tại quầy | M2 | **M1** | Kịch bản lõi của SME |
+| Zalo | M4 | **M3** | Kênh của SME |
+| Giá | Theo campaign (Campaign Pass, gói Agency năm) | **Thuê bao tháng/năm cho SME**; Free soạn đầy đủ, khoá theo người chơi và số lần publish | Theo ICP mới; cập nhật chi tiết ở [02](./02-business-model.md) |
+| M1 | "Tết Campaign", gate 10 campaign trả phí | **"Builder mobile + instant-win"**, Tết là mùa học, gate theo chỉ số học | Ưu tiên xây bền hơn kịp Tết |
+| North Star | Lượt chơi hợp lệ trên campaign trả phí | **SME có campaign đang chạy trong tháng** | Phù hợp mô hình thuê bao |
+| Quiz | Không làm | **Không làm** (xác nhận lại) | |
 
-**v2.1 (24/10/2026):** bỏ hẳn **Live add-on** (game LED, Host Console, màn hình lớn, shake/tap race). Lucky draw sân khấu thay bằng **bốc thăm cuối chương trình** online (M2). Lý do: tập trung toàn bộ vào minigame và builder; game sân khấu cần vận hành tại chỗ, theo mùa, không hợp tự phục vụ. Code realtime được lưu ở tag `archive/live-engine` rồi gỡ khỏi `main`.
+**v2.1 (24/10/2026):** bỏ Live add-on (game LED, Host Console, màn hình lớn). Code realtime lưu ở tag `archive/live-engine`.
+**v2.0:** lõi chuyển từ game LED sang minigame có thưởng cho campaign.
