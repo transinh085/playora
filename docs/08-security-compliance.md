@@ -26,7 +26,7 @@ Cập nhật: 23/10/2026
 | **Kiến trúc** | Server quyết định kết quả trước khi client animate; client không có xác suất hay tồn kho |
 | **Danh tính** | Identity rule theo event (guest list, OTP, Zalo); `phoneHash`/`deviceId` để giới hạn lượt; OTP rate limit theo số và IP |
 | **Toàn vẹn request** | `playToken` ký, có hạn; `Idempotency-Key`; unique `awards.play_id`; transaction atomic |
-| **Plausibility** | Cap input realtime (vd. ≤ 8 shake/250 ms); skill game kiểm điểm ≤ max lý thuyết theo seed và thời lượng; phát hiện thời gian trả lời quiz < 150 ms liên tục |
+| **Plausibility** | Skill game kiểm điểm ≤ max lý thuyết theo seed và thời lượng; thời lượng thực theo đồng hồ server; nhịp input bất thường thì gắn cờ |
 | **Rate limit** | Redis sliding window theo IP, device, token; mềm dẻo cho NAT của wifi sự kiện (ưu tiên token hơn IP) |
 | **Bot** | Cloudflare Turnstile (invisible) ở bước join cho campaign công khai; tắt được cho sự kiện kín |
 | **Flagging** | Đánh dấu `players.flagged`, loại khỏi lucky draw và leaderboard; organizer duyệt lại |
@@ -124,6 +124,6 @@ Nguồn: [LSVN](https://lsvn.vn/nhung-diem-moi-can-luu-y-ve-hoat-dong-khuyen-mai
 - [ ] Mẫu consent và thông báo xử lý dữ liệu
 - [ ] Test cross-tenant tự động cho mọi endpoint Studio
 - [ ] Mã hoá PII + HMAC lookup hoạt động; key không nằm trong repo
-- [ ] Rate limit, Turnstile, cap input realtime bật
+- [ ] Rate limit, Turnstile, giới hạn tốc độ phát giải bật
 - [ ] Backup + diễn tập restore thành công
 - [ ] Runbook sự cố live + kênh liên lạc khẩn cho operator

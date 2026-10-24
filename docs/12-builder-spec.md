@@ -1,12 +1,12 @@
 # 12 — Đặc tả Game Builder (tính năng lõi)
 
-Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.0) · Đầu vào: [11-game-builder-research.md](./11-game-builder-research.md) · Liên quan: [prd.md](./prd.md), [04-game-catalog.md](./04-game-catalog.md), [05-architecture.md](./05-architecture.md)
+Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.1) · Đầu vào: [11-game-builder-research.md](./11-game-builder-research.md) · Liên quan: [prd.md](./prd.md), [04-game-catalog.md](./04-game-catalog.md), [05-architecture.md](./05-architecture.md)
 
 ---
 
 ## 1. Mục tiêu và nguyên tắc
 
-**Mục tiêu:** người tổ chức không cần kỹ thuật dựng được một game có thương hiệu, có giải thưởng, chống gian lận và đo lường được trong **≤ 30 phút**, chạy trên mọi bề mặt: điện thoại, màn hình LED, kiosk.
+**Mục tiêu:** người tổ chức không cần kỹ thuật dựng được một game có thương hiệu, có giải thưởng, chống gian lận và đo lường được trong **≤ 30 phút**, chạy trên cả hai bề mặt: điện thoại và kiosk.
 
 **Nguyên tắc (rút ra từ nghiên cứu):**
 
@@ -14,7 +14,7 @@ Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.0) �
 2. **Một flow chuẩn cho mọi game** (giống Drimify, Qualifio). Học một lần, dùng cho mọi template.
 3. **Prize, Participation, Anti-cheat, Data là dịch vụ nền tảng**, không nằm trong template. Template mới tự động thừa hưởng toàn bộ.
 4. **Kế thừa theo tầng** Org → Client (Brand) → Event → Game (giống Qualifio). Sửa brand kit một lần thì mọi game đổi theo.
-5. **Live và async cùng một builder.** Game live chỉ là template có `kind: live` và thêm surface Screen/Host.
+5. **Một engine, hai bề mặt.** Cùng một game version chạy trên Player (điện thoại) và Kiosk (booth); không fork logic theo bề mặt. Không có game live/Screen/Host (bỏ ở v2.1).
 6. **Minh bạch thay vì "điều khiển kết quả".** Không có tính năng định trước người trúng trong cơ chế ngẫu nhiên.
 
 ---
@@ -25,7 +25,7 @@ Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.0) �
 Organization ──► Client (Brand) ──► Event ──► Game (instance) ──► GameVersion (bất biến)
    │ brand kit mặc định │ brand kit, ngôn ngữ,   │ identity, form,   │ template@ver, config,
    │ gói, white-label   │ consent text,          │ kênh, anti-cheat, │ skin, prizes, rules
-   │                    │ domain, tích hợp       │ lịch, playlist    │
+   │                    │ domain, tích hợp       │ lịch              │
    └─ thuộc tính ở tầng dưới **ghi đè** tầng trên (null = kế thừa)
 ```
 
@@ -38,11 +38,11 @@ Organization ──► Client (Brand) ──► Event ──► Game (instance) 
 | `assetSlots` | Danh sách ô asset có ràng buộc (kích thước, tỷ lệ, định dạng, nền trong suốt) | `player`, `goodItem[1..5]`, `badItem[0..3]`, `background`, `bgm`, `sfxCatch` |
 | `skins` | Bộ asset và cấu hình mặc định theo chủ đề | `classic`, `tet-li-xi`, `trung-thu`, `noel` |
 | `screens` | Màn riêng của game (ngoài flow chuẩn); thường chỉ có `game` | `game` |
-| `surfaces` | `player` / `screen` / `host` / `kiosk` | `player`, `kiosk` |
+| `surfaces` | `player` / `kiosk` | `player`, `kiosk` |
 | `capabilities` | Cờ khai báo để builder bật/tắt tính năng | `{ score: true, leaderboard: true, drawAfterScore: true, teams: false }` |
-| `server` | Validator điểm (skill) hoặc room logic (live) | `validate()` |
+| `server` | Map kết quả → hiển thị (instant) hoặc validator điểm (skill) | `validate()` |
 | `editor` | Gợi ý nhóm field, widget, preset độ khó | preset Dễ/Vừa/Khó |
-| `hotEditable` | Danh sách field được sửa khi đang live (không cần version mới) | `copy.*`, `sponsor.*` |
+| `hotEditable` | Danh sách field được sửa khi campaign đang chạy (không cần version mới) | `copy.*`, `sponsor.*` |
 
 ---
 
@@ -59,13 +59,15 @@ Organization ──► Client (Brand) ──► Event ──► Game (instance) 
 * tuỳ cấu hình event/game     ? tuỳ template
 ```
 
-### 3.2 Live (sự kiện)
+### 3.2 Bốc thăm cuối chương trình (M2)
 
 ```
-Player: [Join (QR)] → [Identity/Form] → [Lobby/Chờ] ⇄ [Round: game] → [Round result] → … → [Award]
-Screen: [Idle: QR + sponsor loop] → [Lobby: số người, tên chạy] → [Countdown] → [Round view] → [Result/Top N] → [Draw]
-Host:   [Playlist (run-of-show)] → điều khiển từng vòng → [Draw] → [Kết thúc]
+Studio (organizer): [Chốt pool (lọc AND/OR)] → [Commit công bố] → [Quay từng tier] → [Void có lý do?] → [Kết thúc]
+Trang công bố:      [Commit + poolHash] → [Người trúng theo spinNo] → [serverSeed sau khi kết thúc]
+Player:             "Quà của tôi" hiện giải trúng
 ```
+
+Không có Screen/Host; luồng live cũ bỏ ở v2.1.
 
 ### 3.3 Cấu hình mỗi màn
 
@@ -79,8 +81,8 @@ Mỗi màn có: nền (ảnh/màu/video ngắn), tiêu đề, nội dung rich te
 
 ```
 ┌───────────────┬──────────────────────────────────┬──────────────────────────┐
-│ FLOW           │        PREVIEW (live)             │ PROPERTIES               │
-│ ▸ Cover        │  [📱 Mobile][🖥 Screen 16:9][🧍 Kiosk] │ Tabs:                    │
+│ FLOW           │        PREVIEW (thật)             │ PROPERTIES               │
+│ ▸ Cover        │  [📱 Mobile][🧍 Kiosk]             │ Tabs:                    │
 │ ▸ Form         │                                   │ • Nội dung               │
 │ ▸ Game  ●      │      ┌─────────────┐              │ • Giao diện (skin, brand)│
 │ ▸ Result       │      │  iframe      │              │ • Gameplay               │
@@ -125,7 +127,7 @@ const config = z.object({
 ### 4.3 Khoá sau publish
 
 - Publish tạo `game_version` bất biến.
-- Trường `hotEditable` (copy, sponsor, mô tả) sửa được ngay khi đang live; mọi thay đổi được ghi audit.
+- Trường `hotEditable` (copy, sponsor, mô tả) sửa được ngay khi campaign đang chạy; mọi thay đổi được ghi audit.
 - Trường ảnh hưởng tính công bằng (luật trợ lực, xác suất, điều kiện) phải **tạo version mới** và có cảnh báo: "Thay đổi không ảnh hưởng người chơi đã tham gia" (đúng yêu cầu NĐ 81 khi sửa chương trình). Học từ 易企秀 và Playable.
 
 ---
@@ -136,7 +138,7 @@ const config = z.object({
 |---|---|---|
 | **Brand kit** | Logo (sáng/tối), palette (primary, secondary, accent, nền, chữ), font tiêu đề/nội dung, bo góc, nhạc nền mặc định, watermark | Khách hàng (org/client) |
 | **Skin** của template | Bộ asset theo chủ đề cho các asset slot, kèm cấu hình mặc định (màu, nhạc) | Playora (đội art), sau này là đối tác |
-| **Theme pack** (theo dịp) | Gói nhiều skin cùng chủ đề cho mọi template: **Tết, YEP, Trung thu, Noel, Black Friday, 8/3, 20/10, khai trương** | Playora |
+| **Theme pack** (theo dịp) | Gói nhiều skin cùng chủ đề cho mọi template: **Tết, Trung thu, Noel, Black Friday, 8/3, 20/10, khai trương, sinh nhật brand** | Playora |
 | **Override** | Người dùng thay từng asset slot | Khách hàng |
 
 - **Thứ tự áp dụng:** `template default` → `skin` → `brand kit tokens` (màu, font, logo được map vào slot có `brandable: true`) → `override`.
@@ -168,7 +170,7 @@ const config = z.object({
 | `guaranteed` | Ai chơi cũng trúng một giải (theo tồn kho) | Drimify "100% winner" | M1 |
 | `score_threshold` | Skill game: đạt điểm ngưỡng thì được một lượt draw (kết hợp chế độ khác) | 易企秀 | M1 |
 | `rank_based` | Phát theo thứ hạng leaderboard khi kết thúc; **organizer xác nhận** trước khi phát | 凡科, 易企秀 | M2 |
-| `live_draw` | Lucky draw từ pool người chơi (commit–reveal) | Playora | M1 (Live add-on) |
+| `end_draw` | **Bốc thăm cuối chương trình** từ pool người chơi đã chốt; commit–reveal ràng buộc `poolHash` + `spinNo`; trang công bố kết quả (xem [04 §3.5](./04-game-catalog.md)) | Playora | M2 |
 
 ### 6.3 Phân phối theo thời gian (pacing)
 
@@ -227,14 +229,14 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 
 ## 8. Chống gian lận: preset theo mức
 
-| Biện pháp | Thấp (YEP nội bộ, Live) | Chuẩn (campaign M1, booth) | Cao (campaign giá trị lớn, M2 có OTP) |
+| Biện pháp | Thấp (minigame nội bộ, guest list) | Chuẩn (campaign M1, booth) | Cao (campaign giá trị lớn, M2 có OTP) |
 |---|---|---|---|
 | Server quyết định kết quả, token lượt chơi | ✅ | ✅ | ✅ |
-| Rate limit IP/device/token | Lỏng (NAT hội trường) | ✅ | ✅ chặt |
+| Rate limit IP/device/token | Lỏng (NAT văn phòng) | ✅ | ✅ chặt |
 | Turnstile (captcha ẩn) | ❌ | ✅ | ✅ |
 | OTP / Zalo bắt buộc | ❌ | Tuỳ | ✅ |
 | Chặn VPN/proxy, email dùng một lần, đầu số ảo | ❌ | ❌ | ✅ |
-| Plausibility điểm / cap input realtime | ✅ | ✅ | ✅ |
+| Plausibility điểm (game skill) | ✅ | ✅ | ✅ |
 | Blacklist / whitelist | ✅ | ✅ | ✅ |
 | Gắn cờ tự động + duyệt tay trước khi phát giải lớn | ❌ | Tuỳ | ✅ |
 | Giới hạn tốc độ phát giải (giải/phút) | ❌ | ✅ | ✅ |
@@ -250,7 +252,6 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 | Poster chia sẻ | Sinh ảnh poster có QR cá nhân hoá | M4 |
 | Embed | iframe / script vào website brand | M4 |
 | Kiosk | Full-screen, auto-reset sau mỗi người (N giây), khoá điều hướng, chế độ offline (M4) | M3 (online), M4 (offline) |
-| Màn hình lớn | `/s/{screenKey}`; nhiều màn trên một event | M1 |
 | Zalo Mini App | Wrapper; dùng định danh Zalo | M4 |
 | Custom domain | `game.brand.vn` (white-label) | M4 |
 
@@ -258,44 +259,7 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 
 ## 10. Builder cho sự kiện live
 
-### 10.1 Run-of-show (playlist)
-
-Organizer dựng **kịch bản chương trình** dạng danh sách vòng. Ví dụ:
-
-```
-1. Check-in wall (từ 18:00)
-2. Shake Race — theo phòng ban — 60 s
-3. Lucky Draw — Giải Ba ×10 (pool: đã check-in, chưa trúng)
-4. Chấm điểm tiết mục văn nghệ
-5. Lucky Draw — Giải Nhì ×3 → Giải Nhất ×1
-```
-
-- Mỗi vòng có các tuỳ chọn: tự chuyển hoặc chờ MC, nhạc chờ, màn idle.
-- Lucky draw lọc pool bằng điều kiện **AND/OR**: đã check-in, chưa trúng, top N vòng X, phòng ban, hạng vé (học từ EDC Tech).
-- **Loại top N khỏi vòng sau** (học từ 趣现场).
-
-### 10.2 Screen editor
-
-- Layout theo tỷ lệ màn (16:9, 32:9, màn dọc, độ phân giải tuỳ ý cho LED).
-- Vùng an toàn; nền (ảnh/video); vị trí QR; sponsor loop.
-- Preview đúng tỷ lệ.
-
-### 10.3 Host Console
-
-- **Mobile-first** để MC cầm điện thoại điều khiển (học từ Hi现场 手机控台).
-- Nút lớn: Bắt đầu / Tạm dừng / Tiếp / Kết thúc / Quay.
-- Hiển thị số người online và cảnh báo.
-- Duyệt tin nhắn cho check-in wall và bình luận.
-- "Chế độ khẩn": đóng băng màn hình, hiện màn chờ thương hiệu.
-
-### 10.4 Template live bổ sung từ nghiên cứu
-
-| Template | Lý do |
-|---|---|
-| `performance-score` (chấm điểm tiết mục) | Nhu cầu phổ biến ở YEP; đơn giản; không ai ở VN làm tốt |
-| `launch-ceremony` (nghi thức khởi động) | Khán giả cùng lắc/chạm để nạp đầy thanh năng lượng, rồi kích hoạt video khai trương; dùng cho ra mắt, khai trương, ký kết |
-| `money-count` (đếm tiền lì xì) | Game "数钱" rất phổ biến ở TQ; hợp mùa Tết |
-| `danmaku-wall` (bình luận chạy) | Rẻ, vui, phù hợp hội nghị |
+Bỏ ở v2.1 (run-of-show, Screen editor, Host Console, template live; xem [00 §10](./00-product-strategy.md#10-thay-đổi-so-với-v10) và [ADR-011](./adr/011-remove-live-engine.md)).
 
 ---
 
@@ -317,7 +281,7 @@ M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi
 |---|---|
 | Draft | Sửa tự do; chơi thử; bot |
 | Published (scheduled) | Chỉ sửa `hotEditable`; muốn sửa khác thì tạo version mới |
-| Live | Theo dõi realtime; tạm dừng khẩn cấp; điều chỉnh tồn kho (có audit) |
+| Live | Theo dõi dashboard; tạm dừng khẩn cấp; điều chỉnh tồn kho (có audit) |
 | Ended | Báo cáo, export, biên bản; đổi quà vẫn mở đến hạn |
 | Archived | Chỉ đọc |
 | Deleted | **Thùng rác 14 ngày** rồi xoá cứng (học từ 凡科) |
@@ -344,17 +308,16 @@ M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi
 
 Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn).
 
-| Hạng mục builder | M1 "Tết Campaign" + Live add-on (assisted) | M2 Self-serve & Agency | M3 Booth & Activation | M4 Scale & Platform | Later |
+| Hạng mục builder | M1 "Tết Campaign" (assisted) | M2 Self-serve & Agency | M3 Booth & Activation | M4 Scale & Platform | Later |
 |---|---|---|---|---|---|
-| Template registry + **auto-form** + **preview thật** | ✅ Mobile/Screen | Polish | Kiosk preview | | |
+| Template registry + **auto-form** + **preview thật** | ✅ Mobile | Polish | Kiosk preview | | |
 | Brand kit | Org/Event | **Kế thừa Org → Client → Event** | | | |
-| Skin / theme pack | Tết + Chung (mỗi minigame ≥ 2 skin) | 8 (8/3, 30/4, hè…) | +Trung thu, Noel… | Tết 2028 + YEP 2027 | Marketplace |
+| Skin / theme pack | Tết + Chung (mỗi minigame ≥ 2 skin) | 8 (8/3, 30/4, hè…) | +Trung thu, Noel… | Tết 2028 | Marketplace |
 | Publish → version bất biến + `hotEditable` | ✅ | | | | |
-| **Run-of-show** + Screen layout | ✅ preset | Tuỳ chỉnh layout | | | |
 | Flow chuẩn chỉnh từng màn + sponsor slot | Màn mặc định | ✅ | Màn async (requirements, result biến thể) | | |
-| Autosave, undo/redo, **pre-flight**, nhân bản, thùng rác | | ✅ | | | |
+| Autosave, undo/redo, **pre-flight**, nhân bản, thùng rác | Pre-flight tối thiểu (giải/thể lệ/consent) | ✅ | | | |
 | Gallery công khai + onboarding | | ✅ | | | |
-| Prize: lucky draw minh bạch (Live add-on) | ✅ | Biên bản PDF | | | |
+| Prize: **bốc thăm cuối chương trình** (commit–reveal, trang công bố) + biên bản PDF | | ✅ | | | |
 | Prize v1: `per_prize_probability`, `overall_win_rate`, `guaranteed`, `score_threshold`, tồn kho, giới hạn, ngân sách | ✅ | | | | |
 | Pacing: `time_uniform`, `opening_hours` | ✅ | | | | |
 | Pacing: `batch_release`, `end_flush` | | ✅ | `traffic_based` | | |
@@ -388,7 +351,6 @@ Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trì
 | `participation_codes` (event_id, code_hash, type, max_uses, used) | Mã tham gia (≤ 50.000/lần import) |
 | `channels` (event_id, key, name) + `plays.channel_key` | Thống kê theo kênh |
 | `redeem_points` (event_id, name, staff_pin_hash) + `awards.redeem_point_id` | Đổi quà theo điểm |
-| `run_of_show` (event_id, items jsonb) | Playlist live |
 | `org_templates` (org_id, source_game_version_id) | Lưu thành template riêng |
 | `logic_webhooks` (org_id, url, secret, timeout_ms, fallback) | Logic webhook |
 

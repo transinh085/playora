@@ -1,5 +1,7 @@
 # 13 — Design system
 
+> **v2.1:** không còn surface Screen/LED ([ADR-011](./adr/011-remove-live-engine.md)). Các mục `Stage`, `text-stage-*`, token `--stage-*` và skin `classic` (sân khấu) chỉ còn giá trị tham khảo; chore gỡ live sẽ dọn component không còn dùng. Surface chính là **Player** trên điện thoại (và Kiosk ở M3).
+
 **Trạng thái:** v1 · 23/10/2026 · Code: `packages/ui` · Trang sống: `apps/web` → `/design-system` (noindex)
 
 Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design system không phải một "theme" mà là **một bộ token chung và hai họ component**:

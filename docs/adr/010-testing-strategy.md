@@ -12,4 +12,4 @@
 
 ## Không làm (hiện tại)
 - Mock DB/ORM trong integration test.
-- Snapshot test UI. Sẽ cân nhắc visual test cho Screen/LED ở M1.
+- Snapshot test UI. Sẽ cân nhắc visual test cho surface Player của template ở M2.

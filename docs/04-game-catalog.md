@@ -1,6 +1,6 @@
 # 04 — Danh mục game template
 
-Cập nhật: 24/10/2026 · theo [00 v2.0](./00-product-strategy.md): minigame có thưởng là lõi, game live là add-on, không làm quiz
+Cập nhật: 24/10/2026 · theo [00 v2.1](./00-product-strategy.md): chỉ làm minigame có thưởng (v2.1: bỏ game live/LED và quiz)
 
 ---
 
@@ -10,19 +10,17 @@ Cập nhật: 24/10/2026 · theo [00 v2.0](./00-product-strategy.md): minigame c
 |---|---|---|---|
 | **Instant-win** | `instant` | Server, *trước* khi client animate | Vòng quay, cào thẻ, mở hộp |
 | **Skill (async)** | `skill` | Client chơi, server **xác thực** điểm, giải theo ngưỡng điểm hoặc hạng | Hứng quà, lật thẻ, puzzle |
-| **Live (realtime)** | `live` | Server giữ state vòng; client gửi input; server tính điểm | Shake race, kéo co |
-| **Live draw** | `draw` | Server chọn người trúng từ tập người chơi | Quay số LED, xổ số tên |
-| **Display** | `display` | Không có kết quả | Check-in wall, tường lời chúc, slideshow |
+| **Draw** | `draw` | Server chọn người trúng từ tập người chơi (bốc thăm cuối chương trình, M2) | Bốc thăm online, công bố kết quả |
+| **Display** | `display` | Không có kết quả | Khung ảnh brand (M4) |
 
 ## 2. Danh mục và giai đoạn
 
-Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn): **M1** Tết Campaign + Live add-on (12/2026) · **M2** Self-serve & Agency (04/2027) · **M3** Booth & Activation (07/2027) · **M4** Scale (12/2027).
+Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn): **M1** Tết Campaign (12/2026) · **M2** Self-serve & Agency (04/2027) · **M3** Booth & Activation (07/2027) · **M4** Scale (12/2027).
 
 **Nguyên tắc chọn:**
 1. Ưu tiên **minigame có thưởng** chạy được nhiều ngày trên điện thoại (lõi), cùng engine cho booth.
 2. Cơ chế phải đáng giá ≥ 10 skin; ra skin theo mùa đều đặn quan trọng hơn ra cơ chế mới.
-3. Game live chỉ làm khi dùng lại engine sẵn có (input lắc/chạm, lucky draw) — là add-on.
-4. Không làm quiz/poll.
+3. Không làm quiz/poll và game live/LED (v2.1).
 
 ### 2.1 Minigame có thưởng (Player + Kiosk) — lõi
 
@@ -39,20 +37,7 @@ Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trì
 | `collect-cards` | Sưu tầm thẻ (集福) | instant | M3 | M | Chiến dịch nhiều ngày |
 | `photo-booth` | Khung ảnh brand | display | M4 | M | |
 
-### 2.2 Game live (Screen + Host + Player) — add-on
-
-| Template | Tên | Kind | GĐ | Độ khó | Vì sao |
-|---|---|---|---|---|---|
-| `shake-race` (+ fallback `tap`) | Lắc điện thoại đua (đội/phòng ban) | live | **M1** | M | Game "wow" cho YEP; engine tap-race đã đạt 2.000 người (ADR 004) |
-| `lucky-draw` | Quay số minh bạch | draw | **M1** | M | Khác biệt ở lọc pool + commit–reveal + biên bản |
-| `performance-score` | Chấm điểm tiết mục văn nghệ | live | M2 | S | YEP nào cũng có văn nghệ |
-| `tug-of-war` | Kéo co theo đội | live | M3 | M | Dùng lại input lắc/chạm |
-| `launch-ceremony` | Nghi thức khởi động | live | M3 | S | Ra mắt, khai trương, ký kết |
-| `checkin-wall` | Tường check-in | display | M3 | S | Đi cùng kiểm duyệt nội dung |
-| `danmaku-wall` | Tường tin nhắn | display | M3 | S | Chung moderation với check-in |
-| `money-count` | Đếm tiền lì xì | live | M4 | S | Skin Tết |
-
-**Bỏ ở v2.0:** `live-quiz`, `quiz-async`, `live-poll`, `bingo`, `charades`.
+**Bỏ:** `live-quiz`, `quiz-async`, `live-poll` (v2.0); toàn bộ game live/LED (v2.1): `shake-race`, `tap-race`, `tug-of-war`, `launch-ceremony`, `checkin-wall`, `danmaku-wall`, `money-count`, `performance-score`, `bingo`, `charades`. Engine realtime lưu ở tag `archive/live-engine`.
 
 **Độ khó:** S ≈ 3–5 ngày, M ≈ 1,5–2 tuần với 1 game dev (gồm editor schema, skin mặc định và test).
 
@@ -93,16 +78,9 @@ Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trì
 - **Server:** cấp `playId` lúc bắt đầu; nhận `{ playId, score, durationMs, events digest }` lúc kết thúc; kiểm tra plausibility (điểm tối đa theo thời lượng và tốc độ rơi, thời lượng thực tế theo server). Đạt `score_threshold` thì được một lượt draw qua prize engine; có thể có leaderboard theo ngày.
 - **Skin:** hứng lộc Tết (bao lì xì, vàng), hứng sản phẩm brand.
 
-### 3.5 `shake-race` (Live add-on)
+### 3.5 `lucky-draw`: Bốc thăm cuối chương trình (M2)
 
-- **Input:** `DeviceMotionEvent`, đếm "shake" khi |a| vượt ngưỡng có hysteresis. iOS cần xin quyền `DeviceMotionEvent.requestPermission()` qua một nút bấm. Nếu bị từ chối thì fallback sang **tap**.
-- **Gửi lên:** client gom delta mỗi 250 ms: `{ d: number, seq }`. Server cap `d ≤ 8` mỗi 250 ms (tối đa ~32 shake/s) để chặn script.
-- **Server:** cộng dồn trong bộ nhớ của room (node sở hữu room), flush Redis mỗi 1 s. Broadcast snapshot top-N cho Screen 10 Hz, tiến độ cá nhân và đội cho Player 2 Hz.
-- **Kết thúc:** theo thời gian (30–90 s) hoặc khi người hoặc đội đầu tiên đạt đích.
-- **Skin:** ngựa, thuyền rồng, xe đua, tên lửa, cá chép hoá rồng (Tết).
-
-
-### 3.6 `lucky-draw` (Live add-on): Quay số trúng thưởng
+> v2.1: không còn Screen/Host. Organizer quay trong Studio; kết quả hiện trên trang công bố công khai và trong "Quà của tôi". **Cần sửa khi làm:** commit phải ràng buộc cả `poolHash` và `spinNo` (pool chốt trước khi commit), để organizer không thể đổi pool hay quay lại tới khi ra người mình muốn.
 
 **Cấu hình (rút gọn):**
 
@@ -127,14 +105,14 @@ const luckyDrawConfig = z.object({
 
 **Luồng:**
 
-1. Host chọn tier và bấm "Quay".
+1. Organizer chốt pool (snapshot ứng viên, sắp xếp theo `player_id`, tính `poolHash`), chọn tier trong Studio.
 2. Server lấy snapshot tập ứng viên, sắp xếp theo `player_id` và tính `poolHash`.
-3. Server sinh `serverSeed` (CSPRNG) và công bố `commit = sha256(serverSeed)` trước khi quay (hiện trên Host Console và log).
+3. Server sinh `serverSeed` (CSPRNG) và công bố `commit = sha256(serverSeed ‖ poolHash ‖ spinNo)` trước khi quay (trang công bố + log); `spinNo` tăng đơn điệu, lưu DB.
 4. Server chọn người trúng: `index = HMAC_SHA256(serverSeed, poolHash + ":" + spinNo) mod N` (lặp cho nhiều người, loại trùng).
-5. Server ghi `draw_spins` và `awards` trong 1 transaction, rồi broadcast `draw.result` đến Screen. Screen chạy hiệu ứng `durationMs` rồi dừng ở người trúng.
+5. Server ghi `draw_spins` và `awards` trong 1 transaction; Studio chạy hiệu ứng `durationMs` rồi dừng ở người trúng; kết quả lên trang công bố và "Quà của tôi".
 6. Sau sự kiện, biên bản công bố `serverSeed`; bất kỳ ai cũng kiểm chứng được.
 
-**Edge cases:** pool rỗng; người trúng không có mặt (host bấm "Quay lại" sẽ ghi `void` kèm lý do vào log, không xoá); mất kết nối Screen giữa chừng (Screen reconnect sẽ nhận state `result`).
+**Edge cases:** pool rỗng; người trúng không liên lạc được (organizer "Quay lại" sẽ ghi `void` kèm lý do vào log, không xoá, `spinNo` tăng).
 
 ## 4. Template contract (tóm tắt)
 
@@ -142,18 +120,17 @@ Mỗi template là một package trong `packages/games/<key>` và export:
 
 ```ts
 export default defineTemplate({
-  key: 'shake-race',
+  key: 'spin-wheel',
   version: '1.0.0',
-  kind: 'live',
-  meta: { name: { vi: 'Lắc điện thoại đua', en: 'Shake Race' }, thumbnail, tags: ['yep', 'team'] },
+  kind: 'instant',
+  meta: { name: { vi: 'Vòng quay may mắn', en: 'Spin the Wheel' }, thumbnail, tags: ['tet', 'campaign'] },
   configSchema,              // zod; nguồn chân lý cho validate server và sinh form editor
   defaultConfig,
   editor: { groups: [...] }, // gợi ý layout form và widget (color, asset, list…)
   surfaces: {
     player: () => import('./player'),   // React component, lazy
-    screen: () => import('./screen'),
   },
-  server: () => import('./server'),     // logic room phía server (live) hoặc validator điểm (skill)
+  server: () => import('./server'),     // map kết quả → hiển thị (instant) hoặc validator điểm (skill)
 });
 ```
 
@@ -165,8 +142,8 @@ Chi tiết interface ở [05-architecture.md §5](./05-architecture.md#5-game-ru
 
 1. **Spec 1 trang** gồm cơ chế, config, luồng server, chống gian lận, asset cần.
 2. Scaffold: `bun run gen:template <key>`.
-3. Viết `configSchema` và `defaultConfig`, rồi `player`/`screen`, rồi `server`.
-4. Test: unit cho logic server (`bun test`); Storybook-like playground (`apps/studio/dev/templates`); load test kịch bản k6 nếu là live.
+3. Viết `configSchema` và `defaultConfig`, rồi `player`, rồi `server`.
+4. Test: unit cho logic server (`bun test`); Storybook-like playground (`apps/studio/dev/templates`); load test k6 cho play API.
 5. QA trên thiết bị thật: iPhone SE/12, Android tầm thấp (Samsung A-series), Zalo in-app browser.
 6. Review hiệu năng: bundle ≤ 300 KB gzip mỗi template (chưa tính asset); 60 fps.
 7. Đăng ký vào registry, bật theo gói.

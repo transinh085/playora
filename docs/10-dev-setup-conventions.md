@@ -1,6 +1,6 @@
 # 10 — Kiến trúc code, convention và quy trình phát triển
 
-Cập nhật: 23/10/2026 · Áp dụng cho mọi code trong repo · Quyết định nền tảng: [docs/adr/](./adr/README.md)
+Cập nhật: 24/10/2026 (v2.1: bỏ realtime, [ADR-011](./adr/011-remove-live-engine.md)) · Áp dụng cho mọi code trong repo · Quyết định nền tảng: [docs/adr/](./adr/README.md)
 
 ---
 
@@ -8,33 +8,34 @@ Cập nhật: 23/10/2026 · Áp dụng cho mọi code trong repo · Quyết đ�
 
 ```
 apps/
-  api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json
-  realtime/     NestJS + Socket.IO — namespace /live (LiveRoom + RoundRunner)
+  api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json, play engine + prize engine
   worker/       NestJS standalone + BullMQ — xử lý job từ @playora/jobs
   studio/       Next.js 16 — builder cho organizer (đăng nhập, org, events…)
-  play/         Next.js 16 — player shell /[slug], screen /screen, preview /preview
+  play/         Next.js 16 — player shell /[slug] (kiosk ?mode=kiosk ở M3), preview /preview
   web/          Next.js 16 — landing
 packages/
-  contracts/    zod: route contracts (REST), WS events, ErrorCode — NGUỒN CHÂN LÝ
+  contracts/    zod: route contracts (REST), ErrorCode — NGUỒN CHÂN LÝ
   api-client/   typed client từ contracts (+ ./react: TanStack Query hooks)
-  realtime-client/ socket typed, đồng bộ đồng hồ (+ ./react: useLiveRoom)
   db/           Drizzle schema, migrations, seed, ./testing (DB test)
   auth/         Better Auth options + RBAC 5 vai trò (./permissions)
   jobs/         queue + payload schema + producer
-  core/         logic thuần (quay số provably-fair…), không I/O
-  game-sdk/     interface template game (M1)
-  ui/           design system: tokens (./styles.css), shadcn (./components/*), game/LED (./game/*), ./lib/*
+  core/         logic thuần, không I/O: prize engine, pacing, quota, provably-fair (bốc thăm cuối chương trình)
+  game-sdk/     interface template game (instant / skill / draw)
+  templates/    registry template (client + ./server)
+  ui/           design system: tokens (./styles.css), shadcn (./components/*), game surface (./game/*), ./lib/*
   i18n/         messages vi/en (vi là chuẩn)
   env/          zod schema env theo app
   tsconfig/     base, library, nestjs, nextjs
 tooling/
   e2e/          Playwright (desktop + mobile)
-  loadtest/     realtime load test (shake-race.ts)
+  loadtest/     k6 load test Play API (join, play, draw)
   scripts/      check-commit-msg…
 infra/
   compose/      Postgres :54329, Valkey :63799, MinIO, Mailpit
   docker/       Dockerfile.nest, Dockerfile.next (turbo prune)
 ```
+
+> **Còn phải gỡ (v2.1):** `apps/realtime`, `packages/realtime-client`, module `live` + `screens` trong `apps/api`, contract `live`/`screens`/`ws.ts`, schema live (`live_rounds`, `round_scores`, `event_screens`), Play `/screen`, Studio `events/[eventId]/screens`, template `tap-race`, `tooling/loadtest/shake-race.ts`, env `REALTIME_*`. Việc này do chore `remove live engine` ([09](./09-roadmap-plan.md) story 1.0) làm; code lưu ở tag `archive/live-engine`. Đừng thêm code mới phụ thuộc vào các phần này.
 
 **Luật phụ thuộc:**
 
@@ -42,7 +43,7 @@ infra/
 apps/*  →  packages/*               (app không import app)
 contracts, i18n, env  →  không phụ thuộc package nội bộ nào (core → contracts)
 db  →  (drizzle, postgres)          auth  →  db
-api-client, realtime-client  →  contracts
+api-client  →  contracts
 ui  →  (react, radix, tailwind)     không biết gì về API
 ```
 
@@ -55,7 +56,7 @@ cp .env.example .env               # đặt BETTER_AUTH_SECRET=$(openssl rand -h
 bun install                        # cài deps + git hooks (lefthook)
 bun run infra:up
 bun run db:migrate && bun run db:seed
-bun run dev                        # web :3000 · studio :3001 · play :3002 · api :4000 · realtime :4001 · worker :4002
+bun run dev                        # web :3000 · studio :3001 · play :3002 · api :4000 · worker :4002
 ```
 
 | Lệnh | Mục đích |
@@ -132,11 +133,12 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 
 ---
 
-## 5. Realtime
+## 5. Play engine và prize engine (trên API)
 
-- `apps/realtime/src/live/`: `LiveRoom` (actor mỗi event) + `RoundRunner` chạy `LiveServerModule` của template lấy từ `@playora/templates/server` (docs/05 §5–6).
-- Client dùng `@playora/realtime-client`: `useLiveRoom({ url, eventId, role, auth })` trả về `view`, `connected` và `serverNow()` (đã đồng bộ với đồng hồ server).
-- Event WS khai báo trong `packages/contracts/src/ws.ts`; input luôn được validate bằng zod phía server.
+- Không có dịch vụ realtime (bỏ ở v2.1). Play engine (`instant` + `skill`) và prize engine chạy trong `apps/api`, theo đúng mẫu module như `events` (contract → repository có `organizationId` → service → controller) ([05 §6–7](./05-architecture.md#6-play-engine-trên-appsapi)).
+- Logic chọn giải, pacing, giới hạn và provably-fair nằm trong `packages/core` (thuần, không I/O, test unit bắt buộc); module API chỉ lo transaction, khoá tồn kho và ghi `plays`/`awards`.
+- Server module của template lấy từ `@playora/templates/server`: `instant` map kết quả → hiển thị, `skill` validate điểm. Client chỉ animate kết quả server trả về.
+- Bốc thăm cuối chương trình (M2) là REST từ Studio + trang công bố công khai; commit ràng buộc `poolHash` và `spinNo` ([07 §2](./07-api-realtime.md#2-endpoint-chính)).
 
 ---
 
@@ -154,11 +156,11 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 | Thông báo | `toast` từ `sonner` |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
 
-### 6.2 Play / Screen
+### 6.2 Play (Player / Kiosk)
 
 - Ưu tiên nhẹ: shell người chơi chưa dùng TanStack Query hay next-intl cho tới M1, để giữ bundle nhỏ.
 - Game surface được lazy-load theo template (M1).
-- Bề mặt người chơi bọc trong `GameRoot`, màn LED trong `Stage` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([13-design-system.md](./13-design-system.md)).
+- Bề mặt người chơi (và kiosk ở M3) bọc trong `GameRoot` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([13-design-system.md](./13-design-system.md)).
 
 ### 6.3 Thêm component shadcn
 
@@ -179,7 +181,7 @@ CLI hiện ghi sai alias `utils` thành package npm `cn` và tự cài package �
 | Integration API | `bun test` + `createTestApp()` + DB `playora_test` | `apps/api/test/*.e2e.test.ts` | Mọi module API: happy path, validate 400, 401, **cross-tenant 403/404**, conflict |
 | Contract | `ResponseContractInterceptor` (tự bật trong test) | — | Luôn bật ngoài production |
 | E2E | Playwright (desktop + Pixel 7) | `tooling/e2e/tests` | Luồng chính của người dùng; fixture fail khi trình duyệt có lỗi console |
-| Tải | `bun run loadtest:shake` | `tooling/loadtest` | Trước mỗi pilot lớn |
+| Tải | k6 Play API (`tooling/loadtest`; script `loadtest:shake` cũ sẽ gỡ cùng live engine) | `tooling/loadtest` | Trước mỗi pilot lớn; Gate G1a |
 
 DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ liệu test dùng email và slug ngẫu nhiên, nên chạy lại không cần dọn.
 
@@ -193,7 +195,7 @@ DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ li
 - **CI** (`.github/workflows/ci.yml`):
   1. `check`: lint, migrate, typecheck, test, build.
   2. `e2e`: Playwright trên stack thật.
-  3. `docker`: build image cả 6 app.
+  3. `docker`: build image cả 5 app (api, worker, studio, play, web).
 - **Docker:** `turbo prune` → cài deps → build → runtime. Service NestJS chạy `bun dist/main.js`; app Next.js chạy standalone trên Node 24. Biến `NEXT_PUBLIC_*` truyền vào bằng build-arg.
 
 ---

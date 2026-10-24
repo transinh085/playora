@@ -1,6 +1,6 @@
 # 07 — API & Realtime
 
-Cập nhật: 23/10/2026
+Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đã bỏ (§4)
 
 ---
 
@@ -17,7 +17,7 @@ Cập nhật: 23/10/2026
 
 - Idempotency: header `Idempotency-Key` cho các POST có side-effect tài chính hoặc giải thưởng (draw, award, payment). Lưu trong Redis 24 h.
 - Phân trang: cursor-based `?cursor=&limit=` (mặc định 50, tối đa 200).
-- Rate limit (Redis, sliding window): player 30 req/10 s/token, join 10 req/phút/IP (nới cho NAT sự kiện bằng cách kết hợp deviceId), Studio 300 req/phút/user.
+- Rate limit (Redis, sliding window): player 30 req/10 s/token, join 10 req/phút/IP (nới cho NAT văn phòng/booth bằng cách kết hợp deviceId), Studio 300 req/phút/user.
 
 ---
 
@@ -35,15 +35,17 @@ Cập nhật: 23/10/2026
 | GET/PATCH/DELETE | `/orgs/{orgId}/events/{eventId}` | Chi tiết / sửa / xoá mềm | viewer / editor / admin |
 | POST | `/orgs/{orgId}/events/{eventId}/clone` | Nhân bản | editor |
 | POST | `/orgs/{orgId}/events/{eventId}/guest-list/import` | Import CSV/XLSX (async job) | editor |
-| POST/DELETE | `/orgs/{orgId}/events/{eventId}/screens[/{id}]` | Tạo / thu hồi screen key | editor |
 | GET | `/templates` | Danh sách template khả dụng theo gói | viewer |
 | POST | `/orgs/{orgId}/events/{eventId}/games` | Thêm game từ template | editor |
 | PATCH | `/orgs/{orgId}/games/{gameId}` | Sửa draft config (validate theo `configSchema`) | editor |
 | POST | `/orgs/{orgId}/games/{gameId}/publish` | Tạo `game_version` bất biến | editor |
 | CRUD | `/orgs/{orgId}/games/{gameId}/prizes` | Giải thưởng | editor |
 | POST | `/orgs/{orgId}/prizes/{prizeId}/vouchers/import` | Import mã voucher | editor |
-| POST | `/orgs/{orgId}/events/{eventId}/rehearsal/{start\|reset}` | Rehearsal + bot | operator |
-| POST | `/orgs/{orgId}/events/{eventId}/live/commands` | Lệnh host (fallback REST khi WS lỗi) | operator |
+| POST | `/orgs/{orgId}/events/{eventId}/rehearsal/{start\|reset}` | Chạy thử campaign + bot (không trừ kho thật) | operator |
+| POST | `/orgs/{orgId}/events/{eventId}/draws` | **Bốc thăm cuối chương trình (M2):** chốt pool theo bộ lọc AND/OR → `{ drawId, poolSize, poolHash }` | operator |
+| POST | `/orgs/{orgId}/draws/{drawId}/spins` | Commit một lần quay: `seedCommit = sha256(serverSeed ‖ poolHash ‖ spinNo)` công bố trên trang kết quả **trước** khi reveal | operator |
+| POST | `/orgs/{orgId}/draws/{drawId}/spins/{spinId}/reveal` | Reveal: server chọn người trúng, ghi `draw_spins` + `awards` trong 1 transaction | operator |
+| POST | `/orgs/{orgId}/draws/{drawId}/spins/{spinId}/void` | Huỷ kết quả có lý do (ghi log, không xoá, `spinNo` tăng) | operator |
 | GET | `/orgs/{orgId}/events/{eventId}/stats` | Dashboard tổng hợp | viewer |
 | POST | `/orgs/{orgId}/events/{eventId}/exports` | Yêu cầu export (`players`, `leads`, `winners`, `report_pdf`) | admin |
 | GET | `/orgs/{orgId}/exports/{id}` | Trạng thái + link tải | admin |
@@ -58,11 +60,11 @@ Cập nhật: 23/10/2026
 | POST | `/p/{slug}/otp` | Gửi OTP (phone/email) |
 | POST | `/p/{slug}/join` | Tham gia: identity + form + consents → `playerToken`, `player` |
 | GET | `/p/{slug}/me` | Trạng thái người chơi: lượt còn lại, giải đã trúng |
-| POST | `/games/{gameId}/plays` | Bắt đầu lượt (kiểm quota lượt) → `playId`, `playToken` (ký, hết hạn theo thời lượng game) |
-| POST | `/plays/{playId}/draw` | **Instant-win:** server chọn kết quả → `{ outcome, segmentIndex, award? }` |
-| POST | `/plays/{playId}/submit` | **Skill:** gửi điểm + telemetry → validate → `{ score, rank?, award? }` |
-| GET | `/games/{gameId}/leaderboard` | Leaderboard (skill) |
-| GET | `/awards/{awardId}` | Chi tiết giải + QR đổi quà |
+| POST | `/p/{slug}/games/{gameId}/plays` | **Instant:** một lần gọi = một lượt; server kiểm điều kiện, quyết định giải, trừ kho → `{ playId, outcome, display, remaining }`. **Skill:** bắt đầu lượt → `{ playId, startedAt, seed }`. Header `Idempotency-Key` bắt buộc ([ADR-012 §4](./adr/012-campaign-architecture.md)) |
+| POST | `/p/{slug}/games/{gameId}/plays/{playId}/submit` | **Skill:** gửi điểm + telemetry → validate → `{ outcome, display, score }` |
+| GET | `/p/{slug}/games/{gameId}/leaderboard` | Leaderboard (skill, M2) |
+| GET | `/p/{slug}/prizes` | "Quà của tôi": giải + mã voucher + QR đổi quà |
+| GET | `/p/{slug}/draws` | **Trang công bố kết quả bốc thăm (M2):** `poolHash`, `seedCommit` theo `spinNo`, người trúng (che bớt thông tin), lần void kèm lý do; `serverSeed` sau khi kết thúc để ai cũng kiểm chứng được |
 | POST | `/p/{slug}/privacy/requests` | Yêu cầu xoá hoặc xuất dữ liệu (PDPL) |
 
 ### 2.3 Webhook nhận vào
@@ -80,19 +82,16 @@ Cập nhật: 23/10/2026
 
 ```
 Player                       API                                   Postgres
-  │ POST /games/{g}/plays     │                                       │
-  │──────────────────────────►│ check quota lượt (plays hôm nay)       │
-  │                           │ INSERT plays(status=started) ─────────►│
-  │◄──────── {playId} ────────│                                       │
-  │ (user bấm Quay)           │                                       │
-  │ POST /plays/{p}/draw      │                                       │
-  │  Idempotency-Key          │ core.selectPrize(prizes, rules, rng)  │
-  │──────────────────────────►│ BEGIN                                 │
+  │ (user bấm Quay)           │ guard: session, isOpen, rate, Turnstile│
+  │ POST /p/{s}/games/{g}/plays                                       │
+  │  Idempotency-Key          │ BEGIN                                 │
+  │──────────────────────────►│  play_counters n+1 WHERE n<limit ─────►│
+  │                           │  core.prize.decide(snapshot, rules)   │
   │                           │  UPDATE prizes … remaining>0 ─────────►│
   │                           │  (voucher: SKIP LOCKED)               │
-  │                           │  INSERT awards; UPDATE plays=completed │
-  │                           │ COMMIT                                │
-  │◄─ {segmentIndex, award} ──│ enqueue notify + analytics            │
+  │                           │  INSERT plays, awards                 │
+  │                           │ COMMIT; template.present(outcome)     │
+  │◄─ {outcome, display} ─────│ enqueue analytics                     │
   │ animate tới segmentIndex   │                                       │
   │ hiện popup giải            │                                       │
 ```
@@ -101,98 +100,44 @@ Player                       API                                   Postgres
 
 ### 3.2 Skill (hứng quà)
 
-1. `POST /plays` trả về `playToken` (JWT gồm `playId`, `seed`, `exp = now + duration + 10s`).
+1. `POST /p/{slug}/games/{gameId}/plays` trả về `{ playId, startedAt, seed }`; lượt đã được tính (trừ quota) ngay lúc này.
 2. Client chơi với `seed` (sinh vật phẩm deterministic), ghi telemetry gọn (số lần bắt mỗi giây, thời gian).
-3. `POST /plays/{id}/submit { score, telemetry, playToken }`.
-4. Server gọi `SkillServerModule.validate`: thời lượng hợp lệ, score ≤ max lý thuyết theo seed, phân phối input hợp lý. Sau đó chọn giải theo ngưỡng điểm.
+3. `POST …/plays/{playId}/submit { score, telemetry }` (phải trước `startedAt + duration + 10s`).
+4. Server gọi `SkillServerModule.validate`: thời lượng hợp lệ, score ≤ max lý thuyết theo seed, phân phối input hợp lý. Nếu `qualifies(score)` thì gọi prize engine như instant.
 
 ---
 
 ## 4. Realtime protocol (Socket.IO)
 
-### 4.1 Kết nối
-
-```
-wss://rt.playora.vn/socket.io/?event={eventId}&role={player|screen|host}
-handshake.auth = { token }  // playerToken | screenKey | organizer session ticket (ngắn hạn, lấy từ API)
-```
-
-- Namespace `/live`. Mỗi socket join các room `evt:{eventId}`, `evt:{eventId}:{role}`; nếu là player có team thì join thêm `evt:{eventId}:team:{team}`.
-- Server từ chối nếu event không ở trạng thái `live` hoặc rehearsal, hoặc vượt `playerLimit`.
-
-### 4.2 Event typed (khai báo trong `packages/contracts/src/ws.ts`)
-
-**Client → Server**
-
-| Event | Từ | Payload | Ack |
-|---|---|---|---|
-| `clock.ping` | all | `{ t0 }` | `{ t0, ts }` |
-| `session.resume` | all | `{ lastSeq }` | `{ snapshot }` |
-| `host.command` | host | `{ cmd: 'round.open' \| 'round.start' \| 'round.pause' \| 'round.next' \| 'round.end' \| 'draw.spin' \| 'draw.void' \| 'wall.approve' \| 'wall.reject', gameId?, args? }` | `{ ok, error? }` |
-| `input` | player | `{ roundId, seq, data }` (data theo `inputSchema` của template) | không (fire-and-forget) |
-| `answer.submit` | player | `{ roundId, questionId, choice }` | `{ accepted }` |
-| `wall.post` | player | `{ text, avatarAssetId? }` | `{ ok, pending }` |
-
-**Server → Client**
-
-| Event | Tới | Payload |
-|---|---|---|
-| `event.state` | all | `{ status, activeGameId, round: { id, status, endsAt? }, onlineCount }` |
-| `round.view` | theo role | `view(state, audience)` của template; có `seq` tăng dần |
-| `round.result` | all | Kết quả vòng (top N, đội thắng, của bản thân nếu là player) |
-| `draw.committed` | host, screen | `{ spinId, seedCommit, poolSize }` |
-| `draw.result` | screen, host | `{ spinId, winners: [{ playerId, displayName }], effect, durationMs }` |
-| `award.you` | player (riêng) | `{ awardId, prizeName, redeemCode }` |
-| `wall.item` | screen | `{ id, name, text, avatarUrl }` |
-| `system.degrade` | all | `{ level: 0 \| 1 \| 2 }` |
-| `system.notice` | all | Thông báo từ host |
-
-### 4.3 State machine của vòng (`RoundRunner`)
-
-```
-          round.open           round.start        (timer/goal)          round.end
-  idle ───────────────► lobby ─────────────► countdown(3s) ─► playing ─────────────► result ──► closed
-    ▲                     │                                     │  ▲ round.pause/resume   │
-    └─────────────────────┴──────────── round.next (sang game kế) ┴─────────────────────────┘
-```
-
-- Mọi chuyển trạng thái được ghi `live_rounds.status` và gửi `event.state`.
-- `finalize()` chạy khi vào `result`: ghi `round_scores`, cập nhật `live_rounds.result`, enqueue analytics.
-
-### 4.4 Khôi phục và độ tin cậy
-
-- Mỗi message `round.view` có `seq`. Khi reconnect, client gửi `session.resume { lastSeq }` và server trả snapshot đầy đủ (không replay delta).
-- Player mất kết nối > 30 s vẫn giữ điểm. Input khi offline bị bỏ (không xếp hàng ở client cho game realtime).
-- Screen hiển thị overlay "Đang kết nối lại…" sau 2 s mất kết nối; host nhận cảnh báo.
+Bỏ ở v2.1 (không còn Host/Screen/live engine; xem [ADR-011](./adr/011-remove-live-engine.md)). Code cũ (`packages/contracts/src/ws.ts`, `apps/realtime`, `packages/realtime-client`) lưu ở tag `archive/live-engine` và **còn phải gỡ khỏi `main`** ([09](./09-roadmap-plan.md) story 1.0).
 
 ---
 
 ## 5. Contracts dùng chung (ví dụ)
 
-```ts
-// packages/contracts/src/ws.ts
-export const HostCommand = z.discriminatedUnion('cmd', [
-  z.object({ cmd: z.literal('round.open'), gameId: z.uuid() }),
-  z.object({ cmd: z.literal('round.start') }),
-  z.object({ cmd: z.literal('round.pause') }),
-  z.object({ cmd: z.literal('round.end') }),
-  z.object({ cmd: z.literal('round.next') }),
-  z.object({ cmd: z.literal('draw.spin'), prizeId: z.uuid(), count: z.number().int().min(1).max(50) }),
-  z.object({ cmd: z.literal('draw.void'), spinId: z.uuid(), reason: z.string().min(3) }),
-]);
+Mọi endpoint khai báo bằng `defineRoute` trong `packages/contracts/src/api/<feature>.ts` ([ADR-008](./adr/008-contract-first-api.md)); controller chỉ dùng `@Route(contract)` + `@Args()`.
 
-export interface ServerToClient {
-  'event.state': (s: EventState) => void;
-  'round.view': (v: { seq: number; roundId: string; view: unknown }) => void;
-  'draw.result': (r: DrawResult) => void;
-  'award.you': (a: AwardNotice) => void;
-  'system.degrade': (d: { level: 0 | 1 | 2 }) => void;
-}
-export interface ClientToServer {
-  'clock.ping': (p: { t0: number }, ack: (r: { t0: number; ts: number }) => void) => void;
-  'host.command': (c: z.infer<typeof HostCommand>, ack: (r: CommandAck) => void) => void;
-  'input': (i: { roundId: string; seq: number; data: unknown }) => void;
-}
+```ts
+// packages/contracts/src/api/draws.ts (M2)
+export const spinDraw = defineRoute({
+  method: 'POST',
+  path: '/orgs/:orgId/draws/:drawId/spins',
+  auth: 'session',
+  permission: { draw: ['spin'] },          // resource mới: thêm vào packages/auth/src/permissions.ts
+  params: OrgParams.extend({ drawId: Id }),
+  body: z.object({ prizeId: Id, count: z.number().int().min(1).max(50) }),
+  response: z.object({ spinId: Id, spinNo: z.number().int(), poolHash: z.string(), seedCommit: z.string() }),
+});
+
+export const voidSpin = defineRoute({
+  method: 'POST',
+  path: '/orgs/:orgId/draws/:drawId/spins/:spinId/void',
+  auth: 'session',
+  permission: { draw: ['spin'] },
+  params: OrgParams.extend({ drawId: Id, spinId: Id }),
+  body: z.object({ reason: z.string().trim().min(3).max(500) }),
+  response: Ok,
+});
 ```
 
 ---

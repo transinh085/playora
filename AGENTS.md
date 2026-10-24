@@ -4,7 +4,7 @@ Instructions for AI coding agents (Claude Code, Codex, Antigravity…) working i
 
 ## What this is
 
-Playora is a gamified campaign builder: branded prize minigames (spin wheel, scratch card, gift box, catch items) built from template × seasonal skin, with a server-side prize engine (odds, inventory, pacing, limits, budget), agency white-label, and a Live add-on (multiplayer LED games, transparent lucky draw). No quiz/poll. Product source of truth: `docs/00-product-strategy.md`. Requirements by phase (M1…M4): `docs/prd.md`. Code architecture and conventions: `docs/10-dev-setup-conventions.md` — read §3 before adding a feature.
+Playora is a gamified campaign builder: branded prize minigames (spin wheel, scratch card, gift box, catch items) built from template × seasonal skin, with a server-side prize engine (odds, inventory, pacing, limits, budget), and agency white-label. No quiz/poll, no live/LED stage games (removed in strategy v2.1). Product source of truth: `docs/00-product-strategy.md`. Requirements by phase (M1…M4): `docs/prd.md`. Code architecture and conventions: `docs/10-dev-setup-conventions.md` — read §3 before adding a feature.
 
 ## Stack
 

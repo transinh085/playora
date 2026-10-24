@@ -1,6 +1,6 @@
 # ADR-004: Realtime bằng Socket.IO, một node ở M1
 
-**Trạng thái:** Accepted (sơ bộ) · 23/10/2026 · Spike S0-3
+**Trạng thái:** Superseded by [ADR-011](./011-remove-live-engine.md) (24/10/2026) · trước đó Accepted (sơ bộ) · 23/10/2026 · Spike S0-3
 
 ## Quyết định
 - NestJS gateway + Socket.IO 4.8 (`perMessageDeflate: false`, payload ≤ 4 KB), namespace `/live`, room theo `evt:{eventId}` và theo vai trò.

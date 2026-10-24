@@ -1,10 +1,12 @@
 # 06 — Mô hình dữ liệu (PostgreSQL + Drizzle)
 
-Cập nhật: 23/10/2026
+Cập nhật: 24/10/2026 · v2.1: bỏ bảng live (xem [ADR-011](./adr/011-remove-live-engine.md))
 
 ---
 
-> Bổ sung từ nghiên cứu builder: các bảng `skins`, `participation_codes`, `channels`, `redeem_points`, `prize_moments`, `run_of_show`, `org_templates`, `logic_webhooks` được liệt kê ở [12-builder-spec §15](./12-builder-spec.md#15-thay-đổi-dữ-liệu-so-với-06-data-modelmd).
+> Bổ sung từ nghiên cứu builder: các bảng `skins`, `participation_codes`, `channels`, `redeem_points`, `prize_moments`, `org_templates`, `logic_webhooks` được liệt kê ở [12-builder-spec §15](./12-builder-spec.md#15-thay-đổi-dữ-liệu-so-với-06-data-modelmd).
+
+> **v2.1: còn phải gỡ trong code** (chore `remove live engine`, [09](./09-roadmap-plan.md) story 1.0): bảng `live_rounds`, `round_scores`, `event_screens`; enum `round_status`, `event_mode` (chỉ còn campaign); cột `draw_spins.round_id`. Gỡ bằng **migration drop mới** (không sửa migration cũ). Lưu ý: hiện `prizes`, `draw_spins`, `awards` đang nằm trong `packages/db/src/schema/live.ts`; phải **chuyển sang `prizes.ts`**, không xoá. Tài liệu dưới đây mô tả trạng thái đích.
 
 ## 1. Quy ước
 
@@ -26,15 +28,13 @@ organization ─┬─< member >── user                      (Better Auth)
               ├─< brand_kit
               ├─< asset
               ├─< subscription / event_pass / payment
-              └─< event ─┬─< event_screen
-                         ├─< guest_list_entry
+              └─< event ─┬─< guest_list_entry
                          ├─< player ─┬─< consent
                          │           ├─< form_submission
                          │           └─< play ──o award
                          ├─< game ─┬─< game_version
-                         │         ├─< prize ─< voucher_code
-                         │         └─< live_round ─< round_score
-                         │                        └─< draw_spin ─< award
+                         │         └─< prize ─┬─< voucher_code
+                         │                    └─< draw_spin ─< award   (bốc thăm cuối chương trình, M2)
                          └─< analytics_event (partitioned)
 audit_log, webhook_endpoint, webhook_delivery, api_key
 ```
@@ -62,22 +62,20 @@ export const timestamps = {
 // packages/db/src/schema/enums.ts
 import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const eventMode     = pgEnum('event_mode', ['live', 'campaign']);
 export const eventStatus   = pgEnum('event_status', ['draft', 'scheduled', 'live', 'ended', 'archived']);
 export const identityMode  = pgEnum('identity_mode', ['anonymous', 'guest_list', 'form_only', 'phone_otp', 'email_otp', 'zalo']);
 export const gameStatus    = pgEnum('game_status', ['draft', 'published', 'disabled']);
 export const prizeType     = pgEnum('prize_type', ['physical', 'voucher_code', 'digital', 'no_prize']);
 export const awardStatus   = pgEnum('award_status', ['issued', 'notified', 'redeemed', 'void']);
 export const playStatus    = pgEnum('play_status', ['started', 'completed', 'rejected', 'expired']);
-export const roundStatus   = pgEnum('round_status', ['idle', 'lobby', 'countdown', 'playing', 'result', 'closed']);
-export const dataEnv       = pgEnum('data_env', ['live', 'rehearsal']);
+export const dataEnv       = pgEnum('data_env', ['live', 'rehearsal']);   // 'live' = dữ liệu thật, không liên quan live engine
 ```
 
 ```ts
 // packages/db/src/schema/events.ts
 import { pgTable, text, jsonb, timestamp, integer, uuid, index, uniqueIndex, boolean } from 'drizzle-orm/pg-core';
 import { id, orgId, timestamps } from './_shared';
-import { eventMode, eventStatus, identityMode, gameStatus } from './enums';
+import { eventStatus, identityMode, gameStatus } from './enums';
 import { organization } from './auth';
 
 export const clients = pgTable('clients', {
@@ -104,7 +102,6 @@ export const events = pgTable('events', {
   brandKitId: uuid().references(() => brandKits.id),
   slug: text().notNull(),                         // play.playora.vn/{slug}
   name: text().notNull(),
-  mode: eventMode().notNull(),
   status: eventStatus().notNull().default('draft'),
   timezone: text().notNull().default('Asia/Ho_Chi_Minh'),
   startsAt: timestamp({ withTimezone: true }),
@@ -112,7 +109,7 @@ export const events = pgTable('events', {
   identity: identityMode().notNull().default('anonymous'),
   identityConfig: jsonb().$type<IdentityConfig>().notNull().default({}),  // rule lượt chơi, OTP, field
   registrationForm: jsonb().$type<FormDefinition>(),                      // field builder + consent text
-  playerLimit: integer().notNull(),               // từ gói (Live Pass / subscription)
+  playerLimit: integer().notNull(),               // từ gói (Campaign Pass / subscription)
   customDomain: text(),
   isCritical: boolean().notNull().default(false), // bật freeze window và pre-scale
   deletedAt: timestamp({ withTimezone: true }),
@@ -123,22 +120,11 @@ export const events = pgTable('events', {
   index().on(t.startsAt),
 ]);
 
-export const eventScreens = pgTable('event_screens', {
-  id: id(),
-  organizationId: orgId(),
-  eventId: uuid().notNull().references(() => events.id),
-  name: text().notNull(),                         // "LED chính", "Màn phụ trái"
-  screenKeyHash: text().notNull(),                // lưu hash, không lưu key thô
-  layout: jsonb().$type<ScreenLayout>(),
-  revokedAt: timestamp({ withTimezone: true }),
-  ...timestamps,
-}, (t) => [uniqueIndex().on(t.screenKeyHash)]);
-
 export const games = pgTable('games', {
   id: id(),
   organizationId: orgId(),
   eventId: uuid().notNull().references(() => events.id),
-  templateKey: text().notNull(),                  // 'shake-race'
+  templateKey: text().notNull(),                  // 'spin-wheel'
   templateVersion: text().notNull(),              // '1.0.0'
   name: text().notNull(),
   draftConfig: jsonb().notNull(),
@@ -230,7 +216,7 @@ export const prizes = pgTable('prizes', {
   id: id(),
   organizationId: orgId(),
   eventId: uuid().notNull(),
-  gameId: uuid().references(() => games.id),      // null = dùng chung cho lucky draw toàn event
+  gameId: uuid().references(() => games.id),      // null = dùng chung cho bốc thăm cuối chương trình toàn event
   name: text().notNull(),
   type: prizeType().notNull(),
   imageAssetId: uuid(),
@@ -277,11 +263,11 @@ export const awards = pgTable('awards', {
   prizeId: uuid().notNull().references(() => prizes.id),
   playerId: uuid().notNull().references(() => players.id),
   playId: uuid().references(() => plays.id),          // instant/skill
-  drawSpinId: uuid(),                                 // lucky draw
+  drawSpinId: uuid(),                                 // bốc thăm cuối chương trình
   voucherCodeId: uuid(),
   redeemCode: text().notNull(),                       // mã ngắn để đổi quà (QR)
   status: awardStatus().notNull().default('issued'),
-  rngProof: jsonb(),                                  // { seedHash, method, poolHash, index }
+  rngProof: jsonb(),                                  // { seedCommit, method, poolHash, spinNo, index }
   redeemedAt: timestamp({ withTimezone: true }),
   redeemedBy: uuid(),
   voidReason: text(),
@@ -295,49 +281,24 @@ export const awards = pgTable('awards', {
 ```
 
 ```ts
-// packages/db/src/schema/live.ts
-export const liveRounds = pgTable('live_rounds', {
-  id: id(),
-  organizationId: orgId(),
-  eventId: uuid().notNull(),
-  gameId: uuid().notNull(),
-  gameVersionId: uuid().notNull(),
-  env: dataEnv().notNull().default('live'),
-  seq: integer().notNull(),                       // thứ tự vòng trong event
-  status: roundStatus().notNull().default('idle'),
-  startedAt: timestamp({ withTimezone: true }),
-  endedAt: timestamp({ withTimezone: true }),
-  result: jsonb(),                                // RoundResult (top, đội thắng…)
-  ...timestamps,
-}, (t) => [uniqueIndex().on(t.eventId, t.env, t.seq)]);
-
-export const roundScores = pgTable('round_scores', {
-  roundId: uuid().notNull().references(() => liveRounds.id),
-  playerId: uuid().notNull().references(() => players.id),
-  organizationId: orgId(),
-  score: integer().notNull(),
-  rank: integer(),
-  team: text(),
-  meta: jsonb(),
-}, (t) => [primaryKey({ columns: [t.roundId, t.playerId] }), index().on(t.roundId, t.rank)]);
-
+// packages/db/src/schema/prizes.ts (tiếp) — bốc thăm cuối chương trình (PRZ-02, M2)
+// Pool được chốt (snapshot, sắp theo player_id) trước khi commit; mỗi lần quay là một dòng.
 export const drawSpins = pgTable('draw_spins', {
   id: id(),
   organizationId: orgId(),
   eventId: uuid().notNull(),
-  roundId: uuid().references(() => liveRounds.id),
   prizeId: uuid().notNull().references(() => prizes.id),
-  spinNo: integer().notNull(),
+  spinNo: integer().notNull(),                    // tăng đơn điệu theo event, kể cả lần void
   poolSize: integer().notNull(),
-  poolHash: text().notNull(),
-  seedCommit: text().notNull(),                   // sha256(serverSeed), công bố trước khi quay
-  serverSeedEnc: text().notNull(),                // công bố sau sự kiện
-  winners: jsonb().$type<string[]>().notNull(),   // playerIds
+  poolHash: text().notNull(),                     // hash của pool đã chốt
+  seedCommit: text().notNull(),                   // sha256(serverSeed ‖ poolHash ‖ spinNo), công bố trước khi quay
+  serverSeedEnc: text().notNull(),                // công bố sau khi kết thúc chương trình
+  winners: jsonb().$type<string[]>().notNull().default([]), // playerIds, ghi lúc reveal
   operatorId: uuid().notNull(),
   voided: boolean().notNull().default(false),
   voidReason: text(),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [uniqueIndex().on(t.eventId, t.spinNo), index().on(t.organizationId, t.eventId)]);
 ```
 
 ```ts
@@ -355,7 +316,7 @@ export const subscriptions = pgTable('subscriptions', {
 export const eventPasses = pgTable('event_passes', {
   id: id(), organizationId: orgId(),
   eventId: uuid(),                                // gán khi dùng
-  tier: text().notNull(),                         // 'S' | 'M' | 'L' | 'XL'
+  tier: text().notNull(),                         // 'S' | 'M' | 'L' (Campaign Pass)
   playerLimit: integer().notNull(),
   validDays: integer().notNull(),
   paymentId: uuid(),
@@ -410,7 +371,7 @@ CREATE TABLE analytics_events (
 -- worker tạo partition theo tháng trước 7 ngày; rollup sang analytics_hourly
 ```
 
-Ghi theo batch: API và realtime đẩy vào Redis stream `analytics`, worker gom 500 dòng hoặc 2 s rồi `INSERT` một lần. Khi vượt khoảng 50 triệu dòng/tháng thì chuyển sang ClickHouse.
+Ghi theo batch: API đẩy vào Redis stream `analytics`, worker gom 500 dòng hoặc 2 s rồi `INSERT` một lần. Khi vượt khoảng 50 triệu dòng/tháng thì chuyển sang ClickHouse.
 
 ---
 
@@ -421,7 +382,7 @@ Ghi theo batch: API và realtime đẩy vào Redis stream `analytics`, worker go
 | Player join theo slug | `events(slug)` unique |
 | Đếm lượt chơi của player hôm nay | `plays(game_id, player_id, started_at)` |
 | Chọn voucher chưa cấp | `voucher_codes(prize_id, award_id)` + `FOR UPDATE SKIP LOCKED` |
-| Ứng viên lucky draw | `players(event_id, env)` + filter `checked_in_at IS NOT NULL` |
+| Ứng viên bốc thăm cuối chương trình | `players(event_id, env)` + `plays(event_id, started_at)` theo bộ lọc pool |
 | Dashboard theo thời gian | `analytics_hourly(event_id, hour)` |
 
 ---
@@ -431,4 +392,4 @@ Ghi theo batch: API và realtime đẩy vào Redis stream `analytics`, worker go
 - `packages/db/drizzle.config.ts` dùng `casing: 'snake_case'`, schema là `./src/schema/*`, migrations ở `./migrations`.
 - Quy trình: sửa schema → `bun run db:generate` → review SQL trong PR → `bun run db:migrate` (CI chạy trên staging, sau đó production trước khi deploy app).
 - Migration phải **backward compatible** với bản app đang chạy (expand → migrate data → contract), vì không có downtime trong mùa sự kiện.
-- `bun run db:seed` tạo org demo, 1 event live với 4 game M1, guest list 500 người giả và giải mẫu.
+- `bun run db:seed` tạo org demo, 1 campaign với 4 minigame M1, guest list 500 người giả và giải mẫu.
