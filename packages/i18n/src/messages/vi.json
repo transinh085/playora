@@ -327,6 +327,18 @@
     "previewOutcomeOutOfStock": "Hết quà",
     "propertiesTitle": "Thuộc tính",
     "pickAssetTitle": "Chọn tài nguyên",
-    "pickAssetEmpty": "Chưa có tài nguyên phù hợp trong thư viện."
+    "pickAssetEmpty": "Chưa có tài nguyên phù hợp trong thư viện.",
+    "panelTemplate": "Cấu hình mẫu",
+    "panelSkin": "Giao diện & Brand",
+    "panelContent": "Nội dung chung",
+    "panelPrizes": "Giải thưởng",
+    "panelVersions": "Phiên bản",
+    "prizesPlaceholder": "Gắn giải ở Đợt 4",
+    "brandKitTitle": "Bộ nhận diện đang áp dụng",
+    "brandKitHint": "Cấu hình tại trang Brand kit của tổ chức hoặc Cài đặt sự kiện.",
+    "contentEmpty": "Mẫu trò chơi này không có trường nội dung chung.",
+    "versionsEmpty": "Chưa có phiên bản nào được xuất bản.",
+    "versionCurrent": "Đang dùng",
+    "versionHash": "Mã cấu hình: {hash}"
   }
 }

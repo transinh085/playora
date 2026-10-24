@@ -327,6 +327,18 @@
     "previewOutcomeOutOfStock": "Out of stock",
     "propertiesTitle": "Properties",
     "pickAssetTitle": "Choose asset",
-    "pickAssetEmpty": "No matching assets in library."
+    "pickAssetEmpty": "No matching assets in library.",
+    "panelTemplate": "Template",
+    "panelSkin": "Skin & Brand",
+    "panelContent": "Content",
+    "panelPrizes": "Prizes",
+    "panelVersions": "Versions",
+    "prizesPlaceholder": "Prize mapping coming in Phase 4",
+    "brandKitTitle": "Active brand kit",
+    "brandKitHint": "Configured in organization Brand kits or Event settings.",
+    "contentEmpty": "This template has no shared content fields.",
+    "versionsEmpty": "No published versions yet.",
+    "versionCurrent": "Current",
+    "versionHash": "Config hash: {hash}"
   }
 }

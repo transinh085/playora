@@ -2,7 +2,7 @@ import { expect, test } from './fixtures';
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-test('create games from template gallery, reorder, edit in 3-column builder with live preview, and publish version', async ({
+test('create games from template gallery, reorder, edit in 2-column builder with live preview, and publish version', async ({
   page,
 }) => {
   const id = unique();
@@ -66,7 +66,7 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await expect(gameRows).toHaveCount(1);
   await expect(gameRows.nth(0)).toContainText('Vòng quay Vòng 1');
 
-  // Open 3-column Game Editor
+  // Open 2-column Game Editor
   await gameRows.nth(0).locator('[data-testid^="game-edit-"]').click();
   await expect(page.getByTestId('game-editor')).toBeVisible();
   await expect(page.getByTestId('editor-groups-column')).toBeVisible();
@@ -98,4 +98,11 @@ test('create games from template gallery, reorder, edit in 3-column builder with
   await expect(page.getByTestId('locked-field-warning')).toContainText(
     'Thay đổi không ảnh hưởng người chơi đã tham gia',
   );
+
+  // Switch to Prizes placeholder and Versions tabs
+  await page.getByTestId('editor-tab-prizes').click();
+  await expect(page.getByTestId('editor-prizes-panel')).toContainText('Gắn giải ở Đợt 4');
+
+  await page.getByTestId('editor-tab-versions').click();
+  await expect(page.getByTestId('version-row-1')).toBeVisible();
 });
