@@ -1,14 +1,24 @@
-import type { PublicEvent } from '@playora/contracts';
+import { ApiError } from '@playora/api-client';
+import { ErrorCode, type PublicEvent, publicApi } from '@playora/contracts';
 import { notFound } from 'next/navigation';
-import { EventJoinShell } from './_components/event-join-shell';
+import { EventJoinShell } from '@/features/join/event-join-shell';
+import { api } from '@/lib/api';
 
 async function getEvent(slug: string): Promise<PublicEvent | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/p/${encodeURIComponent(slug)}`, {
-    cache: 'no-store',
-  });
-  if (res.status === 404 || res.status === 400) return null;
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  return res.json();
+  try {
+    return await api.call(publicApi.event, { params: { slug } });
+  } catch (err) {
+    if (
+      err instanceof ApiError &&
+      (err.status === 404 ||
+        err.status === 400 ||
+        err.code === ErrorCode.NOT_FOUND ||
+        err.code === ErrorCode.VALIDATION_FAILED)
+    ) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 /** Player shell for an event: brand cover, identity/form/consent join step, and waiting lobby. */

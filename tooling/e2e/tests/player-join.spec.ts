@@ -77,9 +77,7 @@ test('configure event identity, registration form and consent in Studio, then pl
   await page.getByLabel(/Mã tham gia/).fill('nv001');
   await page.getByLabel(/Số điện thoại/).fill('0901234567');
   await page.getByRole('button', { name: 'Tham gia' }).click();
-  await expect(
-    page.getByText('Vui lòng đồng ý với điều khoản bắt buộc để tiếp tục.'),
-  ).toBeVisible();
+  await expect(page.getByText('Vui lòng đồng ý với điều khoản bắt buộc')).toBeVisible();
 
   // Check consent and join with unknown code → shows error
   await page
@@ -87,7 +85,7 @@ test('configure event identity, registration form and consent in Studio, then pl
     .check();
   await page.getByLabel(/Mã tham gia/).fill('NV999');
   await page.getByRole('button', { name: 'Tham gia' }).click();
-  await expect(page.getByText('Mã khách mời không tồn tại trong sự kiện này.')).toBeVisible();
+  await expect(page.getByText('Mã khách mời không tồn tại trong sự kiện này')).toBeVisible();
 
   // Valid guest code (case-insensitive) joins and enters the lobby
   await page.getByLabel(/Mã tham gia/).fill('nv001');

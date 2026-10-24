@@ -1,5 +1,8 @@
+import { AntdRegistry } from '@playora/ui/providers';
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 
 const font = Be_Vietnam_Pro({
@@ -14,10 +17,19 @@ const display = Unbounded({ subsets: ['latin', 'vietnamese'], variable: '--font-
 export const metadata: Metadata = { title: 'Playora', description: 'Cả hội trường cùng chơi.' };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 1 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
+  const playMessages = {
+    play: messages.play,
+    errors: messages.errors,
+  };
   return (
-    <html lang="vi" className={`${font.variable} ${display.variable}`}>
-      <body className="min-h-dvh font-sans antialiased">{children}</body>
+    <html lang={locale} className={`${font.variable} ${display.variable}`}>
+      <body className="min-h-dvh font-sans antialiased">
+        <NextIntlClientProvider locale={locale} messages={playMessages}>
+          <AntdRegistry>{children}</AntdRegistry>
+        </NextIntlClientProvider>
+      </body>
     </html>
   );
 }

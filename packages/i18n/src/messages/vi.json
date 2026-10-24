@@ -345,5 +345,23 @@
     "versionsEmpty": "Chưa có phiên bản nào được xuất bản.",
     "versionCurrent": "Đang dùng",
     "versionHash": "Mã cấu hình: {hash}"
+  },
+  "play": {
+    "description": "Cả hội trường cùng chơi.",
+    "scanQrHint": "Quét mã QR trên màn hình sự kiện để tham gia.",
+    "welcomeTo": "Chào mừng đến",
+    "joinedWaiting": "Đã tham gia — chờ MC bắt đầu",
+    "teamLabel": "Đội:",
+    "eventDraftNotice": "Sự kiện chưa bắt đầu. Vui lòng chờ MC mở cổng tham gia.",
+    "joinCode": "Mã tham gia",
+    "joinCodePlaceholder": "Nhập mã khách mời (VD: NV0001)",
+    "joinCodeRequired": "Vui lòng nhập mã khách mời",
+    "displayName": "Tên hiển thị",
+    "displayNamePlaceholder": "Nhập tên của bạn (tuỳ chọn)",
+    "selectPlaceholder": "-- Chọn --",
+    "joinSubmit": "Tham gia",
+    "joining": "Đang tham gia…",
+    "joinFailed": "Không thể tham gia sự kiện. Vui lòng thử lại.",
+    "networkError": "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại."
   }
 }

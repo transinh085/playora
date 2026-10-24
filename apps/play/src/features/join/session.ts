@@ -15,12 +15,9 @@ function decodeBase64Url(input: string): string | null {
   try {
     const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-    if (typeof atob === 'function') {
-      const binary = atob(padded);
-      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-      return new TextDecoder().decode(bytes);
-    }
-    return Buffer.from(input, 'base64url').toString('utf8');
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
   } catch {
     return null;
   }

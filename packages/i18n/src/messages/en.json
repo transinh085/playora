@@ -345,5 +345,23 @@
     "versionsEmpty": "No published versions yet.",
     "versionCurrent": "Current",
     "versionHash": "Config hash: {hash}"
+  },
+  "play": {
+    "description": "Everyone plays together.",
+    "scanQrHint": "Scan the QR code on the event screen to join.",
+    "welcomeTo": "Welcome to",
+    "joinedWaiting": "Joined — waiting for the host to start",
+    "teamLabel": "Team:",
+    "eventDraftNotice": "The event has not started yet. Please wait for the host to open registration.",
+    "joinCode": "Join code",
+    "joinCodePlaceholder": "Enter guest code (e.g. NV0001)",
+    "joinCodeRequired": "Please enter your guest code",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "Enter your name (optional)",
+    "selectPlaceholder": "-- Select --",
+    "joinSubmit": "Join",
+    "joining": "Joining…",
+    "joinFailed": "Could not join the event. Please try again.",
+    "networkError": "Could not connect to the server. Please check your connection and try again."
   }
 }
