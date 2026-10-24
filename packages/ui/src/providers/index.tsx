@@ -1,3 +1,5 @@
+'use client';
+
 export { StyleProvider } from '@ant-design/cssinjs';
 export { AntdRegistry } from '@ant-design/nextjs-registry';
 export { PlayProvider, type PlayProviderProps } from './play-provider';
