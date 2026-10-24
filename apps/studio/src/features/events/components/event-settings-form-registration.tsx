@@ -214,7 +214,6 @@ export function EventRegistrationSection({
                           <Form.Item
                             name={[field.name, 'required']}
                             valuePropName="checked"
-                            initialValue={false}
                             noStyle
                           >
                             <Checkbox>{t('events.fieldRequired')}</Checkbox>

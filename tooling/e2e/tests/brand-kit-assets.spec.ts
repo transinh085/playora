@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, pickSelectOption, test } from './fixtures';
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
@@ -36,8 +36,7 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
   await page.getByRole('link', { name: 'Cài đặt sự kiện' }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/settings$/);
 
-  await page.getByRole('combobox', { name: 'Brand kit' }).click();
-  await page.getByRole('option', { name: `Kit ${id}` }).click();
+  await pickSelectOption(page, 'Brand kit', `Kit ${id}`);
   await page.getByRole('button', { name: 'Lưu' }).click();
   await expect(page.getByText('Đã lưu cài đặt sự kiện')).toBeVisible();
 });

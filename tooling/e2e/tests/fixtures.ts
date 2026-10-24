@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 
 /** Every test fails if the browser logs an error (hydration, i18n formatting, React warnings…). */
 export const test = base.extend<{ consoleErrors: string[] }>({
@@ -16,5 +16,18 @@ export const test = base.extend<{ consoleErrors: string[] }>({
     { auto: true },
   ],
 });
+
+/**
+ * Opens an antd Select by its accessible name and picks an option by its visible text.
+ * antd renders a hidden, virtualised a11y listbox, so `getByRole('option')` is not clickable.
+ */
+export async function pickSelectOption(page: Page, selectName: string, optionText: string) {
+  await page.getByRole('combobox', { name: selectName }).click();
+  await page
+    .locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')
+    .filter({ hasText: optionText })
+    .first()
+    .click();
+}
 
 export { expect };

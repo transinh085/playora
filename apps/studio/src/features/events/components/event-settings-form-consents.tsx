@@ -104,12 +104,7 @@ export function EventConsentsList({
                     </Form.Item>
 
                     <div className="flex items-center justify-between pt-1">
-                      <Form.Item
-                        name={[field.name, 'required']}
-                        valuePropName="checked"
-                        initialValue={true}
-                        noStyle
-                      >
+                      <Form.Item name={[field.name, 'required']} valuePropName="checked" noStyle>
                         <Checkbox>{t('events.consentRequired')}</Checkbox>
                       </Form.Item>
 

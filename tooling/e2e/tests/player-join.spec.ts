@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, pickSelectOption, test } from './fixtures';
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
@@ -51,11 +51,9 @@ test('configure event identity, registration form and consent in Studio, then pl
   await page.getByTestId('event-tab-settings').click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/settings$/);
 
-  await page.getByRole('combobox', { name: 'Trạng thái' }).click();
-  await page.getByRole('option', { name: 'Đang diễn ra' }).click();
+  await pickSelectOption(page, 'Trạng thái', 'Đang diễn ra');
 
-  await page.getByRole('combobox', { name: 'Phương thức định danh' }).click();
-  await page.getByRole('option', { name: 'Danh sách khách mời (mã khách)' }).click();
+  await pickSelectOption(page, 'Phương thức định danh', 'Danh sách khách mời (mã khách)');
 
   await page.getByRole('button', { name: 'Thêm trường' }).click();
   await page.getByLabel('Mã trường (key)').fill('phone');
