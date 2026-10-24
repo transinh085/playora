@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
 import { and, desc, eq, lt, type SQL } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
@@ -71,7 +71,7 @@ export class BrandKitsRepository {
     return row;
   }
 
-  async delete(organizationId: string, id: string, tx: Pick<Database, 'delete'> = this.db) {
+  async delete(organizationId: string, id: string, tx: DbOrTx = this.db) {
     const [row] = await tx
       .delete(brandKits)
       .where(this.scope(organizationId, eq(brandKits.id, id)))
@@ -79,7 +79,7 @@ export class BrandKitsRepository {
     return row;
   }
 
-  transaction<T>(fn: (tx: Parameters<Parameters<Database['transaction']>[0]>[0]) => Promise<T>) {
+  transaction<T>(fn: (tx: Tx) => Promise<T>) {
     return this.db.transaction(fn);
   }
 }

@@ -9,6 +9,7 @@ import {
   type PublicRegistrationForm,
   type RouteArgs,
 } from '@playora/contracts';
+import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
 import { EventsRepository } from './events.repository';
@@ -43,10 +44,7 @@ type UpdateBody = RouteArgs<typeof eventsApi.update>['body'];
 const toDate = (value: string | null | undefined) =>
   value === undefined ? undefined : value === null ? null : new Date(value);
 
-export interface Actor {
-  userId: string;
-  ip?: string;
-}
+export type { Actor };
 
 @Injectable()
 export class EventsService {

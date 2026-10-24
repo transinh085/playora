@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ErrorCode, type guestsApi, type RouteArgs } from '@playora/contracts';
+import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
-import type { Actor } from '../events/events.service';
 import {
   mapAndValidateRows,
   parseGuestFile,

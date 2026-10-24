@@ -9,6 +9,7 @@ import {
 import type { Producer } from '@playora/jobs';
 import type { S3Client } from 'bun';
 import { uuidv7 } from 'uuidv7';
+import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { JOBS, S3 } from '../../infra/tokens';
 import { type AssetRow, AssetsRepository } from './assets.repository';
@@ -17,10 +18,7 @@ type CreateUploadBody = RouteArgs<typeof assetsApi.createUpload>['body'];
 type CompleteUploadBody = RouteArgs<typeof assetsApi.completeUpload>['body'];
 type ListQuery = RouteArgs<typeof assetsApi.list>['query'];
 
-export interface Actor {
-  userId: string;
-  ip?: string;
-}
+export type { Actor };
 
 const MIME_EXTENSIONS: Record<string, string> = {
   'image/png': 'png',

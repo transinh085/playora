@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { EventStatus } from '@playora/contracts';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
 import { and, desc, eq, isNull, lt, type SQL } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
@@ -91,7 +91,7 @@ export class EventsRepository {
     return row;
   }
 
-  async softDelete(organizationId: string, id: string, tx: Pick<Database, 'update'> = this.db) {
+  async softDelete(organizationId: string, id: string, tx: DbOrTx = this.db) {
     const [row] = await tx
       .update(events)
       .set({ deletedAt: new Date() })
@@ -100,7 +100,7 @@ export class EventsRepository {
     return row;
   }
 
-  transaction<T>(fn: (tx: Parameters<Parameters<Database['transaction']>[0]>[0]) => Promise<T>) {
+  transaction<T>(fn: (tx: Tx) => Promise<T>) {
     return this.db.transaction(fn);
   }
 }

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
 import { and, asc, eq, inArray, isNull, type SQL, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
@@ -28,8 +28,6 @@ export interface GameWithVersion {
   currentVersion: number | null;
 }
 
-type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
-
 /**
  * Data access for games and game_versions. Every method takes `organizationId` first
  * and filters by it to enforce tenant isolation (docs/05 §8).
@@ -45,7 +43,7 @@ export class GamesRepository {
   async eventExistsInOrg(
     organizationId: string,
     eventId: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<boolean> {
     const [row] = await tx
       .select({ id: events.id })
@@ -60,7 +58,7 @@ export class GamesRepository {
     return !!row;
   }
 
-  async findAssetInOrg(organizationId: string, assetId: string, tx: DbExecutor = this.db) {
+  async findAssetInOrg(organizationId: string, assetId: string, tx: DbOrTx = this.db) {
     const [row] = await tx
       .select({ id: assets.id, kind: assets.kind, storageKey: assets.storageKey })
       .from(assets)
@@ -68,11 +66,7 @@ export class GamesRepository {
     return row;
   }
 
-  async findAssetsByIds(
-    organizationId: string,
-    assetIds: readonly string[],
-    tx: DbExecutor = this.db,
-  ) {
+  async findAssetsByIds(organizationId: string, assetIds: readonly string[], tx: DbOrTx = this.db) {
     if (assetIds.length === 0) return [];
     return tx
       .select({ id: assets.id, kind: assets.kind, storageKey: assets.storageKey })
@@ -83,7 +77,7 @@ export class GamesRepository {
   async listByEvent(
     organizationId: string,
     eventId: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameWithVersion[]> {
     const rows = await tx
       .select({
@@ -110,7 +104,7 @@ export class GamesRepository {
   async findById(
     organizationId: string,
     id: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameWithVersion | undefined> {
     const [row] = await tx
       .select({
@@ -137,7 +131,7 @@ export class GamesRepository {
   async findByIdForUpdate(
     organizationId: string,
     id: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameRow | undefined> {
     const [row] = await tx
       .select()
@@ -150,7 +144,7 @@ export class GamesRepository {
   async nextSortOrder(
     organizationId: string,
     eventId: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<number> {
     const [row] = await tx
       .select({
@@ -161,7 +155,7 @@ export class GamesRepository {
     return Number(row?.nextOrder ?? 0);
   }
 
-  async insert(organizationId: string, data: NewGame, tx: DbExecutor = this.db): Promise<GameRow> {
+  async insert(organizationId: string, data: NewGame, tx: DbOrTx = this.db): Promise<GameRow> {
     const [row] = await tx
       .insert(games)
       .values({ ...data, organizationId })
@@ -173,7 +167,7 @@ export class GamesRepository {
     organizationId: string,
     id: string,
     patch: GamePatch,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameRow | undefined> {
     const [row] = await tx
       .update(games)
@@ -187,7 +181,7 @@ export class GamesRepository {
     organizationId: string,
     eventId: string,
     gameIds: readonly string[],
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<void> {
     const now = new Date();
     for (let i = 0; i < gameIds.length; i++) {
@@ -203,7 +197,7 @@ export class GamesRepository {
   async softDelete(
     organizationId: string,
     id: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<{ id: string } | undefined> {
     const [row] = await tx
       .update(games)
@@ -216,7 +210,7 @@ export class GamesRepository {
   async nextVersionNumber(
     organizationId: string,
     gameId: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<number> {
     const [row] = await tx
       .select({
@@ -230,7 +224,7 @@ export class GamesRepository {
   async insertVersion(
     organizationId: string,
     data: NewGameVersion,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameVersionRow> {
     const [row] = await tx
       .insert(gameVersions)
@@ -242,7 +236,7 @@ export class GamesRepository {
   async listVersions(
     organizationId: string,
     gameId: string,
-    tx: DbExecutor = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GameVersionRow[]> {
     return tx
       .select()
@@ -251,7 +245,7 @@ export class GamesRepository {
       .orderBy(asc(gameVersions.version));
   }
 
-  transaction<T>(fn: (tx: Parameters<Parameters<Database['transaction']>[0]>[0]) => Promise<T>) {
+  transaction<T>(fn: (tx: Tx) => Promise<T>) {
     return this.db.transaction(fn);
   }
 }

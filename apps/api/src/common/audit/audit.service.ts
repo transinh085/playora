@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema } from '@playora/db';
 import { DB } from '../../infra/tokens';
 
 export interface AuditEntry {
@@ -19,7 +19,7 @@ export interface AuditEntry {
 export class AuditService {
   constructor(@Inject(DB) private readonly db: Database) {}
 
-  async record(entry: AuditEntry, tx: Pick<Database, 'insert'> = this.db) {
+  async record(entry: AuditEntry, tx: DbOrTx = this.db) {
     await tx.insert(schema.auditLogs).values(entry);
   }
 }

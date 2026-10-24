@@ -11,6 +11,7 @@ import {
 } from '@playora/contracts';
 import { getTemplate, type RegisteredServerTemplate } from '@playora/templates/server';
 import type { S3Client } from 'bun';
+import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { S3 } from '../../infra/tokens';
 import {
@@ -24,10 +25,7 @@ type CreateBody = RouteArgs<typeof gamesApi.create>['body'];
 type UpdateBody = RouteArgs<typeof gamesApi.update>['body'];
 type ReorderBody = RouteArgs<typeof gamesApi.reorder>['body'];
 
-export interface Actor {
-  userId: string;
-  ip?: string;
-}
+export type { Actor };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

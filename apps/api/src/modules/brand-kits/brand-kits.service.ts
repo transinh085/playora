@@ -6,6 +6,7 @@ import {
   ErrorCode,
   type RouteArgs,
 } from '@playora/contracts';
+import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { BrandKitsRepository } from './brand-kits.repository';
 
@@ -13,10 +14,7 @@ type ListQuery = RouteArgs<typeof brandKitsApi.list>['query'];
 type CreateBody = RouteArgs<typeof brandKitsApi.create>['body'];
 type UpdateBody = RouteArgs<typeof brandKitsApi.update>['body'];
 
-export interface Actor {
-  userId: string;
-  ip?: string;
-}
+export type { Actor };
 
 @Injectable()
 export class BrandKitsService {

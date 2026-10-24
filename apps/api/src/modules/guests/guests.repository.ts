@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type GuestEntry, type GuestTeamCount, UNASSIGNED_TEAM_FILTER } from '@playora/contracts';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
 import { and, asc, desc, eq, ilike, inArray, isNull, lt, or, type SQL, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 import type { ValidatedGuestRow } from './guest-file.parser';
@@ -8,7 +8,6 @@ import type { ValidatedGuestRow } from './guest-file.parser';
 const { events, guestListEntries, players } = schema;
 
 type GuestRow = typeof guestListEntries.$inferSelect;
-type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
 
 interface GuestPlayerState {
   checkedInAt: Date | null;
@@ -58,7 +57,7 @@ export class GuestsRepository {
   async eventExists(
     organizationId: string,
     eventId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<boolean> {
     const [row] = await tx
       .select({ id: events.id })
@@ -155,7 +154,7 @@ export class GuestsRepository {
     organizationId: string,
     eventId: string,
     guestId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GuestRow | undefined> {
     const [row] = await tx
       .select()
@@ -168,7 +167,7 @@ export class GuestsRepository {
     organizationId: string,
     eventId: string,
     guestId: string,
-    tx: Pick<Database, 'update'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<{ id: string } | undefined> {
     const [row] = await tx
       .update(players)
@@ -189,7 +188,7 @@ export class GuestsRepository {
     organizationId: string,
     eventId: string,
     codes: string[],
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<Set<string>> {
     const existing = new Set<string>();
     const chunkSize = 5_000;
@@ -211,7 +210,7 @@ export class GuestsRepository {
     organizationId: string,
     eventId: string,
     rows: ValidatedGuestRow[],
-    tx: Pick<Database, 'insert'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<void> {
     const chunkSize = 2_500;
     const now = new Date();
@@ -243,12 +242,7 @@ export class GuestsRepository {
     }
   }
 
-  async deleteOne(
-    organizationId: string,
-    eventId: string,
-    guestId: string,
-    tx: Pick<Database, 'delete'> = this.db,
-  ) {
+  async deleteOne(organizationId: string, eventId: string, guestId: string, tx: DbOrTx = this.db) {
     const [row] = await tx
       .delete(guestListEntries)
       .where(this.scope(organizationId, eventId, eq(guestListEntries.id, guestId)))
@@ -256,11 +250,7 @@ export class GuestsRepository {
     return row;
   }
 
-  async deleteAll(
-    organizationId: string,
-    eventId: string,
-    tx: Pick<Database, 'delete'> = this.db,
-  ): Promise<number> {
+  async deleteAll(organizationId: string, eventId: string, tx: DbOrTx = this.db): Promise<number> {
     const rows = await tx
       .delete(guestListEntries)
       .where(this.scope(organizationId, eventId))
@@ -271,7 +261,7 @@ export class GuestsRepository {
   async listTeams(
     organizationId: string,
     eventId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<{ items: GuestTeamCount[]; unassignedCount: number; totalCount: number }> {
     const rows = await tx
       .select({
@@ -302,7 +292,7 @@ export class GuestsRepository {
   async findUnassignedIds(
     organizationId: string,
     eventId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<string[]> {
     const rows = await tx
       .select({ id: guestListEntries.id })
@@ -322,7 +312,7 @@ export class GuestsRepository {
     eventId: string,
     guestIds: string[],
     team: string,
-    tx: Pick<Database, 'update'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<void> {
     const chunkSize = 1_000;
     const now = new Date();

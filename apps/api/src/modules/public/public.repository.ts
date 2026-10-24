@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { type Database, schema } from '@playora/db';
+import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
@@ -10,7 +10,7 @@ export type GuestRow = typeof guestListEntries.$inferSelect;
 export type PlayerRow = typeof players.$inferSelect;
 export type NewPlayer = Omit<typeof players.$inferInsert, 'organizationId'>;
 export type NewConsent = Omit<typeof consents.$inferInsert, 'organizationId'>;
-export type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type { Tx };
 
 /**
  * Data access for public player routes (`/p/:slug` and `/p/:slug/join`).
@@ -21,7 +21,7 @@ export type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
 export class PublicRepository {
   constructor(@Inject(DB) private readonly db: Database) {}
 
-  async findEventBySlug(slug: string, tx: Pick<Database, 'select'> = this.db) {
+  async findEventBySlug(slug: string, tx: DbOrTx = this.db) {
     const [row] = await tx
       .select()
       .from(events)
@@ -55,7 +55,7 @@ export class PublicRepository {
   async countLivePlayers(
     organizationId: string,
     eventId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<number> {
     const [row] = await tx
       .select({ count: sql<number>`count(*)::int` })
@@ -74,7 +74,7 @@ export class PublicRepository {
     organizationId: string,
     eventId: string,
     code: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<GuestRow | undefined> {
     const normalized = code.trim().toLowerCase();
     const [row] = await tx
@@ -94,7 +94,7 @@ export class PublicRepository {
     organizationId: string,
     eventId: string,
     guestListEntryId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<PlayerRow | undefined> {
     const [row] = await tx
       .select()
@@ -114,7 +114,7 @@ export class PublicRepository {
     organizationId: string,
     eventId: string,
     deviceId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<PlayerRow | undefined> {
     const [row] = await tx
       .select()
@@ -133,7 +133,7 @@ export class PublicRepository {
   async insertPlayer(
     organizationId: string,
     data: NewPlayer,
-    tx: Pick<Database, 'insert'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<PlayerRow> {
     const [row] = await tx
       .insert(players)
@@ -148,7 +148,7 @@ export class PublicRepository {
     patch: Partial<
       Pick<PlayerRow, 'displayName' | 'team' | 'checkedInAt' | 'deviceId' | 'formData'>
     >,
-    tx: Pick<Database, 'update'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<PlayerRow> {
     const [row] = await tx
       .update(players)
@@ -161,7 +161,7 @@ export class PublicRepository {
   async findConsentPurposes(
     organizationId: string,
     playerId: string,
-    tx: Pick<Database, 'select'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<Set<string>> {
     const rows = await tx
       .select({ purpose: consents.purpose })
@@ -173,7 +173,7 @@ export class PublicRepository {
   async insertConsents(
     organizationId: string,
     rows: NewConsent[],
-    tx: Pick<Database, 'insert'> = this.db,
+    tx: DbOrTx = this.db,
   ): Promise<void> {
     if (rows.length === 0) return;
     await tx.insert(consents).values(rows.map((r) => ({ ...r, organizationId })));
