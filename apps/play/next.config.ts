@@ -13,7 +13,6 @@ const config: NextConfig = {
   transpilePackages: [
     '@playora/ui',
     '@playora/contracts',
-    '@playora/realtime-client',
     '@playora/game-sdk',
     '@playora/templates',
   ],

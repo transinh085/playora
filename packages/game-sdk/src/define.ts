@@ -8,14 +8,11 @@ import {
 } from './fields';
 import type {
   AssetSlot,
-  GameKind,
-  HostPanelProps,
-  LiveServerModule,
+  InstantServerModule,
   LocalizedText,
   PlayerProps,
-  ScreenProps,
   SemVer,
-  ServerModuleEntry,
+  SkillServerModule,
   Skin,
   SurfaceComponent,
   TemplateMeta,
@@ -35,17 +32,10 @@ export class TemplateValidationError extends Error {
   }
 }
 
-export interface DefineTemplateInput<
-  Schema extends z.ZodType,
-  S = unknown,
-  A = unknown,
-  PV = unknown,
-  SV = unknown,
-> {
-  /** Unique template identifier (kebab-case slug, e.g. 'tap-race'). */
+export interface BaseDefineTemplateInput<Schema extends z.ZodType> {
+  /** Unique template identifier (kebab-case slug, e.g. 'spin-wheel'). */
   id: string;
   version: SemVer;
-  kind: GameKind;
   /** Localized display name (`vi` required). */
   name: LocalizedText;
   description?: LocalizedText;
@@ -55,24 +45,31 @@ export interface DefineTemplateInput<
   defaultConfig?: z.infer<Schema>;
   assetSlots?: AssetSlot[];
   skins?: Skin<z.infer<Schema>>[];
-  /** Config paths that may change while the game is live without publishing a new version. */
+  /** Config paths that may change while the game is published without creating a new version. */
   hotEditable?: string[];
-  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, PV, A>>;
-  Screen?: SurfaceComponent<ScreenProps<z.infer<Schema>, SV>>;
-  HostPanel?: SurfaceComponent<HostPanelProps<z.infer<Schema>, SV, A>>;
-  server?: ServerModuleEntry<LiveServerModule<z.infer<Schema>, S, A, PV, SV>>;
 }
 
-export interface TemplateDefinition<
-  Schema extends z.ZodType,
-  S = unknown,
-  A = unknown,
-  PV = unknown,
-  SV = unknown,
-> {
+export interface DefineInstantTemplateInput<Schema extends z.ZodType, D = unknown>
+  extends BaseDefineTemplateInput<Schema> {
+  kind: 'instant';
+  server: InstantServerModule<z.infer<Schema>, D>;
+  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, D>>;
+}
+
+export interface DefineSkillTemplateInput<Schema extends z.ZodType, Sub = unknown, D = undefined>
+  extends BaseDefineTemplateInput<Schema> {
+  kind: 'skill';
+  server: SkillServerModule<z.infer<Schema>, Sub, D>;
+  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, D, Sub>>;
+}
+
+export type DefineTemplateInput<Schema extends z.ZodType, D = unknown, Sub = never> =
+  | DefineInstantTemplateInput<Schema, D>
+  | DefineSkillTemplateInput<Schema, Sub, D>;
+
+export interface BaseTemplateDefinition<Schema extends z.ZodType> {
   id: string;
   version: SemVer;
-  kind: GameKind;
   name: LocalizedText;
   description: LocalizedText;
   thumbnail: string;
@@ -83,25 +80,47 @@ export interface TemplateDefinition<
   assetSlots: AssetSlot[];
   skins: Skin<z.infer<Schema>>[];
   hotEditable: string[];
-  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, PV, A>>;
-  Screen?: SurfaceComponent<ScreenProps<z.infer<Schema>, SV>>;
-  HostPanel?: SurfaceComponent<HostPanelProps<z.infer<Schema>, SV, A>>;
-  server?: ServerModuleEntry<LiveServerModule<z.infer<Schema>, S, A, PV, SV>>;
   /** Pre-computed serializable auto-form descriptor for Studio. */
   formDescriptor: FormDescriptor;
 }
+
+export interface InstantTemplateDefinition<Schema extends z.ZodType = z.ZodType, D = unknown>
+  extends BaseTemplateDefinition<Schema> {
+  kind: 'instant';
+  server: InstantServerModule<z.infer<Schema>, D>;
+  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, D>>;
+}
+
+export interface SkillTemplateDefinition<
+  Schema extends z.ZodType = z.ZodType,
+  Sub = unknown,
+  D = undefined,
+> extends BaseTemplateDefinition<Schema> {
+  kind: 'skill';
+  server: SkillServerModule<z.infer<Schema>, Sub, D>;
+  Player?: SurfaceComponent<PlayerProps<z.infer<Schema>, D, Sub>>;
+}
+
+export type TemplateDefinition<Schema extends z.ZodType = z.ZodType, D = unknown, Sub = never> =
+  | InstantTemplateDefinition<Schema, D>
+  | SkillTemplateDefinition<Schema, Sub, D>;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function defineTemplate<
-  Schema extends z.ZodType,
-  S = unknown,
-  A = unknown,
-  PV = unknown,
-  SV = unknown,
->(input: DefineTemplateInput<Schema, S, A, PV, SV>): TemplateDefinition<Schema, S, A, PV, SV> {
+export function defineTemplate<Schema extends z.ZodType, D = unknown>(
+  input: DefineInstantTemplateInput<Schema, D>,
+): InstantTemplateDefinition<Schema, D>;
+export function defineTemplate<Schema extends z.ZodType, Sub = unknown, D = undefined>(
+  input: DefineSkillTemplateInput<Schema, Sub, D>,
+): SkillTemplateDefinition<Schema, Sub, D>;
+export function defineTemplate<Schema extends z.ZodType, D = unknown, Sub = never>(
+  input: DefineTemplateInput<Schema, D, Sub>,
+): TemplateDefinition<Schema, D, Sub>;
+export function defineTemplate<Schema extends z.ZodType, D = unknown, Sub = never>(
+  input: DefineTemplateInput<Schema, D, Sub>,
+): TemplateDefinition<Schema, D, Sub> {
   const issues: string[] = [];
 
   const id = input.id?.trim() ?? '';
@@ -111,6 +130,26 @@ export function defineTemplate<
 
   if (!SEMVER_REGEX.test(input.version)) {
     issues.push(`Template version "${input.version}" must follow semver (x.y.z)`);
+  }
+
+  if (input.kind !== 'instant' && input.kind !== 'skill') {
+    issues.push(
+      `Template kind "${String((input as { kind?: unknown }).kind)}" must be "instant" or "skill"`,
+    );
+  } else if (input.kind === 'instant') {
+    if (!input.server || typeof input.server.present !== 'function') {
+      issues.push('Instant template must provide a server module with a present() function');
+    }
+  } else if (input.kind === 'skill') {
+    if (
+      !input.server?.submissionSchema ||
+      typeof input.server.validate !== 'function' ||
+      typeof input.server.qualifies !== 'function'
+    ) {
+      issues.push(
+        'Skill template must provide a server module with submissionSchema, validate(), and qualifies()',
+      );
+    }
   }
 
   if (!input.name || typeof input.name.vi !== 'string' || input.name.vi.trim().length === 0) {
@@ -283,10 +322,9 @@ export function defineTemplate<
     new Set([...hotEditable, ...formDescriptor.hotEditablePaths]),
   );
 
-  return {
+  const base = {
     id,
     version: input.version,
-    kind: input.kind,
     name: input.name,
     description,
     thumbnail,
@@ -297,10 +335,22 @@ export function defineTemplate<
     assetSlots,
     skins,
     hotEditable: mergedHotEditable,
-    Player: input.Player,
-    Screen: input.Screen,
-    HostPanel: input.HostPanel,
-    server: input.server,
     formDescriptor,
+  };
+
+  if (input.kind === 'instant') {
+    return {
+      ...base,
+      kind: 'instant',
+      server: input.server,
+      Player: input.Player,
+    };
+  }
+
+  return {
+    ...base,
+    kind: 'skill',
+    server: input.server,
+    Player: input.Player,
   };
 }

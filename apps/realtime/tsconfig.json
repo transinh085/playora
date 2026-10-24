@@ -1,5 +1,0 @@
-{
-  "extends": "@playora/tsconfig/nestjs.json",
-  "compilerOptions": { "experimentalDecorators": true, "emitDecoratorMetadata": true },
-  "include": ["src"]
-}

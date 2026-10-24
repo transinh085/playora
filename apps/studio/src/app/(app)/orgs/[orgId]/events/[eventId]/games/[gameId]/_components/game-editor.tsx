@@ -34,7 +34,7 @@ import {
 } from '@playora/ui/components/select';
 import { Skeleton } from '@playora/ui/components/skeleton';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, ArrowLeft, Monitor, Rocket, Save, Smartphone } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Rocket, Save } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
@@ -130,7 +130,7 @@ export function GameEditor({
   const [draftConfig, setDraftConfig] = useState<Record<string, unknown>>({});
   const [initializedGameId, setInitializedGameId] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
-  const [surface, setSurface] = useState<'player' | 'screen'>('player');
+  const [previewOutcome, setPreviewOutcome] = useState<'win' | 'lose' | 'out_of_stock'>('win');
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
@@ -148,7 +148,7 @@ export function GameEditor({
     const game = gameQuery.data;
     if (game && initializedGameId !== game.id) {
       setName(game.name);
-      setSkinKey(game.skinKey ?? 'yep');
+      setSkinKey(game.skinKey ?? 'chung');
       setDraftConfig(game.draftConfig ?? {});
       setInitializedGameId(game.id);
       setIsDirty(false);
@@ -227,12 +227,12 @@ export function GameEditor({
         skinKey: skinKey || undefined,
         brand: brandPayload,
         locale,
-        surface,
+        outcome: previewOutcome,
         assets: resolvedAssets,
       },
       playOrigin,
     );
-  }, [draftConfig, skinKey, brandPayload, locale, surface, resolvedAssets, playOrigin]);
+  }, [draftConfig, skinKey, brandPayload, locale, previewOutcome, resolvedAssets, playOrigin]);
 
   useEffect(() => {
     postPreviewMessage();
@@ -387,7 +387,7 @@ export function GameEditor({
     ? (`/orgs/${orgId}/events/${resolvedEventId}/games` as Route)
     : (`/orgs/${orgId}/events` as Route);
 
-  const previewSrc = `${PLAY_URL}/preview?template=${encodeURIComponent(game.templateId)}&surface=${surface}`;
+  const previewSrc = `${PLAY_URL}/preview?template=${encodeURIComponent(game.templateId)}`;
 
   const readyAssets = (assetsQuery.data?.items ?? []).filter((a) => a.status === 'ready');
 
@@ -510,42 +510,32 @@ export function GameEditor({
           </CardContent>
         </Card>
 
-        {/* Middle Column: Live Preview with Mobile / Screen 16:9 Toggle */}
+        {/* Middle Column: Live Preview with Outcome Picker */}
         <Card className="flex flex-col" data-testid="editor-preview-column">
           <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
             <CardTitle className="text-sm font-semibold">{t('games.previewTitle')}</CardTitle>
-            <div className="flex items-center gap-1 rounded-lg border p-1">
-              <Button
-                type="button"
-                size="sm"
-                variant={surface === 'player' ? 'default' : 'ghost'}
-                data-testid="preview-toggle-mobile"
-                onClick={() => setSurface('player')}
+            <Select
+              value={previewOutcome}
+              onValueChange={(val) => setPreviewOutcome(val as 'win' | 'lose' | 'out_of_stock')}
+            >
+              <SelectTrigger
+                className="h-8 w-44 text-xs"
+                data-testid="preview-outcome-select"
+                aria-label={t('games.previewOutcomeLabel')}
               >
-                <Smartphone className="size-3.5" />
-                {t('games.surfaceMobile')}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={surface === 'screen' ? 'default' : 'ghost'}
-                data-testid="preview-toggle-screen"
-                onClick={() => setSurface('screen')}
-              >
-                <Monitor className="size-3.5" />
-                {t('games.surfaceScreen')}
-              </Button>
-            </div>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="win">{t('games.previewOutcomeWin')}</SelectItem>
+                <SelectItem value="lose">{t('games.previewOutcomeLose')}</SelectItem>
+                <SelectItem value="out_of_stock">{t('games.previewOutcomeOutOfStock')}</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
-          <CardContent className="flex flex-1 items-center justify-center rounded-b-xl bg-slate-950/40 p-4">
+          <CardContent className="bg-muted/40 flex flex-1 items-center justify-center rounded-b-xl p-4">
             <div
               data-testid="preview-frame-wrapper"
-              data-surface={surface}
-              className={
-                surface === 'screen'
-                  ? 'aspect-video w-full overflow-hidden rounded-xl border shadow-lg'
-                  : 'aspect-[9/16] w-full max-w-[340px] overflow-hidden rounded-2xl border shadow-lg'
-              }
+              className="aspect-[9/16] w-full max-w-[340px] overflow-hidden rounded-2xl border shadow-lg"
             >
               <iframe
                 ref={iframeRef}

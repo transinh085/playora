@@ -18,7 +18,6 @@ import { EventsModule } from './modules/events/events.module';
 import { GamesModule } from './modules/games/games.module';
 import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
-import { LiveModule } from './modules/live/live.module';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
 import {
@@ -28,7 +27,6 @@ import {
   PUBLIC_THROTTLER,
   PublicController,
 } from './modules/public/public.controller';
-import { ScreensModule } from './modules/screens/screens.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 
 @Module({})
@@ -52,7 +50,6 @@ export class AppModule {
             redact: [
               'req.headers.cookie',
               'req.headers.authorization',
-              'req.headers["x-screen-key"]',
               'res.headers["set-cookie"]',
             ],
             autoLogging: { ignore: (req) => req.url === '/v1/health' },
@@ -97,10 +94,8 @@ export class AppModule {
         AssetsModule,
         BrandKitsModule,
         GuestsModule,
-        ScreensModule,
         TemplatesModule,
         GamesModule,
-        LiveModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [

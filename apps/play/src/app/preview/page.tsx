@@ -2,15 +2,15 @@
 
 import {
   type BrandKit,
+  createPreviewSession,
   type Locale,
-  type PlayerRef,
+  type PlayOutcome,
   resolveSkinConfig,
   resolveTemplateAssets,
 } from '@playora/game-sdk';
-import { createTestRoom } from '@playora/game-sdk/server';
 import { getTemplate, getTemplateSurfaces } from '@playora/templates';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 const DEFAULT_BRAND: BrandKit = {
   colors: {
@@ -22,11 +22,7 @@ const DEFAULT_BRAND: BrandKit = {
   },
 };
 
-const PREVIEW_PLAYER: PlayerRef = {
-  playerId: 'preview-player',
-  displayName: 'Bạn',
-  team: 'Đội Đỏ',
-};
+export type PreviewOutcomePreset = 'win' | 'lose' | 'out_of_stock';
 
 export interface PreviewMessagePayload {
   type?: string;
@@ -35,7 +31,7 @@ export interface PreviewMessagePayload {
   skinKey?: string;
   brand?: Partial<BrandKit>;
   locale?: Locale;
-  surface?: 'player' | 'screen';
+  outcome?: PreviewOutcomePreset | PlayOutcome;
   assets?: Record<string, string>;
   assetUrls?: Record<string, string>;
 }
@@ -54,10 +50,30 @@ export function isAllowedStudioOrigin(
   return allowed.has(origin);
 }
 
+function toPlayOutcome(preset: PreviewOutcomePreset | PlayOutcome): PlayOutcome {
+  if (typeof preset === 'object' && preset !== null && 'kind' in preset) {
+    return preset;
+  }
+  if (preset === 'win') {
+    return {
+      kind: 'win',
+      prize: {
+        id: 'prize-1',
+        name: { vi: 'Giải mẫu', en: 'Sample prize' },
+        type: 'voucher_code',
+      },
+      voucherCode: 'DEMO-2026',
+    };
+  }
+  if (preset === 'out_of_stock') {
+    return { kind: 'out_of_stock' };
+  }
+  return { kind: 'lose' };
+}
+
 function PreviewSurface() {
   const searchParams = useSearchParams();
-  const templateId = searchParams.get('template') ?? 'tap-race';
-  const querySurface = searchParams.get('surface') === 'screen' ? 'screen' : 'player';
+  const templateId = searchParams.get('template') ?? 'spin-wheel';
   const querySkin = searchParams.get('skin') ?? undefined;
   const queryLocale: Locale = searchParams.get('locale') === 'en' ? 'en' : 'vi';
 
@@ -73,16 +89,9 @@ function PreviewSurface() {
   const [skinKey, setSkinKey] = useState<string | undefined>(querySkin);
   const [brand, setBrand] = useState<BrandKit>(DEFAULT_BRAND);
   const [locale, setLocale] = useState<Locale>(queryLocale);
-  const [surfaceOverride, setSurfaceOverride] = useState<{
-    forQuery: 'player' | 'screen';
-    value: 'player' | 'screen';
-  } | null>(null);
+  const [outcomePreset, setOutcomePreset] = useState<PreviewOutcomePreset | PlayOutcome>('win');
   const [assetMap, setAssetMap] = useState<Record<string, string>>({});
-  const [revision, setRevision] = useState(0);
-
-  const userActionsRef = useRef<unknown[]>([]);
-  const querySurfaceRef = useRef<'player' | 'screen'>(querySurface);
-  querySurfaceRef.current = querySurface;
+  const [, setSessionTick] = useState(0);
 
   useEffect(() => {
     if (querySkin) {
@@ -105,7 +114,8 @@ function PreviewSurface() {
         'config' in data ||
         'skin' in data ||
         'skinKey' in data ||
-        'brand' in data;
+        'brand' in data ||
+        'outcome' in data;
 
       if (!isKnownMessage) return;
 
@@ -130,8 +140,8 @@ function PreviewSurface() {
       if (data.locale === 'vi' || data.locale === 'en') {
         setLocale(data.locale);
       }
-      if (data.surface === 'player' || data.surface === 'screen') {
-        setSurfaceOverride({ forQuery: querySurfaceRef.current, value: data.surface });
+      if (data.outcome) {
+        setOutcomePreset(data.outcome);
       }
       const incomingAssets = data.assets ?? data.assetUrls;
       if (incomingAssets && typeof incomingAssets === 'object') {
@@ -146,9 +156,7 @@ function PreviewSurface() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const activeSkinKey = skinKey ?? template?.skins[0]?.key ?? 'yep';
-  const activeSurface =
-    surfaceOverride?.forQuery === querySurface ? surfaceOverride.value : querySurface;
+  const activeSkinKey = skinKey ?? template?.skins[0]?.key ?? 'chung';
 
   const resolvedConfig = useMemo(() => {
     if (!template) return {};
@@ -182,60 +190,24 @@ function PreviewSurface() {
     });
   }, [template, activeSkinKey, brand, resolvedConfig, assetMap]);
 
-  // Build and drive the local fake room via game-sdk createTestRoom
-  const roomSnapshot = useMemo(() => {
-    // revision triggers recomputation when user taps
-    void revision;
+  const resolvedOutcome = useMemo(() => toPlayOutcome(outcomePreset), [outcomePreset]);
+
+  const session = useMemo(() => {
     if (!template) return null;
-
-    const room = createTestRoom(template, resolvedConfig, { now: 1_000 });
-    room.join(PREVIEW_PLAYER);
-    room.join({ playerId: 'bot-1', displayName: 'Minh Anh', team: 'Đội Xanh' });
-    room.join({ playerId: 'bot-2', displayName: 'Quốc Bảo', team: 'Đội Đỏ' });
-    room.join({ playerId: 'bot-3', displayName: 'Thu Hà', team: 'Đội Xanh' });
-
-    room.command({ cmd: 'round.start' });
-    room.command({ cmd: 'countdown.elapsed' });
-
-    // Seed baseline bot scores so leaderboard and team bars are visible immediately
-    room.advanceTime(300);
-    room.action('bot-1', { d: 6 });
-    room.advanceTime(300);
-    room.action('bot-2', { d: 4 });
-    room.advanceTime(300);
-    room.action('bot-3', { d: 3 });
-
-    const minInterval = Math.max(
-      50,
-      Number((room.config as Record<string, unknown>)?.minInputIntervalMs ?? 250),
-    );
-
-    for (const act of userActionsRef.current) {
-      room.advanceTime(minInterval);
-      room.action(PREVIEW_PLAYER, act);
-    }
-
-    const nowVal = room.now();
-    return {
-      status: room.status,
-      playerView: room.playerView(PREVIEW_PLAYER),
-      screenView: room.screenView(),
-      clock: {
-        now: () => nowVal,
-        offsetMs: 0,
+    return createPreviewSession({
+      template,
+      config: resolvedConfig,
+      outcome: resolvedOutcome,
+      onChange: () => {
+        setSessionTick((n) => n + 1);
       },
-    };
-  }, [template, resolvedConfig, revision]);
+    });
+  }, [template, resolvedConfig, resolvedOutcome]);
 
-  const handleSend = useCallback((action: unknown) => {
-    userActionsRef.current.push(action);
-    setRevision((r) => r + 1);
-  }, []);
-
-  if (!template || !templateSurfaces || !roomSnapshot) {
+  if (!template || !templateSurfaces || !session) {
     return (
       <div
-        className="flex min-h-dvh items-center justify-center bg-slate-950 p-6 text-slate-300"
+        className="flex min-h-dvh items-center justify-center bg-background p-6 text-muted-foreground"
         data-testid="preview-not-found"
       >
         Không tìm thấy mẫu trò chơi: {templateId}
@@ -244,29 +216,6 @@ function PreviewSurface() {
   }
 
   const PlayerComponent = templateSurfaces.Player;
-  const ScreenComponent = templateSurfaces.Screen;
-
-  if (activeSurface === 'screen') {
-    if (!ScreenComponent) {
-      return null;
-    }
-    return (
-      <div className="h-dvh w-full overflow-hidden" data-testid="preview-surface-screen">
-        <ScreenComponent
-          config={resolvedConfig}
-          brand={brand}
-          assets={assets}
-          skin={activeSkinKey}
-          status={roomSnapshot.status}
-          state={roomSnapshot.screenView}
-          clock={roomSnapshot.clock}
-          locale={locale}
-          quality="high"
-        />
-      </div>
-    );
-  }
-
   if (!PlayerComponent) {
     return null;
   }
@@ -278,13 +227,10 @@ function PreviewSurface() {
         brand={brand}
         assets={assets}
         skin={activeSkinKey}
-        status={roomSnapshot.status}
-        state={roomSnapshot.playerView}
-        clock={roomSnapshot.clock}
         locale={locale}
         quality="high"
-        player={PREVIEW_PLAYER}
-        send={handleSend}
+        session={session}
+        onFinished={() => {}}
       />
     </div>
   );
@@ -294,7 +240,7 @@ export default function PreviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-dvh items-center justify-center bg-slate-950 text-slate-400">
+        <div className="flex min-h-dvh items-center justify-center bg-background text-muted-foreground">
           Đang tải bản xem trước…
         </div>
       }

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# NestJS services on Bun (api, realtime, worker).
+# NestJS services on Bun (api, worker).
 #   docker build -f infra/docker/Dockerfile.nest --build-arg APP=@playora/api --build-arg APP_DIR=apps/api -t playora-api .
 ARG BUN_VERSION=1.4.4
 

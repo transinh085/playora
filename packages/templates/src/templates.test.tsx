@@ -1,14 +1,13 @@
 import { describe, expect, test } from 'bun:test';
-import { resolveTemplateAssets } from '@playora/game-sdk';
-import { createTestRoom } from '@playora/game-sdk/server';
+import { createPreviewSession, resolveTemplateAssets } from '@playora/game-sdk';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   getTemplate,
   getTemplateSurfaces,
+  SpinWheelPlayer,
+  spinWheelServer,
+  spinWheelTemplate,
   surfaces,
-  TapRacePlayer,
-  TapRaceScreen,
-  tapRaceTemplate,
   templates,
 } from './index';
 import { templates as registryTemplates } from './registry';
@@ -19,7 +18,7 @@ import {
 } from './server';
 
 describe('@playora/templates registry', () => {
-  test('every registry entry has surfaces (id@version -> { Player, Screen }) and a server module, and getTemplate returns the identical schema object from client and server entries', () => {
+  test('every registry entry has surfaces (id@version -> { Player }) and a server module, and getTemplate returns the identical schema object from client and server entries', () => {
     expect(registryTemplates.length).toBeGreaterThanOrEqual(1);
     expect(templates).toBe(registryTemplates);
     expect(serverTemplates).toBe(registryTemplates);
@@ -29,7 +28,6 @@ describe('@playora/templates registry', () => {
       const entrySurfaces = surfaces[key];
       expect(entrySurfaces).toBeDefined();
       expect(typeof entrySurfaces?.Player).toBe('function');
-      expect(typeof entrySurfaces?.Screen).toBe('function');
       expect(getTemplateSurfaces(entry.id, entry.version)).toBe(entrySurfaces);
 
       expect(entry.server).toBeDefined();
@@ -43,78 +41,88 @@ describe('@playora/templates registry', () => {
       expect(fromClient?.configSchema).toBe(fromServer?.configSchema);
     }
 
-    const tpl = getTemplate('tap-race');
+    const tpl = getTemplate('spin-wheel');
     expect(tpl).toBeDefined();
-    expect(tpl?.id).toBe('tap-race');
+    expect(tpl?.id).toBe('spin-wheel');
     expect(tpl?.version).toBe('1.0.0');
-    expect(tpl?.kind).toBe('live');
-    expect(tpl?.skins.map((s) => s.key)).toEqual(['yep', 'tet']);
-    expect(surfaces['tap-race@1.0.0']?.Player).toBe(TapRacePlayer);
-    expect(surfaces['tap-race@1.0.0']?.Screen).toBe(TapRaceScreen);
+    expect(tpl?.kind).toBe('instant');
+    expect(tpl?.skins.map((s) => s.key)).toEqual(['chung', 'tet']);
+    expect(surfaces['spin-wheel@1.0.0']?.Player).toBe(SpinWheelPlayer);
 
-    expect(getTemplate('tap-race', '1.0.0')).toBe(tpl);
-    expect(getTemplate('tap-race', '9.9.9')).toBeUndefined();
+    expect(getTemplate('spin-wheel', '1.0.0')).toBe(tpl);
+    expect(getTemplate('spin-wheel', '9.9.9')).toBeUndefined();
     expect(getTemplate('unknown-game')).toBeUndefined();
-    expect(getServerModule('tap-race', '2.0.0')).toBeUndefined();
+    expect(getServerModule('spin-wheel', '2.0.0')).toBeUndefined();
   });
 
-  test('renders TapRacePlayer and TapRaceScreen surfaces with @playora/ui game components', () => {
-    const room = createTestRoom(tapRaceTemplate);
-    room.join('p1', 'Nguyễn An', 'Đội Đỏ');
-    room.join('p2', 'Trần Bình', 'Đội Xanh');
-    room.command({ cmd: 'round.start' });
-    room.command({ cmd: 'countdown.elapsed' });
-    room.setNow(1_000);
-    room.action('p1', { d: 5 });
-    room.action('p2', { d: 3 });
+  test('spinWheelServer.present maps win, lose, and out_of_stock outcomes to matching wheel segments', () => {
+    const config = spinWheelTemplate.defaultConfig;
+
+    const winExact = spinWheelServer.present(
+      {
+        kind: 'win',
+        prize: { id: 'prize-2', name: { vi: 'Giải Nhì' }, type: 'physical' },
+      },
+      config,
+      () => 0,
+    );
+    expect(winExact.segmentIndex).toBe(2);
+    expect(config.segments[winExact.segmentIndex]?.prizeSlot).toBe('prize-2');
+
+    const winFallbackPrize = spinWheelServer.present(
+      {
+        kind: 'win',
+        prize: { id: 'sample-prize', name: { vi: 'Giải mẫu' }, type: 'voucher_code' },
+      },
+      config,
+      () => 0,
+    );
+    expect(config.segments[winFallbackPrize.segmentIndex]?.prizeSlot).not.toBe('none');
+
+    const loseDisplay = spinWheelServer.present({ kind: 'lose' }, config, () => 0);
+    expect(config.segments[loseDisplay.segmentIndex]?.prizeSlot).toBe('none');
+
+    const oosDisplay = spinWheelServer.present({ kind: 'out_of_stock' }, config, () => 0.99);
+    expect(config.segments[oosDisplay.segmentIndex]?.prizeSlot).toBe('none');
+  });
+
+  test('renders SpinWheelPlayer with @playora/ui game components and createPreviewSession', async () => {
+    const session = createPreviewSession({
+      template: spinWheelTemplate,
+      outcome: {
+        kind: 'win',
+        prize: { id: 'prize-1', name: { vi: 'Giải Nhất' }, type: 'physical' },
+      },
+      rng: () => 0,
+    });
+
+    await session.start();
 
     const brand = {
       colors: { primary: '#7c3aed', background: '#0f0a1e', text: '#ffffff' },
     };
-    const assets = resolveTemplateAssets(tapRaceTemplate, { skinKey: 'yep', brand });
-    const clock = { now: () => room.now(), offsetMs: 0 };
+    const assets = resolveTemplateAssets(spinWheelTemplate, { skinKey: 'chung', brand });
 
     const playerHtml = renderToStaticMarkup(
-      <TapRacePlayer
-        config={room.config}
+      <SpinWheelPlayer
+        config={spinWheelTemplate.defaultConfig}
         brand={brand}
         assets={assets}
-        skin="yep"
-        status={room.status}
-        state={room.playerView('p1')}
-        clock={clock}
+        skin="chung"
         locale="vi"
         quality="high"
-        player={{ playerId: 'p1', displayName: 'Nguyễn An', team: 'Đội Đỏ' }}
-        send={() => {}}
+        session={session}
+        onFinished={() => {}}
       />,
     );
 
+    expect(playerHtml).toContain('data-testid="spin-wheel-player"');
     expect(playerHtml).toContain('data-slot="game-root"');
     expect(playerHtml).toContain('data-slot="game-button"');
-    expect(playerHtml).toContain('data-slot="countdown"');
-    expect(playerHtml).toContain('Đua chạm tốc độ');
-    expect(playerHtml).toContain('CHẠM!');
-
-    const screenHtml = renderToStaticMarkup(
-      <TapRaceScreen
-        config={room.config}
-        brand={brand}
-        assets={assets}
-        skin="tet"
-        status={room.status}
-        state={room.screenView()}
-        clock={clock}
-        locale="vi"
-        quality="high"
-      />,
-    );
-
-    expect(screenHtml).toContain('data-slot="stage"');
-    expect(screenHtml).toContain('data-slot="team-bar"');
-    expect(screenHtml).toContain('data-slot="leaderboard"');
-    expect(screenHtml).toContain('data-slot="countdown"');
-    expect(screenHtml).toContain('Nguyễn An');
-    expect(screenHtml).toContain('Đội Đỏ');
+    expect(playerHtml).toContain('data-testid="spin-wheel-start"');
+    expect(playerHtml).toContain('data-testid="spin-wheel-result"');
+    expect(playerHtml).toContain('Vòng quay may mắn');
+    expect(playerHtml).toContain('Quay ngay');
+    expect(playerHtml).toContain('Giải Nhất');
   });
 });

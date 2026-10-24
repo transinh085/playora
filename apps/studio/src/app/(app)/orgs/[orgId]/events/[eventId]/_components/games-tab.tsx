@@ -72,9 +72,9 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
   const form = useForm<CreateGameValues>({
     resolver: zodResolver(CreateGameBody),
     defaultValues: {
-      templateId: 'tap-race',
+      templateId: 'spin-wheel',
       name: '',
-      skinKey: 'yep',
+      skinKey: 'chung',
     },
   });
 
@@ -100,9 +100,9 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
       toast.success(t('games.created', { name: created.name }));
       setDialogOpen(false);
       form.reset({
-        templateId: selectedTemplate?.id ?? 'tap-race',
+        templateId: selectedTemplate?.id ?? 'spin-wheel',
         name: '',
-        skinKey: selectedTemplate?.skins[0]?.key ?? 'yep',
+        skinKey: selectedTemplate?.skins[0]?.key ?? 'chung',
       });
     },
     onError: (err) => {

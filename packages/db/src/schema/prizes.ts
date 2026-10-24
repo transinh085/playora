@@ -7,16 +7,14 @@ import {
   integer,
   jsonb,
   pgTable,
-  primaryKey,
   text,
-  timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { createdAt, id, orgId, timestamps } from './_shared';
 import { user } from './auth';
-import { awardStatus, dataEnv, prizeType, roundStatus } from './enums';
-import { events, games, gameVersions } from './events';
+import { awardStatus, dataEnv, prizeType } from './enums';
+import { events, games } from './events';
 import { players } from './players';
 
 export const prizes = pgTable(
@@ -45,48 +43,6 @@ export const prizes = pgTable(
   ],
 );
 
-export const liveRounds = pgTable(
-  'live_rounds',
-  {
-    id: id(),
-    organizationId: orgId(),
-    eventId: uuid()
-      .notNull()
-      .references(() => events.id, { onDelete: 'cascade' }),
-    gameId: uuid()
-      .notNull()
-      .references(() => games.id, { onDelete: 'cascade' }),
-    gameVersionId: uuid()
-      .notNull()
-      .references(() => gameVersions.id),
-    env: dataEnv().notNull().default('live'),
-    seq: integer().notNull(),
-    status: roundStatus().notNull().default('idle'),
-    startedAt: timestamp({ withTimezone: true }),
-    endedAt: timestamp({ withTimezone: true }),
-    result: jsonb(),
-    ...timestamps,
-  },
-  (t) => [uniqueIndex().on(t.eventId, t.env, t.seq)],
-);
-
-export const roundScores = pgTable(
-  'round_scores',
-  {
-    roundId: uuid()
-      .notNull()
-      .references(() => liveRounds.id, { onDelete: 'cascade' }),
-    playerId: uuid()
-      .notNull()
-      .references(() => players.id, { onDelete: 'cascade' }),
-    organizationId: orgId(),
-    score: integer().notNull(),
-    rank: integer(),
-    team: text(),
-  },
-  (t) => [primaryKey({ columns: [t.roundId, t.playerId] }), index().on(t.roundId, t.rank)],
-);
-
 export const drawSpins = pgTable(
   'draw_spins',
   {
@@ -102,7 +58,7 @@ export const drawSpins = pgTable(
     spinNo: integer().notNull(),
     poolSize: integer().notNull(),
     poolHash: text().notNull(),
-    /** sha256(serverSeed), shown on the host console before the spin */
+    /** sha256(serverSeed), committed before the spin */
     seedCommit: text().notNull(),
     /** encrypted until the event ends, then revealed in the draw minutes */
     serverSeedEnc: text().notNull(),

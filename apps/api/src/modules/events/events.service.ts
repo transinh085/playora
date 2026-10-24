@@ -81,7 +81,6 @@ export class EventsService {
         name: body.name,
         slug: body.slug,
         brandKitId: body.brandKitId,
-        mode: body.mode,
         status: body.status,
         identity: body.identity,
         registrationForm:

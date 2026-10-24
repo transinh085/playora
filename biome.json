@@ -47,7 +47,7 @@
   },
   "overrides": [
     {
-      "includes": ["apps/api/**", "apps/realtime/**", "apps/worker/**"],
+      "includes": ["apps/api/**", "apps/worker/**"],
       "linter": {
         "rules": {
           "complexity": {

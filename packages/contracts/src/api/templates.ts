@@ -7,7 +7,7 @@ export const LocalizedText = z.object({
 });
 export type LocalizedText = z.infer<typeof LocalizedText>;
 
-export const GameKind = z.enum(['instant', 'skill', 'live', 'draw', 'display']);
+export const GameKind = z.enum(['instant', 'skill']);
 export type GameKind = z.infer<typeof GameKind>;
 
 export const AssetMediaType = z.enum(['image', 'audio', 'video']);

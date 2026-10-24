@@ -42,7 +42,6 @@ describe('events API', () => {
       slug,
       name: 'YEP 2026',
       status: 'draft',
-      mode: 'live',
       playerLimit: 100,
     });
 

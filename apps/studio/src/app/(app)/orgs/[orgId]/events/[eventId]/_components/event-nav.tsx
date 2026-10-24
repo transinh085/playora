@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@playora/ui/lib/utils';
-import { Gamepad2, Monitor, Settings, Users } from 'lucide-react';
+import { Gamepad2, Settings, Users } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -26,13 +26,6 @@ export function EventNav({ orgId, eventId }: { orgId: string; eventId: string })
       icon: Gamepad2,
       active: pathname.startsWith(`${base}/games`),
       testId: 'event-tab-games',
-    },
-    {
-      href: `${base}/screens`,
-      label: t('screens.tabScreens'),
-      icon: Monitor,
-      active: pathname.startsWith(`${base}/screens`),
-      testId: 'event-tab-screens',
     },
     {
       href: `${base}/settings`,

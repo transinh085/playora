@@ -6,8 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./draw": "./src/draw/index.ts",
-    "./live": "./src/live/index.ts",
-    "./prize": "./src/prize/index.ts"
+    "./prize": "./src/prize/index.ts",
+    "./session": "./src/session/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

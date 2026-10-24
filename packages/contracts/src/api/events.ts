@@ -2,8 +2,6 @@ import { z } from 'zod';
 import { AuthId, Id, IsoDateTime, Ok, OrgParams, Page, PageQuery, Slug } from './common';
 import { defineRoute } from './route';
 
-export const EventMode = z.enum(['live', 'campaign']);
-export type EventMode = z.infer<typeof EventMode>;
 export const EventStatus = z.enum(['draft', 'scheduled', 'live', 'ended', 'archived']);
 export type EventStatus = z.infer<typeof EventStatus>;
 export const IdentityMode = z.enum([
@@ -87,7 +85,6 @@ export const EventSummary = z.object({
   brandKitId: Id.nullable(),
   slug: Slug,
   name: z.string(),
-  mode: EventMode,
   status: EventStatus,
   identity: IdentityMode,
   registrationForm: EventRegistrationForm.nullable(),
@@ -105,7 +102,6 @@ export const CreateEventBody = z
     name: z.string().trim().min(1).max(120),
     slug: Slug,
     brandKitId: Id.nullable().optional(),
-    mode: EventMode.default('live'),
     status: EventStatus.optional(),
     identity: IdentityMode.default('anonymous'),
     registrationForm: EventRegistrationForm.nullable().optional(),
