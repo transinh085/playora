@@ -1,106 +1,119 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { AssignRandomTeamsBody, type ErrorCode } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@playora/ui/components/dialog';
-import { Label } from '@playora/ui/components/label';
-import { Textarea } from '@playora/ui/components/textarea';
+import { applyApiError } from '@playora/ui/form';
+import { App, Button, Form, Input, Modal } from 'antd';
 import { Shuffle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
-import { applyApiError } from '@/lib/form-errors';
 import { useAssignRandomTeams } from '../api';
 
-type Values = z.input<typeof AssignRandomTeamsBody>;
+interface FormValues {
+  teams: string;
+}
 
 export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: string }) {
   const t = useTranslations();
+  const { message } = App.useApp();
   const [open, setOpen] = useState(false);
-  const [rawText, setRawText] = useState('');
-
-  const form = useForm<Values>({
-    resolver: zodResolver(AssignRandomTeamsBody),
-    defaultValues: { teams: [] },
-  });
+  const [form] = Form.useForm<FormValues>();
 
   const assign = useAssignRandomTeams({
     onSuccess: (res) => {
-      toast.success(t('guests.assignedSuccess', { count: res.assigned }));
+      message.success(t('guests.assignedSuccess', { count: res.assigned }));
       setOpen(false);
-      setRawText('');
-      form.reset({ teams: [] });
+      form.resetFields();
     },
     onError: (error) => {
       const messageFor = (code: ErrorCode) => t(`errors.${code}`);
-      if (!applyApiError(error, form.setError, messageFor)) toast.error(messageFor(error.code));
+      if (!applyApiError(form, error, messageFor)) {
+        message.error(messageFor(error.code));
+      }
     },
   });
 
-  function handleTextChange(value: string) {
-    setRawText(value);
-    const parsed = value
+  const handleSubmit = (values: FormValues) => {
+    const raw = values.teams ?? '';
+    const parsedTeams = raw
       .split(/[\n,]+/)
       .map((item) => item.trim())
       .filter(Boolean);
-    form.setValue('teams', parsed, { shouldValidate: form.formState.isSubmitted });
-  }
 
-  const { errors } = form.formState;
+    const validation = AssignRandomTeamsBody.safeParse({ teams: parsedTeams });
+    if (!validation.success) {
+      form.setFields([
+        {
+          name: 'teams',
+          errors: [validation.error.issues[0]?.message ?? t('common.unknownError')],
+        },
+      ]);
+      return;
+    }
+
+    assign.mutate({
+      params: { orgId, eventId },
+      body: validation.data,
+    });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Shuffle />
-          {t('guests.randomTeamsButton')}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('guests.randomTeamsTitle')}</DialogTitle>
-          <DialogDescription>{t('guests.randomTeamsDescription')}</DialogDescription>
-        </DialogHeader>
-        <form
-          className="grid gap-4"
-          onSubmit={form.handleSubmit((body) =>
-            assign.mutate({ params: { orgId, eventId }, body }),
-          )}
-        >
-          <div className="grid gap-2">
-            <Label htmlFor="team-names">{t('guests.teamNamesLabel')}</Label>
-            <Textarea
-              id="team-names"
-              rows={4}
-              value={rawText}
-              aria-invalid={!!errors.teams}
-              placeholder={t('guests.teamNamesPlaceholder')}
-              onChange={(e) => handleTextChange(e.target.value)}
-            />
-            {errors.teams && (
-              <p className="text-destructive text-sm">
-                {errors.teams.message ?? errors.teams.root?.message}
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={assign.isPending}>
+    <>
+      <Button icon={<Shuffle className="size-4" />} onClick={() => setOpen(true)}>
+        {t('guests.randomTeamsButton')}
+      </Button>
+
+      <Modal
+        open={open}
+        onCancel={() => {
+          setOpen(false);
+          form.resetFields();
+        }}
+        title={t('guests.randomTeamsTitle')}
+        footer={null}
+        destroyOnClose
+      >
+        <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
+          {t('guests.randomTeamsDescription')}
+        </p>
+
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            name="teams"
+            label={t('guests.teamNamesLabel')}
+            rules={[
+              {
+                validator: async (_, value: string | undefined) => {
+                  const raw = value ?? '';
+                  const parsedTeams = raw
+                    .split(/[\n,]+/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+                  const result = AssignRandomTeamsBody.safeParse({ teams: parsedTeams });
+                  if (!result.success) {
+                    throw new Error(result.error.issues[0]?.message);
+                  }
+                },
+              },
+            ]}
+          >
+            <Input.TextArea id="teams" rows={4} placeholder={t('guests.teamNamesPlaceholder')} />
+          </Form.Item>
+
+          <div className="mt-6 flex justify-end gap-2">
+            <Button
+              onClick={() => {
+                setOpen(false);
+                form.resetFields();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button type="primary" htmlType="submit" loading={assign.isPending}>
               {t('guests.assignSubmit')}
             </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </Form>
+      </Modal>
+    </>
   );
 }

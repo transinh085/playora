@@ -34,7 +34,10 @@ test('import guest list CSV, assign random balanced teams, and configure join QR
   await page.getByLabel('Bàn / Khu vực (tuỳ chọn)').fill('VIP-1');
   await expect(page.getByTestId('join-url')).toContainText(`/${slug}?t=VIP-1`);
 
-  // Upload CSV and preview column mapping
+  // Open import dialog, upload CSV and preview column mapping
+  await page.getByRole('button', { name: 'Nhập danh sách khách mời' }).click();
+  const importDialog = page.getByRole('dialog');
+
   const csvContent = [
     'ma_nv,ho_ten,phong_ban,ban',
     'NV001,Nguyễn Văn A,Kinh doanh,B01',
@@ -42,14 +45,14 @@ test('import guest list CSV, assign random balanced teams, and configure join QR
     'NV003,Lê Văn C,,B03',
   ].join('\n');
 
-  await page.locator('#guest-file').setInputFiles({
+  await importDialog.locator('#guest-file').setInputFiles({
     name: 'guests.csv',
     mimeType: 'text/csv',
     buffer: Buffer.from(csvContent, 'utf8'),
   });
 
-  await expect(page.getByText('Xem trước (3 dòng)')).toBeVisible();
-  await page.getByRole('button', { name: 'Nhập danh sách' }).click();
+  await expect(importDialog.getByText('Xem trước (3 dòng)')).toBeVisible();
+  await importDialog.getByRole('button', { name: 'Nhập danh sách' }).click();
 
   await expect(page.getByText('Đã thêm 3, cập nhật 0, bỏ qua 0 dòng.').first()).toBeVisible();
   await expect(page.getByRole('cell', { name: 'Nguyễn Văn A' }).last()).toBeVisible();

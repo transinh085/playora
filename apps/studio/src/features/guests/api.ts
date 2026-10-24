@@ -10,12 +10,13 @@ type RouteMutationOptions<R extends RouteDef> = Parameters<typeof useRouteMutati
 export function useGuests(
   orgId: string,
   eventId: string,
-  filters?: { limit?: number; search?: string; team?: string },
+  filters?: { limit?: number; cursor?: string; search?: string; team?: string },
 ) {
   return useRouteQuery(api, guestsApi.list, {
     params: { orgId, eventId },
     query: {
       limit: filters?.limit ?? 50,
+      cursor: filters?.cursor,
       search: filters?.search,
       team: filters?.team,
     },
