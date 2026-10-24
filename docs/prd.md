@@ -1,8 +1,8 @@
-# PRD — Playora Event Game Builder
+# PRD — Playora Gamified Campaign Builder
 
-Phiên bản: v1.0 · 23/10/2026 · Owner: Product · Nhất quán với [00-product-strategy.md](./00-product-strategy.md)
+Phiên bản: v2.0 · 24/10/2026 · Owner: Product · Nhất quán với [00-product-strategy.md](./00-product-strategy.md)
 
-**Nhãn giai đoạn:** **M1** = MVP "YEP Live" (12/2026) · **M2** = Live Self-serve & Agency (04/2027) · **M3** = Booth & Activation (07/2027) · **M4** = Scale & Platform (12/2027) · **Later** = 2028+
+**Nhãn giai đoạn:** **M1** = MVP "Tết Campaign" + Live add-on (12/2026) · **M2** = Self-serve & Agency (04/2027) · **M3** = Booth & Activation (07/2027) · **M4** = Scale & Platform (12/2027) · **Later** = 2028+
 
 ---
 
@@ -12,15 +12,16 @@ Phiên bản: v1.0 · 23/10/2026 · Owner: Product · Nhất quán với [00-pro
 
 | # | Mục tiêu | Đo bằng |
 |---|---|---|
-| G1 | Dựng game sự kiện có thương hiệu nhanh, không cần kỹ thuật | Trung vị tạo → publish ≤ 60 phút (M1), ≤ 30 phút (M2) |
-| G2 | Cả hội trường cùng chơi, không sập | ≥ 5.000 CCU/event (M1), 20.000 (M4); p95 < 150 ms; 0 sự cố P1 |
-| G3 | Giải thưởng minh bạch, không phát sai | 0 sai lệch tồn kho; 100% draw có log kiểm chứng |
-| G4 | Agency tự vận hành và bán lại được | % sự kiện tự dựng ≥ 60% (M2); white-label (M2) |
-| G5 | Dữ liệu hợp pháp, báo cáo ngay sau sự kiện | Consent PDPL 100%; báo cáo xuất trong ≤ 1 phút |
+| G1 | Dựng minigame có thưởng, có thương hiệu nhanh, không cần kỹ thuật | Trung vị tạo → publish ≤ 60 phút (M1), ≤ 30 phút (M2) |
+| G2 | Giải thưởng không phát sai, chi phí giải trong tầm kiểm soát | 0 sai lệch tồn kho / ngân sách / giới hạn; ≤ 5% campaign hết giải trước 80% thời lượng khi bật rải đều; 100% kết quả có log kiểm chứng |
+| G3 | Campaign chịu tải và chống gian lận | Đỉnh ≥ 500 lượt chơi/giây/campaign (M1); lượt bị gắn cờ được loại khỏi phát giải |
+| G4 | Agency tự vận hành và bán lại được | % campaign tự dựng ≥ 60% (M2); white-label (M2) |
+| G5 | Dữ liệu hợp pháp, báo cáo cho client | Consent PDPL 100%; dashboard realtime; export trong ≤ 1 phút |
+| G6 | Live add-on: cả hội trường cùng chơi, không sập | ≥ 5.000 CCU/event (M1), 20.000 (M4); p95 < 150 ms; 0 sự cố P1 |
 
 ### 1.2 Ngoài phạm vi
 
-Canvas kéo-thả tự do; minigame online thuần cho bán lẻ; cash/red packet, cá cược; bán vé/agenda/seating; check-in khuôn mặt; app native. Xem lý do ở [00 §6](./00-product-strategy.md#6-nguyên-tắc-sản-phẩm).
+Quiz/poll/slide tương tác; canvas kéo-thả tự do; cash/red packet, cá cược; bán vé/agenda/seating; check-in khuôn mặt; app native. Xem lý do ở [00 §6](./00-product-strategy.md#6-nguyên-tắc-sản-phẩm).
 
 ---
 
@@ -28,10 +29,10 @@ Canvas kéo-thả tự do; minigame online thuần cho bán lẻ; cash/red packe
 
 | Persona | Bối cảnh | Cần | Thất vọng hiện tại |
 |---|---|---|---|
-| **Linh, PM agency** (ICP #1) | 3–5 sự kiện/tháng cho nhiều brand | Dựng nhanh; không sập; logo khách; báo cáo gửi client; bán dưới thương hiệu agency | Dev game chậm và đắt; ghép 3 nhà cung cấp; sập khi đông |
-| **Hà, HR Manager** (ICP #2) | YEP 300–1.500 người, một lần/năm | Vui, minh bạch, tự làm theo template | Quay số bằng Excel bị nghi gian lận; game nhàm |
-| **Minh, Brand Marketing** (qua agency) | Activation, roadshow, booth | Lead hợp pháp, kiểm soát chi phí giải, ROI | Không đo được hiệu quả booth |
-| **Người chơi** | Điện thoại phổ thông, Wi-Fi/4G hội trường chập chờn | Vào trong ≤ 10 s, chơi vui, biết mình trúng | Cài app, form dài, load chậm |
+| **Linh, PM agency** (ICP #1) | 3–10 campaign/tháng cho nhiều brand | Dựng nhanh theo mùa; logo khách; giải không hết sớm; báo cáo gửi client; bán dưới thương hiệu agency | Dev minigame chậm và đắt; không kiểm soát được giải; mỗi campaign làm lại từ đầu |
+| **Minh, Brand Marketing** (ICP #2) | Campaign Tết, 8/3, sinh nhật brand, ra mắt sản phẩm; booth | Lead hợp pháp, kiểm soát chi phí giải, ROI theo kênh | Giải hết trong ngày đầu; bị bot/gian lận vét giải; không đo được hiệu quả |
+| **Hà, HR Manager** (ICP #3, Live add-on) | YEP 300–1.500 người, một lần/năm | Vui, minh bạch, tự làm theo template | Quay số bằng Excel bị nghi gian lận; game nhàm |
+| **Người chơi** | Điện thoại phổ thông, mở link từ Zalo/FB/QR; 4G chập chờn | Vào trong ≤ 10 s, chơi vui, biết ngay mình trúng gì và nhận quà ở đâu | Cài app, form dài, load chậm, trúng rồi không nhận được quà |
 | **MC / Operator** | Đứng trên sân khấu, cầm điện thoại | Nút to, ít bước, có nút cứu hộ | Thao tác laptop phức tạp, sợ lỗi |
 
 ---
@@ -41,11 +42,11 @@ Canvas kéo-thả tự do; minigame online thuần cho bán lẻ; cash/red packe
 | Surface | URL | Thiết bị | Giai đoạn |
 |---|---|---|---|
 | **Studio (Builder)** | `studio.playora.vn` | Desktop | M1 (assisted) → M2 (self-serve) |
-| **Host Console** | `studio.playora.vn/live/{eventId}/host` | **Điện thoại** (mobile-first), tablet, laptop | M1 |
-| **Screen** | `screen.playora.vn/{screenKey}` | PC nối LED/máy chiếu | M1 |
+| **Host Console** (Live add-on) | `studio.playora.vn/live/{eventId}/host` | **Điện thoại** (mobile-first), tablet, laptop | M1 |
+| **Screen** (Live add-on) | `screen.playora.vn/{screenKey}` | PC nối LED/máy chiếu | M1 |
 | **Player** | `play.playora.vn/{slug}` (custom domain ở M4) | Điện thoại, PWA | M1 |
 | **Kiosk** | `play.playora.vn/{slug}?mode=kiosk` | Tablet/màn cảm ứng | M3 (online), M4 (offline) |
-| **Staff (đổi quà)** | `studio.playora.vn/redeem` | Điện thoại | M3 |
+| **Staff (đổi quà)** | `studio.playora.vn/redeem` | Điện thoại | M2 |
 | **Marketing site + gallery** | `playora.vn` | Mọi thiết bị | M1 (landing), M2 (gallery chơi thử) |
 | **Back-office** | `admin.playora.vn` | Desktop | M1 (tối giản) |
 
@@ -57,35 +58,39 @@ Canvas kéo-thả tự do; minigame online thuần cho bán lẻ; cash/red packe
 |---|---|
 | Organization | Tenant (agency, doanh nghiệp) |
 | Client | Khách hàng con của agency, có brand kit và báo cáo riêng (M2) |
-| Event | Một sự kiện: thời gian, identity rule, run-of-show, các game |
+| Event / Campaign | Một chiến dịch hoặc sự kiện: thời gian chạy (một đêm đến nhiều tuần), identity rule, các game, (live) run-of-show |
 | Template | Cơ chế game có phiên bản, gồm config schema, asset slots, surfaces, server logic |
 | Skin / Theme pack | Bộ asset theo chủ đề cho template / gói skin theo dịp cho mọi template |
 | Game / Game version | Instance của template trong event / snapshot bất biến khi publish |
 | Run-of-show | Kịch bản các vòng chơi live theo thứ tự |
 | Round | Một vòng chơi live do MC điều khiển |
 | Prize / Award | Giải thưởng / kết quả trúng một giải |
-| Live Pass | Gói trả theo sự kiện, tính theo số người chơi |
+| Lượt chơi hợp lệ | Một lượt chơi đã qua kiểm tra participation và chống gian lận; đơn vị của North Star |
+| Campaign Pass / Live add-on | Gói trả theo campaign / gói bán thêm cho game sân khấu (xem 02) |
 
 ---
 
 ## 5. User journey
 
-### J1: Agency dựng YEP (M1 assisted → M2 self-serve)
+### J1: Agency dựng campaign Tết (M1 assisted → M2 self-serve)
 
-1. Tạo event "YEP ABC 2026" từ template gallery "YEP", chọn theme "Tết Đinh Mùi".
-2. Import guest list (mã NV, tên, phòng ban). Phòng ban tự trở thành đội.
-3. Run-of-show: Check-in wall → Quiz "Hiểu ABC" → Shake race theo phòng ban → Lucky draw giải Ba/Nhì/Nhất (pool: đã check-in, chưa trúng).
-4. Áp brand kit ABC, preview trên Screen/Player, **rehearsal với 600 bot**, reset.
-5. Đêm sự kiện: Screen trên máy nối LED; MC điều khiển bằng điện thoại.
-6. Sau sự kiện: export danh sách và (M2) báo cáo PDF + biên bản quay thưởng gửi client.
+1. Tạo campaign "Tết ABC 2027" từ gallery "Tết", chọn cơ chế "Mở hộp quà" với skin "Đập trứng vàng".
+2. Áp brand kit ABC; sửa thể lệ, màn Cover/Kết quả trong auto-form; preview trên điện thoại.
+3. Cấu hình giải: 5.000 voucher (import CSV), 50 giải hiện vật, giải an ủi; tỷ lệ trúng tổng 20%; **rải đều** 21 ngày, chỉ 8h–22h; tối đa 3 lượt/ngày và 1 giải hiện vật/người; ngân sách 150 triệu.
+4. Bật chống gian lận mức Chuẩn; tạo link theo kênh (`?ch=zalo-oa`, `?ch=fb-ads`, `?ch=pos`) và QR in POSM.
+5. Chạy campaign: dashboard realtime (lượt chơi, giải còn lại, theo kênh); export người trúng gửi client hằng tuần.
 
-### J2: Người chơi live (M1)
+### J2: Người chơi campaign (M1)
 
-Quét QR → nhập mã NV (hoặc tên + SĐT) → đồng ý điều khoản → màn chờ → chơi theo vòng → kết quả cá nhân/đội → nhận thông báo trúng giải. Mất mạng thì tự kết nối lại và khôi phục trạng thái.
+Mở link từ Zalo/FB hoặc quét QR → Cover + thể lệ → form (tên, SĐT) + consent → chơi → **server quyết định kết quả trước khi animate** → màn kết quả (trúng / không trúng / hết quà) → "Quà của tôi" xem mã voucher. Hết lượt thì báo lượt tiếp theo vào ngày mai.
 
-### J3: Booth activation (M3)
+### J3: YEP với Live add-on (M1)
 
-Agency dựng "Vòng quay Tết" cho brand: 2.000 giải, 3 ngày, rải đều theo giờ mở cửa. **Prize Simulator** xác nhận không hết sớm. Người chơi quét QR, OTP ZNS, quay, nhận voucher qua ZNS. Staff quét QR đổi quà tại quầy; dashboard realtime cho brand.
+Import guest list → run-of-show: Shake race theo phòng ban → Lucky draw giải Ba/Nhì/Nhất (pool: đã tham gia, chưa trúng) → rehearsal với bot → đêm sự kiện: Screen trên LED, MC điều khiển bằng điện thoại.
+
+### J4: Booth activation (M3)
+
+Vòng quay trên kiosk tại booth 3 ngày, dùng chung game version và kho giải với campaign online; staff đổi quà tại quầy bằng quét QR.
 
 ---
 
@@ -116,18 +121,18 @@ Agency dựng "Vòng quay Tết" cho brand: 2.000 giải, 3 ngày, rải đều 
 | BLD-03 | **Preview thật** (player runtime trong iframe nhận config nháp), chuyển Mobile/Screen/Kiosk | M1 (Mobile/Screen), M3 (Kiosk) |
 | BLD-04 | Brand kit (logo, palette, font, nền, nhạc) áp cho mọi game | M1 |
 | BLD-05 | Kế thừa brand kit theo tầng Org → Client → Event → Game | M2 |
-| BLD-06 | Skin và theme pack: M1 có 2 (YEP, Tết); M2 có 6 (hội nghị, ra mắt, Trung thu, Noel, 8/3, khai trương) | M1/M2 |
-| BLD-07 | **Flow chuẩn** chỉnh từng màn (Cover, Form, Lobby, Result các biến thể, Award), có sponsor slot | M2 |
+| BLD-06 | Skin và theme pack: M1 có Tết + Chung (mỗi cơ chế ≥ 2 skin); M2 thêm theme pack 8/3, 30/4, hè, Trung thu, khai trương, sinh nhật brand | M1/M2 |
+| BLD-07 | **Flow chuẩn** campaign: Cover (thể lệ) → Form → Game → Kết quả (trúng/không trúng/hết quà/hết lượt) → Quà của tôi (M1); chỉnh từng màn, sponsor slot (M2) | M1/M2 |
 | BLD-08 | Publish tạo version bất biến; trường `hotEditable` sửa được khi live; trường khác phải tạo version mới | M1 |
-| BLD-09 | **Pre-flight checklist** chặn publish khi thiếu asset, giải, consent, thời gian | M2 |
-| BLD-10 | **Run-of-show editor** (danh sách vòng, tự chuyển/chờ MC, màn chờ) | M1 |
+| BLD-09 | **Pre-flight checklist** chặn publish khi thiếu asset, giải, thể lệ, consent, thời gian (M1: giải/thể lệ/consent; M2: đầy đủ) | M1/M2 |
+| BLD-10 | **Run-of-show editor** (Live add-on: danh sách vòng, tự chuyển/chờ MC, màn chờ) | M1 |
 | BLD-11 | Screen layout editor (tỷ lệ 16:9/32:9/dọc/tuỳ ý, vị trí QR, sponsor loop) | M1 (preset), M2 (tuỳ chỉnh) |
-| BLD-12 | Quiz builder: import Excel, ảnh/video, thời gian từng câu | M1 |
+| ~~BLD-12~~ | ~~Quiz builder~~ — **bỏ ở v2.0** (không làm quiz, xem 00 §6) | — |
 | BLD-13 | Asset manager: upload, tối ưu ảnh tự động, crop theo asset slot | M1 |
 | BLD-14 | Tự lưu nháp, undo/redo | M2 |
 | BLD-15 | Nhân bản event/game; thùng rác 14 ngày | M2 |
 | BLD-16 | Lưu thành template riêng của org (agency tái sử dụng) | M4 |
-| BLD-17 | AI draft từ prompt (MCP/tích hợp): chọn template, skin, giải, copy, câu hỏi quiz | M4 |
+| BLD-17 | AI draft từ prompt (MCP/tích hợp): chọn template, skin, giải, thể lệ, copy | M4 |
 | BLD-18 | Game SDK công khai + marketplace template/skin | Later |
 
 ### 6.3 Sự kiện và tham gia (EVT)
@@ -136,18 +141,20 @@ Agency dựng "Vòng quay Tết" cho brand: 2.000 giải, 3 ngày, rải đều 
 |---|---|---|
 | EVT-01 | CRUD event: slug, thời gian, timezone, trạng thái `draft → scheduled → live → ended → archived` | M1 |
 | EVT-02 | Identity: `anonymous`, `guest_list` (import CSV/XLSX), `form_only` | M1 |
-| EVT-03 | Identity: `phone_otp` (ZNS ưu tiên, SMS dự phòng), `email_otp` | M3 |
+| EVT-03 | Identity: `phone_otp` (ZNS ưu tiên, SMS dự phòng), `email_otp` | M2 |
 | EVT-04 | Identity: Zalo login / Zalo Mini App | M4 |
 | EVT-05 | Form đăng ký (field builder) + consent tách mục đích | M1 |
 | EVT-06 | Đội: theo guest list, tự chọn, chia ngẫu nhiên cân bằng | M1 |
 | EVT-07 | Mã tham gia (một người một mã / dùng chung; import ≤ 50.000; in QR hàng loạt) | M3 |
 | EVT-08 | Requirements trước khi chơi: nhập mã (M3); chụp hoá đơn, xem video (M4) | M3/M4 |
-| EVT-09 | **Rehearsal mode** + bot N người + reset | M1 |
+| EVT-09 | **Rehearsal mode** + bot N người + reset (Live add-on); chế độ chạy thử campaign không trừ kho thật | M1 |
 | EVT-10 | QR tham gia; QR theo khu vực/bàn | M1 |
-| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M3 |
+| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 |
 | EVT-12 | Giới hạn khu vực GPS (điểm + bán kính) | M4 |
+| EVT-13 | **Chống gian lận theo preset** Thấp/Chuẩn/Cao (12 §8): token lượt chơi, rate limit IP/thiết bị, Turnstile, blacklist, gắn cờ tự động (M1: Thấp + Chuẩn; M2: Cao với OTP) | M1/M2 |
+| EVT-14 | **Lượt chơi**: theo ngày / tổng / theo khung giờ (M1); thêm lượt khi chia sẻ có giới hạn, khi nhập mã (M2) | M1/M2 |
 
-### 6.4 Live engine (LIV)
+### 6.4 Live engine (LIV) — Live add-on
 
 | ID | Yêu cầu | GĐ |
 |---|---|---|
@@ -155,7 +162,7 @@ Agency dựng "Vòng quay Tết" cho brand: 2.000 giải, 3 ngày, rải đều 
 | LIV-02 | Screen full-screen, tự kết nối lại, nhiều screen/event, khoá bằng `screenKey` | M1 |
 | LIV-03 | State machine vòng do server điều khiển: `idle → lobby → countdown → playing → result` | M1 |
 | LIV-04 | Degrade mode khi quá tải | M1 |
-| LIV-05 | Kiểm duyệt nội dung người chơi (lọc từ cấm tiếng Việt + duyệt tay) | M1 |
+| LIV-05 | Kiểm duyệt nội dung người chơi (lọc từ cấm tiếng Việt + duyệt tay), đi cùng `checkin-wall` | M3 |
 | LIV-06 | Loại top N khỏi vòng sau; hiển thị top N trên Screen | M1 |
 | LIV-07 | Sponsor slot trên Screen và Player | M2 |
 | LIV-08 | Operator hỗ trợ từ xa (xem trạng thái event của khách) | M2 |
@@ -165,28 +172,36 @@ Agency dựng "Vòng quay Tết" cho brand: 2.000 giải, 3 ngày, rải đều 
 
 Danh mục và giai đoạn: [04-game-catalog.md](./04-game-catalog.md). Tóm tắt:
 
-| GĐ | Template |
-|---|---|
-| **M1** | `checkin-wall`, `live-quiz`, `shake-race` (fallback `tap`), `lucky-draw` · *stretch:* `performance-score` |
-| **M2** | `performance-score`, `tug-of-war`, `money-count`, `launch-ceremony`, `live-poll` (+ word cloud), `danmaku-wall` |
-| **M3** | `spin-wheel`, `scratch-card`, `gift-box` (+ biến thể đập trứng, lưới 9 ô, máy xèng, hộp bí ẩn qua skin), `catch-items`, `memory-match`, `quiz-async` |
-| **M4** | `red-envelope`, `collect-cards`, `puzzle`, `whack-a-mole`, `photo-booth`, `bingo` |
+| GĐ | Minigame (lõi) | Live add-on |
+|---|---|---|
+| **M1** | `spin-wheel`, `scratch-card`, `gift-box` (skin đập trứng vàng, lì xì, hộp bí ẩn), `catch-items` (skill → draw) | `shake-race` (fallback `tap`), `lucky-draw` |
+| **M2** | `memory-match`, `puzzle`, `whack-a-mole`, `red-envelope` | `performance-score` |
+| **M3** | `collect-cards`, `slot-machine`/`gacha` (skin của `gift-box`) | `tug-of-war`, `launch-ceremony`, `checkin-wall`, `danmaku-wall` |
+| **M4** | `photo-booth`, `bingo` | `money-count` |
+
+**Bỏ ở v2.0:** `live-quiz`, `quiz-async`, `live-poll` (xem 00 §6).
+
+| ID | Yêu cầu | GĐ |
+|---|---|---|
+| GAM-01 | **Play engine async**: token lượt chơi dùng một lần; với `instant`, server quyết định kết quả (gồm giải) trước khi client animate | M1 |
+| GAM-02 | Game `skill`: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M1 |
+| GAM-03 | Cùng một game version chạy trên Player (campaign), Kiosk (M3) và Screen (game live) | M1/M3 |
 
 ### 6.6 Giải thưởng (PRZ)
 
 | ID | Yêu cầu | GĐ |
 |---|---|---|
 | PRZ-01 | CRUD giải: tên, ảnh, loại, số lượng, giá trị | M1 |
-| PRZ-02 | **Lucky draw minh bạch**: pool lọc AND/OR (đã check-in, chưa trúng, đội/phòng ban, top N vòng X), commit–reveal, `void` có lý do, log | M1 |
+| PRZ-02 | **Lucky draw minh bạch** (Live add-on): pool lọc AND/OR (đã check-in, chưa trúng, đội/phòng ban, top N vòng X), commit–reveal, `void` có lý do, log | M1 |
 | PRZ-03 | Thông báo trúng trên Screen và Player | M1 |
-| PRZ-04 | Biên bản quay thưởng PDF (thể lệ, danh sách, log, seed) | M2 |
-| PRZ-05 | Chế độ instant-win: `per_prize_probability`, `overall_win_rate`, `guaranteed` | M3 |
-| PRZ-06 | `scheduled_moments`, `score_threshold`, `rank_based` (xác nhận tay) | M3 |
-| PRZ-07 | Pacing: `time_uniform` (tự làm mượt), `batch_release`, `opening_hours`, `end_flush` | M3 |
-| PRZ-08 | **Prize Simulator** trước khi publish | M3 |
-| PRZ-09 | Voucher pool (import/sinh mã), giải an ủi, ngân sách tổng | M3 |
-| PRZ-10 | Đổi quà: điểm đổi + PIN nhân viên, quét QR, tự đổi, đổi hàng loạt | M3 |
-| PRZ-11 | Thông báo trúng qua ZNS/email | M3 |
+| PRZ-04 | Biên bản PDF: thể lệ, danh sách trúng, log, seed (lucky draw) và cấu hình giải (campaign) | M2 |
+| PRZ-05 | **Instant-win**: `per_prize_probability`, `overall_win_rate`, `guaranteed`; tồn kho trừ nguyên tử; server quyết định trước khi client animate | M1 |
+| PRZ-06 | `score_threshold` cho game skill (M1); `scheduled_moments`, `rank_based` có xác nhận tay (M2) | M1/M2 |
+| PRZ-07 | Pacing: `time_uniform` (tự làm mượt), `opening_hours` (M1); `batch_release`, `end_flush` (M2) | M1/M2 |
+| PRZ-08 | **Prize Simulator** trước khi publish | M2 |
+| PRZ-09 | Voucher pool (import CSV/sinh mã), giải an ủi, **ngân sách tổng**, giới hạn giải/người (tổng, ngày, loại) | M1 |
+| PRZ-10 | Nhận quà: "Quà của tôi" + mã voucher (M1); đổi quà staff mode: PIN nhân viên, quét QR, đổi hàng loạt (M2) | M1/M2 |
+| PRZ-11 | Thông báo trúng qua email (M2), ZNS (M2, cần Zalo OA) | M2 |
 | PRZ-12 | "Tặng quà theo danh sách" (không ngẫu nhiên, ghi rõ). **Không** hỗ trợ định trước người trúng | M3 |
 | PRZ-13 | e-gift (topup, e-voucher qua UrBox/ViHat), điểm thưởng qua webhook | M4 |
 
@@ -194,10 +209,10 @@ Danh mục và giai đoạn: [04-game-catalog.md](./04-game-catalog.md). Tóm t�
 
 | ID | Yêu cầu | GĐ |
 |---|---|---|
-| ANL-01 | Dashboard live: người online, tham gia, kết quả vòng | M1 |
-| ANL-02 | Export CSV/XLSX: người tham gia, form (kèm consent), người trúng | M1 |
+| ANL-01 | Dashboard realtime: lượt chơi, người chơi, giải đã phát/còn lại, theo kênh; (Live add-on) người online, kết quả vòng | M1 |
+| ANL-02 | Export CSV/XLSX: người chơi, lượt chơi, form (kèm consent), người trúng, voucher đã phát | M1 |
 | ANL-03 | Báo cáo PDF sau sự kiện (white-label theo agency/client) | M2 |
-| ANL-04 | Funnel: quét → tham gia → chơi → trúng → đổi; theo kênh | M3 |
+| ANL-04 | Funnel: mở link → form → chơi → trúng → nhận/đổi; theo kênh | M2 |
 | ANL-05 | Webhook (`player.registered`, `play.completed`, `prize.awarded`, `prize.redeemed`) | M4 |
 | ANL-06 | Public API; Logic webhook (Enterprise) | M4 |
 
@@ -206,7 +221,7 @@ Danh mục và giai đoạn: [04-game-catalog.md](./04-game-catalog.md). Tóm t�
 | ID | Yêu cầu | GĐ |
 |---|---|---|
 | BIL-01 | Kích hoạt gói thủ công (admin), hoá đơn VAT thủ công | M1 |
-| BIL-02 | Quota người chơi/event + watermark gói Free | M1 |
+| BIL-02 | Quota lượt chơi/campaign, người chơi/event (Live) + watermark gói Free | M1 |
 | BIL-03 | Self-serve: Live Pass, gói Agency; thanh toán PayOS (VietQR) | M2 |
 | BIL-04 | Gói Campaign Pro; credit OTP/ZNS | M3 |
 | BIL-05 | Hoá đơn điện tử tự động; Stripe cho thẻ quốc tế | M4 |
@@ -239,18 +254,19 @@ Danh mục và giai đoạn: [04-game-catalog.md](./04-game-catalog.md). Tóm t�
 
 ## 8. Tiêu chí nghiệm thu M1 (Definition of Ready for Pilot)
 
-1. **Builder:** 1 PM agency đối tác (không phải người của Playora) dựng được event YEP 4 game + brand kit + guest list trong ≤ 60 phút, có ≤ 2 lần hỏi hỗ trợ.
-2. **Tải:** k6 với 5.000 client (shake race 60 s + quiz 10 câu): không mất kết nối diện rộng, CPU < 70%, p95 < 150 ms.
-3. **Lucky draw:** 1.000 lần chạy tự động, 0 người trúng hai lần khi bật loại trùng; log khớp 100%; kiểm chứng được commit–reveal.
-4. **Phục hồi:** Screen/Host/Player mất mạng 10 s thì tự hồi phục đúng trạng thái vòng.
-5. **Thiết bị:** chạy được trên iPhone SE, iPhone 12, Samsung A-series, Xiaomi tầm thấp, Zalo/FB in-app; shake race có fallback tap khi bị chặn motion.
-6. **Dữ liệu:** export người tham gia và người trúng đúng 100% so với DB.
+1. **Builder:** 1 PM agency đối tác (không phải người của Playora) dựng được campaign Tết (1 minigame + brand kit + giải + voucher pool + thể lệ + link theo kênh) trong ≤ 60 phút, có ≤ 2 lần hỏi hỗ trợ.
+2. **Prize engine:** 1.000.000 lượt mô phỏng với 50 luồng đồng thời: **0** vượt tồn kho, **0** vượt ngân sách, **0** vượt giới hạn giải/người; khi bật `time_uniform`, giải còn lại bám đường kế hoạch ± 10%.
+3. **Tải campaign:** k6 đỉnh 500 lượt chơi/giây trong 10 phút: p95 API < 200 ms, 0 lỗi 5xx, kết quả nhất quán với DB.
+4. **Chống gian lận:** script chơi lặp từ 1 thiết bị/IP bị chặn theo preset; lượt bị gắn cờ không nhận giải.
+5. **Live add-on:** k6 5.000 client shake race 60 s: CPU < 70%, p95 < 150 ms; lucky draw 1.000 lần chạy, 0 người trúng hai lần khi bật loại trùng, kiểm chứng được commit–reveal; Screen/Host/Player mất mạng 10 s thì tự hồi phục.
+6. **Thiết bị:** chạy được trên iPhone SE, iPhone 12, Samsung A-series, Xiaomi tầm thấp, Zalo/FB in-app.
+7. **Dữ liệu:** export người chơi, người trúng và voucher đã phát đúng 100% so với DB.
 
 ---
 
 ## 9. Câu hỏi mở
 
-1. Tính Live Pass theo "người tham gia" (đã join) hay "người chơi ≥ 1 vòng"? *Đề xuất:* đã join, vì dễ hiểu và dễ kiểm.
-2. Có cần hỗ trợ khách không có máy nối LED (cho thuê mini PC qua đối tác)?
+1. Tính phí campaign theo lượt chơi hợp lệ hay theo người chơi duy nhất? *Đề xuất:* người chơi duy nhất (dễ hiểu với brand), quota lượt làm trần chống lạm dụng.
+2. Zalo OA cho ZNS cần duyệt trước: đăng ký từ M1 để có ở M2?
 3. Gói Free ≤ 100 người có gây "ăn mòn" Live Pass S không? Theo dõi tỷ lệ nâng cấp ở M2.
 4. Thời điểm mở gallery template công khai (SEO) là M2 hay sớm hơn để bắt đầu mùa YEP 2027?

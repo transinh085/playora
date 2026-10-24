@@ -1,6 +1,6 @@
 # 12 — Đặc tả Game Builder (tính năng lõi)
 
-Cập nhật: 23/10/2026 · Đầu vào: [11-game-builder-research.md](./11-game-builder-research.md) · Liên quan: [prd.md](./prd.md), [04-game-catalog.md](./04-game-catalog.md), [05-architecture.md](./05-architecture.md)
+Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.0) · Đầu vào: [11-game-builder-research.md](./11-game-builder-research.md) · Liên quan: [prd.md](./prd.md), [04-game-catalog.md](./04-game-catalog.md), [05-architecture.md](./05-architecture.md)
 
 ---
 
@@ -160,35 +160,37 @@ const config = z.object({
 
 ### 6.2 Chế độ quyết định kết quả
 
-| Chế độ | Mô tả | Nguồn cảm hứng |
-|---|---|---|
-| `per_prize_probability` | Mỗi giải có xác suất (thang 1/10.000); tổng ≤ 100% | 人人秀, Easypromos |
-| `overall_win_rate` | Một tỷ lệ trúng tổng; khi trúng thì chọn giải theo tỷ lệ tồn kho còn lại | 凡科/Guandayun |
-| `scheduled_moments` | Mỗi đơn vị giải có thời điểm mở; người đầu tiên chơi sau thời điểm đó sẽ trúng | Qualifio, Easypromos |
-| `guaranteed` | Ai chơi cũng trúng một giải (theo tồn kho) | Drimify "100% winner" |
-| `score_threshold` | Skill game: đạt điểm ngưỡng thì được một lượt draw (kết hợp chế độ khác) | 易企秀 |
-| `rank_based` | Phát theo thứ hạng leaderboard khi kết thúc; **organizer xác nhận** trước khi phát | 凡科, 易企秀 |
-| `live_draw` | Lucky draw từ pool người chơi (commit–reveal) | Playora |
+| Chế độ | Mô tả | Nguồn cảm hứng | Ưu tiên |
+|---|---|---|---|
+| `per_prize_probability` | Mỗi giải có xác suất (thang 1/10.000); tổng ≤ 100% | 人人秀, Easypromos | M1 |
+| `overall_win_rate` | Một tỷ lệ trúng tổng; khi trúng thì chọn giải theo tỷ lệ tồn kho còn lại | 凡科/Guandayun | M1 |
+| `scheduled_moments` | Mỗi đơn vị giải có thời điểm mở; người đầu tiên chơi sau thời điểm đó sẽ trúng | Qualifio, Easypromos | M2 |
+| `guaranteed` | Ai chơi cũng trúng một giải (theo tồn kho) | Drimify "100% winner" | M1 |
+| `score_threshold` | Skill game: đạt điểm ngưỡng thì được một lượt draw (kết hợp chế độ khác) | 易企秀 | M1 |
+| `rank_based` | Phát theo thứ hạng leaderboard khi kết thúc; **organizer xác nhận** trước khi phát | 凡科, 易企秀 | M2 |
+| `live_draw` | Lucky draw từ pool người chơi (commit–reveal) | Playora | M1 (Live add-on) |
 
 ### 6.3 Phân phối theo thời gian (pacing)
 
-| Chiến lược | Mô tả |
-|---|---|
-| `none` | Phát đến khi hết |
-| `time_uniform` | Rải đều theo thời lượng; cho phép vượt `buffer` %; **tự làm mượt**: tính lại xác suất sau mỗi lần trúng, khung thiếu người chơi thì giải dồn sang khung sau (Drimify) |
-| `traffic_based` | Xác suất điều chỉnh theo lưu lượng dự kiến (凡科 "按人流量") |
-| `batch_release` | Mở kho theo đợt cố định (vd. 100 giải lúc 10:00, 100 lúc 14:00) (凡科 分批放奖, 易企秀 库存释放) |
-| `opening_hours` | Chỉ phát trong khung giờ hoạt động (giờ mở cửa booth) (Easypromos) |
-| `end_flush` | N phút cuối: chuyển sang `guaranteed` để xả kho (Drimify) |
+| Chiến lược | Mô tả | Ưu tiên |
+|---|---|---|
+| `none` | Phát đến khi hết | M1 |
+| `time_uniform` | Rải đều theo thời lượng; cho phép vượt `buffer` %; **tự làm mượt**: tính lại xác suất sau mỗi lần trúng, khung thiếu người chơi thì giải dồn sang khung sau (Drimify) | M1 |
+| `traffic_based` | Xác suất điều chỉnh theo lưu lượng dự kiến (凡科 "按人流量") | M3 |
+| `batch_release` | Mở kho theo đợt cố định (vd. 100 giải lúc 10:00, 100 lúc 14:00) (凡科 分批放奖, 易企秀 库存释放) | M2 |
+| `opening_hours` | Chỉ phát trong khung giờ hoạt động (giờ mở cửa booth) (Easypromos) | M1 |
+| `end_flush` | N phút cuối: chuyển sang `guaranteed` để xả kho (Drimify) | M2 |
 
 ### 6.4 Ràng buộc
+
+Có từ M1 (cùng tồn kho, là phần của prize engine v1).
 
 - Tối đa giải/người (tổng, theo ngày, theo loại).
 - Không trúng lặp cùng giải.
 - Giới hạn theo nhóm (đội, phòng ban, cửa hàng).
 - **Ngân sách tổng** theo `valueVnd`: chặn khi vượt.
 
-### 6.5 Prize Simulator (khác biệt của Playora)
+### 6.5 Prize Simulator (khác biệt của Playora, M2)
 
 Trước khi publish, organizer nhập **lưu lượng dự kiến** (vd. 3.000 người/ngày × 2 ngày, giờ cao điểm 11–13h, 17–19h). Simulator chạy Monte Carlo 1.000 lần trên `packages/core/prize`, rồi vẽ:
 - Đường giải còn lại theo thời gian.
@@ -208,24 +210,24 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 
 | Điều kiện | Mô tả | Ưu tiên |
 |---|---|---|
-| Ẩn danh | `deviceId` (localStorage); Turnstile từ M3 | M1 |
+| Ẩn danh | `deviceId` (localStorage); Turnstile (chống gian lận mức Chuẩn) | M1 |
 | Guest list | Import Excel (mã NV, tên, phòng ban, đội); người chơi nhập mã hoặc quét QR cá nhân | M1 |
 | **Mã tham gia** | Một người một mã / một lần một mã / mã dùng chung; import tối đa 50.000 mã/lần; sinh mã hàng loạt và in QR | M3 |
 | Form bắt buộc | Field builder + consent | M1 |
-| OTP SĐT / email | ZNS ưu tiên, SMS dự phòng; chặn đầu số ảo và email dùng một lần | M3 |
+| OTP SĐT / email | ZNS ưu tiên, SMS dự phòng; chặn đầu số ảo và email dùng một lần | M2 |
 | Zalo | Đăng nhập Zalo / Zalo Mini App (lấy SĐT đã xác thực) | M4 |
 | **Requirements** trước khi chơi | Nhập mã (nắp chai, hoá đơn), **chụp hoá đơn** (duyệt tay hoặc OCR Later), xem video, trả lời câu hỏi | M3 (mã), M4 (hoá đơn, video) |
 | Vị trí | GPS (điểm + bán kính); cảnh báo vì GPS có thể bị giả | M4 |
 | Thời gian | Khung giờ hoạt động, lịch theo ngày | M1 |
 | Trần người chơi | Theo gói và theo cấu hình | M1 |
-| Lượt chơi | Theo ngày/tổng; thêm lượt khi chia sẻ (giới hạn), khi nhập mã, khi làm nhiệm vụ | M3 |
+| Lượt chơi | Theo ngày/tổng; thêm lượt khi chia sẻ (giới hạn), khi nhập mã, khi làm nhiệm vụ | M1 (theo ngày/tổng), M3 (thêm lượt) |
 | Đội | Gán theo guest list, người chơi tự chọn, hoặc chia ngẫu nhiên cân bằng | M1 |
 
 ---
 
 ## 8. Chống gian lận: preset theo mức
 
-| Biện pháp | Thấp (YEP nội bộ) | Chuẩn (booth) | Cao (campaign online) |
+| Biện pháp | Thấp (YEP nội bộ, Live) | Chuẩn (campaign M1, booth) | Cao (campaign giá trị lớn, M2 có OTP) |
 |---|---|---|---|
 | Server quyết định kết quả, token lượt chơi | ✅ | ✅ | ✅ |
 | Rate limit IP/device/token | Lỏng (NAT hội trường) | ✅ | ✅ chặt |
@@ -244,7 +246,7 @@ Không đối thủ nào có tính năng này. Nó giải trực tiếp nỗi lo
 | Kênh | Mô tả | Ưu tiên |
 |---|---|---|
 | Link + QR | `play.playora.vn/{slug}`; QR tải PNG/SVG/PDF in ấn | M1 |
-| **Link theo kênh** | `?ch=booth-a`, `?ch=fb-ads`… thống kê theo kênh (凡科 渠道管理) | M3 |
+| **Link theo kênh** | `?ch=booth-a`, `?ch=fb-ads`… thống kê theo kênh (凡科 渠道管理) | M1 |
 | Poster chia sẻ | Sinh ảnh poster có QR cá nhân hoá | M4 |
 | Embed | iframe / script vào website brand | M4 |
 | Kiosk | Full-screen, auto-reset sau mỗi người (N giây), khoá điều hướng, chế độ offline (M4) | M3 (online), M4 (offline) |
@@ -262,11 +264,10 @@ Organizer dựng **kịch bản chương trình** dạng danh sách vòng. Ví d
 
 ```
 1. Check-in wall (từ 18:00)
-2. Quiz "Hiểu ABC" — 10 câu
-3. Shake Race — theo phòng ban — 60 s
-4. Lucky Draw — Giải Ba ×10 (pool: đã check-in, chưa trúng)
-5. Chấm điểm tiết mục văn nghệ
-6. Lucky Draw — Giải Nhì ×3 → Giải Nhất ×1
+2. Shake Race — theo phòng ban — 60 s
+3. Lucky Draw — Giải Ba ×10 (pool: đã check-in, chưa trúng)
+4. Chấm điểm tiết mục văn nghệ
+5. Lucky Draw — Giải Nhì ×3 → Giải Nhất ×1
 ```
 
 - Mỗi vòng có các tuỳ chọn: tự chuyển hoặc chờ MC, nhạc chờ, màn idle.
@@ -300,11 +301,13 @@ Organizer dựng **kịch bản chương trình** dạng danh sách vòng. Ví d
 
 ## 11. Đổi quà (redemption)
 
-- **Điểm đổi quà:** organizer tạo "điểm đổi" (quầy/cửa hàng) và **mã PIN nhân viên** cho từng điểm.
-- **Staff mode** (trên web Studio, giao diện mobile): quét QR của người trúng → xem giải → xác nhận → `redeemed`. Chống đổi hai lần.
-- **Tự đổi** (self-redeem): người chơi nhập PIN do nhân viên đưa (học từ 凡科 自助核销).
-- **Đổi hàng loạt:** upload CSV mã đã đổi.
-- **Báo cáo:** đã phát / đã đổi / chưa đổi / hết hạn, theo điểm đổi.
+M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi quà tại quầy bắt đầu từ M2.
+
+- **Điểm đổi quà (M2):** organizer tạo "điểm đổi" (quầy/cửa hàng) và **mã PIN nhân viên** cho từng điểm.
+- **Staff mode (M2)** (trên web Studio, giao diện mobile): quét QR của người trúng → xem giải → xác nhận → `redeemed`. Chống đổi hai lần.
+- **Tự đổi** (self-redeem, M3): người chơi nhập PIN do nhân viên đưa (học từ 凡科 自助核销).
+- **Đổi hàng loạt (M2):** upload CSV mã đã đổi.
+- **Báo cáo (M2):** đã phát / đã đổi / chưa đổi / hết hạn, theo điểm đổi.
 
 ---
 
@@ -341,22 +344,28 @@ Organizer dựng **kịch bản chương trình** dạng danh sách vòng. Ví d
 
 Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn).
 
-| Hạng mục builder | M1 "YEP Live" (assisted) | M2 Live Self-serve & Agency | M3 Booth & Activation | M4 Scale & Platform | Later |
+| Hạng mục builder | M1 "Tết Campaign" + Live add-on (assisted) | M2 Self-serve & Agency | M3 Booth & Activation | M4 Scale & Platform | Later |
 |---|---|---|---|---|---|
 | Template registry + **auto-form** + **preview thật** | ✅ Mobile/Screen | Polish | Kiosk preview | | |
 | Brand kit | Org/Event | **Kế thừa Org → Client → Event** | | | |
-| Skin / theme pack | 2 (YEP, Tết) | 8 | +Trung thu, Noel… | YEP 2027 (4 theme) | Marketplace |
+| Skin / theme pack | Tết + Chung (mỗi minigame ≥ 2 skin) | 8 (8/3, 30/4, hè…) | +Trung thu, Noel… | Tết 2028 + YEP 2027 | Marketplace |
 | Publish → version bất biến + `hotEditable` | ✅ | | | | |
 | **Run-of-show** + Screen layout | ✅ preset | Tuỳ chỉnh layout | | | |
 | Flow chuẩn chỉnh từng màn + sponsor slot | Màn mặc định | ✅ | Màn async (requirements, result biến thể) | | |
 | Autosave, undo/redo, **pre-flight**, nhân bản, thùng rác | | ✅ | | | |
 | Gallery công khai + onboarding | | ✅ | | | |
-| Prize: lucky draw minh bạch | ✅ | Biên bản PDF | | | |
-| Prize: instant-win, pacing, scheduled, score_threshold, rank | | | ✅ | | |
-| **Prize Simulator** | | | ✅ | | |
-| Voucher pool, đổi quà staff mode, gift list | | | ✅ | e-gift, points | |
-| Participation: guest list, form, đội, thời gian, trần | ✅ | | | | |
-| Mã tham gia, OTP ZNS, requirements "nhập mã", link theo kênh | | | ✅ | | |
+| Prize: lucky draw minh bạch (Live add-on) | ✅ | Biên bản PDF | | | |
+| Prize v1: `per_prize_probability`, `overall_win_rate`, `guaranteed`, `score_threshold`, tồn kho, giới hạn, ngân sách | ✅ | | | | |
+| Pacing: `time_uniform`, `opening_hours` | ✅ | | | | |
+| Pacing: `batch_release`, `end_flush` | | ✅ | `traffic_based` | | |
+| Prize: `scheduled_moments`, `rank_based` | | ✅ | | | |
+| **Prize Simulator** | | ✅ | | | |
+| Voucher pool | ✅ | | | e-gift, points | |
+| Đổi quà | "Quà của tôi" + mã voucher | Staff mode, đổi hàng loạt | Tự đổi, gift list | | |
+| Participation: guest list, form, đội, thời gian, trần, lượt chơi theo ngày/tổng | ✅ | | | | |
+| Link theo kênh `?ch=` | ✅ | | Funnel theo kênh | | |
+| OTP ZNS/SMS | | ✅ | | | |
+| Mã tham gia, requirements "nhập mã", thêm lượt | | | ✅ | | |
 | Zalo, GPS, hoá đơn/video | | | | ✅ | OCR |
 | Anti-cheat preset | Thấp/Chuẩn | | Cao | | |
 | Kiosk | | | Online | Offline | |
@@ -389,13 +398,13 @@ Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trì
 
 **M1 (assisted):**
 
-1. 1 PM agency đối tác dựng event YEP 4 game + brand kit + guest list trong ≤ 60 phút, ≤ 2 lần hỏi hỗ trợ.
+1. 1 PM agency đối tác dựng campaign Tết (1 minigame + brand kit + giải + voucher pool + thể lệ + link theo kênh) trong ≤ 60 phút, ≤ 2 lần hỏi hỗ trợ.
 2. Preview khớp 100% với bản publish (snapshot test trên 4 template M1).
 3. Template mới chỉ cần khai báo `configSchema` + `assetSlots` là editor tự sinh form đầy đủ (không sửa code Studio).
 4. Sửa brand kit ở org thì mọi game chưa ghi đè đổi theo ở bản nháp, sau đó publish lại.
 
 **M2 (self-serve):**
 
-5. 3/3 người dùng thử (agency PM, HR, marketer) tạo event live và áp brand kit trong ≤ 30 phút, không cần hỗ trợ.
+5. 3/3 người dùng thử (agency PM, brand marketer, HR) tạo campaign có giải và áp brand kit trong ≤ 30 phút, không cần hỗ trợ.
 6. Pre-flight chặn publish khi thiếu asset bắt buộc, khi giải không có số lượng, hoặc khi chưa có consent.
 7. ≥ 60% sự kiện thật trong M2 được khách tự dựng, không cần ticket hỗ trợ.

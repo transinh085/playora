@@ -119,7 +119,7 @@ Nguồn: [LSVN](https://lsvn.vn/nhung-diem-moi-can-luu-y-ve-hoat-dong-khuyen-mai
 
 ## 6. Checklist trước pilot (cuối Sprint 3)
 
-- [ ] Ý kiến luật sư về khuyến mại và PDPL cho 3 kịch bản: YEP nội bộ, booth activation không gắn mua hàng, campaign gắn hoá đơn
+- [ ] Ý kiến luật sư về khuyến mại và PDPL cho các kịch bản: campaign minigame có thưởng online (đăng ký/thông báo khuyến mại với Sở Công Thương), YEP nội bộ, booth activation không gắn mua hàng, campaign gắn hoá đơn
 - [ ] ToS, Privacy Policy, DPA bản tiếng Việt
 - [ ] Mẫu consent và thông báo xử lý dữ liệu
 - [ ] Test cross-tenant tự động cho mọi endpoint Studio

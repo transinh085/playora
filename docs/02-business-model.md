@@ -1,6 +1,6 @@
 # 02 — Mô hình kinh doanh
 
-Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]` cần kiểm chứng ở M0 và pilot M1.
+Cập nhật: 24/10/2026 · Nhất quán với [00-product-strategy.md](./00-product-strategy.md) v2.0 · Mọi con số tài chính là giả định `[GĐ]` cần kiểm chứng ở M0 và pilot M1.
 
 ---
 
@@ -8,11 +8,11 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 
 | Khách hàng | Job-to-be-done | Playora mang lại |
 |---|---|---|
-| **Agency sự kiện** | "Có game có thương hiệu cho sự kiện tuần sau, chạy ổn với 1.000 khách, có báo cáo gửi brand" | Dựng game trong 30 phút từ template; chịu tải 5.000+ người chơi đồng thời; white-label; báo cáo lead và lượt chơi export ngay; giá bằng 1/5–1/10 làm custom |
-| **HR / Internal comms** | "YEP vui, quay số minh bạch, không cần IT" | Live Pass: check-in, quiz về công ty, lắc điện thoại, kéo co theo phòng ban, quay số trên LED có log minh bạch |
-| **Brand marketing** | "Thu first-party data hợp pháp và đo được hiệu quả activation" | Form lead có consent theo PDPL, quản lý giải và voucher, chống gian lận, dashboard ROI, webhook về CRM |
+| **Agency digital / activation / sự kiện** (ICP #1) | "Có vòng quay Tết có logo khách trong 3 tuần, 5.000 giải, không hết giải ngày đầu, có báo cáo gửi client mỗi tuần" | Dựng minigame có thưởng trong 30 phút từ template × skin theo mùa; prize engine kiểm soát tồn kho, ngân sách và tốc độ phát giải; white-label; báo cáo gửi client; giá bằng 1/5–1/10 thuê dev làm riêng |
+| **Brand marketing tầm trung** (ICP #2) | "Chạy minigame theo mùa để thu first-party data hợp pháp, không vượt ngân sách giải, không bị nghi gian lận" | Minigame có thưởng chạy online (link/QR/Zalo), form lead có consent theo PDPL, voucher pool, link theo kênh, chống gian lận, log kiểm chứng, dashboard + export; tự dựng và tự trả tiền từ M2 |
+| **HR / Internal comms** (ICP #3, mua Live add-on) | "YEP vui, quay số minh bạch, không cần IT" | **Live add-on:** lắc/chạm đua trên LED (shake/tap race), lucky draw minh bạch có log, Host Console cho MC; minigame nội bộ dùng chung engine với campaign |
 
-**Tagline đề xuất:** *"Game sự kiện có thương hiệu: dựng trong 30 phút, chạy cho hàng nghìn người."*
+**Tagline:** *"Dựng minigame có thưởng trong 30 phút."*
 
 ---
 
@@ -20,15 +20,15 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 
 | Khối | Nội dung |
 |---|---|
-| **Customer segments** | ICP #1: Agency sự kiện/activation (người mua + kênh). ICP #2: HR doanh nghiệp. #3: Brand marketing (qua agency). Không ưu tiên: shop online/SME bán lẻ |
+| **Customer segments** | ICP #1: Agency digital/activation/sự kiện (người mua + kênh phân phối). ICP #2: Brand marketing tầm trung (qua agency ở M1, tự phục vụ từ M2). #3: HR/Internal comms (mua Live add-on). Không ưu tiên: shop nhỏ, SME bán lẻ rất nhỏ (gói Free) |
 | **Value propositions** | Xem mục 1 |
-| **Channels** | Sales trực tiếp tới agency; product-led (free tier có watermark lan truyền qua người chơi); chương trình đối tác agency; SEO và template gallery; đối tác AV/LED, khách sạn, trung tâm hội nghị |
-| **Customer relationships** | Self-serve và onboarding; Customer Success cho Agency/Enterprise; operator hỗ trợ tại sự kiện (add-on); cộng đồng người dùng |
-| **Revenue streams** | Live Pass (theo sự kiện); subscription Agency/Campaign Pro; Enterprise license; add-on (OTP/ZNS, custom domain, AI credits); dịch vụ (game custom, vận hành tại chỗ) |
-| **Key resources** | Game engine và thư viện template; realtime infra; prize engine; brand và case study |
-| **Key activities** | Phát triển template; vận hành hạ tầng mùa cao điểm; bán hàng cho agency; CS tại sự kiện |
-| **Key partners** | Agency sự kiện; nhà cung cấp LED/AV; cổng thanh toán (PayOS/VNPay/MoMo, VietQR); Zalo (ZNS, Mini App); cloud/CDN; công ty luật (khuyến mại, PDPL) |
-| **Cost structure** | Nhân sự (~70%); cloud và CDN; SMS/ZNS (pass-through); marketing và sales; pháp lý và kế toán |
+| **Channels** | Sales trực tiếp tới agency; chương trình đối tác agency; product-led (gói Free có watermark lan truyền qua người chơi); SEO và template gallery theo mùa; đối tác AV/LED, khách sạn, trung tâm hội nghị (cho Live add-on) |
+| **Customer relationships** | Self-serve và onboarding; Customer Success cho Agency/Enterprise; dựng hộ (concierge) trong pilot; operator hỗ trợ sự kiện live (add-on); cộng đồng agency |
+| **Revenue streams** | **Campaign Pass** (theo campaign); **gói Agency năm**; **Live add-on** (upsell theo sự kiện); Enterprise license; add-on (OTP/ZNS, skin riêng, AI credits); dịch vụ (game custom, vận hành tại chỗ) |
+| **Key resources** | Play engine + thư viện minigame × skin theo mùa; prize & participation engine; realtime infra (Live); brand và case study |
+| **Key activities** | Ra skin theo mùa đều đặn; phát triển cơ chế mới (ít, đáng giá ≥ 10 skin); đảm bảo đúng đắn prize engine; bán hàng cho agency; CS mùa cao điểm |
+| **Key partners** | Agency; nhà cung cấp LED/AV; cổng thanh toán (PayOS/VNPay/MoMo, VietQR); Zalo (ZNS, Mini App); đối tác e-gift (UrBox/ViHat, M4); cloud/CDN; công ty luật (khuyến mại, PDPL) |
+| **Cost structure** | Nhân sự (~70%); cloud và CDN; SMS/ZNS (pass-through); art/skin theo mùa; marketing và sales; pháp lý và kế toán |
 
 ---
 
@@ -36,27 +36,28 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 
 ### 3.1 Nguyên tắc
 
-- **Hai cách mua song song:** *Live Pass* cho người dùng theo mùa (HR, brand chạy 1–2 sự kiện/năm) và *Subscription* cho người dùng thường xuyên (agency).
-- **Đơn vị đo:** **người chơi duy nhất (unique player)** cho mỗi sự kiện. Dễ hiểu, gắn với giá trị thật, và gắn với chi phí hạ tầng.
-- **Không tính phí theo lượt chơi**, để khách không ngại cho người chơi chơi nhiều lần.
-- Định giá bằng VND, xuất hoá đơn VAT, thanh toán bằng VietQR hoặc chuyển khoản.
+- **Hai cách mua song song:** *Campaign Pass* (mua theo từng campaign, cho brand chạy vài campaign/năm) và *gói Agency năm* (cho agency chạy nhiều campaign cho nhiều client). **Live add-on** là upsell theo sự kiện, gắn vào campaign/gói Agency hoặc mua riêng.
+- **Đơn vị đo:** **người chơi duy nhất (unique player)** trên mỗi campaign, cộng thời lượng campaign. Dễ hiểu, gắn với giá trị thật và với chi phí hạ tầng.
+- **Không tính phí theo lượt chơi**, để khách không ngại cho người chơi chơi nhiều lượt (khác WOAY bán quota lượt/tháng).
+- Định giá bằng VND, xuất hoá đơn VAT, thanh toán bằng VietQR hoặc chuyển khoản. M1 kích hoạt gói thủ công; self-serve qua PayOS từ M2.
 
 ### 3.2 Gói
 
-> **Điều chỉnh sau nghiên cứu ([11 §8](./11-game-builder-research.md#8-mô-hình-giá-hệ-quả-cho-playora)):**
-> - Quay số và check-in tại VN đã bị hàng hoá hoá (Luck4You 690k–3,99tr, EDC 1–4tr, Outing 250k mỗi sự kiện), nên Playora **cho free** lucky draw và check-in ở quy mô nhỏ để kéo khách.
-> - Doanh thu đến từ **game nhiều người trên LED + builder + prize engine + white-label**, là những thứ chưa ai có.
-> - Mỏ neo quốc tế: Kahoot event pass $199–799; Crowdpurr $50–1.000/tháng.
+> **Điều chỉnh sau nghiên cứu ([11 §8](./11-game-builder-research.md#8-mô-hình-giá-hệ-quả-cho-playora)) và chiến lược v2.0:**
+> - Doanh thu lõi đến từ **minigame campaign có thưởng**: ngân sách lặp lại theo mùa (Tết, 8/3, 30/4, Trung thu, sinh nhật brand, khai trương).
+> - Mỏ neo trong nước: WOAY Pro 50.000đ/ngày (500 lượt/tháng), Pro-Adv 300.000đ/ngày (5.000 lượt/tháng) ([01](./01-market-research.md)). Playora bán **theo campaign, không giới hạn lượt**, kèm prize engine và skin theo mùa.
+> - Quay số và check-in tại VN đã bị hàng hoá hoá (Luck4You 690k–3,99tr, EDC 1–4tr, Outing 250k mỗi sự kiện), nên Playora **không bán quay số riêng lẻ**; lucky draw quy mô nhỏ cho free để kéo khách, phần live có giá nằm trong **Live add-on**.
+> - Mỏ neo quốc tế: Drimify/Easypromos theo campaign hoặc theo năm (USD/EUR); Kahoot event pass $199–799.
 
 | Gói | Giá | Giới hạn chính | Đối tượng |
 |---|---|---|---|
-| **Free** | 0đ | ≤ 100 người/sự kiện; check-in wall, lucky draw (log minh bạch), quiz live và 1 game live; watermark "Powered by Playora" | Dùng thử, nhóm nhỏ, trường học; **kênh kéo khách** |
-| **Live Pass S** | 990.000đ / sự kiện | ≤ 300 người; mọi game live; bỏ watermark; run-of-show; export | YEP công ty vừa |
-| **Live Pass M** | 2.490.000đ / sự kiện | ≤ 1.000 người; theme pack mùa; báo cáo PDF; biên bản quay thưởng | YEP lớn, hội nghị |
-| **Live Pass L** | 4.990.000đ / sự kiện | ≤ 3.000 người; custom domain; hỗ trợ ưu tiên; operator từ xa | Activation, roadshow, đại hội |
-| **Live Pass XL** | Từ 9.900.000đ | ≤ 10.000+; kiểm thử tải trước; operator trực tại chỗ | Concert, sự kiện lớn |
-| **Campaign Pro** | 1.490.000đ/tháng (trả năm −20%) | Game async (H5, booth, kiosk); 10.000 người chơi/tháng; prize engine đầy đủ; voucher; link theo kênh; 2 seat | Brand, chuỗi bán lẻ, F&B |
-| **Agency** | 4.990.000đ/tháng (trả năm −20%) | 5 seat; **white-label** (logo, domain, email, báo cáo); client workspace; 30.000 người chơi/tháng gộp; **Live Pass giảm 40%**; lưu template riêng | Agency sự kiện và activation |
+| **Free** | 0đ | ≤ 200 người chơi/campaign `[GĐ]`, ≤ 7 ngày `[GĐ]`; 1 minigame, skin chung; prize engine cơ bản (tỷ lệ, tồn kho); lucky draw ≤ 100 người (log minh bạch); watermark "Powered by Playora" | Dùng thử, shop nhỏ; **kênh kéo khách** |
+| **Campaign S** | 1.990.000đ / campaign `[GĐ]` | ≤ 2.000 người chơi `[GĐ]`, ≤ 30 ngày `[GĐ]`; 1 minigame; bỏ watermark; prize engine v1 (giới hạn, ngân sách, rải đều, khung giờ); voucher pool; link theo kênh; dashboard + export | Brand chạy campaign nhỏ, chuỗi F&B địa phương |
+| **Campaign M** | 4.990.000đ / campaign `[GĐ]` | ≤ 10.000 người chơi `[GĐ]`, ≤ 60 ngày `[GĐ]`; ≤ 3 minigame; theme pack theo mùa; Prize Simulator, báo cáo PDF + biên bản (từ M2) | Campaign Tết, 8/3, ra mắt sản phẩm |
+| **Campaign L** | Từ 9.900.000đ / campaign `[GĐ]` | ≤ 50.000+ người chơi `[GĐ]`; chống gian lận mức Cao, OTP (credit riêng); kiểm thử tải; hỗ trợ ưu tiên | Campaign toàn quốc, chuỗi bán lẻ lớn |
+| **Agency Starter** | 29.900.000đ / năm `[GĐ]` | 3 seat; ≤ 8 campaign/năm `[GĐ]` (mỗi campaign tới mức M); **white-label cơ bản**; client workspace; báo cáo gửi client; **Live add-on giảm 30%** `[GĐ]` | Agency nhỏ, 5–15 nhân sự |
+| **Agency Pro** | 59.900.000đ / năm `[GĐ]` | 10 seat; **không giới hạn số campaign**, 200.000 người chơi/năm gộp `[GĐ]`; white-label (logo, domain, email, báo cáo); template riêng của org (M4); **Live add-on giảm 40%** `[GĐ]`; CS riêng | Agency digital/activation 15–50 nhân sự |
+| **Live add-on** | S 990.000đ (≤ 300 người) · M 2.490.000đ (≤ 1.000) · L 4.990.000đ (≤ 3.000) · XL từ 9.900.000đ (≤ 10.000+) / sự kiện | Shake/tap race trên LED, lucky draw minh bạch (lọc pool, commit–reveal, log), Host Console mobile, rehearsal; XL kèm kiểm thử tải và operator tại chỗ | HR (YEP, Family Day, hội nghị); agency bán kèm campaign |
 | **Enterprise** | Từ 150 triệu đ/năm | SSO, SLA 99,9%, DPA, logic webhook, API, dedicated instance, template riêng | Ngân hàng, tập đoàn, FMCG lớn |
 | **Reseller / OEM** (M4) | Chiết khấu 30–50% | Bán lại dưới thương hiệu riêng (theo mô hình đại lý của 凡科) | Agency lớn, đối tác AV |
 
@@ -64,11 +65,12 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 
 | Hạng mục | Giá | Ghi chú |
 |---|---|---|
-| OTP SMS / Zalo ZNS | Giá vốn + 20–30% | Pass-through, trả trước bằng credit |
-| AI asset credits | 200.000đ / 100 credit | Sinh nền, nhân vật, câu hỏi quiz theo brand kit |
-| Operator tại sự kiện | 2–5 triệu đ / buổi | Nhân sự Playora trực điều khiển màn hình lớn |
-| Game custom (skin hoặc cơ chế mới trên engine) | 20–150 triệu đ | Cơ chế mới làm xong được đưa vào thư viện (có thoả thuận độc quyền theo thời gian) |
-| Kiểm thử tải trước sự kiện | 3–10 triệu đ | Bắt buộc với XL |
+| OTP SMS / Zalo ZNS (từ M2) | Giá vốn + 20–30% | Pass-through, trả trước bằng credit |
+| Skin riêng theo brand (đội art Playora) | 5–15 triệu đ / skin `[GĐ]` | Skin mới có thể được đưa vào thư viện (có thoả thuận độc quyền theo thời gian) |
+| AI asset credits (M4) | 200.000đ / 100 credit | Sinh nền, vật phẩm, copy theo brand kit |
+| Operator tại sự kiện (Live add-on) | 2–5 triệu đ / buổi | Nhân sự Playora trực điều khiển màn hình lớn |
+| Game custom (cơ chế mới trên engine) | 20–150 triệu đ | Cơ chế mới làm xong được đưa vào thư viện (có thoả thuận độc quyền theo thời gian) |
+| Kiểm thử tải trước campaign/sự kiện | 3–10 triệu đ | Bắt buộc với Campaign L có đỉnh lưu lượng lớn và Live XL |
 
 ---
 
@@ -78,26 +80,27 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 
 | Giai đoạn | Thời gian | Chiến thuật | Mục tiêu |
 |---|---|---|---|
-| **GTM-1: Concierge YEP** (M1) | 11/2026 – 02/2027 | Bán trực tiếp cho 12–15 sự kiện YEP, giá pilot −50% đổi lấy case study; ≥ 3 agency đối tác tự dựng | 12–15 sự kiện, ≥ 5.000 người chơi, 5 case study video |
-| **GTM-2: Agency-led live** (M2) | 03 – 04/2027 | Chương trình đối tác agency; mùa hội nghị/ra mắt; self-serve Live Pass; gallery công khai | 5 agency trả phí, 20 khách trả phí |
-| **GTM-3: Activation qua agency** (M3) | 05 – 08/2027 | Bán booth/activation cho brand thông qua agency đối tác; gói Campaign Pro | 10 activation; 20 agency |
-| **GTM-4: Product-led + YEP 2027** (M4) | 09/2027 – 02/2028 | Free tier có watermark; SEO gallery; mở bán YEP 2027 từ tháng 9; reseller | 1.000 sự kiện/mùa; 50 agency |
+| **GTM-1: Tết Campaign qua agency** (M1) | 11/2026 – 02/2027 | Pre-sale campaign Tết cho agency và brand từ M0; giá pilot −50% đổi lấy case study; đội Playora dựng hộ bằng Studio, ≥ 3 agency tự dựng; bán kèm **Live add-on** cho YEP | ≥ 10 campaign trả phí, ≥ 50.000 lượt chơi hợp lệ, ≥ 5 sự kiện YEP mua add-on, 5 case study |
+| **GTM-2: Self-serve & Agency** (M2) | 02 – 04/2027 | Chương trình đối tác agency; mùa 8/3 và 30/4 (campaign ngắn, nhiều); self-serve Campaign Pass qua PayOS; gallery công khai theo mùa | ≥ 30 khách trả phí, ≥ 8 agency trả phí |
+| **GTM-3: Booth & Activation qua agency** (M3) | 05 – 07/2027 | Bán booth/activation (kiosk, mã nắp chai) cho brand qua agency đối tác; upsell agency từ online sang tại chỗ | ≥ 10 activation trả phí, ARPA agency +30% |
+| **GTM-4: Scale + Tết 2028** (M4) | 08 – 12/2027 | Mở bán campaign Tết 2028 và YEP 2027 từ tháng 9 (gói năm trả trước); SEO gallery; reseller/OEM | 1.000 campaign/sự kiện mùa Tết 2028; 50 agency |
 | **GTM-5: SEA** | 2028 | Indonesia/Philippines qua agency đối tác | 3 thị trường |
 
 ### 4.2 Chương trình đối tác agency
 
 | Hạng | Điều kiện | Quyền lợi |
 |---|---|---|
-| Registered | Đăng ký và hoàn thành training | Giảm 15% Live Pass, badge đối tác |
-| Silver | ≥ 10 sự kiện/năm | Giảm 25%, white-label, CS riêng |
-| Gold | ≥ 40 sự kiện/năm hoặc gói Agency năm | Giảm 35%, ưu tiên roadmap, co-marketing, lead chia sẻ |
+| Registered | Đăng ký và hoàn thành training | Giảm 15% Campaign Pass và Live add-on, badge đối tác |
+| Silver | ≥ 8 campaign/năm hoặc gói Agency Starter `[GĐ]` | Giảm 25%, white-label, CS riêng |
+| Gold | ≥ 30 campaign/năm hoặc gói Agency Pro `[GĐ]` | Giảm 35%, ưu tiên roadmap và skin theo mùa, co-marketing, lead chia sẻ |
 
 ### 4.3 Kênh tăng trưởng
 
-1. **Watermark virality:** mỗi sự kiện Free/S cho vài trăm người thấy "Powered by Playora · Tạo game của bạn". Đo K-factor theo UTM.
-2. **SEO:** "phần mềm quay số trúng thưởng", "game YEP", "ý tưởng minigame sự kiện", "vòng quay may mắn có quản lý giải"… Mỗi template là một landing page có demo chơi thử.
-3. **Đối tác hạ tầng sự kiện:** công ty cho thuê LED/âm thanh, khách sạn, trung tâm hội nghị. Đưa Playora vào gói dịch vụ của họ, chia hoa hồng.
-4. **Nội dung case study:** video 30 giây cảnh màn hình LED và hàng trăm người lắc điện thoại. Đây là tài sản marketing mạnh nhất.
+1. **Lịch skin theo mùa:** mỗi dịp (Tết, 8/3, 30/4, Trung thu, 20/10, Black Friday, Noel) ra theme pack trước 4–6 tuần, kèm email/Zalo tới agency. Đây là nhịp bán hàng chính.
+2. **Watermark virality:** mỗi campaign Free cho hàng trăm người thấy "Powered by Playora · Tạo minigame của bạn". Đo K-factor theo UTM.
+3. **SEO:** "vòng quay may mắn có quản lý giải", "minigame Tết", "game cào thẻ online", "phần mềm quay số trúng thưởng"… Mỗi tổ hợp cơ chế × skin là một landing page có demo chơi thử.
+4. **Nội dung case study:** số liệu campaign (lượt chơi, lead, giải phát đúng kế hoạch, 0 sai lệch) và video 30 giây cảnh LED hàng trăm người lắc điện thoại cho Live add-on.
+5. **Đối tác hạ tầng sự kiện (Live add-on):** công ty cho thuê LED/âm thanh, khách sạn, trung tâm hội nghị. Đưa Playora vào gói dịch vụ của họ, chia hoa hồng.
 
 ---
 
@@ -108,17 +111,17 @@ Cập nhật: 23/10/2026 · Mọi con số tài chính là giả định `[GĐ]`
 | Thành phần | Ước tính | Ghi chú |
 |---|---|---|
 | CDN asset (game bundle + asset ~3 MB) | ~3–5đ | Cache tốt; R2 không tính egress |
-| Realtime (WS) + API + DB | ~5–15đ | Phân bổ theo giờ cao điểm |
-| OTP (nếu bật) | ~250–800đ | Pass-through, khách trả |
+| API + DB (lượt chơi, prize engine) + realtime (Live) | ~5–15đ | Phân bổ theo giờ cao điểm; một người chơi campaign có thể chơi nhiều lượt |
+| OTP (nếu bật, từ M2) | ~250–800đ | Pass-through, khách trả |
 | **Tổng (không tính OTP)** | **< 30đ/người chơi** | Gross margin phần mềm > 85% |
 
 ### 5.2 LTV / CAC
 
 | Phân khúc | ARPA/năm | Gross margin | Retention năm | LTV (3 năm) | CAC mục tiêu | LTV/CAC |
 |---|---|---|---|---|---|---|
-| Agency | 60 triệu đ | 85% | 70% | ~110 triệu đ | ≤ 15 triệu đ | ≥ 7 |
-| Campaign Pro | 18 triệu đ | 88% | 60% | ~31 triệu đ | ≤ 4 triệu đ | ≥ 7 |
-| Live Pass (lẻ) | 2,5 triệu đ | 88% | 40% mua lại | ~3,5 triệu đ | ≤ 0,8 triệu đ | ≥ 4 |
+| Agency (gói năm) | 60 triệu đ | 85% | 70% | ~110 triệu đ | ≤ 15 triệu đ | ≥ 7 |
+| Brand (Campaign Pass, 2–3 campaign/năm) | 12 triệu đ `[GĐ]` | 85% | 55% `[GĐ]` | ~19 triệu đ | ≤ 3 triệu đ | ≥ 6 |
+| Live add-on (lẻ, HR) | 2,5 triệu đ | 88% | 40% mua lại | ~3,5 triệu đ | ≤ 0,8 triệu đ | ≥ 4 |
 
 ---
 
@@ -130,12 +133,12 @@ Tỷ giá tham chiếu khoảng 26.000 VND/USD.
 
 | Nguồn | Thận trọng | Cơ sở | Lạc quan |
 |---|---|---|---|
-| Live Pass | 0,8 (350 pass × 2,3tr) | 2,5 (1.000 × 2,5tr) | 5,0 (1.800 × 2,8tr) |
-| Campaign Pro | 0,24 | 0,71 | 1,4 |
-| Agency | 0,6 | 1,5 | 3,0 |
+| Campaign Pass | 0,6 (200 campaign × 3tr) | 1,8 (450 × 4tr) | 3,6 (800 × 4,5tr) |
+| Agency (gói năm, trung bình Starter/Pro) | 0,6 (15 agency × 40tr) | 1,75 (35 × 50tr) | 3,0 (60 × 50tr) |
+| Live add-on | 0,4 (180 × 2,2tr) | 1,2 (500 × 2,4tr) | 2,0 (750 × 2,7tr) |
 | Enterprise | 0,15 | 0,45 | 0,9 |
-| Dịch vụ (custom, operator) | 0,5 | 1,2 | 2,0 |
-| **Tổng** | **~2,3** | **~6,4** | **~12,3** |
+| Dịch vụ (skin riêng, custom, operator) | 0,5 | 1,1 | 2,0 |
+| **Tổng** | **~2,3** | **~6,3** | **~11,5** |
 
 ### 6.2 Chi phí năm 2027 (kịch bản cơ sở)
 
@@ -148,9 +151,9 @@ Tỷ giá tham chiếu khoảng 26.000 VND/USD.
 | Dự phòng 10% | 0,45 |
 | **Tổng** | **~5,0** |
 
-- **Hoà vốn:** kịch bản cơ sở hoà vốn vận hành quanh Q4/2027 nhờ mùa YEP 2027.
-- **Nhu cầu vốn:** pre-seed **~6 tỷ đ (~230.000 USD)** cho 18 tháng runway (đến hết mùa YEP 2027 cộng thêm đệm).
-- **Dòng tiền theo mùa:** khoảng 40–50% doanh thu năm rơi vào tháng 11 đến tháng 1. Cần thu trả trước (gói năm, cọc) và giữ quỹ dự phòng.
+- **Hoà vốn:** kịch bản cơ sở hoà vốn vận hành quanh Q4/2027 nhờ mở bán campaign Tết 2028 và Live add-on mùa YEP 2027.
+- **Nhu cầu vốn:** pre-seed **~6 tỷ đ (~230.000 USD)** cho 18 tháng runway (đến hết mùa Tết 2028 cộng thêm đệm).
+- **Dòng tiền theo mùa:** campaign trải theo các dịp trong năm (8/3, 30/4, hè, Trung thu, Black Friday), nhưng khoảng 35–45% `[GĐ]` doanh thu năm vẫn rơi vào tháng 11 đến tháng 1 (Tết + YEP). Cần thu trả trước (gói Agency năm, cọc) và giữ quỹ dự phòng.
 
 ---
 
@@ -158,13 +161,17 @@ Tỷ giá tham chiếu khoảng 26.000 VND/USD.
 
 | Loại | KPI | Mục tiêu 2027 |
 |---|---|---|
-| **North Star** | Người chơi duy nhất/tháng trên sự kiện trả phí (Paid MAP) | 150.000 vào tháng 12/2027 |
-| Activation | % workspace mới publish game đầu tiên trong 24h | ≥ 40% |
-| Time-to-value | Thời gian trung vị từ tạo đến publish game | ≤ 30 phút |
-| Chất lượng live | Uptime trong khung giờ sự kiện; p95 độ trễ realtime | 99,95%; < 150 ms |
-| Revenue | MRR (trung bình 12 tháng), ARPA agency | 550 triệu đ; 5 triệu đ/tháng |
+| **North Star** | **Lượt chơi hợp lệ trên campaign/sự kiện trả phí / tháng** | 2.000.000 vào tháng 12/2027 |
+| Builder | % campaign khách **tự dựng** không cần Playora hỗ trợ | ≥ 60% (M2) → ≥ 80% (M4) |
+| Time-to-value | Thời gian trung vị từ tạo đến publish campaign | ≤ 30 phút |
+| Prize | Sai lệch tồn kho / vượt ngân sách / vượt giới hạn người chơi | 0 |
+| Prize | % campaign hết giải trước 80% thời lượng (khi bật rải đều) | ≤ 5% |
+| Activation | % workspace mới publish campaign đầu tiên trong 24h | ≥ 40% |
+| Chất lượng | Uptime trong khung giờ campaign/sự kiện; p95 độ trễ realtime (Live) | 99,95%; < 150 ms |
+| Revenue | MRR (trung bình 12 tháng), ARPA agency | 525 triệu đ `[GĐ]`; ≥ 5 triệu đ/tháng |
 | Retention | Agency logo retention 12 tháng | ≥ 70% |
 | Satisfaction | NPS người tổ chức | ≥ 50 |
+| Upsell | % agency/khách campaign mua thêm Live add-on trong mùa YEP | ≥ 20% `[GĐ]` |
 | Virality | % signup đến từ watermark | ≥ 20% |
 
 ---
@@ -173,9 +180,12 @@ Tỷ giá tham chiếu khoảng 26.000 VND/USD.
 
 | Rủi ro | Mức | Giảm thiểu |
 |---|---|---|
-| Mùa vụ làm dòng tiền không đều | Cao | Gói năm trả trước; đẩy use case quanh năm (hội nghị, campaign async, retail) |
-| Agency lớn tự build | Trung bình | White-label và giá Agency rẻ hơn chi phí 1 dev; liên tục ra template mới |
-| WOAY/AhaSlides lấn sang live | Trung bình | Tập trung chất lượng live (tải, độ trễ, màn hình LED) và quan hệ agency |
-| Sự cố live trên sân khấu | Cao (rủi ro uy tín) | Load test, chế độ degrade, operator hỗ trợ, runbook, SLA rõ |
-| Pháp lý khuyến mại và dữ liệu | Trung bình | Tư vấn luật từ đầu; tính năng consent và audit; điều khoản phân định trách nhiệm (khách là "thương nhân thực hiện khuyến mại") |
+| **WOAY cạnh tranh trực tiếp** (đã có ~11 game, OTP, Zalo login, Open API) | Cao | Không đua số lượng game; thắng bằng độ rộng skin theo mùa, prize engine kiểm soát chi phí (rải đều, ngân sách, Simulator), lớp agency/white-label, giá theo campaign không giới hạn lượt, và một nền tảng cho online + booth + sân khấu |
+| Prize engine sai lệch (vượt kho/ngân sách) làm mất uy tín | Cao (rủi ro uy tín) | Server quyết định mọi kết quả; test 1 triệu lượt mô phỏng + load test trước Tết; log kiểm chứng; giới hạn tốc độ phát giải |
+| Mùa vụ dồn vào Tết làm dòng tiền không đều | Cao | Gói Agency năm trả trước; lịch skin theo mùa cả năm (8/3, 30/4, Trung thu…); booth/activation mùa hè (M3) |
+| Gian lận/bot làm hết giải sớm | TB | Chống gian lận mức Chuẩn ở M1 (Turnstile, rate limit, thiết bị); OTP ZNS/SMS từ M2; giới hạn giải/người |
+| Agency lớn tự build | Trung bình | White-label và giá Agency rẻ hơn chi phí 1 dev; liên tục ra skin và cơ chế mới |
+| Live add-on kéo nguồn lực khỏi lõi | TB | ≤ 20% effort dev M1 cho live; nếu không bán được thì đóng băng, chỉ giữ lucky draw |
+| Sự cố live trên sân khấu (Live add-on) | Cao (rủi ro uy tín) | Load test, chế độ degrade, rehearsal, operator hỗ trợ, runbook, SLA rõ |
+| Pháp lý khuyến mại và dữ liệu (campaign có thưởng ngay từ M1) | Cao | Tư vấn luật từ M0; mẫu thể lệ khuyến mại và biên bản; consent và audit; điều khoản phân định trách nhiệm (khách là "thương nhân thực hiện khuyến mại") |
 | Thị trường nhỏ | Trung bình | Kiến trúc i18n từ đầu; SEA năm 2028 |

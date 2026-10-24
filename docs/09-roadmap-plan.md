@@ -1,6 +1,6 @@
 # 09 — Lộ trình và kế hoạch triển khai chi tiết
 
-Phiên bản: v1.0 · 23/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai · Mốc Tết Đinh Mùi: 06/02/2027 · Nhất quán với [00-product-strategy.md §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn)
+Phiên bản: v2.0 · 24/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai · Mốc Tết Đinh Mùi: 06/02/2027 · Nhất quán với [00-product-strategy.md §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn) v2.0
 
 ---
 
@@ -8,19 +8,19 @@ Phiên bản: v1.0 · 23/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai
 
 ```
 2026         Nov              Dec                Jan 2027        Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
-             │M0 │ M1: S1 S2 S3│── PILOT YEP 2026 (concierge) ──│Tết│ M2: Live Self-serve│ M3: Booth & Activation│ M4: Scale & Platform ── YEP 2027 ──
-             ▲   ▲            ▲  ▲                              ▲   ▲                  ▲                       ▲            ▲
-          26/10 G0:06/11  G1a:04/12 12/12                     05/02 22/02           30/04                   30/07        09: mở bán YEP 2027
+             │M0 │ M1: S1 S2 S3│── PILOT TẾT CAMPAIGN + YEP (Live add-on) ──│Tết│ M2: Self-serve & Agency│ M3: Booth & Activation│ M4: Scale & Platform ── Tết 2028 + YEP 2027 ──
+             ▲   ▲            ▲  ▲                                          ▲   ▲                      ▲                       ▲            ▲
+          26/10 G0:06/11  G1a:04/12 12/12                                 06/02 22/02                30/04                   30/07        09: mở bán Tết 2028 + YEP 2027
 ```
 
 | Mã | Giai đoạn | Thời gian | Kết quả chính | Gate |
 |---|---|---|---|---|
-| **M0** | Discovery & Foundation | 26/10 – 06/11/2026 | 18 phỏng vấn, ≥ 3 cọc pilot, 5 spike, monorepo + CI, design system v0 | **G0** (06/11) |
-| **M1** | MVP "YEP Live" | 09/11 – 11/12/2026 | Live Engine, Screen/Host/Player, 4 game, assisted builder, 2 theme | **G1a** load test (04/12) |
-| M1-Pilot | Pilot YEP 2026 (concierge) | 12/12/2026 – 05/02/2027 | 12–15 sự kiện, ≥ 5.000 người chơi, 5 case study | **G1b** (cuối 02/2027) |
-| **M2** | Live Self-serve & Agency | 22/02 – 29/04/2027 | Builder tự phục vụ, agency layer, billing, +5 game live, báo cáo/biên bản | **G2** (05/2027) |
-| **M3** | Booth & Activation | 04/05 – 30/07/2027 | Async engine, prize engine đầy đủ + simulator, đổi quà, kiosk, OTP/ZNS | **G3** (08/2027) |
-| **M4** | Scale & Platform | 02/08 – 17/12/2027 | 20k CCU, custom domain, Zalo, API/webhook, AI draft, reseller; vận hành YEP 2027 | **G4** (02/2028) |
+| **M0** | Discovery & Foundation | 26/10 – 06/11/2026 | Phỏng vấn agency + brand, ≥ 3 cọc pilot campaign Tết, spike, monorepo + CI, design system v0 | **G0** (06/11) |
+| **M1** | MVP "Tết Campaign" + Live add-on | 09/11 – 11/12/2026 | Play engine, prize engine v1, voucher pool, 4 minigame, skin Tết + chung, link theo kênh, dashboard + export; Live add-on (shake/tap race, lucky draw, Host Console) | **G1a** prize + tải (04/12) |
+| M1-Pilot | Pilot Tết Campaign + YEP | 12/12/2026 – 06/02/2027 | 10+ campaign trả phí, ≥ 50.000 lượt chơi hợp lệ, ≥ 5 sự kiện YEP mua add-on, 5 case study | **G1b** (cuối 02/2027) |
+| **M2** | Self-serve & Agency | 22/02 – 30/04/2027 | Prize Simulator, pacing đầy đủ, OTP, thông báo trúng email/ZNS, +4 minigame, flow chuẩn + pre-flight, đổi quà staff mode, client workspace, white-label, PayOS, báo cáo PDF + biên bản | **G2** (05/2027) |
+| **M3** | Booth & Activation | 03/05 – 30/07/2027 | Kiosk mode (online), mã tham gia/nắp chai, requirements, funnel theo kênh; Live thêm kéo co, nghi thức khởi động, check-in wall | **G3** (08/2027) |
+| **M4** | Scale & Platform | 02/08 – 17/12/2027 | Zalo login/Mini App, webhook/API, custom domain, e-gift, AI draft, template riêng, reseller/OEM, kiosk offline, SSO, Live 20.000 CCU; vận hành Tết 2028 + YEP 2027 | **G4** (02/2028) |
 
 ---
 
@@ -29,15 +29,15 @@ Phiên bản: v1.0 · 23/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai
 | Vai trò | M0–M1 | M2 | M3 | M4 |
 |---|---|---|---|---|
 | Founder / PM (**PM**) | ✅ | ✅ | ✅ | ✅ |
-| Tech Lead, realtime/DevOps (**TL**) | ✅ | ✅ | ✅ | ✅ |
+| Tech Lead, prize engine/realtime/DevOps (**TL**) | ✅ | ✅ | ✅ | ✅ |
 | Fullstack Nest-heavy (**BE**) | ✅ | ✅ | ✅ | ✅ |
 | Fullstack Next-heavy (**FE**) | ✅ | ✅ | ✅ | ✅ |
 | Game/Frontend dev PixiJS (**GD**) | ✅ | ✅ | ✅ | ✅ |
-| Designer UI + game art (**DS**) | ✅ | ✅ | ✅ | ✅ |
+| Designer UI + game art/skin (**DS**) | ✅ | ✅ | ✅ | ✅ |
 | BD agency (**BD**) | — | ✅ | ✅ | ✅ |
-| CS / Event operator (**OP**) | part-time (pilot) | ✅ | ✅ | ✅ + thời vụ mùa YEP |
-| QA (**QA**) | freelance từ S3 | part-time | part-time | ✅ |
-| Game dev #2 / artist (hợp đồng) | — | — | ✅ (template async) | ✅ (theme pack YEP 2027) |
+| CS / Campaign & event operator (**OP**) | part-time (pilot) | ✅ | ✅ | ✅ + thời vụ mùa Tết/YEP |
+| QA (**QA**) | freelance từ S2 | part-time | part-time | ✅ |
+| Game dev #2 / artist (hợp đồng) | — | ✅ (+4 minigame, skin theo mùa) | ✅ (skin booth, Trung thu) | ✅ (theme pack Tết 2028) |
 
 ---
 
@@ -47,13 +47,13 @@ Phiên bản: v1.0 · 23/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai
 
 | # | Việc | Owner | Hạn |
 |---|---|---|---|
-| B0.1 | Danh sách 40 agency và HR mục tiêu; lịch 18 phỏng vấn (10 agency, 8 HR) | PM | 27/10 |
-| B0.2 | Kịch bản phỏng vấn: quy trình hiện tại, nhà cung cấp đang ghép, chi phí, Van Westendorp cho Live Pass | PM | 27/10 |
-| B0.3 | Demo "wow" bằng prototype shake race (từ spike S0-3) để đo phản ứng | PM + GD | 03/11 |
+| B0.1 | Danh sách 40 agency và brand mục tiêu; lịch 18 phỏng vấn (10 agency, 6 brand marketing, 2 HR) | PM | 27/10 |
+| B0.2 | Kịch bản phỏng vấn: quy trình làm minigame hiện tại, nhà cung cấp (WOAY, dev thuê ngoài), chi phí, nỗi lo về giải; Van Westendorp cho Campaign Pass và gói Agency năm | PM | 27/10 |
+| B0.3 | Demo "wow": prototype vòng quay Tết có giải giới hạn và rải đều; prototype shake race cho Live add-on (từ spike S0-3) | PM + GD | 03/11 |
 | B0.4 | Landing page + form đặt lịch demo | FE + DS | 30/10 |
-| B0.5 | Gói pilot YEP: −50% Live Pass, cọc 30%, cam kết case study + **1 agency tự dựng** | PM | 30/10 |
-| B0.6 | Dùng thử đối thủ: 凡科/Guandayun, Hi现场, WOAY, XSPIN, Luck4You, Crowdpurr; ghi toàn bộ trường cấu hình | PM + DS | 05/11 |
-| B0.7 | Luật sư: khuyến mại + PDPL + ToS/DPA | PM | 06/11 |
+| B0.5 | Gói pilot Tết Campaign: −50% Campaign Pass, cọc 30%, cam kết case study + **1 agency tự dựng**; Live add-on bán kèm cho YEP | PM | 30/10 |
+| B0.6 | Dùng thử đối thủ: 凡科/Guandayun, **WOAY** (đối thủ trực tiếp), Hi现场, XSPIN, Luck4You, Drimify; ghi toàn bộ trường cấu hình giải và participation | PM + DS | 05/11 |
+| B0.7 | Luật sư: khuyến mại (thể lệ, thông báo/đăng ký theo NĐ 81) + PDPL + ToS/DPA | PM | 06/11 |
 | B0.8 | Device lab: 4 điện thoại, 1 mini PC, 1 máy chiếu | PM | 04/11 |
 
 ### 3.2 Engineering
@@ -67,149 +67,170 @@ Phiên bản: v1.0 · 23/10/2026 · Sprint dài 2 tuần, bắt đầu thứ Hai
 | E0.5 | Better Auth + organization; login Studio | BE + FE | 06/11 |
 | E0.6 | CI (lint, typecheck, test, build, Docker) + staging tự deploy | TL | 06/11 |
 | S0-1…5 | Spike: monorepo build; Nest trên Bun; **realtime 5.000 client**; DeviceMotion trên in-app browser; PixiJS trên LED | TL, GD | 05/11 |
+| S0-6 | Spike: **trừ tồn kho/ngân sách nguyên tử** dưới tải (Postgres vs Valkey Lua), 500 lượt/giây `[GĐ]` | TL + BE | 06/11 |
 | E0.7 | ADR 001–009 sau spike | TL | 06/11 |
 
-**Tiến độ engineering (cập nhật 23/10/2026):**
+**Tiến độ engineering (cập nhật 24/10/2026):**
 
 | Task | Trạng thái |
 |---|---|
 | E0.1–E0.3 (repo, compose, scaffold 6 app) | ✅ Xong |
-| E0.4 (schema lõi M1, migration `0000_init`, seed) | ✅ Xong |
-| E0.5 (Better Auth + organization; đăng nhập/đăng ký Studio) | ✅ Xong (Google/magic link ở M1) |
+| E0.4 (schema lõi, migration `0000_init`, seed) | ✅ Xong |
+| E0.5 (Better Auth + organization; đăng nhập/đăng ký Studio) | ✅ Xong (gồm Google/magic link, mời thành viên) |
 | E0.6 (CI) | ✅ Workflow lint + migrate + typecheck + test + build · ⏳ Docker image + staging |
 | S0-1 monorepo build | ✅ Đạt |
 | S0-2 Nest trên Bun | ✅ Đạt sơ bộ (ADR-002) · ⏳ soak 24h, k6 HTTP |
 | S0-3 realtime 5.000 client | ✅ Đạt cục bộ, p95 72–101 ms (ADR-004) · ⏳ test qua mạng thật trên VM |
 | S0-4 DeviceMotion | ⏳ Trang `/spike/player` sẵn sàng; cần test trên device lab qua HTTPS |
 | S0-5 PixiJS trên LED | ⏳ Chưa làm |
-| E0.7 ADR | ✅ 7 ADR trong `docs/adr/` |
+| S0-6 trừ kho nguyên tử | ⏳ Chưa làm |
+| E0.7 ADR | ✅ 10 ADR trong `docs/adr/` |
+
+**Đã làm sớm theo kế hoạch v1.0, dùng lại cho M1 v2.0:** event CRUD + guest list + đội + QR (EVT-01/02/06/10); brand kit + asset manager (BLD-04/13); template registry, auto-form, preview thật, publish version (BLD-01/02/03/08); `game-sdk` v0; player join + participation config (EVT-02/05); screen shell + preset layout (LIV-02, BLD-11); live engine `LiveRoom` + `RoundRunner` (LIV-01). Các story này không lặp lại trong sprint M1 bên dưới.
 
 ### 3.3 Design
 
 | # | Việc | Owner | Hạn |
 |---|---|---|---|
 | D0.1 | Design tokens + shadcn theme | DS | 30/10 |
-| D0.2 | Wireframe: Studio (event, run-of-show, editor 3 cột), **Host Console mobile**, Screen, Player | DS | 04/11 |
-| D0.3 | Art direction 2 theme pack: **YEP (sang trọng)** và **Tết Đinh Mùi** | DS | 06/11 |
+| D0.2 | Wireframe: Studio (campaign, editor 3 cột, **thiết lập giải**, dashboard), **Player flow async** (Cover → Form → Game → Kết quả → Quà của tôi), Host Console mobile, Screen | DS | 04/11 |
+| D0.3 | Art direction: **theme pack Tết Đinh Mùi** và **skin chung** (dùng quanh năm) cho 4 minigame M1 | DS | 06/11 |
 
 ### 3.4 Gate G0 (06/11)
 
 | Tiêu chí | Ngưỡng | Nếu không đạt |
 |---|---|---|
-| Pain xác nhận | ≥ 6/10 agency, ≥ 5/8 HR | Quay lại phỏng vấn, đổi ICP |
-| Cọc pilot | ≥ 3 | Pilot miễn phí 5 sự kiện để lấy case study; xem lại A1 |
-| Spike realtime (S0-2, S0-3) | Đạt | Giới hạn pilot ≤ 500 người; realtime chạy Node/uWS theo ADR-004 |
-| Spike motion (S0-4) | Đạt hoặc fallback tap ổn | Thay `shake-race` bằng `tap-race` |
+| Pain xác nhận | ≥ 6/10 agency, ≥ 4/6 brand | Quay lại phỏng vấn, đổi ICP |
+| Cọc pilot campaign Tết | ≥ 3 | Pilot miễn phí 5 campaign để lấy case study; xem lại A1 |
+| Lý do chọn Playora thay vì WOAY | Ghi lại được trong ≥ 5 phỏng vấn | Xem lại định vị (A1) |
+| Spike trừ kho (S0-6) | 0 sai lệch ở 500 lượt/giây `[GĐ]` | Serialize theo campaign; giới hạn tốc độ phát giải |
+| Spike realtime (S0-2, S0-3) | Đạt | Live add-on giới hạn ≤ 500 người; realtime chạy Node/uWS theo ADR-004 |
+| Spike motion (S0-4) | Đạt hoặc fallback tap ổn | Live add-on chỉ bán `tap-race` |
 
 ---
 
-## 4. M1: MVP "YEP Live" (09/11 – 11/12/2026)
+## 4. M1: MVP "Tết Campaign" + Live add-on (09/11 – 11/12/2026)
 
 **Nguyên tắc scope:**
-- **Builder là assisted**, nghĩa là Studio đủ dùng cho đội ops và PM agency đối tác. Auto-form, preview và run-of-show là bắt buộc; độ trau chuốt UX để sang M2.
-- **Không** billing tự động, OTP, campaign/async, đổi quà (YEP trao quà trên sân khấu), client workspace hay white-label.
-- **Hạ tầng đơn giản:** 1 node realtime (chưa cần HAProxy hash), worker chỉ xử lý ảnh và export.
+- **Lõi là campaign minigame online.** Prize engine đúng đắn đứng trên mọi tính năng ([00 §6](./00-product-strategy.md#6-nguyên-tắc-sản-phẩm)): 0 vượt tồn kho, 0 vượt ngân sách, 0 vượt giới hạn người chơi.
+- **Builder là assisted:** Studio đủ dùng cho đội ops và PM agency đối tác. Flow chuẩn dùng màn mặc định; chỉnh từng màn, pre-flight và Simulator để sang M2.
+- **Live add-on ≤ 20% effort dev M1** (A5): shake/tap race, lucky draw minh bạch, Host Console; dùng lại live engine đã có.
+- **Không** billing tự động, OTP, Prize Simulator, pacing theo đợt/xả kho cuối, đổi quà tại quầy, client workspace hay white-label, quiz.
+- **Hạ tầng đơn giản:** 1 node API + 1 node realtime; worker xử lý ảnh, export và job pacing.
 
-### Sprint 1 (09/11 – 20/11): Xương sống
-
-| # | Story | PRD | Owner | Ước lượng |
-|---|---|---|---|---|
-| 1.1 | Event CRUD, slug, QR; guest list import (CSV/XLSX) → đội theo cột | EVT-01/02/06/10 | BE + FE | 4d |
-| 1.2 | Brand kit + asset manager (presigned upload, resize, crop theo slot) | BLD-04/13 | BE + FE | 4d |
-| 1.3 | Template registry + **auto-form từ zod** + **preview iframe** (Mobile/Screen) | BLD-02/03 | FE | 6d |
-| 1.4 | `game-sdk` v0: defineTemplate, asset slots, skins, PlayerProps/ScreenProps/HostPanel, LiveServerModule, clock sync | — | GD + TL | 5d |
-| 1.5 | `apps/realtime`: auth handshake, room actor, RoundRunner, snapshot Redis, ownership lock | LIV-02/03 | TL | 7d |
-| 1.6 | Player join: anonymous / guest list / form + consent → playerToken | EVT-02/05 | BE + FE | 3d |
-| 1.7 | Screen shell (full-screen, reconnect overlay, QR, preset layout) | LIV-02, BLD-11 | GD | 2d |
-| 1.8 | `checkin-wall` + kiểm duyệt (từ cấm + duyệt tay) | LIV-05 | GD | 3d |
-| 1.9 | Skin YEP + Tết cho checkin-wall; khung theme pack | BLD-06 | DS | liên tục |
-
-**Demo:** tạo event, import 500 khách, bot check-in, tên chạy trên Screen theo theme Tết.
-
-### Sprint 2 (23/11 – 04/12): Game và điều khiển
+### Sprint 1 (09/11 – 20/11): Play engine và prize engine v1
 
 | # | Story | PRD | Owner | Ước lượng |
 |---|---|---|---|---|
-| 2.1 | **Host Console mobile** + run-of-show editor + live dashboard | LIV-01, BLD-10, ANL-01 | FE | 6d |
-| 2.2 | `live-quiz` (builder câu hỏi, import Excel, điểm theo tốc độ, leaderboard cá nhân/đội) | BLD-12 | GD + BE | 6d |
-| 2.3 | `shake-race` (DeviceMotion + fallback tap, cá nhân/đội, skin đua ngựa + thuyền rồng) | — | GD | 6d |
-| 2.4 | `lucky-draw` (pool AND/OR, loại người trúng, loại top N, commit–reveal, `void`, 2 hiệu ứng) | PRZ-01/02/03, LIV-06 | BE + GD | 6d |
-| 2.5 | Publish → game version bất biến; `hotEditable` | BLD-08 | BE | 2d |
-| 2.6 | Rehearsal mode + `tooling/bots` + reset | EVT-09 | TL | 3d |
-| 2.7 | Degrade mode | LIV-04 | TL | 2d |
+| 1.1 | **Play engine**: phiên chơi + token lượt chơi; server quyết định kết quả trước khi client animate; idempotency; hỗ trợ `instant` và `skill` | — | TL + BE | 6d |
+| 1.2 | **Prize engine v1** (`packages/core/prize`): `per_prize_probability`, `overall_win_rate`, `guaranteed`; trừ tồn kho nguyên tử; giới hạn giải/người (tổng, theo ngày); ngân sách tổng `valueVnd`; giải an ủi | PRZ-01/05/09 | TL + BE | 7d |
+| 1.3 | Participation: lượt chơi theo ngày/tổng, khung thời gian, trần người chơi; dùng identity đã có (anonymous, form, guest list) | EVT-05 | BE | 3d |
+| 1.4 | Thiết lập giải trong Studio: CRUD giải, chọn chế độ, tồn kho, giới hạn, ngân sách; `prize-picker` | PRZ-01 | FE | 4d |
+| 1.5 | Flow chuẩn async (màn mặc định): Cover → Form → Game → Result (thắng / không trúng / hết quà / hết lượt) → Quà của tôi | PRZ-10 | FE | 5d |
+| 1.6 | `spin-wheel` + custom widget sửa ô vòng quay; skin chung + Tết | — | GD | 5d |
+| 1.7 | `scratch-card`; skin chung + Tết | — | GD | 3d |
+| 1.8 | Theme pack Tết + skin chung cho 4 minigame | BLD-06 | DS | liên tục |
 
-**Gate G1a (04/12):** k6 với 5.000 client đạt NFR. Nếu không đạt, giới hạn pilot ≤ 1.000 người/sự kiện.
+**Demo:** tạo campaign vòng quay Tết, 3 giải có tồn kho và ngân sách, bot 100.000 lượt, 0 vượt kho, kết quả hiện đúng biến thể màn Result.
 
-### Sprint 3 (07/12 – 11/12, 1 tuần): Hardening và nghiệm thu
+### Sprint 2 (23/11 – 04/12): Minigame, pacing, voucher, kênh và Live add-on
+
+| # | Story | PRD | Owner | Ước lượng |
+|---|---|---|---|---|
+| 2.1 | `gift-box` (skin đập trứng, lì xì) | — | GD | 4d |
+| 2.2 | `catch-items` (skill): validator điểm, plausibility; đạt ngưỡng (`score_threshold`) thì nhận kết quả từ prize engine | PRZ-06 | GD + BE | 5d |
+| 2.3 | Pacing `time_uniform` (buffer, tự làm mượt, giải dồn sang khung sau) + `opening_hours` | PRZ-07 | TL + BE | 4d |
+| 2.4 | **Voucher pool**: import CSV / sinh mã theo pattern; gán nguyên tử khi trúng; hiển thị mã ở "Quà của tôi" | PRZ-09 | BE + FE | 3d |
+| 2.5 | **Link theo kênh** `?ch=` + QR theo kênh; `plays.channel_key` | EVT-11 | BE | 2d |
+| 2.6 | Chống gian lận mức **Chuẩn**: Turnstile, rate limit IP/device/token, giới hạn tốc độ phát giải, blacklist | — | TL | 3d |
+| 2.7 | Live add-on: `shake-race` / `tap-race` (cá nhân/đội) + **Host Console mobile** + run-of-show tối giản | LIV-01, BLD-10 | GD + FE | 5d |
+| 2.8 | Live add-on: `lucky-draw` (pool AND/OR, loại người trúng, commit–reveal, `void` có lý do, log) | PRZ-02/03, LIV-06 | BE + GD | 4d |
+| 2.9 | Rehearsal mode + `tooling/bots` (chế độ campaign nhiều ngày và live) + reset | EVT-09 | TL | 3d |
+
+**Gate G1a (04/12):**
+- Prize engine: **1 triệu lượt mô phỏng** + load test đỉnh 500 lượt/giây `[GĐ]`: 0 sai lệch tồn kho, ngân sách, giới hạn người chơi; với `time_uniform` không hết giải trước 80% thời lượng mô phỏng.
+- Live add-on: k6 2.000 client đạt NFR.
+- Nếu không đạt: serialize theo campaign, giảm tốc độ phát giải; giới hạn Live ≤ 1.000 người/sự kiện.
+
+### Sprint 3 (07/12 – 11/12, 1 tuần): Dashboard, hardening và nghiệm thu
 
 | # | Việc | Owner |
 |---|---|---|
-| 3.1 | Export CSV/XLSX; audit log; admin tối giản (org, gói thủ công, lịch sự kiện); quota + watermark Free | BE |
-| 3.2 | QA thiết bị thật (device lab, Zalo/FB in-app); fix | QA + all |
-| 3.3 | Observability: Sentry, Grafana realtime, alert Telegram | TL |
-| 3.4 | **Nghiệm thu builder với 1 PM agency đối tác** (PRD §8.1) | PM |
-| 3.5 | Runbook sự kiện, checklist operator, video hướng dẫn 5 phút | PM + OP |
-| 3.6 | Checklist pháp lý ([08 §6](./08-security-compliance.md#6-checklist-trước-pilot-cuối-sprint-3)) | PM |
-| 3.7 | *Stretch:* `performance-score` (chấm điểm văn nghệ) | GD |
+| 3.1 | **Dashboard campaign** (ANL-01): lượt chơi, người chơi, giải đã phát/còn lại, theo ngày, theo kênh; dashboard live cho Live add-on | FE + BE |
+| 3.2 | **Export** CSV/XLSX (ANL-02): người chơi, form (kèm consent), người trúng, mã voucher đã phát | BE |
+| 3.3 | Audit log giải và điều chỉnh tồn kho; admin tối giản (org, gói thủ công, lịch campaign/sự kiện); quota + watermark Free | BE |
+| 3.4 | Degrade mode cho Live add-on | TL |
+| 3.5 | QA thiết bị thật (device lab, Zalo/FB in-app); fix | QA + all |
+| 3.6 | Observability: Sentry, Grafana (API, prize engine, realtime), alert Telegram khi tốc độ phát giải bất thường | TL |
+| 3.7 | **Nghiệm thu builder với 1 PM agency đối tác** (PRD §8.1): dựng campaign vòng quay Tết có giải + voucher + link theo kênh | PM |
+| 3.8 | Runbook campaign (theo dõi pacing hằng ngày) và runbook sự kiện live; video hướng dẫn 5 phút | PM + OP |
+| 3.9 | Checklist pháp lý ([08 §6](./08-security-compliance.md#6-checklist-trước-pilot-cuối-sprint-3)): mẫu thể lệ khuyến mại, consent | PM |
 
 ---
 
-## 5. M1-Pilot: YEP 2026 (12/12/2026 – 05/02/2027)
+## 5. M1-Pilot: Tết Campaign + YEP (12/12/2026 – 06/02/2027)
 
 ### 5.1 Vận hành
 
-- **Phân loại sự kiện:**
-  - **Concierge:** đội Playora dựng bằng Studio. Mục tiêu khoảng 70% số sự kiện.
-  - **Agency tự dựng:** có hỗ trợ. Mục tiêu ≥ 3 sự kiện.
-- **Mỗi sự kiện:** kickoff 45 phút, rehearsal trước 1–2 ngày bằng bot, operator trực (tại chỗ nếu ≥ 500 người), NPS sau 24 h.
-- **Mỗi lần dựng sự kiện, ops ghi "friction log":** mỗi lần phải sửa DB, phải nhờ dev hay phải đoán cách làm đều được ghi lại. Đây là backlog chính cho builder M2.
-- **Freeze:** không deploy production tối thứ Sáu và thứ Bảy, trừ hotfix P1.
-- **Capacity dev:** 50% hỗ trợ và fix, 50% chuẩn bị M2 (flow editor, pre-flight, PayOS, `performance-score` nếu chưa xong).
+- **Phân loại campaign:**
+  - **Concierge:** đội Playora dựng bằng Studio. Mục tiêu khoảng 70% số campaign.
+  - **Agency tự dựng:** có hỗ trợ. Mục tiêu ≥ 3 campaign.
+- **Mỗi campaign:** kickoff 45 phút; chơi thử + bot trước khi publish; theo dõi pacing và tỷ lệ gắn cờ hằng ngày; báo cáo tuần gửi client; NPS khi kết thúc.
+- **Mỗi sự kiện Live add-on:** rehearsal trước 1–2 ngày bằng bot, operator trực (tại chỗ nếu ≥ 500 người).
+- **Mỗi lần dựng, ops ghi "friction log":** mỗi lần phải sửa DB, phải nhờ dev hay phải đoán cách làm đều được ghi lại. Đây là backlog chính cho builder M2.
+- **Freeze:** không deploy production tối thứ Sáu và thứ Bảy, và từ 23 tháng Chạp đến mùng 3 Tết, trừ hotfix P1.
+- **Capacity dev:** 50% hỗ trợ và fix, 50% chuẩn bị M2 (Prize Simulator, OTP, flow editor, pre-flight, PayOS).
 
 ### 5.2 Chỉ số và Gate G1b (cuối 02/2027)
 
 | Chỉ số | Mục tiêu |
 |---|---|
-| Sự kiện / người chơi | 12–15 / ≥ 5.000 |
-| Quét QR → vào chơi thành công | ≥ 80% |
-| Sự cố P1 | 0 |
-| Sự kiện agency **tự dựng** | ≥ 3 |
+| Campaign trả phí | ≥ 10 |
+| Lượt chơi hợp lệ | ≥ 50.000 |
+| Sai lệch tồn kho / vượt ngân sách / vượt giới hạn | **0** |
+| Campaign **agency tự dựng** | ≥ 3 |
+| Mở link/quét QR → chơi lượt đầu | ≥ 70% |
+| Campaign hết giải trước 80% thời lượng (khi bật rải đều) | ≤ 5% |
+| Lượt bị gắn cờ gian lận (A4) | < 5% |
 | Trung vị thời gian dựng (ops) | ≤ 60 phút |
+| Sự kiện YEP mua Live add-on (A5) | ≥ 5 |
+| Sự cố P1 | 0 |
 | NPS organizer | ≥ 40 |
-| Khách chấp nhận giá Live Pass (không giảm) cho lần sau | ≥ 50% |
-| Case study (video + số liệu) | 5 |
+| Khách chấp nhận giá Campaign Pass (không giảm) cho lần sau | ≥ 50% |
+| Case study (số liệu + video) | 5 |
 
-**Quyết định tại G1b:** gọi vốn pre-seed bằng số liệu pilot; chốt bảng giá M2; xếp lại backlog M2 theo friction log.
+**Quyết định tại G1b:** gọi vốn pre-seed bằng số liệu pilot; chốt bảng giá M2; quyết định giữ/đóng băng Live add-on (A5); xếp lại backlog M2 theo friction log.
 
 ---
 
-## 6. M2: Live Self-serve & Agency (22/02 – 29/04/2027)
+## 6. M2: Self-serve & Agency (22/02 – 30/04/2027)
 
-Mục tiêu: khách **tự dựng, tự trả tiền**; agency **quản lý nhiều client, bán dưới thương hiệu mình**. Kịp mùa hội nghị và ra mắt sản phẩm (03–05).
+Mục tiêu: khách **tự dựng, tự trả tiền**; agency **quản lý nhiều client, bán dưới thương hiệu mình**. Kịp mùa 8/3 và 30/4 (campaign ngắn, nhiều).
 
 | Track | Owner | S8 (22/02) | S9 (08/03) | S10 (22/03) | S11 (05/04) | S12 (19/04) |
 |---|---|---|---|---|---|---|
-| **A. Builder self-serve** | FE + DS | Flow chuẩn từng màn + sponsor slot | Autosave, undo/redo, pre-flight | Gallery công khai + onboarding "tạo event đầu tiên" | Nhân bản, thùng rác; screen layout tuỳ chỉnh | Polish theo usability test |
-| **B. Agency & Billing** | BE | Client workspace | Kế thừa brand kit theo tầng; white-label cơ bản; 2FA | PayOS: Live Pass, gói Agency; quota | Trang billing, hoá đơn (thủ công) | Operator hỗ trợ từ xa |
-| **C. Template live** | GD | `performance-score` | `tug-of-war` | `money-count` | `launch-ceremony` | `live-poll` + `danmaku-wall` |
-| **D. Platform & Trust** | TL | HAProxy hash + 2 node realtime | Báo cáo PDF (white-label) | Biên bản quay thưởng PDF | Load test 10.000 | Hardening, sẵn sàng hội nghị lớn |
-| **E. Theme** | DS (+ freelance) | Hội nghị | Ra mắt sản phẩm | Khai trương | 8/3 + 20/10 | Trung thu (chuẩn bị M3) |
+| **A. Builder self-serve** | FE + DS | Flow chuẩn chỉnh từng màn + sponsor slot | Autosave, undo/redo, **pre-flight** | Gallery công khai theo mùa + onboarding "tạo campaign đầu tiên" | Nhân bản, thùng rác | Polish theo usability test |
+| **B. Prize & Trust** | TL + BE | **Prize Simulator** (Monte Carlo) | Pacing `batch_release` + `end_flush`; `scheduled_moments`, `rank_based` (xác nhận tay) | **OTP ZNS/SMS**, chặn đầu số ảo; thông báo trúng email/ZNS | **Đổi quà staff mode** (điểm đổi + PIN, quét QR, đổi hàng loạt) | Báo cáo PDF + biên bản (white-label) |
+| **C. Minigame** | GD + game dev #2 | Lật thẻ | Ghép hình | Đập logo | Lì xì rơi | Hardening validator skill |
+| **D. Agency & Billing** | BE | Client workspace | Kế thừa brand kit theo tầng; white-label cơ bản; 2FA | PayOS: Campaign Pass, gói Agency năm, Live add-on; quota; credit OTP/ZNS | Trang billing, hoá đơn (thủ công) | Operator hỗ trợ từ xa |
+| **E. Theme** | DS (+ freelance) | 8/3 | 30/4 – 1/5 | Khai trương, sinh nhật brand | Ra mắt sản phẩm | Hè + Trung thu (chuẩn bị M3) |
 
-**Gate G2:** ≥ 20 khách trả phí, ≥ 5 agency trả phí, ≥ 60% sự kiện tự dựng không cần hỗ trợ, trung vị dựng ≤ 30 phút.
+**Gate G2:** ≥ 30 khách trả phí, ≥ 8 agency trả phí, ≥ 60% campaign tự dựng không cần hỗ trợ, trung vị dựng ≤ 30 phút, 0 sai lệch giải.
 
 ---
 
-## 7. M3: Booth & Activation (04/05 – 30/07/2027)
+## 7. M3: Booth & Activation (03/05 – 30/07/2027)
 
-Mục tiêu: mở rộng từ sân khấu sang **booth/activation của brand qua agency**: cùng một event có thể chạy cả LED lẫn booth, chung kho giải và dữ liệu.
+Mục tiêu: mở rộng từ online sang **booth/activation của brand qua agency**: cùng một game version chạy trên điện thoại và kiosk, chung kho giải và dữ liệu.
 
 | Track | Owner | Nội dung |
 |---|---|---|
-| **A. Async engine + template** | GD + game dev #2 | `instant` engine: `spin-wheel`, `scratch-card`, `gift-box` + biến thể skin (đập trứng, lưới 9 ô, máy xèng, hộp bí ẩn); `skill` engine: `catch-items`, `memory-match`, `quiz-async`; validator điểm |
-| **B. Prize engine** | BE | Chế độ instant-win, scheduled, score_threshold, rank_based; pacing (time_uniform tự làm mượt, batch, opening hours, end_flush); voucher pool; ngân sách; **Prize Simulator**; gift list |
-| **C. Đổi quà và participation** | BE + FE | Điểm đổi + PIN staff, quét QR, tự đổi; mã tham gia (≤ 50.000); OTP ZNS/SMS; requirements "nhập mã"; link theo kênh |
-| **D. Kiosk và trust** | TL + FE | Kiosk mode online (auto-reset, khoá điều hướng); anti-cheat preset Cao (Turnstile, chặn email/đầu số ảo); funnel theo kênh; trình tạo thể lệ |
-| **E. Billing** | BE | Gói Campaign Pro; credit OTP/ZNS |
+| **A. Kiosk** | TL + FE | Kiosk mode online (full-screen, auto-reset sau mỗi người, khoá điều hướng); preview Kiosk trong editor |
+| **B. Participation** | BE | Mã tham gia/nắp chai (≤ 50.000/lần import, in QR hàng loạt); requirements "nhập mã" trước khi chơi; thêm lượt khi nhập mã/chia sẻ (có giới hạn) |
+| **C. Prize & data** | BE + FE | Funnel theo kênh (quét → chơi → trúng → đổi); pacing `traffic_based`; tự đổi quà; gift list |
+| **D. Trust** | TL | Anti-cheat preset Cao (chặn VPN/proxy, email dùng một lần); trình tạo thể lệ |
+| **E. Live add-on** | GD | `tug-of-war`, `launch-ceremony`, `checkin-wall` |
+| **F. Theme** | DS + artist | Skin booth; Trung thu, 20/10 |
 
 **Gate G3:** ≥ 10 activation trả phí, 0 sai lệch giải, ARPA agency tăng ≥ 30% so với M2.
 
@@ -219,17 +240,17 @@ Mục tiêu: mở rộng từ sân khấu sang **booth/activation của brand qu
 
 | Thời gian | Trọng tâm |
 |---|---|
-| 08/2027 | Scale 20.000 CCU; custom domain + SSL tự động; webhook; theme pack YEP 2027 (4 theme) |
-| 09/2027 | **Mở bán YEP 2027** (gói trả trước); Zalo login/Mini App; public API |
-| 10/2027 | AI draft (prompt → bản nháp event); lưu template riêng của org; reseller/OEM |
-| 11/2027 | Kiosk offline (PWA, sync sau); SSO; logic webhook (Enterprise); pre-scale theo lịch sự kiện |
-| 11/2027 – 02/2028 | **Vận hành mùa YEP 2027**: freeze window, operator thời vụ, war-room cuối tuần |
+| 08/2027 | Zalo login/Mini App; webhook; custom domain + SSL tự động; theme pack Tết Mậu Thân 2028 + YEP 2027 |
+| 09/2027 | **Mở bán campaign Tết 2028 + YEP 2027** (gói Agency năm trả trước); public API; e-gift (UrBox/ViHat) |
+| 10/2027 | AI draft (prompt → bản nháp campaign); lưu template riêng của org; reseller/OEM |
+| 11/2027 | Kiosk offline (PWA, sync sau); SSO; logic webhook (Enterprise); Live 20.000 CCU, pre-scale theo lịch campaign/sự kiện |
+| 11/2027 – 02/2028 | **Vận hành mùa YEP 2027 + Tết 2028**: freeze window, operator thời vụ, war-room cuối tuần |
 
-**Gate G4 (02/2028):** 1.000 sự kiện trong mùa, 50 agency, MRR theo [02-business-model §6](./02-business-model.md#6-dự-phóng-tài-chính-2027-gđ).
+**Gate G4 (02/2028):** 1.000 campaign/sự kiện mùa Tết 2028, 50 agency, MRR theo [02-business-model §6](./02-business-model.md#6-dự-phóng-tài-chính-2027-gđ).
 
 ---
 
-## 9. Ngân sách M0 → hết pilot (26/10/2026 – 05/02/2027, ~3,4 tháng) `[GĐ]`
+## 9. Ngân sách M0 → hết pilot (26/10/2026 – 06/02/2027, ~3,4 tháng) `[GĐ]`
 
 | Hạng mục | Triệu đ |
 |---|---|
@@ -248,21 +269,24 @@ Mục tiêu: mở rộng từ sân khấu sang **booth/activation của brand qu
 
 | Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu | Owner |
 |---|---|---|---|---|
-| M1 trễ, không kịp YEP | TB | Cao | Scope cứng 4 game; builder assisted; `performance-score` là stretch; fallback `tap-race` | PM/TL |
+| M1 trễ, không kịp mùa Tết | TB | Cao | Scope cứng 4 minigame; builder assisted; tái dùng phần đã làm ở M0; Live add-on ≤ 20% effort, cắt trước tiên nếu trễ | PM/TL |
+| Prize engine sai lệch kho/ngân sách dưới tải (A3) | Thấp–TB | Rất cao | Spike S0-6; 1 triệu lượt mô phỏng; load test; audit log; alert tốc độ phát giải; serialize theo campaign nếu cần | TL |
 | Builder quá khó, agency không tự dựng (A2) | TB | Cao | Dogfooding qua concierge; friction log; usability test mỗi sprint M2 | PM/FE |
-| Khách không trả cao hơn mức quay số (A1) | TB | Cao | Pre-sale ở M0; bundle; đo chấp nhận giá trong pilot | PM |
-| Realtime không đạt hoặc sự cố trên sân khấu (A3) | Thấp–TB | Rất cao | Spike sớm, load test, degrade, rehearsal bắt buộc, operator | TL |
-| DeviceMotion bị chặn trong in-app browser | Cao | TB | Fallback tap; hướng dẫn mở bằng trình duyệt | GD |
-| Wi-Fi venue kém | Cao | Cao | Payload nhỏ; khuyến nghị 4G; Screen có 4G backup | OP |
-| Mùa vụ (A4) | Cao | TB | M2/M3 nhắm hội nghị và activation; gói năm | PM/BD |
-| Pháp lý khuyến mại khi sang M3 (activation gắn mua hàng) | TB | Cao | Trình tạo thể lệ; tư vấn luật trước M3; ToS phân định trách nhiệm | PM |
+| Không thắng được WOAY (A1) | TB | Cao | Pre-sale ở M0; ghi lý do chọn; skin theo mùa + prize engine + white-label; giá theo campaign | PM |
+| Bot/gian lận làm hết giải sớm khi chưa có OTP (A4) | TB | Cao | Chống gian lận mức Chuẩn; giới hạn giải/người; theo dõi gắn cờ hằng ngày; đưa OTP lên sớm nếu > 5% | TL |
+| Live add-on kéo nguồn lực khỏi lõi (A5) | TB | TB | Trần 20% effort; chỉ 2 game live + Host Console; đóng băng nếu < 5 sự kiện | PM |
+| Sự cố live trên sân khấu | Thấp–TB | Rất cao | Spike sớm, load test, degrade, rehearsal bắt buộc, operator | TL |
+| DeviceMotion bị chặn trong in-app browser | Cao | TB | Fallback `tap-race`; hướng dẫn mở bằng trình duyệt | GD |
+| Wi-Fi venue kém (Live, booth) | Cao | Cao | Payload nhỏ; khuyến nghị 4G; Screen có 4G backup | OP |
+| Mùa vụ dồn vào Tết | Cao | TB | M2 nhắm 8/3, 30/4; M3 booth/activation mùa hè; gói Agency năm | PM/BD |
+| Pháp lý khuyến mại (campaign có thưởng ngay từ M1) | TB | Cao | Tư vấn luật ở M0; mẫu thể lệ; ToS phân định trách nhiệm (khách là "thương nhân thực hiện khuyến mại"); trình tạo thể lệ ở M3 | PM |
 
 ---
 
 ## 11. Nghi thức làm việc
 
 - Planning thứ Hai đầu sprint; daily 15 phút; demo + retro thứ Sáu cuối sprint.
-- **Mỗi demo M1/M2 có một người ngoài team** (agency đối tác) thử dựng event để đo builder.
-- Mỗi story gắn ID PRD (vd. `BLD-03`, `LIV-01`) và acceptance criteria.
-- **Definition of Done:** review ≥ 1; test unit cho `core` và server template; lint, typecheck xanh; deploy staging; QA ≥ 2 thiết bị thật nếu là UI player; cập nhật docs/ADR khi đổi kiến trúc.
+- **Mỗi demo M1/M2 có một người ngoài team** (agency đối tác) thử dựng campaign để đo builder.
+- Mỗi story gắn ID PRD (vd. `BLD-03`, `PRZ-05`) và acceptance criteria.
+- **Definition of Done:** review ≥ 1; test unit cho `core` (bắt buộc với prize engine) và server template; lint, typecheck xanh; deploy staging; QA ≥ 2 thiết bị thật nếu là UI player; cập nhật docs/ADR khi đổi kiến trúc.
 - Trunk-based, feature flag (PostHog), release theo tuần ngoài freeze window.

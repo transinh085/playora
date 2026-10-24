@@ -1,6 +1,6 @@
 # 04 — Danh mục game template
 
-Cập nhật: 23/10/2026
+Cập nhật: 24/10/2026 · theo [00 v2.0](./00-product-strategy.md): minigame có thưởng là lõi, game live là add-on, không làm quiz
 
 ---
 
@@ -9,62 +9,100 @@ Cập nhật: 23/10/2026
 | Loại | `kind` | Ai quyết định kết quả | Ví dụ |
 |---|---|---|---|
 | **Instant-win** | `instant` | Server, *trước* khi client animate | Vòng quay, cào thẻ, mở hộp |
-| **Skill (async)** | `skill` | Client chơi, server **xác thực** điểm, giải theo ngưỡng điểm hoặc hạng | Hứng quà, lật thẻ, puzzle, quiz async |
-| **Live (realtime)** | `live` | Server giữ state vòng; client gửi input; server tính điểm | Quiz live, shake race, kéo co, poll |
+| **Skill (async)** | `skill` | Client chơi, server **xác thực** điểm, giải theo ngưỡng điểm hoặc hạng | Hứng quà, lật thẻ, puzzle |
+| **Live (realtime)** | `live` | Server giữ state vòng; client gửi input; server tính điểm | Shake race, kéo co |
 | **Live draw** | `draw` | Server chọn người trúng từ tập người chơi | Quay số LED, xổ số tên |
 | **Display** | `display` | Không có kết quả | Check-in wall, tường lời chúc, slideshow |
 
 ## 2. Danh mục và giai đoạn
 
-Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn): **M1** YEP Live (12/2026) · **M2** Live Self-serve & Agency (04/2027) · **M3** Booth & Activation (07/2027) · **M4** Scale (12/2027).
+Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn): **M1** Tết Campaign + Live add-on (12/2026) · **M2** Self-serve & Agency (04/2027) · **M3** Booth & Activation (07/2027) · **M4** Scale (12/2027).
 
 **Nguyên tắc chọn:**
-1. Ưu tiên game **nhiều người trên LED** (wedge).
-2. Cơ chế phải đáng giá ≥ 10 skin.
-3. Game instant-win (thị trường đã có nhiều) làm sau, khi đã có prize engine đầy đủ.
+1. Ưu tiên **minigame có thưởng** chạy được nhiều ngày trên điện thoại (lõi), cùng engine cho booth.
+2. Cơ chế phải đáng giá ≥ 10 skin; ra skin theo mùa đều đặn quan trọng hơn ra cơ chế mới.
+3. Game live chỉ làm khi dùng lại engine sẵn có (input lắc/chạm, lucky draw) — là add-on.
+4. Không làm quiz/poll.
 
-### 2.1 Game live (sân khấu: Screen + Host + Player)
-
-| Template | Tên | Kind | GĐ | Độ khó | Vì sao |
-|---|---|---|---|---|---|
-| `checkin-wall` | Tường check-in | display | **M1** | S | Mở màn mọi sự kiện; nguồn pool cho lucky draw |
-| `live-quiz` | Quiz trực tiếp (cá nhân/đội) | live | **M1** | M | Nhu cầu số 1 ở hội nghị và YEP |
-| `shake-race` (+ fallback `tap`) | Lắc điện thoại đua (đội/phòng ban) | live | **M1** | M | **Game "wow" của wedge** (Hi现场 摇一摇/赛马) |
-| `lucky-draw` | Quay số minh bạch | draw | **M1** | M | Bắt buộc phải có; khác biệt ở lọc pool + commit–reveal + biên bản |
-| `performance-score` | Chấm điểm tiết mục văn nghệ | live | **M1 stretch → M2** | S | YEP nào cũng có văn nghệ; chưa ai ở VN làm tốt |
-| `tug-of-war` | Kéo co theo đội | live | M2 | M | Team game mạnh (Hi现场 拔河) |
-| `money-count` | Đếm tiền lì xì | live | M2 | S | Vuốt đếm tiền (数钱); skin Tết |
-| `launch-ceremony` | Nghi thức khởi động | live | M2 | S | Cả hội trường nạp năng lượng để kích hoạt video; dùng cho ra mắt, khai trương, ký kết |
-| `live-poll` (+ word cloud) | Bình chọn trực tiếp | live | M2 | S | Hội nghị |
-| `danmaku-wall` | Bình luận chạy / tường tin nhắn | display | M2 | S | Rẻ, vui; chung moderation với check-in |
-| `bingo` | Bingo sự kiện | live | M4 | M | Team building |
-| `charades` | Đoán chữ (你演我猜) | live | Later | S | |
-
-### 2.2 Game booth / async (Player + Kiosk)
+### 2.1 Minigame có thưởng (Player + Kiosk) — lõi
 
 | Template | Tên | Kind | GĐ | Độ khó | Ghi chú |
 |---|---|---|---|---|---|
-| `spin-wheel` | Vòng quay may mắn | instant | M3 | S | 4–12 ô; custom widget sửa ô |
-| `scratch-card` | Cào thẻ | instant | M3 | S | |
-| `gift-box` | Mở hộp quà | instant | M3 | S | Biến thể skin: **đập trứng vàng, lưới 9 ô, máy xèng, gacha, hộp bí ẩn** (cùng engine `instant`) |
-| `catch-items` | Hứng quà | skill | M3 | M | PixiJS; score_threshold → draw |
-| `memory-match` | Lật thẻ | skill | M3 | S | Logo/sản phẩm brand |
-| `quiz-async` | Quiz tự chơi | skill | M3 | S | Tái dùng engine quiz |
-| `red-envelope` | Lì xì rơi (Tết) | skill | M4 | M | Kịp Tết 2028 |
-| `collect-cards` | Sưu tầm thẻ (集福) | instant | M4 | M | Chiến dịch nhiều ngày |
-| `puzzle` | Ghép hình | skill | M4 | M | |
-| `whack-a-mole` | Đập chuột / đập logo | skill | M4 | M | |
-| `photo-booth` | Khung ảnh brand lên tường | display | M4 | M | |
+| `spin-wheel` | Vòng quay may mắn | instant | **M1** | S | 4–12 ô; custom widget sửa ô; ô gắn với giải hoặc "chúc may mắn" |
+| `scratch-card` | Cào thẻ | instant | **M1** | S | Canvas cào, lộ ≥ 60% thì hiện kết quả |
+| `gift-box` | Mở hộp quà | instant | **M1** | S | Biến thể skin: **đập trứng vàng, lì xì Tết, lưới 9 ô, hộp bí ẩn** (M1); máy xèng, gacha (M3) — cùng engine `instant` |
+| `catch-items` | Hứng quà / hứng lộc | skill | **M1** | M | PixiJS; `score_threshold` → lượt draw |
+| `memory-match` | Lật thẻ | skill | M2 | S | Logo/sản phẩm brand |
+| `puzzle` | Ghép hình | skill | M2 | M | |
+| `whack-a-mole` | Đập chuột / đập logo | skill | M2 | M | |
+| `red-envelope` | Lì xì rơi | skill | M2 | M | Kịp Tết 2028 bằng skin |
+| `collect-cards` | Sưu tầm thẻ (集福) | instant | M3 | M | Chiến dịch nhiều ngày |
+| `photo-booth` | Khung ảnh brand | display | M4 | M | |
+
+### 2.2 Game live (Screen + Host + Player) — add-on
+
+| Template | Tên | Kind | GĐ | Độ khó | Vì sao |
+|---|---|---|---|---|---|
+| `shake-race` (+ fallback `tap`) | Lắc điện thoại đua (đội/phòng ban) | live | **M1** | M | Game "wow" cho YEP; engine tap-race đã đạt 2.000 người (ADR 004) |
+| `lucky-draw` | Quay số minh bạch | draw | **M1** | M | Khác biệt ở lọc pool + commit–reveal + biên bản |
+| `performance-score` | Chấm điểm tiết mục văn nghệ | live | M2 | S | YEP nào cũng có văn nghệ |
+| `tug-of-war` | Kéo co theo đội | live | M3 | M | Dùng lại input lắc/chạm |
+| `launch-ceremony` | Nghi thức khởi động | live | M3 | S | Ra mắt, khai trương, ký kết |
+| `checkin-wall` | Tường check-in | display | M3 | S | Đi cùng kiểm duyệt nội dung |
+| `danmaku-wall` | Tường tin nhắn | display | M3 | S | Chung moderation với check-in |
+| `money-count` | Đếm tiền lì xì | live | M4 | S | Skin Tết |
+
+**Bỏ ở v2.0:** `live-quiz`, `quiz-async`, `live-poll`, `bingo`, `charades`.
 
 **Độ khó:** S ≈ 3–5 ngày, M ≈ 1,5–2 tuần với 1 game dev (gồm editor schema, skin mặc định và test).
 
-> **Skin thay vì template mới:** Trung Quốc có hàng trăm đến hàng nghìn "template" nhờ nhân **1 cơ chế × N skin theo mùa/ngành**. Playora làm tương tự qua skin và theme pack ([12-builder-spec §5](./12-builder-spec.md#5-skin-theme-và-brand-kit)). Gallery hiển thị theo tổ hợp cơ chế × skin. Mục tiêu: M1 có 4 cơ chế × 2 theme = 8 lựa chọn; M2 có 10 cơ chế × 8 theme; M4 trên 200 tổ hợp.
+> **Skin thay vì template mới:** Trung Quốc có hàng trăm đến hàng nghìn "template" nhờ nhân **1 cơ chế × N skin theo mùa/ngành**. Playora làm tương tự qua skin và theme pack ([12-builder-spec §5](./12-builder-spec.md#5-skin-theme-và-brand-kit)). Gallery hiển thị theo tổ hợp cơ chế × skin. Mục tiêu: M1 có 4 minigame × (Tết + Chung + biến thể skin) ≈ 12 lựa chọn; M2 có 8 minigame × 8 theme; M4 trên 200 tổ hợp.
 
 ---
 
 ## 3. Đặc tả template M1
 
-### 3.1 `lucky-draw`: Quay số trúng thưởng
+### 3.0 Luồng chung cho minigame `instant`
+
+1. Player mở game → flow chuẩn: Cover (thể lệ) → Form/consent (nếu bật) → màn game.
+2. Player bấm chơi → `POST /p/{slug}/plays` (kèm `deviceId`, Turnstile token theo preset). Server kiểm tra participation (lượt/ngày, tổng, khung giờ), chống gian lận, rồi gọi **prize engine** trong một transaction: chọn kết quả theo chế độ (`per_prize_probability` / `overall_win_rate` / `guaranteed`), áp pacing, giới hạn người/ngày, ngân sách; trừ tồn kho nguyên tử; cấp voucher từ pool nếu có.
+3. Server trả `{ playId, outcome: { kind: 'win' | 'lose' | 'out_of_stock', prize?, voucherCode?, slotIndex? } }`. Client **chỉ animate** đến kết quả đã biết (ví dụ vòng quay dừng ở `slotIndex`), không tự quyết định.
+4. Màn kết quả theo biến thể; "Quà của tôi" liệt kê giải và mã đã nhận.
+
+**Không hỗ trợ:** định trước người trúng; client gửi kết quả.
+
+### 3.1 `spin-wheel`
+
+- **Cấu hình:** 4–12 ô (`label`, màu, ảnh, `prizeId` hoặc `none`); ô "chúc may mắn"; số vòng quay tối thiểu, thời lượng 3–8 s; âm thanh.
+- **Map kết quả → ô:** server chọn giải trước, rồi chọn ngẫu nhiên một ô gắn với giải đó (hoặc ô `none` khi không trúng/hết quà). Nếu giải không có ô nào thì publish bị chặn (pre-flight).
+- **Skin:** Tết (hoa mai, bao lì xì), Chung, theo màu brand kit.
+
+### 3.2 `scratch-card`
+
+- **Cấu hình:** ảnh lớp phủ, ảnh nền theo kết quả (trúng/không trúng), tỷ lệ lộ để hiện kết quả (mặc định 60%), chữ hướng dẫn.
+- **Client:** canvas cào; kết quả đã được server quyết định và lượt đã được tính trước khi bắt đầu cào, nên xem trước bằng devtools không thay đổi được gì.
+
+### 3.3 `gift-box`
+
+- **Cấu hình:** số hộp hiển thị (1, 3, 9), hiệu ứng mở, ảnh hộp/trứng/bao lì xì theo skin.
+- **Biến thể skin M1:** hộp quà, **đập trứng vàng**, **lì xì Tết**, lưới 9 ô. Kết quả do server quyết định trước khi người chơi chọn hộp; thể lệ ghi rõ điều này. Các hộp còn lại **không** lật ra "giải lẽ ra trúng" (tránh gây hiểu nhầm, nhất quán với nguyên tắc minh bạch).
+
+### 3.4 `catch-items`
+
+- **Cơ chế:** 20–60 s hứng vật phẩm rơi (PixiJS), tránh vật phẩm xấu; điểm theo vật phẩm.
+- **Server:** cấp `playId` lúc bắt đầu; nhận `{ playId, score, durationMs, events digest }` lúc kết thúc; kiểm tra plausibility (điểm tối đa theo thời lượng và tốc độ rơi, thời lượng thực tế theo server). Đạt `score_threshold` thì được một lượt draw qua prize engine; có thể có leaderboard theo ngày.
+- **Skin:** hứng lộc Tết (bao lì xì, vàng), hứng sản phẩm brand.
+
+### 3.5 `shake-race` (Live add-on)
+
+- **Input:** `DeviceMotionEvent`, đếm "shake" khi |a| vượt ngưỡng có hysteresis. iOS cần xin quyền `DeviceMotionEvent.requestPermission()` qua một nút bấm. Nếu bị từ chối thì fallback sang **tap**.
+- **Gửi lên:** client gom delta mỗi 250 ms: `{ d: number, seq }`. Server cap `d ≤ 8` mỗi 250 ms (tối đa ~32 shake/s) để chặn script.
+- **Server:** cộng dồn trong bộ nhớ của room (node sở hữu room), flush Redis mỗi 1 s. Broadcast snapshot top-N cho Screen 10 Hz, tiến độ cá nhân và đội cho Player 2 Hz.
+- **Kết thúc:** theo thời gian (30–90 s) hoặc khi người hoặc đội đầu tiên đạt đích.
+- **Skin:** ngựa, thuyền rồng, xe đua, tên lửa, cá chép hoá rồng (Tết).
+
+
+### 3.6 `lucky-draw` (Live add-on): Quay số trúng thưởng
 
 **Cấu hình (rút gọn):**
 
@@ -97,29 +135,6 @@ const luckyDrawConfig = z.object({
 6. Sau sự kiện, biên bản công bố `serverSeed`; bất kỳ ai cũng kiểm chứng được.
 
 **Edge cases:** pool rỗng; người trúng không có mặt (host bấm "Quay lại" sẽ ghi `void` kèm lý do vào log, không xoá); mất kết nối Screen giữa chừng (Screen reconnect sẽ nhận state `result`).
-
-### 3.2 `live-quiz`
-
-- **Cấu hình:** danh sách câu hỏi (`single`/`multi`/`true_false`/`poll`), ảnh/video, `timeLimitSec` (5–60), điểm cơ sở 1.000, công thức tốc độ `score = base × (1 − 0.5 × t / T)`, có hoặc không streak bonus, hiển thị leaderboard sau N câu.
-- **Server:** gửi câu hỏi (không kèm đáp án) lúc `question.open`. Nhận `answer.submit` (chỉ lần đầu, phải trước deadline có tính bù trễ ≤ 300 ms). Lúc `question.close` mới công bố đáp án và điểm.
-- **Thời gian:** dùng thời gian server. Client đồng bộ đồng hồ (NTP-lite qua ping) để đếm ngược chính xác.
-- **Leaderboard:** Redis ZSET `lb:{roundId}`.
-
-### 3.3 `shake-race`
-
-- **Input:** `DeviceMotionEvent`, đếm "shake" khi |a| vượt ngưỡng có hysteresis. iOS cần xin quyền `DeviceMotionEvent.requestPermission()` qua một nút bấm. Nếu bị từ chối thì fallback sang **tap**.
-- **Gửi lên:** client gom delta mỗi 250 ms: `{ d: number, seq }`. Server cap `d ≤ 8` mỗi 250 ms (tối đa ~32 shake/s) để chặn script.
-- **Server:** cộng dồn trong bộ nhớ của room (node sở hữu room), flush Redis mỗi 1 s. Broadcast snapshot top-N cho Screen 10 Hz, tiến độ cá nhân và đội cho Player 2 Hz.
-- **Kết thúc:** theo thời gian (30–90 s) hoặc khi người hoặc đội đầu tiên đạt đích.
-- **Skin:** ngựa, thuyền rồng, xe đua, tên lửa, cá chép hoá rồng (Tết).
-
-### 3.4 `checkin-wall`
-
-- Player gửi tên hoặc lời chúc (≤ 80 ký tự) và avatar tuỳ chọn.
-- Kiểm duyệt: lọc từ cấm tiếng Việt (có danh sách mặc định, org bổ sung được) và chế độ duyệt tay trên Host Console.
-- Screen hiển thị theo layout (bay ngang, lưới, đám mây). Tối đa 30 item mới mỗi giây, còn lại xếp hàng đợi.
-
----
 
 ## 4. Template contract (tóm tắt)
 
