@@ -2,13 +2,19 @@ import { createHash } from 'node:crypto';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ErrorCode,
-  type FieldDescriptor,
   type GameSummary,
   type GameVersionSummary,
   type gamesApi,
   type PublishGameResponse,
   type RouteArgs,
 } from '@playora/contracts';
+import {
+  canonicalJson,
+  extractConfigAssetIds,
+  extractHotConfig,
+  pickAssetUrls,
+  validateTemplateConfig,
+} from '@playora/game-sdk';
 import { getTemplate, type RegisteredServerTemplate } from '@playora/templates/server';
 import type { S3Client } from 'bun';
 import type { Actor } from '../../common/actor';
@@ -25,153 +31,19 @@ type CreateBody = RouteArgs<typeof gamesApi.create>['body'];
 type UpdateBody = RouteArgs<typeof gamesApi.update>['body'];
 type ReorderBody = RouteArgs<typeof gamesApi.reorder>['body'];
 
-export type { Actor };
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalJson(item === undefined ? null : item)).join(',')}]`;
-  }
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj)
-    .filter((k) => obj[k] !== undefined)
-    .sort();
-  const entries = keys.map((k) => `${JSON.stringify(k)}:${canonicalJson(obj[k])}`);
-  return `{${entries.join(',')}}`;
-}
+export { type Actor, canonicalJson };
 
 export function computeConfigHash(config: unknown): string {
   return createHash('sha256').update(canonicalJson(config)).digest('hex');
 }
 
-function getAtPath(obj: unknown, path: string): unknown {
-  if (!path) return obj;
-  let cur: unknown = obj;
-  for (const part of path.split('.')) {
-    if (cur === null || typeof cur !== 'object') return undefined;
-    cur = (cur as Record<string, unknown>)[part];
+function assertFound<T>(
+  value: T | null | undefined,
+  message = 'Game not found',
+): asserts value is T {
+  if (!value) {
+    throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message });
   }
-  return cur;
-}
-
-function setAtPath(target: Record<string, unknown>, path: string, value: unknown): void {
-  const parts = path.split('.');
-  let cur: Record<string, unknown> = target;
-  for (let i = 0; i < parts.length - 1; i++) {
-    const key = parts[i];
-    if (!key) continue;
-    const next = cur[key];
-    if (next === null || typeof next !== 'object' || Array.isArray(next)) {
-      cur[key] = {};
-    }
-    cur = cur[key] as Record<string, unknown>;
-  }
-  const last = parts.at(-1);
-  if (last) {
-    cur[last] = value;
-  }
-}
-
-function extractHotConfig(
-  config: Record<string, unknown>,
-  hotEditablePaths: readonly string[],
-): Record<string, unknown> {
-  const hot: Record<string, unknown> = {};
-  for (const path of hotEditablePaths) {
-    const val = getAtPath(config, path);
-    if (val !== undefined) {
-      setAtPath(hot, path, structuredClone(val));
-    }
-  }
-  return hot;
-}
-
-interface AssetFieldOccurrence {
-  path: string;
-  slotKey?: string;
-  widget: string;
-  value: string;
-}
-
-function collectAssetOccurrences(
-  fields: readonly FieldDescriptor[],
-  config: unknown,
-  prefix = '',
-): AssetFieldOccurrence[] {
-  if (config === null || typeof config !== 'object') return [];
-  const obj = config as Record<string, unknown>;
-  const out: AssetFieldOccurrence[] = [];
-
-  for (const field of fields) {
-    const val = obj[field.key];
-    const currentPath = prefix ? `${prefix}.${field.key}` : field.key;
-
-    if (field.widget === 'asset' || field.widget === 'sound' || field.slotKey) {
-      if (typeof val === 'string' && val.trim().length > 0) {
-        out.push({
-          path: currentPath,
-          slotKey: field.slotKey,
-          widget: field.widget,
-          value: val.trim(),
-        });
-      }
-    } else if (field.type === 'object' && field.fields && val && typeof val === 'object') {
-      out.push(...collectAssetOccurrences(field.fields, val, currentPath));
-    } else if (field.type === 'array' && field.item && Array.isArray(val)) {
-      for (let i = 0; i < val.length; i++) {
-        const itemVal = val[i];
-        const itemPath = `${currentPath}.${i}`;
-        if (field.item.widget === 'asset' || field.item.widget === 'sound' || field.item.slotKey) {
-          if (typeof itemVal === 'string' && itemVal.trim().length > 0) {
-            out.push({
-              path: itemPath,
-              slotKey: field.item.slotKey,
-              widget: field.item.widget,
-              value: itemVal.trim(),
-            });
-          }
-        } else if (field.item.type === 'object' && field.item.fields) {
-          out.push(...collectAssetOccurrences(field.item.fields, itemVal, itemPath));
-        }
-      }
-    }
-  }
-
-  return out;
-}
-
-function collectBuiltInAssetStrings(template: RegisteredServerTemplate): Set<string> {
-  const allowed = new Set<string>();
-  const addFromFields = (fields: readonly FieldDescriptor[]) => {
-    for (const f of fields) {
-      if (
-        (f.widget === 'asset' || f.widget === 'sound' || f.slotKey) &&
-        typeof f.defaultValue === 'string'
-      ) {
-        allowed.add(f.defaultValue);
-      }
-      if (f.fields) addFromFields(f.fields);
-      if (f.item) addFromFields([f.item]);
-    }
-  };
-  addFromFields(template.formDescriptor.fields);
-  for (const skin of template.skins) {
-    for (const url of Object.values(skin.assets ?? {})) {
-      if (typeof url === 'string') allowed.add(url);
-    }
-  }
-  return allowed;
-}
-
-function isBuiltInAssetPath(value: string, builtIns: ReadonlySet<string>): boolean {
-  if (builtIns.has(value)) return true;
-  return (
-    value.startsWith('/assets/') || value.startsWith('/skins/') || value.startsWith('/templates/')
-  );
 }
 
 function throwFieldValidationError(fieldErrors: Record<string, string[]>, message?: string): never {
@@ -182,10 +54,7 @@ function throwFieldValidationError(fieldErrors: Record<string, string[]>, messag
     details: {
       ...(firstField ? { field: firstField } : {}),
       fieldErrors,
-      body: {
-        formErrors: [],
-        fieldErrors,
-      },
+      body: { formErrors: [], fieldErrors },
       issues: Object.entries(fieldErrors).flatMap(([path, msgs]) =>
         msgs.map((m) => ({ path, message: m })),
       ),
@@ -207,15 +76,7 @@ export class GamesService {
     config: unknown,
   ): string[] {
     const tpl = getTemplate(templateKey, templateVersion) ?? getTemplate(templateKey);
-    if (!tpl) return [];
-    const occurrences = collectAssetOccurrences(tpl.formDescriptor.fields, config);
-    const ids = new Set<string>();
-    for (const occ of occurrences) {
-      if (UUID_REGEX.test(occ.value)) {
-        ids.add(occ.value);
-      }
-    }
-    return [...ids];
+    return tpl ? extractConfigAssetIds(tpl.formDescriptor.fields, config) : [];
   }
 
   private async resolveAssetsMapForIds(
@@ -223,27 +84,12 @@ export class GamesService {
     assetIds: readonly string[],
   ): Promise<Record<string, string>> {
     if (assetIds.length === 0) return {};
-    const uniqueIds = [...new Set(assetIds)];
-    const rows = await this.repo.findAssetsByIds(orgId, uniqueIds);
+    const rows = await this.repo.findAssetsByIds(orgId, [...new Set(assetIds)]);
     const map: Record<string, string> = {};
     for (const row of rows) {
       map[row.id] = this.s3.presign(row.storageKey, { method: 'GET', expiresIn: 3600 });
     }
     return map;
-  }
-
-  private pickAssetUrls(
-    assetIds: readonly string[],
-    allResolved: Readonly<Record<string, string>>,
-  ): Record<string, string> {
-    const out: Record<string, string> = {};
-    for (const id of assetIds) {
-      const url = allResolved[id];
-      if (url) {
-        out[id] = url;
-      }
-    }
-    return out;
   }
 
   private toGameSummary(
@@ -296,14 +142,9 @@ export class GamesService {
         p.game.draftConfig,
       ),
     );
-    const allIds = idsByGame.flat();
-    const resolved = await this.resolveAssetsMapForIds(orgId, allIds);
+    const resolved = await this.resolveAssetsMapForIds(orgId, idsByGame.flat());
     return pairs.map((p, idx) =>
-      this.toGameSummary(
-        p.game,
-        p.currentVersion,
-        this.pickAssetUrls(idsByGame[idx] ?? [], resolved),
-      ),
+      this.toGameSummary(p.game, p.currentVersion, pickAssetUrls(idsByGame[idx] ?? [], resolved)),
     );
   }
 
@@ -352,51 +193,27 @@ export class GamesService {
     }
   }
 
+  private async ensureEventExists(orgId: string, eventId: string) {
+    assertFound(await this.repo.eventExistsInOrg(orgId, eventId), 'Event not found');
+  }
+
   private async validateConfigAndAssets(
     orgId: string,
     template: RegisteredServerTemplate,
     rawConfig: unknown,
     tx?: Parameters<GamesRepository['findAssetInOrg']>[2],
   ): Promise<Record<string, unknown>> {
-    const parsed = template.configSchema.safeParse(rawConfig);
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string[]> = {};
-      for (const issue of parsed.error.issues) {
-        const dotPath = issue.path.map(String).join('.') || '_root';
-        fieldErrors[dotPath] ??= [];
-        fieldErrors[dotPath].push(issue.message);
-      }
-      throwFieldValidationError(fieldErrors, 'Invalid game configuration');
+    const validated = validateTemplateConfig(template, rawConfig);
+    if (!validated.ok) {
+      throwFieldValidationError(validated.fieldErrors, validated.message);
     }
 
-    const configData = parsed.data as Record<string, unknown>;
-    const builtIns = collectBuiltInAssetStrings(template);
-    const occurrences = collectAssetOccurrences(template.formDescriptor.fields, configData);
-    const slotMap = new Map(template.assetSlots.map((s) => [s.key, s]));
-
     const assetFieldErrors: Record<string, string[]> = {};
-    for (const occ of occurrences) {
-      if (isBuiltInAssetPath(occ.value, builtIns)) {
-        continue;
-      }
-
-      if (!UUID_REGEX.test(occ.value)) {
-        assetFieldErrors[occ.path] = [
-          'Mã tài nguyên phải là UUID hợp lệ (không lưu URL trực tiếp)',
-        ];
-        continue;
-      }
-
-      const asset = await this.repo.findAssetInOrg(orgId, occ.value, tx);
+    for (const occ of validated.externalAssets) {
+      const asset = await this.repo.findAssetInOrg(orgId, occ.assetId, tx);
       if (!asset) {
         assetFieldErrors[occ.path] = ['Tài nguyên không tồn tại hoặc thuộc tổ chức khác'];
-        continue;
-      }
-
-      const slot = occ.slotKey ? slotMap.get(occ.slotKey) : undefined;
-      const expectedAccept =
-        slot?.accept ?? (occ.widget === 'sound' ? (['audio'] as const) : (['image'] as const));
-      if (!expectedAccept.includes(asset.kind)) {
+      } else if (!occ.expectedAccept.includes(asset.kind)) {
         assetFieldErrors[occ.path] = [
           `Loại tài nguyên "${asset.kind}" không hợp lệ cho trường "${occ.path}"`,
         ];
@@ -407,34 +224,23 @@ export class GamesService {
       throwFieldValidationError(assetFieldErrors, 'Invalid asset reference in game config');
     }
 
-    return configData;
+    return validated.config;
   }
 
   async list(orgId: string, eventId: string): Promise<{ items: GameSummary[] }> {
-    const exists = await this.repo.eventExistsInOrg(orgId, eventId);
-    if (!exists) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
-    }
+    await this.ensureEventExists(orgId, eventId);
     const rows = await this.repo.listByEvent(orgId, eventId);
-    return {
-      items: await this.toGameSummariesFromPairs(orgId, rows),
-    };
+    return { items: await this.toGameSummariesFromPairs(orgId, rows) };
   }
 
   async get(orgId: string, gameId: string): Promise<GameSummary> {
     const found = await this.repo.findById(orgId, gameId);
-    if (!found) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-    }
+    assertFound(found);
     return this.toGameSummaryWithAssets(found.game, found.currentVersion);
   }
 
   async create(orgId: string, eventId: string, body: CreateBody): Promise<GameSummary> {
-    const exists = await this.repo.eventExistsInOrg(orgId, eventId);
-    if (!exists) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
-    }
-
+    await this.ensureEventExists(orgId, eventId);
     const template = this.resolveTemplateOrThrow(body.templateId);
     this.validateSkinOrThrow(template, body.skinKey);
 
@@ -463,15 +269,12 @@ export class GamesService {
 
   async update(orgId: string, gameId: string, body: UpdateBody): Promise<GameSummary> {
     const existing = await this.repo.findById(orgId, gameId);
-    if (!existing) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-    }
+    assertFound(existing);
 
     const template = this.resolveTemplateOrThrow(
       existing.game.templateKey,
       existing.game.templateVersion,
     );
-
     if (body.skinKey !== undefined) {
       this.validateSkinOrThrow(template, body.skinKey);
     }
@@ -493,11 +296,7 @@ export class GamesService {
       ...(nextHotConfig !== undefined ? { hotConfig: nextHotConfig } : {}),
       updatedAt: new Date(),
     });
-
-    if (!updated) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-    }
-
+    assertFound(updated);
     return this.toGameSummaryWithAssets(updated, existing.currentVersion);
   }
 
@@ -506,11 +305,7 @@ export class GamesService {
     eventId: string,
     body: ReorderBody,
   ): Promise<{ items: GameSummary[] }> {
-    const exists = await this.repo.eventExistsInOrg(orgId, eventId);
-    if (!exists) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
-    }
-
+    await this.ensureEventExists(orgId, eventId);
     const current = await this.repo.listByEvent(orgId, eventId);
     const currentIds = new Set(current.map((c) => c.game.id));
     if (body.gameIds.length !== current.length || body.gameIds.some((id) => !currentIds.has(id))) {
@@ -524,10 +319,7 @@ export class GamesService {
       await this.repo.reorder(orgId, eventId, body.gameIds, tx);
       return this.repo.listByEvent(orgId, eventId, tx);
     });
-
-    return {
-      items: await this.toGameSummariesFromPairs(orgId, rows),
-    };
+    return { items: await this.toGameSummariesFromPairs(orgId, rows) };
   }
 
   async remove(orgId: string, gameId: string, actor: Actor) {
@@ -549,11 +341,7 @@ export class GamesService {
       }
       return row;
     });
-
-    if (!removed) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-    }
-
+    assertFound(removed);
     return { ok: true as const };
   }
 
@@ -562,9 +350,7 @@ export class GamesService {
       // Lock the game row first (`SELECT ... FOR UPDATE`) to serialize concurrent publishes
       // and prevent `nextVersionNumber` collisions on unique(gameId, version).
       const lockedGame = await this.repo.findByIdForUpdate(orgId, gameId, tx);
-      if (!lockedGame) {
-        throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-      }
+      assertFound(lockedGame);
 
       const template = this.resolveTemplateOrThrow(
         lockedGame.templateKey,
@@ -606,10 +392,7 @@ export class GamesService {
         },
         tx,
       );
-
-      if (!gameRow) {
-        throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-      }
+      assertFound(gameRow);
 
       await this.audit.record(
         {
@@ -619,11 +402,7 @@ export class GamesService {
           action: 'game.publish',
           targetType: 'game',
           targetId: gameId,
-          diff: {
-            versionId: inserted.id,
-            version: nextVersion,
-            configHash,
-          },
+          diff: { versionId: inserted.id, version: nextVersion, configHash },
           ip: actor.ip,
         },
         tx,
@@ -638,21 +417,14 @@ export class GamesService {
       versionRow.config,
     );
     const assets = await this.resolveAssetsMapForIds(orgId, assetIds);
-
-    const versionSummary = this.toVersionSummary(versionRow, assets);
-    const gameSummary = this.toGameSummary(updatedGame, versionRow.version, assets);
-
     return {
-      ...versionSummary,
-      game: gameSummary,
+      ...this.toVersionSummary(versionRow, assets),
+      game: this.toGameSummary(updatedGame, versionRow.version, assets),
     };
   }
 
   async listVersions(orgId: string, gameId: string): Promise<{ items: GameVersionSummary[] }> {
-    const existing = await this.repo.findById(orgId, gameId);
-    if (!existing) {
-      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Game not found' });
-    }
+    assertFound(await this.repo.findById(orgId, gameId));
     const rows = await this.repo.listVersions(orgId, gameId);
     const idsByVersion = rows.map((r) =>
       this.extractAssetIdsForTemplate(r.templateKey, r.templateVersion, r.config),
@@ -660,7 +432,7 @@ export class GamesService {
     const resolved = await this.resolveAssetsMapForIds(orgId, idsByVersion.flat());
     return {
       items: rows.map((r, idx) =>
-        this.toVersionSummary(r, this.pickAssetUrls(idsByVersion[idx] ?? [], resolved)),
+        this.toVersionSummary(r, pickAssetUrls(idsByVersion[idx] ?? [], resolved)),
       ),
     };
   }

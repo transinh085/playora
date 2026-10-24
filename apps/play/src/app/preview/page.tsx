@@ -5,8 +5,14 @@ import {
   createPreviewSession,
   type Locale,
   type PlayOutcome,
+  PREVIEW_READY_TYPE,
+  PreviewMessage,
+  type PreviewMessagePayload,
+  type PreviewOutcomePreset,
+  PreviewReadyMessage,
   resolveSkinConfig,
   resolveTemplateAssets,
+  toPlayOutcome,
 } from '@playora/game-sdk';
 import { getTemplate, getTemplateSurfaces } from '@playora/templates';
 import { useSearchParams } from 'next/navigation';
@@ -22,19 +28,7 @@ const DEFAULT_BRAND: BrandKit = {
   },
 };
 
-export type PreviewOutcomePreset = 'win' | 'lose' | 'out_of_stock';
-
-export interface PreviewMessagePayload {
-  type?: string;
-  config?: Record<string, unknown>;
-  skin?: string;
-  skinKey?: string;
-  brand?: Partial<BrandKit>;
-  locale?: Locale;
-  outcome?: PreviewOutcomePreset | PlayOutcome;
-  assets?: Record<string, string>;
-  assetUrls?: Record<string, string>;
-}
+export type { PreviewMessagePayload, PreviewOutcomePreset };
 
 export function isAllowedStudioOrigin(
   origin: string,
@@ -48,27 +42,6 @@ export function isAllowedStudioOrigin(
       .filter(Boolean),
   );
   return allowed.has(origin);
-}
-
-function toPlayOutcome(preset: PreviewOutcomePreset | PlayOutcome): PlayOutcome {
-  if (typeof preset === 'object' && preset !== null && 'kind' in preset) {
-    return preset;
-  }
-  if (preset === 'win') {
-    return {
-      kind: 'win',
-      prize: {
-        id: 'prize-1',
-        name: { vi: 'Giải mẫu', en: 'Sample prize' },
-        type: 'voucher_code',
-      },
-      voucherCode: 'DEMO-2026',
-    };
-  }
-  if (preset === 'out_of_stock') {
-    return { kind: 'out_of_stock' };
-  }
-  return { kind: 'lose' };
 }
 
 function PreviewSurface() {
@@ -105,21 +78,11 @@ function PreviewSurface() {
         return;
       }
 
-      const data = event.data as PreviewMessagePayload | null;
-      if (!data || typeof data !== 'object') return;
+      const parsed = PreviewMessage.safeParse(event.data);
+      if (!parsed.success) return;
+      const data = parsed.data;
 
-      const isKnownMessage =
-        data.type === 'playora:preview-update' ||
-        data.type === 'preview:update' ||
-        'config' in data ||
-        'skin' in data ||
-        'skinKey' in data ||
-        'brand' in data ||
-        'outcome' in data;
-
-      if (!isKnownMessage) return;
-
-      if (data.config && typeof data.config === 'object') {
+      if (data.config) {
         setConfigOverride(data.config);
       }
       if (typeof data.skinKey === 'string') {
@@ -127,7 +90,7 @@ function PreviewSurface() {
       } else if (typeof data.skin === 'string') {
         setSkinKey(data.skin);
       }
-      if (data.brand && typeof data.brand === 'object') {
+      if (data.brand) {
         setBrand((prev) => ({
           ...prev,
           ...data.brand,
@@ -137,21 +100,21 @@ function PreviewSurface() {
           },
         }));
       }
-      if (data.locale === 'vi' || data.locale === 'en') {
+      if (data.locale) {
         setLocale(data.locale);
       }
       if (data.outcome) {
         setOutcomePreset(data.outcome);
       }
       const incomingAssets = data.assets ?? data.assetUrls;
-      if (incomingAssets && typeof incomingAssets === 'object') {
+      if (incomingAssets) {
         setAssetMap(incomingAssets);
       }
     };
 
     window.addEventListener('message', handleMessage);
     if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'playora:preview-ready' }, '*');
+      window.parent.postMessage(PreviewReadyMessage.parse({ type: PREVIEW_READY_TYPE }), '*');
     }
     return () => window.removeEventListener('message', handleMessage);
   }, []);

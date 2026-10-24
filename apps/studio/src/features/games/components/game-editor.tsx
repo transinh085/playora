@@ -1,8 +1,8 @@
 'use client';
 
-import { ApiError } from '@playora/api-client';
-import { ErrorCode, type UpdateGameBody } from '@playora/contracts';
-import { AutoForm, type FieldDescriptor, type FormDescriptor } from '@playora/ui/auto-form';
+import { type ErrorCode, localize, type UpdateGameBody } from '@playora/contracts';
+import { hasNonHotEditableChanges } from '@playora/game-sdk';
+import { AutoForm, type FormDescriptor } from '@playora/ui/auto-form';
 import { Alert, AlertDescription } from '@playora/ui/components/alert';
 import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
@@ -38,50 +38,16 @@ import { useEvent } from '@/features/events/api';
 import { PLAY_URL } from '@/lib/env';
 import { applyApiError } from '@/lib/form-errors';
 import { useGame, useGameVersions, usePublishGame, useTemplates, useUpdateGame } from '../api';
+import {
+  buildPreviewUpdateMessage,
+  extractDraftFieldErrors,
+  isPreviewReadyMessage,
+  resolvePlayOrigin,
+} from '../lib/builder-helpers';
 
 type UpdateGameValues = z.input<typeof UpdateGameBody>;
 
-function localizeText(text: { vi: string; en?: string }, locale: string): string {
-  if (locale === 'en' && text.en) return text.en;
-  return text.vi;
-}
-
-function getByDotPath(obj: Record<string, unknown>, dotPath: string): unknown {
-  let cur: unknown = obj;
-  for (const seg of dotPath.split('.').filter(Boolean)) {
-    if (cur === null || typeof cur !== 'object') return undefined;
-    cur = (cur as Record<string, unknown>)[seg];
-  }
-  return cur;
-}
-
-export function hasNonHotEditableChanges(
-  fields: readonly FieldDescriptor[],
-  draftConfig: Record<string, unknown>,
-  publishedConfig: Record<string, unknown>,
-): boolean {
-  for (const field of fields) {
-    if (field.hotEditable) {
-      continue;
-    }
-    if (field.widget === 'object' && field.fields && field.fields.length > 0) {
-      if (hasNonHotEditableChanges(field.fields, draftConfig, publishedConfig)) {
-        return true;
-      }
-      continue;
-    }
-    const draftVal = getByDotPath(draftConfig, field.path);
-    const pubVal = getByDotPath(publishedConfig, field.path);
-    if (JSON.stringify(draftVal) !== JSON.stringify(pubVal)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-export function resolvePlayOrigin(playUrl: string = PLAY_URL): string {
-  return new URL(playUrl).origin;
-}
+export { hasNonHotEditableChanges, resolvePlayOrigin };
 
 export function GameEditor({
   orgId,
@@ -203,18 +169,15 @@ export function GameEditor({
   const postPreviewMessage = useCallback(() => {
     const win = iframeRef.current?.contentWindow;
     if (!win) return;
-    win.postMessage(
-      {
-        type: 'playora:preview-update',
-        config: draftConfig,
-        skinKey: skinKey || undefined,
-        brand: brandPayload,
-        locale,
-        outcome: previewOutcome,
-        assets: resolvedAssets,
-      },
-      playOrigin,
-    );
+    const message = buildPreviewUpdateMessage({
+      config: draftConfig,
+      skinKey: skinKey || undefined,
+      brand: brandPayload,
+      locale,
+      outcome: previewOutcome,
+      assets: resolvedAssets,
+    });
+    win.postMessage(message, playOrigin);
   }, [draftConfig, skinKey, brandPayload, locale, previewOutcome, resolvedAssets, playOrigin]);
 
   useEffect(() => {
@@ -224,11 +187,7 @@ export function GameEditor({
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== playOrigin) return;
-      if (
-        event.data &&
-        typeof event.data === 'object' &&
-        (event.data as { type?: string }).type === 'playora:preview-ready'
-      ) {
+      if (isPreviewReadyMessage(event.data)) {
         postPreviewMessage();
       }
     };
@@ -238,25 +197,6 @@ export function GameEditor({
 
   const messageFor = (code: ErrorCode) => t(`errors.${code}`);
 
-  const extractFieldErrors = (err: unknown): Record<string, string> => {
-    const extracted: Record<string, string> = {};
-    if (err instanceof ApiError && err.code === ErrorCode.VALIDATION_FAILED) {
-      const details = err.details as
-        | { body?: { fieldErrors?: Record<string, string[]> } }
-        | undefined;
-      const rawFieldErrors = details?.body?.fieldErrors ?? {};
-      for (const [key, messages] of Object.entries(rawFieldErrors)) {
-        const normalizedKey = key.startsWith('draftConfig.')
-          ? key.slice('draftConfig.'.length)
-          : key;
-        if (messages[0]) {
-          extracted[normalizedKey] = messages[0];
-        }
-      }
-    }
-    return extracted;
-  };
-
   const updateMutation = useUpdateGame({
     onSuccess: (updated) => {
       setDraftConfig(updated.draftConfig);
@@ -265,7 +205,7 @@ export function GameEditor({
       toast.success(t('games.savedDraft'));
     },
     onError: (err) => {
-      const mapped = extractFieldErrors(err);
+      const mapped = extractDraftFieldErrors(err);
       if (Object.keys(mapped).length > 0) {
         setFieldErrors(mapped);
       }
@@ -406,7 +346,7 @@ export function GameEditor({
             <SelectContent>
               {template.skins.map((s) => (
                 <SelectItem key={s.key} value={s.key}>
-                  {localizeText(s.name, locale)}
+                  {localize(s.name, locale)}
                 </SelectItem>
               ))}
             </SelectContent>

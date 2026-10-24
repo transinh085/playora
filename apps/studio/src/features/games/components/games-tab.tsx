@@ -5,6 +5,7 @@ import {
   CreateGameBody,
   type ErrorCode,
   type GameSummary,
+  localize,
   type TemplateSummary,
 } from '@playora/contracts';
 import { Badge } from '@playora/ui/components/badge';
@@ -48,11 +49,6 @@ import { useCreateGame, useGames, useRemoveGame, useReorderGames, useTemplates }
 
 type CreateGameValues = z.input<typeof CreateGameBody>;
 
-function localizeText(text: { vi: string; en?: string }, locale: string): string {
-  if (locale === 'en' && text.en) return text.en;
-  return text.vi;
-}
-
 export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -80,7 +76,7 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
   useEffect(() => {
     if (dialogOpen && selectedTemplate && !form.getValues('name')) {
       form.setValue('templateId', selectedTemplate.id);
-      form.setValue('name', localizeText(selectedTemplate.name, locale));
+      form.setValue('name', localize(selectedTemplate.name, locale));
       if (selectedTemplate.skins[0]) {
         form.setValue('skinKey', selectedTemplate.skins[0].key);
       }
@@ -126,9 +122,9 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
     form.setValue('templateId', tpl.id, { shouldValidate: true });
     if (
       !form.getValues('name') ||
-      templates.some((item) => localizeText(item.name, locale) === form.getValues('name'))
+      templates.some((item) => localize(item.name, locale) === form.getValues('name'))
     ) {
-      form.setValue('name', localizeText(tpl.name, locale), { shouldValidate: true });
+      form.setValue('name', localize(tpl.name, locale), { shouldValidate: true });
     }
     if (tpl.skins[0]) {
       form.setValue('skinKey', tpl.skins[0].key, { shouldValidate: true });
@@ -211,11 +207,11 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-semibold">{localizeText(tpl.name, locale)}</h4>
+                        <h4 className="font-semibold">{localize(tpl.name, locale)}</h4>
                         <Badge variant="outline">{tpl.kind}</Badge>
                       </div>
                       <p className="text-muted-foreground mt-1 text-xs">
-                        {localizeText(tpl.description, locale)}
+                        {localize(tpl.description, locale)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-1">
                         {tpl.tags.map((tag) => (
@@ -260,7 +256,7 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
                     <SelectContent>
                       {(selectedTemplate?.skins ?? []).map((skin) => (
                         <SelectItem key={skin.key} value={skin.key}>
-                          {localizeText(skin.name, locale)}
+                          {localize(skin.name, locale)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -342,8 +338,8 @@ export function GamesTab({ orgId, eventId }: { orgId: string; eventId: string })
                         )}
                       </div>
                       <p className="text-muted-foreground text-xs">
-                        {tpl ? localizeText(tpl.name, locale) : game.templateId}
-                        {skinObj ? ` · ${localizeText(skinObj.name, locale)}` : ''}
+                        {tpl ? localize(tpl.name, locale) : game.templateId}
+                        {skinObj ? ` · ${localize(skinObj.name, locale)}` : ''}
                       </p>
                     </div>
                   </div>
