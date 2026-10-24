@@ -1,24 +1,20 @@
 import type { EventStatus } from '@playora/contracts';
-import { Badge, LiveDot } from '@playora/ui/components/badge';
+import { Tag } from 'antd';
 import { useTranslations } from 'next-intl';
 
-const VARIANT = {
-  draft: 'outline',
-  scheduled: 'info',
-  live: 'live',
-  ended: 'secondary',
-  archived: 'ghost',
-} as const satisfies Record<EventStatus, string>;
+const COLOR_MAP: Record<EventStatus, string | undefined> = {
+  draft: 'default',
+  scheduled: 'processing',
+  live: 'success',
+  ended: 'default',
+  archived: 'default',
+};
 
 export function EventStatusBadge({ status }: { status: EventStatus }) {
   const t = useTranslations('events.statuses');
   return (
-    <Badge
-      variant={VARIANT[status]}
-      className={status === 'archived' ? 'text-muted-foreground' : ''}
-    >
-      {status === 'live' && <LiveDot />}
+    <Tag color={COLOR_MAP[status]} bordered={false}>
       {t(status)}
-    </Badge>
+    </Tag>
   );
 }

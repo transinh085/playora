@@ -152,6 +152,7 @@
     "cropNone": "Original",
     "cropSquare": "Square 1:1",
     "cropWide": "Widescreen 16:9",
+    "deleteConfirm": "Are you sure you want to delete this asset?",
     "statusPending": "Processing",
     "statusReady": "Ready",
     "statusFailed": "Failed"
@@ -215,12 +216,15 @@
     "actionsColumn": "Actions",
     "you": "You",
     "remove": "Remove member",
+    "removeConfirm": "Are you sure you want to remove this member?",
     "leave": "Leave organization",
+    "leaveConfirm": "Are you sure you want to leave this organization?",
     "pendingTitle": "Pending invitations",
     "pendingEmpty": "No pending invitations.",
     "expiresAt": "Expires",
     "resend": "Resend",
     "cancelInvite": "Cancel invitation",
+    "cancelInviteConfirm": "Are you sure you want to cancel this invitation?",
     "roles": {
       "owner": "Owner",
       "admin": "Admin",

@@ -152,6 +152,7 @@
     "cropNone": "Giữ nguyên",
     "cropSquare": "Vuông 1:1",
     "cropWide": "Màn ngang 16:9",
+    "deleteConfirm": "Bạn có chắc muốn xoá tài nguyên này?",
     "statusPending": "Đang xử lý",
     "statusReady": "Sẵn sàng",
     "statusFailed": "Lỗi"
@@ -215,12 +216,15 @@
     "actionsColumn": "Thao tác",
     "you": "Bạn",
     "remove": "Xoá khỏi tổ chức",
+    "removeConfirm": "Bạn có chắc muốn xoá thành viên này khỏi tổ chức?",
     "leave": "Rời tổ chức",
+    "leaveConfirm": "Bạn có chắc muốn rời khỏi tổ chức này?",
     "pendingTitle": "Lời mời đang chờ",
     "pendingEmpty": "Không có lời mời nào đang chờ.",
     "expiresAt": "Hết hạn",
     "resend": "Gửi lại",
     "cancelInvite": "Huỷ lời mời",
+    "cancelInviteConfirm": "Bạn có chắc muốn huỷ lời mời này?",
     "roles": {
       "owner": "Chủ sở hữu",
       "admin": "Quản trị viên",

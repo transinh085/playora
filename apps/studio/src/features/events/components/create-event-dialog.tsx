@@ -1,93 +1,86 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateEventBody, type ErrorCode } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@playora/ui/components/dialog';
-import { Input } from '@playora/ui/components/input';
-import { Label } from '@playora/ui/components/label';
+import { applyApiError, useZodForm } from '@playora/ui/form';
+import { App, Button, Form, Input, Modal } from 'antd';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
-import { applyApiError } from '@/lib/form-errors';
 import { useCreateEvent } from '../api';
-
-type Values = z.input<typeof CreateEventBody>;
 
 export function CreateEventDialog({ orgId }: { orgId: string }) {
   const t = useTranslations();
+  const { message } = App.useApp();
   const [open, setOpen] = useState(false);
-  // The same zod schema the API validates with — no duplicated rules.
-  const form = useForm<Values>({
-    resolver: zodResolver(CreateEventBody),
-    defaultValues: { name: '', slug: '' },
-  });
+
+  const { form, rules, parse } = useZodForm(CreateEventBody);
+  const currentSlug = Form.useWatch('slug', form);
 
   const create = useCreateEvent({
     onSuccess: (event) => {
-      toast.success(t('events.created', { name: event.name }));
+      message.success(t('events.created', { name: event.name }));
       setOpen(false);
-      form.reset();
+      form.resetFields();
     },
     onError: (error) => {
-      // Every ErrorCode has a message (enforced by the @playora/i18n test).
       const messageFor = (code: ErrorCode) => t(`errors.${code}`);
-      if (!applyApiError(error, form.setError, messageFor)) toast.error(messageFor(error.code));
+      if (!applyApiError(form, error, messageFor)) {
+        message.error(messageFor(error.code));
+      }
     },
   });
 
-  const { errors } = form.formState;
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus />
-          {t('events.new')}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('events.new')}</DialogTitle>
-        </DialogHeader>
-        <form
-          className="grid gap-4"
-          onSubmit={form.handleSubmit((body) => create.mutate({ params: { orgId }, body }))}
+    <>
+      <Button type="primary" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>
+        {t('events.new')}
+      </Button>
+
+      <Modal
+        title={t('events.new')}
+        open={open}
+        onCancel={() => {
+          setOpen(false);
+          form.resetFields();
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ name: '', slug: '' }}
+          onFinish={(values) => {
+            const parsed = parse(values);
+            create.mutate({ params: { orgId }, body: parsed });
+          }}
+          className="mt-4"
         >
-          <div className="grid gap-2">
-            <Label htmlFor="event-name">{t('events.name')}</Label>
-            <Input id="event-name" aria-invalid={!!errors.name} {...form.register('name')} />
-            {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="event-slug">{t('events.slug')}</Label>
-            <Input
-              id="event-slug"
-              aria-invalid={!!errors.slug}
-              placeholder="yep-2026"
-              {...form.register('slug')}
-            />
-            <p className="text-muted-foreground text-xs">
-              {t('events.slugHint', { slug: form.watch('slug') || 'yep-2026' })}
-            </p>
-            {errors.slug && <p className="text-destructive text-sm">{errors.slug.message}</p>}
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={create.isPending}>
+          <Form.Item name="name" label={t('events.name')} rules={rules}>
+            <Input id="event-name" />
+          </Form.Item>
+
+          <Form.Item
+            name="slug"
+            label={t('events.slug')}
+            rules={rules}
+            extra={
+              <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                {t('events.slugHint', { slug: currentSlug || 'yep-2026' })}
+              </span>
+            }
+          >
+            <Input id="event-slug" placeholder="yep-2026" />
+          </Form.Item>
+
+          <div className="mt-6 flex justify-end gap-2">
+            <Button onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
+            <Button type="primary" htmlType="submit" loading={create.isPending}>
               {t('common.create')}
             </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </Form>
+      </Modal>
+    </>
   );
 }
