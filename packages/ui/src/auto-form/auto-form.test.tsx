@@ -1,14 +1,19 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { zodRule } from '@playora/ui/form';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
+import { z } from 'zod';
 import {
   AutoForm,
   addListItem,
+  extractChangedPath,
   type FormDescriptor,
   getValueAtPath,
+  isFieldHotEditable,
   removeListItem,
   reorderListItem,
   resolveFieldError,
   setValueAtPath,
+  type WidgetProps,
 } from './index';
 
 const fullDescriptor: FormDescriptor = {
@@ -91,6 +96,10 @@ const fullDescriptor: FormDescriptor = {
         { value: 'easy', label: { vi: 'Dễ', en: 'Easy' } },
         { value: 'hard', label: { vi: 'Khó', en: 'Hard' } },
       ],
+      presets: {
+        easy: { durationSec: 120 },
+        hard: { durationSec: 30 },
+      },
       defaultValue: 'easy',
       group: 'gameplay',
       required: true,
@@ -117,6 +126,17 @@ const fullDescriptor: FormDescriptor = {
       defaultValue: '/assets/spin-wheel/wheel.png',
       group: 'appearance',
       required: true,
+      hotEditable: false,
+    },
+    {
+      path: 'bgm',
+      key: 'bgm',
+      type: 'string',
+      widget: 'sound',
+      slotKey: 'bgmSlot',
+      label: { vi: 'Nhạc nền', en: 'Background music' },
+      group: 'appearance',
+      required: false,
       hotEditable: false,
     },
     {
@@ -198,11 +218,27 @@ const fullDescriptor: FormDescriptor = {
   ],
 };
 
-describe('AutoForm rendering & widget helpers (BLD-02)', () => {
-  test('renders text, number, slider, switch, segmented, select, color with brand palette, asset with injected picker, list, localized (vi/en tabs), object/group, and unknown widget fallback with dev warning', () => {
+function CustomSegmentEditor({ path, value, locale, disabled }: WidgetProps) {
+  return (
+    <div
+      data-testid="custom-segment-widget"
+      data-path={path}
+      data-locale={locale}
+      data-disabled={String(Boolean(disabled))}
+    >
+      SegmentVal:{String(value ?? '')}
+    </div>
+  );
+}
+
+describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
+  test('renders supported widgets on antd Form (Input, InputNumber, Slider, Switch, Segmented, Select, ColorPicker, asset/sound, Form.List, Space.Compact localized, nested object, Collapse groups) and Alert for unsupported widget without console warnings', () => {
     const warnSpy = mock(() => {});
-    const originalWarn = console.warn;
+    const errorSpy = mock(() => {});
+    const origWarn = console.warn;
+    const origError = console.error;
     console.warn = warnSpy;
+    console.error = errorSpy;
 
     try {
       const value = {
@@ -214,6 +250,7 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
         difficulty: 'hard',
         trackColor: '#F59E0B',
         runnerSprite: 'asset-uuid-123',
+        bgm: 'audio-uuid-456',
         items: [
           { name: 'Vàng', points: 20 },
           { name: 'Kim cương', points: 50 },
@@ -242,7 +279,7 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
           ]}
           renderAssetPicker={({ value: assetVal, slot }) => (
             <div data-testid="custom-asset-picker">
-              Picked:{assetVal}:{slot?.key}
+              Picked:{assetVal}:{slot?.key ?? 'none'}
             </div>
           )}
           errors={{
@@ -252,7 +289,21 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
         />,
       );
 
-      // All widgets rendered
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+
+      // Ant Design Form and Collapse groups rendered
+      expect(htmlVi).toContain('ant-form');
+      expect(htmlVi).toContain('ant-collapse');
+      expect(htmlVi).toContain('Lối chơi');
+      expect(htmlVi).toContain('Giao diện');
+      expect(htmlVi).toContain('Nội dung');
+
+      // Form.Item label/for association matches antd generated input id
+      expect(htmlVi).toContain('for="nickname"');
+      expect(htmlVi).toContain('id="nickname"');
+
+      // Supported widgets rendered
       expect(htmlVi).toContain('data-widget="text"');
       expect(htmlVi).toContain('data-widget="number"');
       expect(htmlVi).toContain('data-widget="slider"');
@@ -261,9 +312,20 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
       expect(htmlVi).toContain('data-widget="select"');
       expect(htmlVi).toContain('data-widget="color"');
       expect(htmlVi).toContain('data-widget="asset"');
+      expect(htmlVi).toContain('data-widget="sound"');
       expect(htmlVi).toContain('data-widget="list"');
       expect(htmlVi).toContain('data-widget="localized"');
       expect(htmlVi).toContain('data-widget="object"');
+
+      // Ant Design component classes present
+      expect(htmlVi).toContain('ant-input');
+      expect(htmlVi).toContain('ant-input-number');
+      expect(htmlVi).toContain('ant-slider');
+      expect(htmlVi).toContain('ant-switch');
+      expect(htmlVi).toContain('ant-segmented');
+      expect(htmlVi).toContain('ant-select');
+      expect(htmlVi).toContain('ant-color-picker-trigger');
+      expect(htmlVi).toContain('ant-space-compact');
 
       // Brand palette swatches rendered in color widget
       expect(htmlVi).toContain('data-color="#7c3aed"');
@@ -275,12 +337,14 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
       expect(htmlVi).toContain('Picked:asset-uuid-123:runner');
       expect(htmlVi).toContain('1:1 · ≥256px');
 
-      // List items rendered with add/remove/reorder controls
+      // Form.List items rendered with add/remove/reorder controls
       expect(htmlVi).toContain('Vật phẩm #1');
       expect(htmlVi).toContain('Vật phẩm #2');
       expect(htmlVi).toContain('Thêm Vật phẩm');
+      expect(htmlVi).toContain('value="Vàng"');
+      expect(htmlVi).toContain('value="Kim cương"');
 
-      // Localized vi/en tabs rendered
+      // Localized vi/en inputs inside Space.Compact
       expect(htmlVi).toContain('data-lang="vi"');
       expect(htmlVi).toContain('data-lang="en"');
       expect(htmlVi).toContain('value="Đua YEP"');
@@ -290,11 +354,12 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
       expect(htmlVi).toContain('Thời gian tối đa là 180 giây');
       expect(htmlVi).toContain('Tiêu đề tiếng Việt không được để trống');
 
-      // Unknown widget fell back to text input and logged a dev warning
-      expect(htmlVi).toContain('data-widget-fallback="unknown-fancy-widget"');
-      expect(warnSpy).toHaveBeenCalled();
+      // Unsupported widget renders antd Alert instead of throwing
+      expect(htmlVi).toContain('ant-alert');
+      expect(htmlVi).toContain('data-widget-unsupported="unknown-fancy-widget"');
+      expect(htmlVi).toContain('Widget chưa hỗ trợ: unknown-fancy-widget');
 
-      // English locale renders English labels
+      // English locale + activeGroup filtering
       const htmlEn = renderToStaticMarkup(
         <AutoForm
           descriptor={fullDescriptor}
@@ -306,10 +371,250 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
       );
       expect(htmlEn).toContain('Race duration (seconds)');
       expect(htmlEn).toContain('Show leaderboard');
-      expect(htmlEn).not.toContain('Track color'); // filtered out by activeGroup="gameplay"
+      expect(htmlEn).not.toContain('Track color');
     } finally {
-      console.warn = originalWarn;
+      console.warn = origWarn;
+      console.error = origError;
     }
+  });
+
+  test('resolves custom widgets via widgets prop and falls back to Alert for deprecated/unsupported widgets (richtext, datetime-range, prize-picker)', () => {
+    const descriptorWithUnsupported: FormDescriptor = {
+      groups: ['content'],
+      hotEditablePaths: [],
+      fields: [
+        {
+          path: 'rulesHtml',
+          key: 'rulesHtml',
+          type: 'string',
+          widget: 'richtext',
+          label: { vi: 'Thể lệ', en: 'Rules' },
+          group: 'content',
+          required: false,
+          hotEditable: false,
+        },
+        {
+          path: 'campaignWindow',
+          key: 'campaignWindow',
+          type: 'string',
+          widget: 'datetime-range',
+          label: { vi: 'Khung giờ', en: 'Schedule' },
+          group: 'content',
+          required: false,
+          hotEditable: false,
+        },
+        {
+          path: 'prizeId',
+          key: 'prizeId',
+          type: 'string',
+          widget: 'prize-picker',
+          label: { vi: 'Giải thưởng', en: 'Prize' },
+          group: 'content',
+          required: false,
+          hotEditable: false,
+        },
+        {
+          path: 'customSegment',
+          key: 'customSegment',
+          type: 'string',
+          widget: 'segment-wheel-editor',
+          label: { vi: 'Ô vòng quay', en: 'Wheel segment' },
+          group: 'content',
+          required: true,
+          hotEditable: false,
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      <AutoForm
+        descriptor={descriptorWithUnsupported}
+        value={{
+          rulesHtml: '<p>Hi</p>',
+          campaignWindow: '2026-01-01',
+          prizeId: 'p1',
+          customSegment: 'seg-gold',
+        }}
+        onChange={() => {}}
+        locale="vi"
+        widgets={{
+          'segment-wheel-editor': CustomSegmentEditor,
+        }}
+      />,
+    );
+
+    // Custom widget found in `widgets` prop renders custom component
+    expect(html).toContain('data-testid="custom-segment-widget"');
+    expect(html).toContain('SegmentVal:seg-gold');
+    expect(html).not.toContain('data-widget-unsupported="segment-wheel-editor"');
+
+    // Deprecated/removed widgets not in `widgets` render Alert fallback without throwing
+    expect(html).toContain('data-widget-unsupported="richtext"');
+    expect(html).toContain('data-widget-unsupported="datetime-range"');
+    expect(html).toContain('data-widget-unsupported="prize-picker"');
+  });
+
+  test('disables non-hotEditable fields when game is published while keeping hotEditable fields enabled', () => {
+    const htmlPublished = renderToStaticMarkup(
+      <AutoForm
+        descriptor={fullDescriptor}
+        value={{
+          nickname: 'Locked Name',
+          copy: { title: { vi: 'Sửa được', en: 'Editable' } },
+        }}
+        onChange={() => {}}
+        locale="vi"
+        published
+      />,
+    );
+
+    // Non-hotEditable field is disabled
+    expect(htmlPublished).toContain('data-field-path="nickname" data-disabled="true"');
+    expect(htmlPublished).toContain('data-field-path="durationSec" data-disabled="true"');
+    expect(htmlPublished).toContain('data-field-path="items" data-disabled="true"');
+
+    // Hot-editable field (`copy.title`) remains enabled
+    expect(htmlPublished).toContain('data-field-path="copy.title"');
+    expect(htmlPublished).not.toContain('data-field-path="copy.title" data-disabled="true"');
+  });
+
+  test('Form.List respects minItems and maxItems boundaries on add/remove buttons', () => {
+    const listDescriptor: FormDescriptor = {
+      groups: ['gameplay'],
+      hotEditablePaths: [],
+      fields: [
+        {
+          path: 'segments',
+          key: 'segments',
+          type: 'array',
+          widget: 'list',
+          label: { vi: 'Các ô', en: 'Segments' },
+          itemLabel: { vi: 'Ô', en: 'Segment' },
+          minItems: 2,
+          maxItems: 3,
+          group: 'gameplay',
+          required: true,
+          hotEditable: false,
+          item: {
+            path: 'segments[]',
+            key: 'item',
+            type: 'string',
+            widget: 'text',
+            defaultValue: 'Ô mới',
+            required: true,
+            hotEditable: false,
+          },
+        },
+      ],
+    };
+
+    // At minItems (2 items): Remove buttons are disabled, Add button is enabled
+    const htmlAtMin = renderToStaticMarkup(
+      <AutoForm
+        descriptor={listDescriptor}
+        value={{ segments: ['Ô 1', 'Ô 2'] }}
+        onChange={() => {}}
+        locale="vi"
+      />,
+    );
+    expect(htmlAtMin).toMatch(/aria-label="Xoá #1"[^>]*disabled=""/);
+    expect(htmlAtMin).toMatch(/aria-label="Xoá #2"[^>]*disabled=""/);
+    expect(htmlAtMin).not.toMatch(/disabled=""[^>]*><span>Thêm Ô<\/span>/);
+
+    // At maxItems (3 items): Add button is disabled, Remove buttons are enabled
+    const htmlAtMax = renderToStaticMarkup(
+      <AutoForm
+        descriptor={listDescriptor}
+        value={{ segments: ['Ô 1', 'Ô 2', 'Ô 3'] }}
+        onChange={() => {}}
+        locale="vi"
+      />,
+    );
+    expect(htmlAtMax).not.toMatch(/aria-label="Xoá #1"[^>]*disabled=""/);
+    expect(htmlAtMax).toMatch(/<button[^>]*disabled=""[^>]*>.*Thêm Ô.*<\/button>/);
+  });
+
+  test('triggers onChange via Form onValuesChange (including presets) and validates with configSchema via zodRule', async () => {
+    const configSchema = z.object({
+      nickname: z.string().min(3, 'Nickname must be at least 3 chars'),
+      difficulty: z.enum(['easy', 'hard']),
+      durationSec: z.number().int().min(10).max(180),
+    });
+
+    const onChangeSpy = mock(() => {});
+    let triggerCustomChange: ((val: unknown) => void) | undefined;
+
+    const customDescriptor: FormDescriptor = {
+      groups: ['gameplay'],
+      hotEditablePaths: [],
+      fields: [
+        {
+          path: 'nickname',
+          key: 'nickname',
+          type: 'string',
+          widget: 'custom-text',
+          label: { vi: 'Biệt danh', en: 'Nickname' },
+          group: 'gameplay',
+          required: true,
+          hotEditable: false,
+        },
+        {
+          path: 'difficulty',
+          key: 'difficulty',
+          type: 'enum',
+          widget: 'custom-select',
+          label: { vi: 'Độ khó', en: 'Difficulty' },
+          presets: {
+            hard: { durationSec: 30 },
+          },
+          group: 'gameplay',
+          required: true,
+          hotEditable: false,
+        },
+        {
+          path: 'durationSec',
+          key: 'durationSec',
+          type: 'number',
+          widget: 'number',
+          label: { vi: 'Thời gian', en: 'Duration' },
+          group: 'gameplay',
+          required: true,
+          hotEditable: false,
+        },
+      ],
+    };
+
+    renderToString(
+      <AutoForm
+        descriptor={customDescriptor}
+        configSchema={configSchema}
+        value={{ nickname: 'Hero', difficulty: 'easy', durationSec: 60 }}
+        onChange={onChangeSpy}
+        widgets={{
+          'custom-text': () => null,
+          'custom-select': ({ onChange }) => {
+            triggerCustomChange = onChange;
+            return null;
+          },
+        }}
+      />,
+    );
+
+    // Changing difficulty to 'hard' triggers onValuesChange and applies preset durationSec = 30
+    triggerCustomChange?.('hard');
+    expect(onChangeSpy).toHaveBeenCalledWith(
+      { nickname: 'Hero', difficulty: 'hard', durationSec: 30 },
+      'difficulty',
+    );
+
+    // Verify zodRule validation with configSchema
+    const rule = zodRule(configSchema, {
+      getFieldsValue: () => ({ nickname: 'ab', difficulty: 'easy', durationSec: 60 }),
+    });
+    await expect(rule.validator({ field: 'nickname' }, 'ab')).rejects.toThrow(
+      'Nickname must be at least 3 chars',
+    );
+    await expect(rule.validator({ field: 'nickname' }, 'valid-name')).resolves.toBeUndefined();
   });
 
   test('path state helpers and list add/remove/reorder operations update config immutably', () => {
@@ -334,7 +639,6 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
     expect(added).toHaveLength(3);
     expect(added[2]).toEqual({ name: 'Lì xì', points: 10 });
 
-    // Respects maxItems
     expect(addListItem(added, itemField, 3)).toHaveLength(3);
 
     const reordered = reorderListItem(added, 0, 2);
@@ -343,13 +647,21 @@ describe('AutoForm rendering & widget helpers (BLD-02)', () => {
     const removed = removeListItem(reordered, 1, 1);
     expect(removed).toHaveLength(2);
 
-    // Respects minItems
     expect(removeListItem([{ name: 'Only', points: 1 }], 0, 1)).toHaveLength(1);
 
-    // Error resolution supports direct path, draftConfig prefix, and localized .vi/.en suffix
     expect(resolveFieldError({ 'draftConfig.durationSec': ['Invalid'] }, 'durationSec')).toBe(
       'Invalid',
     );
     expect(resolveFieldError({ 'copy.title.vi': 'Required VI' }, 'copy.title')).toBe('Required VI');
+
+    expect(extractChangedPath({ copy: { title: { vi: 'Mới' } } })).toBe('copy.title.vi');
+    expect(extractChangedPath({ items: [undefined, { name: 'X' }] })).toBe('items.1.name');
+
+    const nonHotField = fullDescriptor.fields[0];
+    if (!nonHotField) {
+      throw new Error('Expected field');
+    }
+    expect(isFieldHotEditable(nonHotField, 'nickname', ['copy.title'])).toBe(false);
+    expect(isFieldHotEditable(nonHotField, 'copy.title.vi', ['copy.title'])).toBe(true);
   });
 });

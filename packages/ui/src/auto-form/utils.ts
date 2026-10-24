@@ -1,5 +1,20 @@
 import type { AutoFormProps, FieldDescriptor, Locale, LocalizedText } from './types';
 
+export const SUPPORTED_WIDGETS = new Set<string>([
+  'text',
+  'number',
+  'slider',
+  'switch',
+  'segmented',
+  'select',
+  'color',
+  'asset',
+  'sound',
+  'list',
+  'localized',
+  'object',
+]);
+
 export function resolveLocalized(
   value: LocalizedText | string | undefined,
   locale: Locale = 'vi',
@@ -8,6 +23,19 @@ export function resolveLocalized(
   if (!value) return fallback;
   if (typeof value === 'string') return value;
   return value[locale] ?? value.vi ?? fallback;
+}
+
+export function groupLabelFor(group: string, locale: Locale = 'vi'): string {
+  switch (group) {
+    case 'gameplay':
+      return locale === 'en' ? 'Gameplay' : 'Lối chơi';
+    case 'appearance':
+      return locale === 'en' ? 'Appearance' : 'Giao diện';
+    case 'content':
+      return locale === 'en' ? 'Content' : 'Nội dung';
+    default:
+      return group;
+  }
 }
 
 export function getValueAtPath(source: unknown, path: string): unknown {
@@ -99,6 +127,96 @@ export function createDefaultValueForField(field?: FieldDescriptor): unknown {
     default:
       return field.widget === 'color' ? '#000000' : '';
   }
+}
+
+export function withFieldDefaults(
+  fields: readonly FieldDescriptor[],
+  source: Record<string, unknown>,
+): Record<string, unknown> {
+  let result = structuredClone(source ?? {});
+  const applyFields = (list: readonly FieldDescriptor[]) => {
+    for (const field of list) {
+      if (field.type === 'object' && field.fields) {
+        applyFields(field.fields);
+        continue;
+      }
+      const existing = getValueAtPath(result, field.path);
+      if (existing === undefined && field.defaultValue !== undefined) {
+        result = setValueAtPath(result, field.path, structuredClone(field.defaultValue));
+      }
+    }
+  };
+  applyFields(fields);
+  return result;
+}
+
+export function isFieldHotEditable(
+  field: FieldDescriptor,
+  path: string,
+  hotEditablePaths: readonly string[] = [],
+): boolean {
+  if (field.hotEditable) return true;
+  if (!path) return false;
+  for (const hp of hotEditablePaths) {
+    if (hp === '*' || hp === path) return true;
+    if (hp.endsWith('.*') && path.startsWith(hp.slice(0, -1))) return true;
+    if (path.startsWith(`${hp}.`)) return true;
+  }
+  return false;
+}
+
+export function findFieldByPath(
+  fields: readonly FieldDescriptor[],
+  path: string,
+): FieldDescriptor | undefined {
+  const normalized = path.replace(/\.\d+(?=\.|$)/g, '[]');
+  const walk = (list: readonly FieldDescriptor[]): FieldDescriptor | undefined => {
+    for (const f of list) {
+      if (f.path === path || f.path === normalized) return f;
+      if (f.fields) {
+        const found = walk(f.fields);
+        if (found) return found;
+      }
+      if (f.item) {
+        if (f.item.path === normalized) return f.item;
+        if (f.item.fields) {
+          const found = walk(f.item.fields);
+          if (found) return found;
+        }
+      }
+    }
+    return undefined;
+  };
+  return walk(fields);
+}
+
+export function extractChangedPath(changedValues: unknown, prefix = ''): string | undefined {
+  if (!changedValues || typeof changedValues !== 'object') return prefix || undefined;
+  if (Array.isArray(changedValues)) {
+    for (let i = 0; i < changedValues.length; i++) {
+      if (changedValues[i] !== undefined) {
+        const nextPrefix = prefix ? `${prefix}.${i}` : String(i);
+        if (
+          typeof changedValues[i] === 'object' &&
+          changedValues[i] !== null &&
+          !Array.isArray(changedValues[i])
+        ) {
+          return extractChangedPath(changedValues[i], nextPrefix) ?? nextPrefix;
+        }
+        return nextPrefix;
+      }
+    }
+    return prefix || undefined;
+  }
+  const keys = Object.keys(changedValues as Record<string, unknown>);
+  if (keys.length === 0) return prefix || undefined;
+  const firstKey = keys[0] as string;
+  const nextPrefix = prefix ? `${prefix}.${firstKey}` : firstKey;
+  const child = (changedValues as Record<string, unknown>)[firstKey];
+  if (child && typeof child === 'object') {
+    return extractChangedPath(child, nextPrefix);
+  }
+  return nextPrefix;
 }
 
 export function addListItem(

@@ -129,6 +129,9 @@ export const field = {
   number: <O extends NumberFieldOptions | undefined = undefined>(opts?: O) =>
     buildNumber('number', opts),
   text: <O extends TextFieldOptions | undefined = undefined>(opts?: O) => buildText('text', opts),
+  /**
+   * @deprecated Rich text is no longer rendered by `AutoForm` (§2.5); use platform content screens or a custom widget in `TemplateSurfaces.editorWidgets`.
+   */
   richtext: <O extends TextFieldOptions | undefined = undefined>(opts?: O) =>
     buildText('richtext', opts),
   boolean: <O extends BooleanFieldOptions | undefined = undefined>(opts?: O) =>
@@ -180,6 +183,9 @@ export const field = {
     };
     return withOptionalDefault(schema, meta, opts);
   },
+  /**
+   * @deprecated Prize assignment is handled by the platform Prizes panel (§2.5), not `AutoForm`.
+   */
   prizePicker: <O extends TextFieldOptions | undefined = undefined>(opts?: O) =>
     withOptionalDefault(z.string().min(1), baseMeta(opts, 'prize-picker'), opts),
 } as const;

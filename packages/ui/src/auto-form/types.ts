@@ -1,4 +1,6 @@
+import type { FormInstance } from 'antd';
 import type * as React from 'react';
+import type { z } from 'zod';
 
 export type Locale = 'vi' | 'en';
 export type LocalizedText = Partial<Record<Locale, string>> & { vi: string };
@@ -15,9 +17,8 @@ export interface AssetSlot {
   accept: AssetMediaType[];
 }
 
-export type KnownFieldWidget =
+export type SupportedFieldWidget =
   | 'text'
-  | 'richtext'
   | 'number'
   | 'slider'
   | 'switch'
@@ -28,9 +29,13 @@ export type KnownFieldWidget =
   | 'sound'
   | 'list'
   | 'localized'
-  | 'prize-picker'
-  | 'datetime-range'
   | 'object';
+
+export type KnownFieldWidget =
+  | SupportedFieldWidget
+  | 'richtext'
+  | 'prize-picker'
+  | 'datetime-range';
 
 export type FieldWidget = KnownFieldWidget | (string & {});
 
@@ -92,11 +97,44 @@ export interface AssetPickerRenderProps {
   onChange: (nextValue: string) => void;
 }
 
+export interface WidgetProps<V = unknown> {
+  field: FieldDescriptor;
+  path: string;
+  value: V;
+  onChange: (nextValue: V) => void;
+  locale: Locale;
+  disabled?: boolean;
+  brandPalette?: readonly string[];
+  error?: string;
+}
+
+export interface EditorPanelProps<C = Record<string, unknown>> {
+  value: C;
+  onChange: (nextValue: C, changedPath?: string) => void;
+  locale: Locale;
+  disabled?: boolean;
+  brandPalette?: readonly string[];
+}
+
+export interface EditorPanel<C = Record<string, unknown>> {
+  key: string;
+  label: LocalizedText;
+  Component: React.ComponentType<EditorPanelProps<C>>;
+}
+
 export interface AutoFormProps {
   descriptor: FormDescriptor;
   value: Record<string, unknown>;
   onChange: (nextValue: Record<string, unknown>, changedPath?: string) => void;
   locale?: Locale;
+  /** Optional Zod configSchema validated via `@playora/ui/form` `zodRule`. */
+  configSchema?: z.ZodType;
+  /** Optional Ant Design FormInstance if the host wants direct access. */
+  form?: FormInstance<Record<string, unknown>>;
+  /** When true, fields that are not `hotEditable` are disabled (published game hot-edit mode). */
+  published?: boolean;
+  /** Alias for `published`. */
+  isPublished?: boolean;
   /** Optional group key to filter top-level fields. */
   activeGroup?: string;
   /** Hex colors from the event/organization Brand Kit shown as quick swatches in color fields. */
@@ -107,6 +145,8 @@ export interface AutoFormProps {
   renderAssetPicker?: (props: AssetPickerRenderProps) => React.ReactNode;
   /** Optional callback triggered when the built-in asset button is clicked. */
   onPickAsset?: (props: AssetPickerRenderProps) => void;
+  /** Custom widget components keyed by widget name (e.g. from `TemplateSurfaces.editorWidgets`). */
+  widgets?: Readonly<Record<string, React.ComponentType<WidgetProps>>>;
   /** Field-level error messages keyed by dot-path (compatible with `applyApiError`). */
   errors?: Record<string, string | readonly string[] | undefined>;
   disabled?: boolean;

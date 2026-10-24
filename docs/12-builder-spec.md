@@ -121,8 +121,15 @@ const config = z.object({
 });
 ```
 
-- **Widget dùng chung** (`packages/ui/auto-form`): `text`, `richtext`, `number`, `slider`, `segmented`, `color` (kèm brand palette), `asset` (picker + crop + gợi ý kích thước), `sound`, `list` (kéo thả sắp xếp), `datetime-range`, `localized` (vi/en), `prize-picker`.
-- Template có thể khai báo **custom widget** cho các trường đặc biệt (vd. trình sửa ô vòng quay có màu và nhãn từng ô).
+Sau [ADR-012](./adr/012-campaign-architecture.md) và [ADR-013](./adr/013-antd-ui.md), giải thưởng/tồn kho/pacing, lịch/lượt chơi/chống gian lận và màn Cover/Form/Kết quả thuộc về **nền tảng**, nên khu vực cấu hình của Builder chia làm 3 phần:
+
+- **Panel nền tảng** (viết tay, UX riêng): chọn Skin & brand kit, Giải thưởng & gắn giải vào ô, Nội dung chung.
+- **Panel template (`AutoForm` trên Ant Design `Form`):** tự động render các nhóm `gameplay` / `appearance` / `content` của `configSchema` (gom theo `group` bằng `Collapse`, validate qua `zodRule(configSchema)` của `@playora/ui/form`).
+- **Lối thoát (escape hatch):** template có thể khai báo `editorWidgets?: Record<string, ComponentType<WidgetProps>>` (widget riêng theo tên) và `editorPanels?: Array<{ key, label, Component }>` (panel riêng) trong `surfaces.ts` (client) khi UX không phù hợp với form tự sinh. Template mới chỉ cần khai báo `configSchema` + `assetSlots` là có form đầy đủ; panel/widget riêng là tuỳ chọn.
+
+**Widget dùng chung** (`@playora/ui/auto-form`):
+- Hỗ trợ sẵn: `text` (`Input`), `number` (`InputNumber`), `slider` (`Slider` + `InputNumber`), `switch` (`Switch`), `segmented` (`Segmented`), `select` (`Select`), `color` (`ColorPicker` kèm brand palette), `asset` / `sound` (widget chọn tài nguyên do host truyền vào kèm gợi ý kích thước/tỷ lệ), `list` (`Form.List` thêm/xoá/đổi thứ tự tôn trọng `min`/`max`), `localized` (ô `vi`/`en` trong `Space.Compact`), `object` (`Form.Item` lồng theo `path`).
+- Các widget đã chuyển về nền tảng hoặc ngừng hỗ trợ trong `AutoForm` (`richtext`, `datetime-range`, `prize-picker`) được đánh dấu `@deprecated` trong `game-sdk`; khi gặp widget không hỗ trợ mà không có trong `widgets` (từ `editorWidgets`), `AutoForm` hiển thị `Alert` cảnh báo "widget chưa hỗ trợ" thay vì ném lỗi.
 
 ### 4.3 Khoá sau publish
 
