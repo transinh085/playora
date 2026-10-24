@@ -61,7 +61,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
         <div className="flex items-center justify-between border-t border-[var(--ant-color-border-secondary)] pt-3">
           <div className="flex flex-wrap gap-1">
             {Object.keys(asset.variants).map((key) => (
-              <Tag key={key} bordered={false}>
+              <Tag key={key} variant="filled">
                 {key}
               </Tag>
             ))}

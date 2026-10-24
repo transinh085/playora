@@ -77,7 +77,7 @@ export function InviteMemberDialog({
           form.resetFields();
         }}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <p className="mb-6 text-sm text-[var(--ant-color-text-secondary)]">
           {t('members.inviteDescription')}
@@ -90,7 +90,7 @@ export function InviteMemberDialog({
           onFinish={onSubmit}
         >
           <Form.Item name="email" label={t('members.email')} rules={rules}>
-            <Input id="invite-email" type="email" autoComplete="email" />
+            <Input type="email" autoComplete="email" />
           </Form.Item>
 
           <Form.Item name="role" label={t('members.role')} rules={rules}>

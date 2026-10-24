@@ -13,7 +13,7 @@ const COLOR_MAP: Record<EventStatus, string | undefined> = {
 export function EventStatusBadge({ status }: { status: EventStatus }) {
   const t = useTranslations('events.statuses');
   return (
-    <Tag color={COLOR_MAP[status]} bordered={false}>
+    <Tag color={COLOR_MAP[status]} variant="filled">
       {t(status)}
     </Tag>
   );

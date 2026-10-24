@@ -146,7 +146,7 @@ export function ImportGuestsDialog({
       }
       width={720}
       footer={null}
-      destroyOnClose={false}
+      destroyOnHidden={false}
       forceRender
     >
       <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
@@ -195,7 +195,7 @@ export function ImportGuestsDialog({
           <Alert
             className="mt-4"
             type="warning"
-            message={t('guests.importSummary', {
+            title={t('guests.importSummary', {
               inserted: importResult.inserted,
               updated: importResult.updated,
               skipped: importResult.skipped,

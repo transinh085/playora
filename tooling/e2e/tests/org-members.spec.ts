@@ -48,7 +48,11 @@ test('invite member → accept invitation as new user → editor sees members wi
   await page.getByRole('button', { name: 'Đăng nhập bằng tài khoản khác' }).click();
 
   await expect(page).toHaveURL(new RegExp(`/login\\?next=%2Finvite%2F${invitation.id}`));
-  await page.getByRole('button', { name: 'Chưa có tài khoản? Đăng ký' }).click();
+  // Full page load after sign-out: retry the toggle until the client has hydrated.
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Chưa có tài khoản? Đăng ký' }).click();
+    await expect(page.getByLabel('Họ tên')).toBeVisible({ timeout: 1_000 });
+  }).toPass();
   await page.getByLabel('Họ tên').fill('Editor Bob');
   await page.getByLabel('Email').fill(inviteeEmail);
   await page.getByLabel('Mật khẩu').fill('e2e-password-123');

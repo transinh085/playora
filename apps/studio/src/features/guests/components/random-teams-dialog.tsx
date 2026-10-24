@@ -70,7 +70,7 @@ export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: 
         }}
         title={t('guests.randomTeamsTitle')}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
           {t('guests.randomTeamsDescription')}
@@ -96,7 +96,7 @@ export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: 
               },
             ]}
           >
-            <Input.TextArea id="teams" rows={4} placeholder={t('guests.teamNamesPlaceholder')} />
+            <Input.TextArea rows={4} placeholder={t('guests.teamNamesPlaceholder')} />
           </Form.Item>
 
           <div className="mt-6 flex justify-end gap-2">

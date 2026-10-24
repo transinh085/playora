@@ -43,7 +43,7 @@ export function PendingInvitationsTable({
       key: 'role',
       render: (role: string | null | undefined) => {
         const invRole: OrgRole = role && isOrgRole(role) ? role : 'viewer';
-        return <Tag bordered={false}>{t(`members.roles.${invRole}`)}</Tag>;
+        return <Tag variant="filled">{t(`members.roles.${invRole}`)}</Tag>;
       },
     },
     {

@@ -36,13 +36,15 @@ test('configure event identity, registration form and consent in Studio, then pl
     'NV002,Trần Thị Bình,Kỹ thuật',
   ].join('\n');
 
-  await page.locator('#guest-file').setInputFiles({
+  await page.getByRole('button', { name: 'Nhập danh sách khách mời' }).click();
+  const importDialog = page.getByRole('dialog');
+  await importDialog.locator('#guest-file').setInputFiles({
     name: 'guests.csv',
     mimeType: 'text/csv',
     buffer: Buffer.from(csvContent, 'utf8'),
   });
-  await expect(page.getByText('Xem trước (2 dòng)')).toBeVisible();
-  await page.getByRole('button', { name: 'Nhập danh sách' }).click();
+  await expect(importDialog.getByText('Xem trước (2 dòng)')).toBeVisible();
+  await importDialog.getByRole('button', { name: 'Nhập danh sách' }).click();
   await expect(page.getByText('Đã thêm 2, cập nhật 0, bỏ qua 0 dòng.').first()).toBeVisible();
 
   // Configure event participation settings

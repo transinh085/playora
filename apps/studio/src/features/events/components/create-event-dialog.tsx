@@ -44,7 +44,7 @@ export function CreateEventDialog({ orgId }: { orgId: string }) {
           form.resetFields();
         }}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}
@@ -57,7 +57,7 @@ export function CreateEventDialog({ orgId }: { orgId: string }) {
           className="mt-4"
         >
           <Form.Item name="name" label={t('events.name')} rules={rules}>
-            <Input id="event-name" />
+            <Input />
           </Form.Item>
 
           <Form.Item
@@ -70,7 +70,7 @@ export function CreateEventDialog({ orgId }: { orgId: string }) {
               </span>
             }
           >
-            <Input id="event-slug" placeholder="yep-2026" />
+            <Input placeholder="yep-2026" />
           </Form.Item>
 
           <div className="mt-6 flex justify-end gap-2">

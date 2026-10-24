@@ -55,7 +55,7 @@ export function MembersTable({
             <div>
               <div className="flex items-center gap-2 font-medium">
                 <span>{member.user.name}</span>
-                {isSelf && <Tag bordered={false}>{t('members.you')}</Tag>}
+                {isSelf && <Tag variant="filled">{t('members.you')}</Tag>}
               </div>
               <div className="text-xs text-[var(--ant-color-text-secondary)]">
                 {member.user.email}
@@ -76,7 +76,7 @@ export function MembersTable({
           canManage && (!targetIsOwner || (actorIsOwner && (!isSelf || ownerCount > 1)));
 
         if (!canEditRole) {
-          return <Tag bordered={false}>{t(`members.roles.${primaryRole}`)}</Tag>;
+          return <Tag variant="filled">{t(`members.roles.${primaryRole}`)}</Tag>;
         }
 
         return (

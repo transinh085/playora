@@ -80,7 +80,7 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
           type={lastImportResult.errors.length > 0 ? 'warning' : 'success'}
           closable
           onClose={() => setLastImportResult(null)}
-          message={t('guests.importSummary', {
+          title={t('guests.importSummary', {
             inserted: lastImportResult.inserted,
             updated: lastImportResult.updated,
             skipped: lastImportResult.skipped,

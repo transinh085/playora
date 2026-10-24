@@ -67,8 +67,9 @@ export function AcceptInvitationCard() {
 
   async function onSwitchAccount() {
     await authClient.signOut();
-    router.replace(nextUrl);
-    router.refresh();
+    // Full navigation: a soft replace + refresh can re-render /login after the user already
+    // switched it to sign-up, resetting the form.
+    window.location.assign(nextUrl);
   }
 
   const invitation = invitationQuery.data;
