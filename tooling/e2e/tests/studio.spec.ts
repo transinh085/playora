@@ -23,11 +23,11 @@ test('sign up → create organization → create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await expect(page.getByText('Chưa có sự kiện nào')).toBeVisible();
+  await expect(page.getByText('Chưa có chương trình nào')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Tên sự kiện').fill('YEP E2E 2026');
+  await dialog.getByLabel('Tên chương trình').fill('YEP E2E 2026');
   await dialog.getByLabel('Đường dẫn tham gia').fill(`yep-${id}`);
   await dialog.getByRole('button', { name: 'Tạo' }).click();
 
@@ -35,8 +35,8 @@ test('sign up → create organization → create event', async ({ page }) => {
   await expect(page.getByRole('cell', { name: `/yep-${id}` })).toBeVisible();
 
   // Same slug again → the API's SLUG_TAKEN lands on the slug field.
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
-  await dialog.getByLabel('Tên sự kiện').fill('Trùng');
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
+  await dialog.getByLabel('Tên chương trình').fill('Trùng');
   await dialog.getByLabel('Đường dẫn tham gia').fill(`yep-${id}`);
   await dialog.getByRole('button', { name: 'Tạo' }).click();
   await expect(dialog.getByText('Đường dẫn này đã được dùng')).toBeVisible();

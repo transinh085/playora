@@ -8,7 +8,7 @@ Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design syste
 
 | Bề mặt | Người dùng | Nhu cầu | Họ component |
 |---|---|---|---|
-| **Studio** (`apps/studio`) | PM agency, HR, marketer | Dựng nhanh, ít lỗi, đọc trạng thái trong một cái liếc | `antd` trong `StudioProvider` (`@playora/ui/providers`) |
+| **Studio** (`apps/studio`) | Chủ SME, nhân viên quầy (Đổi quà) | Desktop-first: dựng nhanh, ít lỗi, đọc trạng thái trong một cái liếc. Riêng màn Đổi quà phải dùng tốt trên điện thoại | `antd` trong `StudioProvider` (`@playora/ui/providers`) |
 | **Player / Host / Kiosk** (`apps/play`) | Khách mời cầm điện thoại, MC | Bấm được bằng một ngón khi đang đứng, không cần đọc hướng dẫn | `@playora/ui/game/*` (dựng trên `antd` + `PlayProvider`) |
 | **Screen** (LED, máy chiếu) | Cả hội trường, xem từ 25–30 m | Chữ to, tương phản cao, trình diễn | *(Đã gỡ ở v2.1 — ADR-011)* |
 

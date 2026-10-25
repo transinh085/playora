@@ -33,6 +33,7 @@ Cập nhật: 24/10/2026 · Trạng thái: **v2.1**, chỉ làm minigame campaig
 | [11-game-builder-research.md](./11-game-builder-research.md) | Nghiên cứu sâu builder: Guandayun/凡科, Trung Quốc, quốc tế, Việt Nam |
 | [12-builder-spec.md](./12-builder-spec.md) | Đặc tả builder (tính năng lõi) và phân kỳ theo M1–M4 |
 | [13-design-system.md](./13-design-system.md) | Design system: token 3 tầng, skin + brand kit, component Studio và game/LED |
+| [16-studio-ux.md](./16-studio-ux.md) | UX Studio: mô hình chương trình hai chế độ (Soạn / Vận hành), điều hướng, luồng chính, lộ trình S1–S8 |
 
 ## Quy ước
 

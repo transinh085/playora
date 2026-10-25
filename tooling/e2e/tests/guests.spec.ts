@@ -20,13 +20,16 @@ test('import guest list CSV, assign random balanced teams, and configure join QR
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
   const createDialog = page.getByRole('dialog');
-  await createDialog.getByLabel('Tên sự kiện').fill('YEP Guests 2026');
+  await createDialog.getByLabel('Tên chương trình').fill('YEP Guests 2026');
   await createDialog.getByLabel('Đường dẫn tham gia').fill(slug);
   await createDialog.getByRole('button', { name: 'Tạo' }).click();
 
   await page.getByRole('link', { name: 'YEP Guests 2026' }).click();
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+$/);
+
+  await page.getByTestId('event-tab-players').click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
 
   // Join QR card updates URL with optional ?t=<zone>

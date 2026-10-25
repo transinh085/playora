@@ -20,14 +20,14 @@ test('create games from template gallery, reorder, edit in 2-column builder with
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
   const createEventDialog = page.getByRole('dialog');
-  await createEventDialog.getByLabel('Tên sự kiện').fill('YEP Builder 2026');
+  await createEventDialog.getByLabel('Tên chương trình').fill('YEP Builder 2026');
   await createEventDialog.getByLabel('Đường dẫn tham gia').fill(slug);
   await createEventDialog.getByRole('button', { name: 'Tạo' }).click();
 
   await page.getByRole('link', { name: 'YEP Builder 2026' }).click();
-  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+$/);
 
   // Navigate to "Trò chơi" via EventNav
   await page.getByRole('link', { name: 'Trò chơi' }).click();

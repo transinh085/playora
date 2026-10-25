@@ -44,7 +44,7 @@ export function EventsTable({ orgId }: { orgId: string }) {
       dataIndex: 'name',
       key: 'name',
       render: (name: string, event) => (
-        <Link href={`/orgs/${orgId}/events/${event.id}/players` as Route}>{name}</Link>
+        <Link href={`/orgs/${orgId}/events/${event.id}` as Route}>{name}</Link>
       ),
     },
     {

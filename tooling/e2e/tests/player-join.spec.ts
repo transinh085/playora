@@ -20,9 +20,9 @@ test('configure event identity, registration form and consent in Studio, then pl
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
   const createDialog = page.getByRole('dialog');
-  await createDialog.getByLabel('Tên sự kiện').fill('YEP Join 2026');
+  await createDialog.getByLabel('Tên chương trình').fill('YEP Join 2026');
   await createDialog.getByLabel('Đường dẫn tham gia').fill(slug);
   await createDialog.getByRole('button', { name: 'Tạo' }).click();
 
@@ -66,7 +66,7 @@ test('configure event identity, registration form and consent in Studio, then pl
     .fill('Tôi đồng ý tham gia chương trình và cho phép xử lý dữ liệu cá nhân.');
 
   await page.getByRole('button', { name: 'Lưu' }).click();
-  await expect(page.getByText('Đã lưu cài đặt sự kiện')).toBeVisible();
+  await expect(page.getByText('Đã lưu cài đặt chương trình')).toBeVisible();
   const guestsUrl = page.url().replace(/\/settings$/, '/players');
 
   // Player opens the join page
@@ -85,7 +85,7 @@ test('configure event identity, registration form and consent in Studio, then pl
     .check();
   await page.getByLabel(/Mã tham gia/).fill('NV999');
   await page.getByRole('button', { name: 'Tham gia' }).click();
-  await expect(page.getByText('Mã khách mời không tồn tại trong sự kiện này')).toBeVisible();
+  await expect(page.getByText('Mã khách mời không tồn tại trong chương trình này')).toBeVisible();
 
   // Valid guest code (case-insensitive) joins and enters the lobby
   await page.getByLabel(/Mã tham gia/).fill('nv001');

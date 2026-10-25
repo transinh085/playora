@@ -18,9 +18,9 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
-  await page.getByRole('button', { name: 'Tạo sự kiện' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Tên sự kiện').fill(`YEP Brand ${id}`);
+  await dialog.getByLabel('Tên chương trình').fill(`YEP Brand ${id}`);
   await dialog.getByLabel('Đường dẫn tham gia').fill(`yep-brand-${id}`);
   await dialog.getByRole('button', { name: 'Tạo' }).click();
   await expect(page.getByRole('cell', { name: `YEP Brand ${id}` })).toBeVisible();
@@ -32,11 +32,11 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
   await page.getByRole('button', { name: 'Tạo', exact: true }).click();
   await expect(page.getByText(`Kit ${id}`).first()).toBeVisible();
 
-  await page.getByRole('link', { name: 'Sự kiện' }).click();
-  await page.getByRole('link', { name: 'Cài đặt sự kiện' }).click();
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
+  await page.getByRole('link', { name: 'Cài đặt chương trình' }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/settings$/);
 
   await pickSelectOption(page, 'Brand kit', `Kit ${id}`);
   await page.getByRole('button', { name: 'Lưu' }).click();
-  await expect(page.getByText('Đã lưu cài đặt sự kiện')).toBeVisible();
+  await expect(page.getByText('Đã lưu cài đặt chương trình')).toBeVisible();
 });

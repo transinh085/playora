@@ -8,7 +8,7 @@ Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.1) �
 
 **Mục tiêu:** người tổ chức không cần kỹ thuật dựng được một game có thương hiệu, có giải thưởng, chống gian lận và đo lường được trong **≤ 30 phút**, chạy trên cả hai bề mặt: điện thoại và kiosk.
 
-> **v3.0 ([00](./00-product-strategy.md)):** người dùng chính là chủ SME, **Studio mobile-first**. Mục tiêu mới: publish từ template **≤ 5 phút trên điện thoại** (M2; M1 ≤ 10 phút), cấu hình nâng cao mở theo từng lớp. Các mục bên dưới đã được đánh dấu **[v3]** ở chỗ thay đổi; tầng Client/agency (§2, §5) lùi về M4. Đầu vào: [14 §4.2](./14-guandayun-teardown.md#42-builder-sửa-12-builder-specmd).
+> **v3.0 ([00](./00-product-strategy.md)):** người dùng chính là chủ SME, **Studio desktop-first, game mobile-first** (sửa 25/10/2026). Mục tiêu mới: publish từ template **≤ 5 phút** (M2; M1 ≤ 10 phút), cấu hình nâng cao mở theo từng lớp. Các mục bên dưới đã được đánh dấu **[v3]** ở chỗ thay đổi; tầng Client/agency (§2, §5) lùi về M4. Đầu vào: [14 §4.2](./14-guandayun-teardown.md#42-builder-sửa-12-builder-specmd).
 
 **Nguyên tắc (rút ra từ nghiên cứu):**
 
@@ -120,29 +120,15 @@ Mỗi màn có: nền (ảnh/màu/video ngắn), tiêu đề, nội dung rich te
 
 Bố cục 3 cột ở §4.1 đổi thành: **cột trái** = danh sách màn (Flow) + bảng lớp của màn đang chọn (kéo đổi thứ tự); **giữa** = canvas artboard 375 (kéo, đổi kích thước, xoay, snap); **phải** = thuộc tính phần tử đang chọn (hoặc thuộc tính màn khi không chọn gì). Thanh công cụ trên canvas: thêm phần tử (chữ, ảnh, nút, hình, đếm ngược, danh sách giải), undo/redo, zoom, xem thử. Các tab cấu hình cũ (Gameplay, Giải thưởng, Luật, Nâng cao) vẫn giữ ở cột phải khi chọn màn Game hoặc mở mục cấu hình. Chi tiết dữ liệu và loại phần tử: [ADR-014](./adr/014-free-canvas-screen-editor.md).
 
-### 4.1b Bố cục mobile [v3]
+### 4.1b Studio desktop-first, game mobile-first [sửa 25/10/2026]
 
-Bố cục 3 cột ở trên chỉ dùng cho màn hình rộng. Trên điện thoại (bản chính):
+Bản nháp v3 từng đặt editor mobile (preview toàn màn hình + bottom sheet) làm bản chính. **Đã bỏ:** Studio là desktop-first và dùng bố cục 3 cột ở §4.1/§4.1a, preview điện thoại nằm giữa. Mobile-first chỉ áp dụng cho **game** người chơi thấy, và cho màn **Đổi quà** của nhân viên quầy (§11).
 
-```
-┌─────────────────────────┐
-│ ← Tên game      [Publish]│
-│                          │
-│   PREVIEW toàn màn hình  │   chạm vào phần tử trong preview
-│   (player runtime thật)  │   → mở đúng nhóm cấu hình
-│                          │
-│ ‹ Cover · Game · Kết quả ›│   vuốt để đổi màn
-├─────────────────────────┤
-│ [Ảnh] [Giải] [Luật] [Thêm]│   thanh tab dưới
-└─────────────────────────┘
-   ▲ bottom sheet: form của tab đang chọn (nửa màn / toàn màn)
-```
+Builder chia thành 4 bước có thứ tự: **Giao diện → Giải thưởng → Luật chơi → Phát hành**. Luồng và wireframe: [16-studio-ux.md](./16-studio-ux.md).
 
-- **Ảnh:** chụp hoặc chọn ảnh cho từng asset slot, **tự xoá nền**, cắt theo tỷ lệ của slot.
+- **Ảnh:** tải hoặc chụp ảnh cho từng asset slot ngay trong cột phải, **tự xoá nền**, cắt theo tỷ lệ của slot.
 - **Giải:** chọn cách phát giải → danh sách giải → số lượng → giới hạn mỗi người.
 - **Luật:** lượt chơi, khung giờ, form; mỗi luật hiện bằng một câu dễ hiểu ("Mỗi khách quay 1 lần/ngày").
-- **Thêm:** brand kit, kênh/QR, nâng cao.
-- **[ADR-014]** Canvas trên điện thoại: chạm chọn, kéo di chuyển, sửa chữ/ảnh/màu trong bottom sheet; đổi kích thước bằng thanh trượt.
 
 ### 4.2 Auto-form từ zod
 
@@ -369,7 +355,7 @@ M1 chỉ phát giải và hiển thị mã voucher ở "Quà của tôi"; đổi
 Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn).
 
 > **[v3] Bảng dưới đây vẫn theo lộ trình v2.1 và cần làm lại.** Các thay đổi đã chốt:
-> - M1: Studio mobile-first (§4.1b), khung engine instant-win và skill (§2.2), chụp ảnh → asset, **đổi quà tại quầy + vai trò nhân viên** (từ M2), link nháp chơi thử.
+> - M1: Studio desktop-first, game mobile-first (§4.1b), khung engine instant-win và skill (§2.2), chụp ảnh → asset, **đổi quà tại quầy + vai trò nhân viên** (từ M2), link nháp chơi thử.
 > - M2: renderer mới (§2.2), điểm danh và bốc mỗi ngày, chợ template lọc theo ngành.
 > - M3: hub điểm thưởng, sưu tầm thẻ, **Zalo** (từ M4).
 > - M4: client workspace/white-label/reseller (từ M2), up hoá đơn để được lượt.

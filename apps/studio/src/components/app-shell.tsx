@@ -17,10 +17,8 @@ import {
   theme,
 } from 'antd';
 import {
-  BarChart3,
   CalendarDays,
   ChevronsUpDown,
-  Gamepad2,
   ImageIcon,
   LogOut,
   Menu as MenuIcon,
@@ -39,35 +37,26 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { LABS_ENABLED } from '@/lib/env';
 import { Caption } from './caption';
 import { LogoMark } from './logo';
 
 const { Sider, Header, Content } = Layout;
 
-type NavKey =
-  | 'events'
-  | 'templates'
-  | 'reports'
-  | 'brandKits'
-  | 'assets'
-  | 'settings'
-  | 'canvasLab';
+type NavKey = 'events' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
   path: string;
 }
+type NavGroupKey = 'campaigns' | 'brand' | 'organization' | 'labs';
 
-/** Sidebar navigation, grouped like the games-vt admin (docs/13 §5). */
-const NAV_GROUPS: { key: 'campaigns' | 'brand' | 'organization' | 'labs'; items: NavItem[] }[] = [
-  {
-    key: 'campaigns',
-    items: [
-      { key: 'events', icon: CalendarDays, path: 'events' },
-      { key: 'templates', icon: Gamepad2, path: 'templates' },
-      { key: 'reports', icon: BarChart3, path: 'reports' },
-    ],
-  },
+/**
+ * Sidebar navigation, grouped like the games-vt admin (docs/13 §3.4). Only routes that exist
+ * are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
+ */
+const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
+  { key: 'campaigns', items: [{ key: 'events', icon: CalendarDays, path: 'events' }] },
   {
     key: 'brand',
     items: [
@@ -76,7 +65,14 @@ const NAV_GROUPS: { key: 'campaigns' | 'brand' | 'organization' | 'labs'; items:
     ],
   },
   { key: 'organization', items: [{ key: 'settings', icon: Settings, path: 'settings' }] },
-  { key: 'labs', items: [{ key: 'canvasLab', icon: Shapes, path: 'labs/canvas' }] },
+  ...(LABS_ENABLED
+    ? [
+        {
+          key: 'labs' as const,
+          items: [{ key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' }],
+        },
+      ]
+    : []),
 ];
 
 const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
