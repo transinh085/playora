@@ -46,7 +46,7 @@ export function OnboardingForm() {
         return;
       }
       message.success(values.name);
-      router.replace(`/orgs/${data.id}/events`);
+      router.replace(`/orgs/${data.id}`);
       router.refresh();
     } finally {
       setIsSubmitting(false);

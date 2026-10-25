@@ -19,6 +19,8 @@ test('create games from template gallery, reorder, edit in 2-column builder with
   await page.getByLabel('Tên tổ chức').fill(`Builder Org ${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
+  await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
   await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
   const createEventDialog = page.getByRole('dialog');

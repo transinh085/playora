@@ -15,6 +15,8 @@ test('canvas lab: add, move, undo and delete elements on a screen (ADR-014 proto
   await expect(page).toHaveURL(/\/onboarding$/);
   await page.getByLabel('Tên tổ chức').fill(`Canvas Org ${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
+  await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
   // Labs is hidden from the sidebar in production builds, so open it by URL.

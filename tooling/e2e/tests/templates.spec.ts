@@ -16,6 +16,8 @@ test('start a campaign from the template gallery and land in the editor (docs/16
   await expect(page).toHaveURL(/\/onboarding$/);
   await page.getByLabel('Tên tổ chức').fill(`Gallery Org ${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
+  await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
   await page.getByRole('link', { name: 'Tạo từ mẫu' }).click();
@@ -37,4 +39,9 @@ test('start a campaign from the template gallery and land in the editor (docs/16
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/games\/[^/]+$/);
   await expect(page.getByTestId('game-editor')).toBeVisible();
   await expect(page.getByTestId('editor-game-name')).toHaveValue(`Vòng quay Tết ${id}`);
+
+  // The campaign overview lists what is still missing before guests can play.
+  await page.goto(page.url().replace(/\/games\/[^/]+$/, ''));
+  await expect(page.getByTestId('event-readiness-game')).toHaveAttribute('data-done', 'true');
+  await expect(page.getByTestId('event-readiness-published')).toHaveAttribute('data-done', 'false');
 });

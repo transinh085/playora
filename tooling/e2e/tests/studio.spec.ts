@@ -22,6 +22,11 @@ test('sign up → create organization → create event', async ({ page }) => {
   await expect(page.getByLabel('Đường dẫn')).toHaveValue(`agency-${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
+  await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
+  // New organizations land on Home with the getting-started checklist.
+  await expect(page.getByTestId('home-checklist')).toBeVisible();
+  await expect(page.getByTestId('home-checklist-campaign')).toHaveAttribute('data-done', 'false');
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
   await expect(page.getByText('Chưa có chương trình nào')).toBeVisible();
 

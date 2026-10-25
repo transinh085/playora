@@ -42,7 +42,7 @@ export function AcceptInvitationCard() {
       message.success(
         t('auth.inviteAccepted', { organization: invitationQuery.data.organizationName }),
       );
-      router.replace(`/orgs/${invitationQuery.data.organizationId}/events` as Route);
+      router.replace(`/orgs/${invitationQuery.data.organizationId}` as Route);
       router.refresh();
     } finally {
       setSubmitting(false);

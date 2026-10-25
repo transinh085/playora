@@ -40,6 +40,7 @@
     "submit": "Tạo tổ chức"
   },
   "nav": {
+    "home": "Trang chủ",
     "events": "Chương trình",
     "brandKits": "Brand kit",
     "assets": "Thư viện ảnh",
@@ -129,29 +130,37 @@
   "overview": {
     "title": "Tổng quan chương trình",
     "playLinkTitle": "Đường dẫn & Mã QR tham gia",
-    "playLinkDesc": "Chia sẻ liên kết hoặc quét mã QR bên dưới để tham gia chương trình trên thiết bị di động.",
+    "playLinkDesc": "In mã QR đặt ở quầy hoặc chia sẻ link lên fanpage. Khách mở bằng điện thoại, không cần cài app.",
     "playUrl": "Đường dẫn tham gia",
     "copyLink": "Sao chép liên kết",
     "copied": "Đã sao chép liên kết tham gia!",
     "openPlay": "Mở trang chơi",
     "qrCode": "Mã QR tham gia",
     "downloadQr": "Tải mã QR",
-    "shortcutsTitle": "Lối tắt quản lý",
-    "shortcutsDesc": "Truy cập nhanh các phân hệ chức năng chính của chương trình.",
-    "gamesShortcutTitle": "Trò chơi",
-    "gamesShortcutDesc": "Quản lý và tinh chỉnh các minigame tương tác trong chiến dịch.",
-    "gamesShortcutAction": "Vào kho trò chơi",
-    "playersShortcutTitle": "Người chơi",
-    "playersShortcutDesc": "Quản lý danh sách khách mời, mã tham gia và phân nhóm.",
-    "playersShortcutAction": "Xem người chơi",
-    "prizesShortcutTitle": "Giải thưởng",
-    "prizesShortcutDesc": "Cấu hình cơ cấu giải, kho voucher và tỷ lệ trúng thưởng.",
-    "prizesShortcutAction": "Xem giải thưởng",
-    "settingsShortcutTitle": "Cài đặt",
-    "settingsShortcutDesc": "Tuỳ chỉnh thông tin, thời gian, thể lệ và thương hiệu.",
-    "settingsShortcutAction": "Mở cài đặt",
     "prizesPlaceholderTitle": "Giải thưởng (Sắp có)",
-    "prizesPlaceholderDesc": "Tính năng quản lý cơ cấu giải thưởng, kho voucher và phân bổ tỷ lệ trúng đang được phát triển."
+    "prizesPlaceholderDesc": "Tính năng quản lý cơ cấu giải thưởng, kho voucher và phân bổ tỷ lệ trúng đang được phát triển.",
+    "copyFailed": "Không sao chép được. Hãy chọn link và sao chép thủ công.",
+    "gameTitle": "Trò chơi",
+    "editGame": "Sửa trò chơi",
+    "ready": {
+      "title": "Việc cần làm trước khi mở cho khách",
+      "allDone": "Chương trình đã sẵn sàng cho khách",
+      "game": "Chọn trò chơi",
+      "gameDesc": "Thêm một trò chơi từ kho mẫu.",
+      "gameAction": "Thêm trò chơi",
+      "published": "Xuất bản trò chơi",
+      "publishedDesc": "Khách chỉ chơi được phiên bản đã xuất bản.",
+      "publishedAction": "Mở trình soạn",
+      "brand": "Gắn brand kit",
+      "brandDesc": "Logo và màu của quán hiện trên game.",
+      "brandAction": "Chọn brand kit",
+      "schedule": "Đặt thời gian chạy",
+      "scheduleDesc": "Ngày bắt đầu và kết thúc chương trình.",
+      "scheduleAction": "Đặt lịch",
+      "open": "Mở chương trình",
+      "openDesc": "Chuyển trạng thái sang Đã lên lịch hoặc Đang diễn ra.",
+      "openAction": "Mở cài đặt"
+    }
   },
   "assets": {
     "title": "Thư viện tài nguyên",
@@ -559,5 +568,34 @@
       "submit": "Tạo và bắt đầu soạn",
       "gameFailed": "Đã tạo chương trình nhưng chưa thêm được trò chơi. Thêm lại ở tab Trò chơi."
     }
+  },
+  "home": {
+    "title": "Trang chủ",
+    "subtitle": "Việc cần làm tiếp theo và các chương trình của bạn.",
+    "create": "Tạo chương trình",
+    "gettingStarted": "Bắt đầu với Playora",
+    "steps": {
+      "brand": "Thêm logo và màu của quán",
+      "brandDesc": "Tạo brand kit một lần, mọi trò chơi dùng chung.",
+      "brandAction": "Tạo brand kit",
+      "campaign": "Tạo chương trình đầu tiên",
+      "campaignDesc": "Chọn một mẫu, thay ảnh và quà của quán.",
+      "campaignAction": "Chọn mẫu",
+      "open": "Mở chương trình cho khách",
+      "openDesc": "Xuất bản trò chơi, đặt lịch, rồi in QR đặt ở quầy.",
+      "openAction": "Xem việc còn thiếu",
+      "team": "Mời đồng nghiệp hoặc nhân viên",
+      "teamDesc": "Người cùng quản lý chương trình với bạn.",
+      "teamAction": "Mời"
+    },
+    "campaigns": "Chương trình của bạn",
+    "allCampaigns": "Xem tất cả",
+    "noCampaigns": "Chưa có chương trình nào. Làm theo các bước ở trên để tạo chương trình đầu tiên.",
+    "noSchedule": "Chưa đặt lịch",
+    "continueEditing": "Tiếp tục soạn",
+    "share": "Chia sẻ & QR",
+    "moreCampaigns": "Còn {count} chương trình khác.",
+    "templates": "Mẫu gợi ý",
+    "allTemplates": "Kho mẫu"
   }
 }

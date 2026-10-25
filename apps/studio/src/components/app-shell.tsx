@@ -19,6 +19,7 @@ import {
 import {
   CalendarDays,
   ChevronsUpDown,
+  House,
   ImageIcon,
   LayoutTemplate,
   LogOut,
@@ -44,19 +45,20 @@ import { LogoMark } from './logo';
 
 const { Sider, Header, Content } = Layout;
 
-type NavKey = 'events' | 'templates' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
+type NavKey = 'home' | 'events' | 'templates' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
   path: string;
 }
-type NavGroupKey = 'campaigns' | 'brand' | 'organization' | 'labs';
+type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
 
 /**
  * Sidebar navigation, grouped like the games-vt admin (docs/13 §3.4). Only routes that exist
  * are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
  */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
+  { key: 'start', items: [{ key: 'home', icon: House, path: '' }] },
   {
     key: 'campaigns',
     items: [
@@ -104,35 +106,46 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     router.refresh();
   }
 
+  const orgHome = current ? `/orgs/${current.id}` : '/';
   const activeNav = current
-    ? NAV.find(({ path }) => pathname.startsWith(`/orgs/${current.id}/${path}`))
+    ? NAV.find(({ path }) =>
+        path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
+      )
     : undefined;
   const inEvent = /\/events\/[^/]+/.test(pathname);
 
   const navMenuItems: MenuProps['items'] = current
-    ? NAV_GROUPS.map((group) => ({
-        key: group.key,
-        type: 'group',
-        label: t(`navGroups.${group.key}`).toUpperCase(),
-        children: group.items.map(({ key, icon: Icon, path }) => ({
+    ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {
+        const children = group.items.map(({ key, icon: Icon, path }) => ({
           key,
           icon: <Icon className="size-4" />,
           label: (
             <Link
-              href={`/orgs/${current.id}/${path}` as Route}
+              href={(path ? `${orgHome}/${path}` : orgHome) as Route}
               onClick={() => setDrawerOpen(false)}
             >
               {t(`nav.${key}`)}
             </Link>
           ),
-        })),
-      }))
+        }));
+        // Home stands alone above the labelled groups.
+        return group.key === 'start'
+          ? children
+          : [
+              {
+                key: group.key,
+                type: 'group' as const,
+                label: t(`navGroups.${group.key}`).toUpperCase(),
+                children,
+              },
+            ];
+      })
     : [];
 
   const breadcrumbs = [
-    { title: <Link href="/">{t('shell.home')}</Link> },
+    { title: <Link href={orgHome as Route}>{t('shell.home')}</Link> },
     // Plain text, not links: the sidebar already links each section (and e2e finds those by name).
-    ...(activeNav ? [{ title: t(`nav.${activeNav.key}`) }] : []),
+    ...(activeNav && activeNav.key !== 'home' ? [{ title: t(`nav.${activeNav.key}`) }] : []),
     ...(inEvent ? [{ title: t('shell.eventDetail') }] : []),
   ];
 
@@ -173,7 +186,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
               items: orgs.map((org) => ({
                 key: org.id,
                 label: org.name,
-                onClick: () => router.push(`/orgs/${org.id}/events`),
+                onClick: () => router.push(`/orgs/${org.id}`),
               })),
               selectedKeys: [current.id],
             }}

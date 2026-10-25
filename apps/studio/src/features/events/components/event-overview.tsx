@@ -1,62 +1,228 @@
 'use client';
 
-import { buildEventJoinUrl } from '@playora/contracts';
-import { App, Button, Card, Empty, Flex, Input, QRCode, Skeleton, Typography, theme } from 'antd';
 import {
+  buildEventJoinUrl,
+  type EventSummary,
+  type GameSummary,
+  localize,
+} from '@playora/contracts';
+import {
+  App,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Input,
+  QRCode,
+  Skeleton,
+  Tag,
+  Typography,
+  theme,
+} from 'antd';
+import {
+  CircleCheck,
   Copy,
   Download,
   ExternalLink,
-  Gamepad2,
-  Gift,
+  Pencil,
+  PencilLine,
   QrCode,
-  Settings,
-  Users,
 } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { Caption } from '@/components/caption';
+import { Checklist } from '@/components/checklist';
 import { IconTile } from '@/components/icon-tile';
 import { QueryError } from '@/components/query-error';
+import { useGames, useTemplates } from '@/features/games/api';
 import { PLAY_URL } from '@/lib/env';
 import { useEvent } from '../api';
-import { EventStatusBadge } from './event-status-badge';
 
+/**
+ * Campaign overview (docs/16 §2, "Vận hành"): what is still missing before guests can play,
+ * the game itself, and the link/QR to share. Every gap links to the place that fixes it.
+ */
 export function EventOverview({ orgId, eventId }: { orgId: string; eventId: string }) {
+  const eventQuery = useEvent(orgId, eventId);
+  const gamesQuery = useGames(orgId, eventId);
+
+  if (eventQuery.isPending || gamesQuery.isPending) {
+    return <Skeleton active paragraph={{ rows: 8 }} />;
+  }
+  if (eventQuery.isError) return <QueryError onRetry={() => eventQuery.refetch()} />;
+  if (gamesQuery.isError) return <QueryError onRetry={() => gamesQuery.refetch()} />;
+
+  const event = eventQuery.data;
+  const games = gamesQuery.data.items;
+  return (
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <Flex vertical gap={20} className="min-w-0">
+        <Readiness orgId={orgId} event={event} games={games} />
+        <GamesCard orgId={orgId} eventId={eventId} games={games} />
+      </Flex>
+      <ShareCard event={event} />
+    </div>
+  );
+}
+
+function Readiness({
+  orgId,
+  event,
+  games,
+}: {
+  orgId: string;
+  event: EventSummary;
+  games: readonly GameSummary[];
+}) {
+  const t = useTranslations('overview');
+  const base = `/orgs/${orgId}/events/${event.id}`;
+  const firstGame = games[0];
+  const editor = firstGame ? `${base}/games/${firstGame.id}` : `${base}/games`;
+  const items = [
+    {
+      key: 'game',
+      done: games.length > 0,
+      title: t('ready.game'),
+      description: t('ready.gameDesc'),
+      href: `${base}/games`,
+      action: t('ready.gameAction'),
+    },
+    {
+      key: 'published',
+      done: games.some((game) => game.currentVersion !== null),
+      title: t('ready.published'),
+      description: t('ready.publishedDesc'),
+      href: editor,
+      action: t('ready.publishedAction'),
+    },
+    {
+      key: 'brand',
+      done: event.brandKitId !== null,
+      title: t('ready.brand'),
+      description: t('ready.brandDesc'),
+      href: `${base}/settings`,
+      action: t('ready.brandAction'),
+    },
+    {
+      key: 'schedule',
+      done: Boolean(event.startsAt && event.endsAt),
+      title: t('ready.schedule'),
+      description: t('ready.scheduleDesc'),
+      href: `${base}/settings`,
+      action: t('ready.scheduleAction'),
+    },
+    {
+      key: 'open',
+      done: event.status === 'live' || event.status === 'scheduled',
+      title: t('ready.open'),
+      description: t('ready.openDesc'),
+      href: `${base}/settings`,
+      action: t('ready.openAction'),
+    },
+  ];
+  const allDone = items.every((item) => item.done);
+
+  return (
+    <Checklist
+      title={allDone ? t('ready.allDone') : t('ready.title')}
+      items={items}
+      testId="event-readiness"
+    />
+  );
+}
+
+function GamesCard({
+  orgId,
+  eventId,
+  games,
+}: {
+  orgId: string;
+  eventId: string;
+  games: readonly GameSummary[];
+}) {
+  const t = useTranslations();
+  const locale = useLocale();
+  const { token } = theme.useToken();
+  const templates = useTemplates().data?.items ?? [];
+  const base = `/orgs/${orgId}/events/${eventId}`;
+
+  return (
+    <Card
+      variant="borderless"
+      title={t('overview.gameTitle')}
+      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
+      data-testid="event-overview-games"
+    >
+      {games.length === 0 ? (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('games.empty')}>
+          <Link href={`${base}/games` as Route}>
+            <Button type="primary" tabIndex={-1}>
+              {t('games.addGame')}
+            </Button>
+          </Link>
+        </Empty>
+      ) : (
+        <Flex vertical gap={12}>
+          {games.map((game) => {
+            const template = templates.find((item) => item.id === game.templateId);
+            const skin = template?.skins.find((item) => item.key === game.skinKey);
+            return (
+              <Flex key={game.id} align="center" gap={12} wrap>
+                <div className="min-w-0 flex-1">
+                  <Flex align="center" gap={8} wrap>
+                    <Typography.Text strong>{game.name}</Typography.Text>
+                    {game.currentVersion ? (
+                      <Tag
+                        color="success"
+                        variant="filled"
+                        icon={<CircleCheck className="size-3" />}
+                        className="!m-0 inline-flex items-center gap-1"
+                      >
+                        {t('games.publishedBadge', { version: game.currentVersion })}
+                      </Tag>
+                    ) : (
+                      <Tag
+                        variant="filled"
+                        icon={<PencilLine className="size-3" />}
+                        className="!m-0 inline-flex items-center gap-1"
+                      >
+                        {t('games.statusDraft')}
+                      </Tag>
+                    )}
+                  </Flex>
+                  <Caption>
+                    {template ? localize(template.name, locale) : game.templateId}
+                    {skin ? ` · ${localize(skin.name, locale)}` : ''}
+                  </Caption>
+                </div>
+                <Link href={`${base}/games/${game.id}` as Route}>
+                  <Button icon={<Pencil className="size-4" />} tabIndex={-1}>
+                    {t('overview.editGame')}
+                  </Button>
+                </Link>
+              </Flex>
+            );
+          })}
+        </Flex>
+      )}
+    </Card>
+  );
+}
+
+function ShareCard({ event }: { event: EventSummary }) {
   const t = useTranslations('overview');
   const { message } = App.useApp();
   const { token } = theme.useToken();
-  const cardStyle = { border: `1px solid ${token.colorBorderSecondary}` };
-  const eventQuery = useEvent(orgId, eventId);
-
-  if (eventQuery.isPending) {
-    return (
-      <div className="flex flex-col gap-6">
-        <Card variant="borderless" style={cardStyle}>
-          <Skeleton active paragraph={{ rows: 4 }} />
-        </Card>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton items
-            <Card key={i} variant="borderless" style={cardStyle}>
-              <Skeleton active avatar paragraph={{ rows: 2 }} />
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (eventQuery.isError) {
-    return <QueryError onRetry={() => eventQuery.refetch()} />;
-  }
-
-  const event = eventQuery.data;
   const joinUrl = buildEventJoinUrl(PLAY_URL, event.slug);
-  const base = `/orgs/${orgId}/events/${eventId}`;
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(joinUrl);
-    message.success(t('copied'));
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      message.success(t('copied'));
+    } catch {
+      message.error(t('copyFailed'));
+    }
   }
 
   function handleDownloadQr() {
@@ -64,159 +230,53 @@ export function EventOverview({ orgId, eventId }: { orgId: string; eventId: stri
       .getElementById('overview-qr')
       ?.querySelector<HTMLCanvasElement>('canvas');
     if (!canvas) return;
-    const url = canvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.download = `${event.slug}-qr.png`;
-    a.href = url;
+    a.href = canvas.toDataURL('image/png');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   }
 
-  const shortcuts = [
-    {
-      title: t('gamesShortcutTitle'),
-      desc: t('gamesShortcutDesc'),
-      action: t('gamesShortcutAction'),
-      icon: Gamepad2,
-      tone: 'primary',
-      href: `${base}/games`,
-      testId: 'event-shortcut-games',
-    },
-    {
-      title: t('playersShortcutTitle'),
-      desc: t('playersShortcutDesc'),
-      action: t('playersShortcutAction'),
-      icon: Users,
-      tone: 'info',
-      href: `${base}/players`,
-      testId: 'event-shortcut-players',
-    },
-    {
-      title: t('prizesShortcutTitle'),
-      desc: t('prizesShortcutDesc'),
-      action: t('prizesShortcutAction'),
-      icon: Gift,
-      tone: 'warning',
-      href: `${base}/prizes`,
-      testId: 'event-shortcut-prizes',
-    },
-    {
-      title: t('settingsShortcutTitle'),
-      desc: t('settingsShortcutDesc'),
-      action: t('settingsShortcutAction'),
-      icon: Settings,
-      tone: 'success',
-      href: `${base}/settings`,
-      testId: 'event-shortcut-settings',
-    },
-  ] as const;
-
   return (
-    <div className="flex flex-col gap-6">
-      {/* Play URL and QR code */}
-      <Card
-        variant="borderless"
-        style={cardStyle}
-        title={
-          <Flex align="center" gap={10}>
-            <IconTile tone="primary" size={28}>
-              <QrCode className="size-4" />
-            </IconTile>
-            <span>{t('playLinkTitle')}</span>
-          </Flex>
-        }
-        extra={<EventStatusBadge status={event.status} />}
-      >
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 flex-col gap-4">
-            <Typography.Text type="secondary">{t('playLinkDesc')}</Typography.Text>
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                readOnly
-                value={joinUrl}
-                className="max-w-md font-mono"
-                data-testid="join-url"
-              />
-              <Button icon={<Copy className="size-4" />} onClick={handleCopy}>
-                {t('copyLink')}
-              </Button>
-              <Button
-                icon={<ExternalLink className="size-4" />}
-                href={joinUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {t('openPlay')}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-2 self-center">
-            <div id="overview-qr">
-              <QRCode value={joinUrl} size={144} />
-            </div>
-            <Button
-              type="text"
-              size="small"
-              icon={<Download className="size-4" />}
-              onClick={handleDownloadQr}
-            >
-              {t('downloadQr')}
-            </Button>
-          </div>
+    <Card
+      variant="borderless"
+      title={
+        <Flex align="center" gap={10}>
+          <IconTile tone="primary" size={28}>
+            <QrCode className="size-4" />
+          </IconTile>
+          <span>{t('playLinkTitle')}</span>
+        </Flex>
+      }
+      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
+    >
+      <Flex vertical gap={12} align="center">
+        <div id="overview-qr">
+          <QRCode value={joinUrl} size={168} />
         </div>
-      </Card>
-
-      {/* Shortcuts */}
-      <div>
-        <div className="mb-3">
-          <Typography.Title level={5} className="!mb-0">
-            {t('shortcutsTitle')}
-          </Typography.Title>
-          <Typography.Text type="secondary">{t('shortcutsDesc')}</Typography.Text>
+        <Caption className="text-center">{t('playLinkDesc')}</Caption>
+        <Input readOnly value={joinUrl} className="font-mono" data-testid="join-url" />
+        <div className="grid w-full grid-cols-2 gap-2">
+          <Button icon={<Copy className="size-4" />} onClick={handleCopy}>
+            {t('copyLink')}
+          </Button>
+          <Button icon={<Download className="size-4" />} onClick={handleDownloadQr}>
+            {t('downloadQr')}
+          </Button>
         </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {shortcuts.map(({ title, desc, action, icon: Icon, tone, href, testId }) => (
-            <Card
-              key={href}
-              variant="borderless"
-              hoverable
-              style={cardStyle}
-              styles={{ body: { padding: '16px 20px', height: '100%' } }}
-            >
-              <div className="flex h-full flex-col justify-between gap-3">
-                <Flex align="flex-start" gap={14}>
-                  <IconTile tone={tone}>
-                    <Icon className="size-5" />
-                  </IconTile>
-                  <div className="min-w-0 flex-1">
-                    <Typography.Text strong className="block" style={{ fontSize: 15 }}>
-                      {title}
-                    </Typography.Text>
-                    <Typography.Text
-                      type="secondary"
-                      className="mt-0.5 block"
-                      style={{ fontSize: 13 }}
-                    >
-                      {desc}
-                    </Typography.Text>
-                  </div>
-                </Flex>
-                <div className="flex justify-end">
-                  <Link href={href as Route} data-testid={testId}>
-                    <Button type="link" className="!px-0">
-                      {action} →
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
+        <Button
+          block
+          type="link"
+          icon={<ExternalLink className="size-4" />}
+          href={joinUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('openPlay')}
+        </Button>
+      </Flex>
+    </Card>
   );
 }
 

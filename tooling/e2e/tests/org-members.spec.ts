@@ -20,6 +20,8 @@ test('invite member → accept invitation as new user → editor sees members wi
   await page.getByLabel('Tên tổ chức').fill(`Org ${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
+  await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
+  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
   const orgMatch = /\/orgs\/([^/]+)\/events$/.exec(page.url());
   const orgId = orgMatch?.[1] ?? '';
@@ -62,7 +64,7 @@ test('invite member → accept invitation as new user → editor sees members wi
   await expect(page.getByRole('button', { name: 'Chấp nhận lời mời' })).toBeVisible();
   await page.getByRole('button', { name: 'Chấp nhận lời mời' }).click();
 
-  await expect(page).toHaveURL(new RegExp(`/orgs/${orgId}/events$`));
+  await expect(page).toHaveURL(new RegExp(`/orgs/${orgId}$`));
 
   // As an editor, Bob can view the members list and leave, but cannot invite members.
   await page.goto(`/orgs/${orgId}/settings`);

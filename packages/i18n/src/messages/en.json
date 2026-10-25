@@ -40,6 +40,7 @@
     "submit": "Create organization"
   },
   "nav": {
+    "home": "Home",
     "events": "Campaigns",
     "brandKits": "Brand kits",
     "assets": "Media library",
@@ -129,29 +130,37 @@
   "overview": {
     "title": "Campaign overview",
     "playLinkTitle": "Join Link & QR Code",
-    "playLinkDesc": "Share the link or scan the QR code below to participate on mobile devices.",
+    "playLinkDesc": "Print the QR for your counter or share the link on your page. Guests open it on their phone, no app needed.",
     "playUrl": "Join URL",
     "copyLink": "Copy link",
     "copied": "Join link copied to clipboard!",
     "openPlay": "Open play page",
     "qrCode": "Join QR Code",
     "downloadQr": "Download QR",
-    "shortcutsTitle": "Quick Shortcuts",
-    "shortcutsDesc": "Quickly open the main parts of this campaign.",
-    "gamesShortcutTitle": "Games",
-    "gamesShortcutDesc": "Manage and customize interactive minigames for your campaign.",
-    "gamesShortcutAction": "Go to games",
-    "playersShortcutTitle": "Players",
-    "playersShortcutDesc": "Manage guest lists, participation codes, and team assignments.",
-    "playersShortcutAction": "View players",
-    "prizesShortcutTitle": "Prizes",
-    "prizesShortcutDesc": "Configure prize structure, voucher pool, and winning odds.",
-    "prizesShortcutAction": "View prizes",
-    "settingsShortcutTitle": "Settings",
-    "settingsShortcutDesc": "Configure player identity, schedule, rules and brand.",
-    "settingsShortcutAction": "Open settings",
     "prizesPlaceholderTitle": "Prizes (Coming soon)",
-    "prizesPlaceholderDesc": "Prize structure management, voucher inventory, and odds pacing are currently under development."
+    "prizesPlaceholderDesc": "Prize structure management, voucher inventory, and odds pacing are currently under development.",
+    "copyFailed": "Could not copy. Select the link and copy it manually.",
+    "gameTitle": "Game",
+    "editGame": "Edit game",
+    "ready": {
+      "title": "Before guests can play",
+      "allDone": "This campaign is ready for guests",
+      "game": "Pick a game",
+      "gameDesc": "Add a game from the templates.",
+      "gameAction": "Add game",
+      "published": "Publish the game",
+      "publishedDesc": "Guests only play a published version.",
+      "publishedAction": "Open editor",
+      "brand": "Attach a brand kit",
+      "brandDesc": "Your store's logo and colours show in the game.",
+      "brandAction": "Choose brand kit",
+      "schedule": "Set the schedule",
+      "scheduleDesc": "When the campaign starts and ends.",
+      "scheduleAction": "Set schedule",
+      "open": "Open the campaign",
+      "openDesc": "Set the status to Scheduled or Live.",
+      "openAction": "Open settings"
+    }
   },
   "assets": {
     "title": "Asset library",
@@ -559,5 +568,34 @@
       "submit": "Create and start editing",
       "gameFailed": "The campaign was created, but the game could not be added. Add it again from the Games tab."
     }
+  },
+  "home": {
+    "title": "Home",
+    "subtitle": "What to do next and your campaigns.",
+    "create": "New campaign",
+    "gettingStarted": "Get started with Playora",
+    "steps": {
+      "brand": "Add your store's logo and colours",
+      "brandDesc": "Create a brand kit once; every game uses it.",
+      "brandAction": "Create brand kit",
+      "campaign": "Create your first campaign",
+      "campaignDesc": "Pick a template, then swap in your photos and prizes.",
+      "campaignAction": "Pick a template",
+      "open": "Open a campaign to guests",
+      "openDesc": "Publish the game, set the schedule, then print the QR for your counter.",
+      "openAction": "See what is missing",
+      "team": "Invite a teammate",
+      "teamDesc": "Someone to run campaigns with you.",
+      "teamAction": "Invite"
+    },
+    "campaigns": "Your campaigns",
+    "allCampaigns": "View all",
+    "noCampaigns": "No campaigns yet. Follow the steps above to create your first one.",
+    "noSchedule": "No schedule yet",
+    "continueEditing": "Continue editing",
+    "share": "Share & QR",
+    "moreCampaigns": "{count} more campaigns.",
+    "templates": "Suggested templates",
+    "allTemplates": "All templates"
   }
 }
