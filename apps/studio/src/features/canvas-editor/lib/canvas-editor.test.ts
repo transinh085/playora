@@ -107,6 +107,22 @@ describe('editor state', () => {
     expect(must(currentScreen(moved).elements[3]).id).toBe(first);
   });
 
+  test('sync adopts an outside document and keeps the screen and a surviving selection', () => {
+    let s = editorReducer(fresh(), { type: 'selectScreen', screen: 'game' });
+    const id = must(currentScreen(s).elements[0]).id;
+    s = editorReducer(s, { type: 'select', id });
+    s = editorReducer(s, { type: 'update', id, patch: { x: 5 } });
+    const outside = structuredClone(s.doc);
+    outside.game.elements[0] = { ...must(outside.game.elements[0]), x: 99 };
+    const synced = editorReducer(s, { type: 'sync', doc: outside });
+    expect(synced.screen).toBe('game');
+    expect(synced.selectedId).toBe(id);
+    expect(synced.doc).toBe(outside);
+    expect(synced.past).toEqual([]);
+    const gone = editorReducer(s, { type: 'sync', doc: createDemoDoc() });
+    expect(gone.selectedId).toBeNull();
+  });
+
   test('brand references resolve through the palette', () => {
     expect(resolveColor('brand.accent', DEMO_BRAND)).toBe(DEMO_BRAND.accent);
     expect(resolveColor('#123456', DEMO_BRAND)).toBe('#123456');

@@ -30,6 +30,8 @@ export type EditorAction =
   | { type: 'duplicate'; id: string }
   | { type: 'reorder'; id: string; toIndex: number }
   | { type: 'reset'; doc: CanvasDoc }
+  /** The document changed outside the editor (controlled mode): adopt it, keep screen/selection. */
+  | { type: 'sync'; doc: CanvasDoc }
   | { type: 'undo' }
   | { type: 'redo' };
 
@@ -123,6 +125,14 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     }
     case 'reset':
       return { ...createEditorState(action.doc), screen: state.screen };
+    case 'sync': {
+      const stillThere = action.doc[state.screen].elements.some((e) => e.id === state.selectedId);
+      return {
+        ...createEditorState(action.doc),
+        screen: state.screen,
+        selectedId: stillThere ? state.selectedId : null,
+      };
+    }
     case 'undo': {
       const previous = state.past.at(-1);
       if (!previous) return state;

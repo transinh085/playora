@@ -31,6 +31,7 @@ import {
   Settings,
   Shapes,
   Sun,
+  Wand2,
 } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -51,7 +52,8 @@ type NavKey =
   | 'brandKits'
   | 'assets'
   | 'settings'
-  | 'canvasLab';
+  | 'canvasLab'
+  | 'builderLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
@@ -76,7 +78,13 @@ const NAV_GROUPS: { key: 'campaigns' | 'brand' | 'organization' | 'labs'; items:
     ],
   },
   { key: 'organization', items: [{ key: 'settings', icon: Settings, path: 'settings' }] },
-  { key: 'labs', items: [{ key: 'canvasLab', icon: Shapes, path: 'labs/canvas' }] },
+  {
+    key: 'labs',
+    items: [
+      { key: 'builderLab', icon: Wand2, path: 'labs/builder' },
+      { key: 'canvasLab', icon: Shapes, path: 'labs/canvas' },
+    ],
+  },
 ];
 
 const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);

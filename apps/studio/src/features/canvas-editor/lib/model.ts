@@ -18,8 +18,16 @@ export type BrandColorKey = 'primary' | 'accent' | 'background' | 'text' | 'surf
 export type EnterAnimation = 'none' | 'fade' | 'slideUp' | 'zoom' | 'bounce';
 export type ButtonAction = 'start' | 'rules' | 'link' | 'zalo' | 'phone' | 'next';
 
+/**
+ * Replaceable content a template exposes to "Quick edit" (docs/15 §4.2). Elements sharing a slot
+ * across screens are edited together: change the logo once, every screen follows.
+ */
+export type SlotKey = 'logo' | 'productPhoto' | 'title' | 'promoText' | 'cta';
+export const SLOT_KEYS: SlotKey[] = ['logo', 'productPhoto', 'title', 'promoText', 'cta'];
+
 interface BaseElement {
   id: string;
+  slot?: SlotKey;
   name: string;
   x: number;
   y: number;
@@ -246,6 +254,24 @@ export const IMAGE_PRESETS: { key: string; src: string }[] = [
     key: 'coffee',
     src: svg(
       '<path d="M18 38 H72 V70 a18 18 0 0 1 -18 18 H36 a18 18 0 0 1 -18 -18 Z" fill="#fff8e1" stroke="#6f4518" stroke-width="4"/><path d="M72 46 h8 a10 10 0 0 1 0 20 h-8" fill="none" stroke="#6f4518" stroke-width="6"/><rect x="24" y="44" width="42" height="10" fill="#a0673a"/><path d="M34 10 q6 8 0 16 M46 10 q6 8 0 16 M58 10 q6 8 0 16" fill="none" stroke="#c8a27c" stroke-width="4" stroke-linecap="round"/>',
+    ),
+  },
+  {
+    key: 'gift',
+    src: svg(
+      '<rect x="12" y="40" width="76" height="52" rx="6" fill="#e64980"/><rect x="6" y="28" width="88" height="18" rx="5" fill="#f783ac"/><rect x="44" y="28" width="12" height="64" fill="#ffd43b"/><path d="M50 28 C38 6 18 14 30 26 Z M50 28 C62 6 82 14 70 26 Z" fill="#ffd43b"/>',
+    ),
+  },
+  {
+    key: 'star',
+    src: svg(
+      '<path d="M50 6 L62 38 L96 40 L69 61 L79 94 L50 75 L21 94 L31 61 L4 40 L38 38 Z" fill="#ffd43b" stroke="#f59f00" stroke-width="3" stroke-linejoin="round"/>',
+    ),
+  },
+  {
+    key: 'balloon',
+    src: svg(
+      '<ellipse cx="38" cy="36" rx="22" ry="27" fill="#4dabf7"/><ellipse cx="64" cy="40" rx="22" ry="27" fill="#ff8787"/><path d="M38 63 Q42 80 50 98 M64 67 Q58 82 50 98" fill="none" stroke="#868e96" stroke-width="2"/>',
     ),
   },
 ];

@@ -15,10 +15,11 @@ import {
   type AddableType,
   ARTBOARD_WIDTH,
   type BrandPalette,
+  type GameStageElement,
   MAX_ARTBOARD_HEIGHT,
   MIN_ARTBOARD_HEIGHT,
 } from '../lib/model';
-import { type CanvasLabels, CanvasScreen } from './canvas-screen';
+import { type CanvasLabels, type CanvasPrize, CanvasScreen } from './canvas-screen';
 
 /** MIME type the toolbox puts on drag events, carrying an `AddableType`. */
 export const TOOLBOX_MIME = 'application/x-playora-canvas-element';
@@ -70,6 +71,8 @@ export function EditorCanvas({
   labels,
   newElementName,
   heightLabel,
+  renderStage,
+  prizes,
 }: {
   state: EditorState;
   dispatch: Dispatch<EditorAction>;
@@ -80,6 +83,9 @@ export function EditorCanvas({
   labels: CanvasLabels;
   newElementName: (type: AddableType) => string;
   heightLabel: string;
+  /** Draws the template's mechanism (idle) inside the game stage instead of the demo wheel. */
+  renderStage?: (element: GameStageElement) => React.ReactNode;
+  prizes?: CanvasPrize[];
 }) {
   const { token } = theme.useToken();
   const screen = currentScreen(state);
@@ -241,6 +247,7 @@ export function EditorCanvas({
         scale={zoom}
         labels={labels}
         animate={preview ? replay : undefined}
+        runtime={{ renderStage, prizes }}
       />
 
       {!preview && (
