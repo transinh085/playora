@@ -122,7 +122,7 @@ describe('EventJoinShell', () => {
         </NextIntlClientProvider>,
       );
       expect(htmlEn).toContain('Display name');
-      expect(htmlEn).toContain('The event is full');
+      expect(htmlEn).toContain('The campaign is full');
       expect(htmlEn).toContain('Phone number');
       expect(htmlEn).toContain('Department');
       expect(htmlEn).toContain('VIP guest');

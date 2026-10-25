@@ -28,6 +28,8 @@ test('configure event identity, registration form and consent in Studio, then pl
 
   // Import guest list
   await page.getByRole('link', { name: 'YEP Join 2026' }).click();
+  await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+$/);
+  await page.getByTestId('event-tab-players').click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/players$/);
 
   const csvContent = [

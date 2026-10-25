@@ -30,7 +30,7 @@ test('create games from template gallery, reorder, edit in 2-column builder with
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+$/);
 
   // Navigate to "Trò chơi" via EventNav
-  await page.getByRole('link', { name: 'Trò chơi' }).click();
+  await page.getByTestId('event-tab-games').click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/games$/);
   await expect(page.getByTestId('event-games-tab')).toBeVisible();
   await expect(page.getByTestId('games-empty-state')).toBeVisible();
