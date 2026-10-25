@@ -55,11 +55,13 @@ Mỗi màn kết thúc bằng việc đưa người dùng sang bước sau, khô
 |---|---|---|
 | S1 | Khung app: sidebar chỉ còn route có thật, Labs sau cờ, gộp Thành viên về `/settings`, đổi "Sự kiện" → "Chương trình", bấm tên chương trình ra Tổng quan; sửa docs sang desktop-first | FE + docs |
 | S2 | Trang Kho mẫu + tạo nhanh (createEvent → createGame → Builder) | FE |
-| S3 | Khung Builder 4 bước, gỡ control trùng | FE |
-| S4 | Bước Luật chơi: chuyển lịch, định danh, form, consent từ Cài đặt chương trình | FE |
+| S3 | Khung Builder 4 bước, gỡ control trùng | FE · **agent builder phụ trách** |
+| S4 | Bước Luật chơi: chuyển lịch, định danh, form, consent từ Cài đặt chương trình | FE · **agent builder phụ trách** |
 | S5 | Trạng thái suy ra khi publish, checklist, màn chia sẻ | API + FE |
 | S6 | Trang chủ, danh sách chương trình có số liệu | API + FE |
-| S7 | Bước Giải thưởng, tab Giải & đổi quà (prize engine v1) | API + FE |
+| S7 | Bước Giải thưởng (**agent builder**); tab Giải & đổi quà ở Vận hành | API + FE |
 | S8 | Đổi quà + vai trò nhân viên | API + FE |
+
+Mọi thứ bên trong editor (`features/games/components/editor-*`, canvas, các bước soạn) do agent builder làm theo [15](./15-game-builder-plan.md); luồng ở đây chỉ dừng ở chỗ mở editor và nhận lại khi publish.
 
 PR có phần API phải hỏi trước khi sửa `packages/contracts` (AGENTS.md).
