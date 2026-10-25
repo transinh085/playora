@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@playora/ui/styles.css";
 @source "../../../../packages/ui/src";
+@source "../../../../packages/templates/src";
 
 body {
   overscroll-behavior: none;
