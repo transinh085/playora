@@ -1,15 +1,17 @@
 import { AntdRegistry } from '@playora/ui/providers';
 import type { Metadata } from 'next';
-import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
+import { Google_Sans, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
 import { Providers } from './providers';
 import './globals.css';
 
-const font = Be_Vietnam_Pro({
+const font = Google_Sans({
   subsets: ['latin', 'vietnamese'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
+  fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: false,
 });
 
 // Display face for the wordmark, game titles, scores and timers (docs/13-design-system.md).
