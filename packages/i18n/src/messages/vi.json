@@ -41,14 +41,14 @@
   },
   "nav": {
     "home": "Trang chủ",
-    "events": "Chương trình",
+    "campaigns": "Chương trình",
     "brandKits": "Brand kit",
     "assets": "Thư viện ảnh",
     "templates": "Kho mẫu",
+    "redeem": "Đổi quà",
     "reports": "Báo cáo",
     "settings": "Cài đặt",
-    "canvasLab": "Canvas editor",
-    "builderLab": "Game builder (lab)"
+    "canvasLab": "Canvas editor"
   },
   "events": {
     "title": "Chương trình",
@@ -117,8 +117,7 @@
     "search": "Tìm theo tên hoặc đường dẫn",
     "allStatuses": "Tất cả trạng thái",
     "noMatch": "Không có chương trình nào khớp bộ lọc.",
-    "newBlank": "Tạo chương trình trống",
-    "fromTemplate": "Tạo từ mẫu"
+    "newBlank": "Tạo chương trình trống"
   },
   "eventNav": {
     "overview": "Tổng quan",
@@ -539,66 +538,6 @@
     },
     "back": "Về Studio"
   },
-  "templates": {
-    "title": "Kho mẫu",
-    "subtitle": "Chọn một mẫu, thay ảnh và quà của quán. Mẫu nào cũng có quản lý giải và đổi quà.",
-    "filterOccasion": "Dịp",
-    "filterKind": "Kiểu chơi",
-    "all": "Tất cả",
-    "kinds": {
-      "instant": "Trúng ngay",
-      "skill": "Kỹ năng"
-    },
-    "occasions": {
-      "tet": "Tết",
-      "chung": "Mọi dịp"
-    },
-    "empty": "Không có mẫu nào khớp bộ lọc.",
-    "previewTitle": "Xem trước mẫu",
-    "previewHint": "Bấm vào game để chơi thử. Màu lấy từ brand kit đầu tiên của bạn.",
-    "skins": "Giao diện",
-    "slots": "Ảnh thay được",
-    "noSlots": "Mẫu này dùng ảnh có sẵn.",
-    "useTemplate": "Dùng mẫu này",
-    "create": {
-      "title": "Tạo chương trình từ “{name}”",
-      "name": "Tên chương trình",
-      "brandKit": "Brand kit",
-      "noBrandKit": "Không dùng brand kit",
-      "linkHint": "Link tham gia được tạo tự động. Bạn đổi được trong Cài đặt chương trình.",
-      "submit": "Tạo và bắt đầu soạn",
-      "gameFailed": "Đã tạo chương trình nhưng chưa thêm được trò chơi. Thêm lại ở tab Trò chơi."
-    }
-  },
-  "home": {
-    "title": "Trang chủ",
-    "subtitle": "Việc cần làm tiếp theo và các chương trình của bạn.",
-    "create": "Tạo chương trình",
-    "gettingStarted": "Bắt đầu với Playora",
-    "steps": {
-      "brand": "Thêm logo và màu của quán",
-      "brandDesc": "Tạo brand kit một lần, mọi trò chơi dùng chung.",
-      "brandAction": "Tạo brand kit",
-      "campaign": "Tạo chương trình đầu tiên",
-      "campaignDesc": "Chọn một mẫu, thay ảnh và quà của quán.",
-      "campaignAction": "Chọn mẫu",
-      "open": "Mở chương trình cho khách",
-      "openDesc": "Xuất bản trò chơi, đặt lịch, rồi in QR đặt ở quầy.",
-      "openAction": "Xem việc còn thiếu",
-      "team": "Mời đồng nghiệp hoặc nhân viên",
-      "teamDesc": "Người cùng quản lý chương trình với bạn.",
-      "teamAction": "Mời"
-    },
-    "campaigns": "Chương trình của bạn",
-    "allCampaigns": "Xem tất cả",
-    "noCampaigns": "Chưa có chương trình nào. Làm theo các bước ở trên để tạo chương trình đầu tiên.",
-    "noSchedule": "Chưa đặt lịch",
-    "continueEditing": "Tiếp tục soạn",
-    "share": "Chia sẻ & QR",
-    "moreCampaigns": "Còn {count} chương trình khác.",
-    "templates": "Mẫu gợi ý",
-    "allTemplates": "Kho mẫu"
-  },
   "builderLab": {
     "mechanisms": {
       "luck": "Chúc may mắn",
@@ -875,10 +814,10 @@
       "title": "Builder Lab",
       "badge": "Thử nghiệm",
       "back": "Về Studio",
-      "pageTitle": "Campaign minigame",
+      "pageTitle": "Chương trình minigame",
       "pageDescription": "Chọn mẫu, sửa nhanh, đặt giải rồi publish. Bản thử nghiệm: dữ liệu chỉ lưu trên trình duyệt này.",
       "create": {
-        "title": "Tạo campaign mới",
+        "title": "Chọn mẫu",
         "hint": "Chọn một mẫu và giao diện, đặt tên, rồi bắt đầu chỉnh. Ảnh, chữ và màu đổi được hết sau."
       },
       "occasions": {
@@ -898,33 +837,33 @@
         "everyday": "Quanh năm"
       },
       "defaultName": "{template} · {skin}",
-      "created": "Đã tạo campaign",
-      "createFailed": "Không tạo được campaign. Thử lại nhé.",
-      "nameLabel": "Tên campaign",
-      "namePlaceholder": "Tên campaign, ví dụ: Vòng quay Tết – Cà phê Mộc",
+      "created": "Đã tạo chương trình",
+      "createFailed": "Không tạo được chương trình. Thử lại nhé.",
+      "nameLabel": "Tên chương trình",
+      "namePlaceholder": "Tên chương trình, ví dụ: Vòng quay Tết – Cà phê Mộc",
       "pickFirst": "Chọn một mẫu ở trên trước",
-      "createButton": "Tạo campaign",
+      "createButton": "Tạo chương trình",
       "list": {
-        "title": "Campaign của bạn",
-        "count": "{count} campaign",
-        "empty": "Chưa có campaign nào. Chọn một mẫu ở trên để bắt đầu.",
+        "title": "Chương trình của bạn",
+        "count": "{count} chương trình",
+        "empty": "Chưa có chương trình nào. Chọn một mẫu ở trên để bắt đầu.",
         "open": "Sửa",
         "play": "Chơi",
         "playLive": "Mở trang chơi thật",
         "playRehearsal": "Chơi thử bản nháp (không tính số liệu)",
         "delete": "Xoá",
         "deleteConfirm": "Xoá “{name}”? Lượt chơi và mã đổi quà cũng bị xoá.",
-        "deleted": "Đã xoá campaign",
+        "deleted": "Đã xoá chương trình",
         "meta": "{version, select, 0 {Chưa publish} other {v{version}}} · cập nhật {time}"
       }
     },
     "editor": {
-      "notFound": "Không tìm thấy campaign",
-      "notFoundHint": "Campaign này đã bị xoá hoặc chỉ có trên một trình duyệt khác.",
-      "backHome": "Về danh sách campaign",
-      "back": "Về danh sách campaign",
-      "name": "Tên campaign",
-      "untitled": "Campaign chưa đặt tên",
+      "notFound": "Không tìm thấy chương trình",
+      "notFoundHint": "Chương trình này đã bị xoá hoặc chỉ có trên một trình duyệt khác.",
+      "backHome": "Về danh sách chương trình",
+      "back": "Về danh sách chương trình",
+      "name": "Tên chương trình",
+      "untitled": "Chương trình chưa đặt tên",
       "rehearse": "Chơi thử",
       "publish": "Publish",
       "customizeNarrow": "Chế độ Tuỳ biến dùng tốt nhất trên màn hình rộng. Trên điện thoại hãy dùng Sửa nhanh.",
@@ -1040,7 +979,148 @@
         "wins": "Lượt trúng",
         "redeemed": "Đã đổi quà",
         "budget": "Ngân sách đã dùng"
-      }
+      },
+      "openOps": "Mở trang vận hành"
     }
+  },
+  "campaigns": {
+    "title": "Chương trình",
+    "subtitle": "Mỗi chương trình là một minigame có quà, chạy theo lịch và đổi quà tại quầy.",
+    "create": "Tạo chương trình",
+    "createSubtitle": "Mẫu nào cũng có sẵn quản lý giải, chống gian lận và đổi quà tại quầy.",
+    "backToList": "Về danh sách chương trình",
+    "notFound": "Không tìm thấy chương trình này",
+    "all": "Tất cả",
+    "search": "Tìm theo tên",
+    "noMatch": "Không có chương trình nào khớp bộ lọc.",
+    "empty": "Chưa có chương trình nào.",
+    "edit": "Sửa thiết kế",
+    "columns": {
+      "name": "Chương trình",
+      "status": "Trạng thái",
+      "period": "Thời gian",
+      "plays": "Lượt chơi",
+      "stock": "Quà còn lại"
+    },
+    "phase": {
+      "draft": "Nháp",
+      "scheduled": "Đã lên lịch",
+      "live": "Đang chạy",
+      "paused": "Tạm dừng",
+      "ended": "Đã kết thúc"
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "share": "Chia sẻ & QR",
+      "prizes": "Giải & đổi quà",
+      "players": "Người chơi",
+      "settings": "Cài đặt"
+    },
+    "continueEditing": "Tiếp tục soạn",
+    "editDesign": "Sửa thiết kế",
+    "resume": "Tiếp tục chạy",
+    "rehearse": "Chơi thử",
+    "draft": {
+      "blocked": "Còn {count} việc trước khi publish",
+      "ready": "Sẵn sàng publish",
+      "hint": "Publish trong trình soạn. Sau khi publish, trang này hiện link, QR và số liệu.",
+      "fix": "Sửa"
+    },
+    "stock": {
+      "title": "Tồn kho quà",
+      "edit": "Sửa quà",
+      "left": "còn {left}/{total}",
+      "issued": "Đã phát {issued} · đã đổi {redeemed}"
+    },
+    "recent": {
+      "title": "Lượt chơi gần đây",
+      "empty": "Chưa có lượt chơi nào. Chia sẻ link hoặc in QR để khách bắt đầu chơi."
+    },
+    "players": {
+      "title": "{count} lượt chơi",
+      "time": "Thời gian",
+      "player": "Người chơi",
+      "outcome": "Kết quả",
+      "prize": "Quà",
+      "code": "Mã đổi quà"
+    },
+    "outcome": {
+      "win": "Trúng",
+      "lose": "Không trúng",
+      "closed": "Ngoài giờ",
+      "no_turns": "Hết lượt"
+    },
+    "share": {
+      "draft": "Chương trình chưa publish nên chưa có link cho khách. Bạn vẫn chơi thử được bằng link nháp."
+    },
+    "vouchers": {
+      "title": "Mã đổi quà đã phát",
+      "desk": "Mở quầy đổi quà",
+      "empty": "Chưa phát mã nào.",
+      "code": "Mã",
+      "issued": "Phát lúc",
+      "status": "Trạng thái",
+      "redeemed": "Đã đổi",
+      "pending": "Chưa đổi"
+    },
+    "settings": {
+      "scheduleTitle": "Thời gian kết thúc",
+      "scheduleHint": "Gia hạn bằng cách dời giờ kết thúc. Dữ liệu người chơi và mã quà được giữ nguyên.",
+      "endsAt": "Kết thúc lúc",
+      "extended": "Đã đổi giờ kết thúc",
+      "runTitle": "Chạy chương trình",
+      "pause": "Tạm dừng",
+      "end": "Kết thúc ngay",
+      "endConfirm": "Kết thúc chương trình ngay? Khách sẽ không chơi được nữa; mã đã phát vẫn đổi được.",
+      "runHint": "Tạm dừng thì khách không chơi được cho tới khi bạn bấm Tiếp tục chạy.",
+      "deleteTitle": "Xoá chương trình",
+      "delete": "Xoá",
+      "deleteConfirm": "Xoá “{name}” cùng toàn bộ lượt chơi và mã quà?",
+      "deleted": "Đã xoá chương trình",
+      "deleteBlocked": "Chương trình đang chạy hoặc đã lên lịch. Tạm dừng hoặc kết thúc trước khi xoá.",
+      "deleteHint": "Không hoàn tác được."
+    },
+    "home": {
+      "title": "Trang chủ",
+      "subtitle": "Việc cần làm hôm nay và các chương trình của bạn.",
+      "gettingStarted": "Bắt đầu với Playora",
+      "steps": {
+        "brand": "Thêm logo và màu của quán",
+        "brandDesc": "Tạo brand kit một lần, chương trình mới tự lấy màu theo.",
+        "brandAction": "Tạo brand kit",
+        "campaign": "Tạo chương trình đầu tiên",
+        "campaignDesc": "Chọn một mẫu, thay ảnh và quà của quán.",
+        "campaignAction": "Chọn mẫu",
+        "publish": "Đặt quà, luật và publish",
+        "publishDesc": "Hệ thống kiểm tra trước khi publish và sửa giúp bằng một chạm.",
+        "publishAction": "Đặt quà & luật",
+        "share": "In QR đặt ở quầy",
+        "shareDesc": "Xong khi có lượt chơi thật đầu tiên.",
+        "shareAction": "Lấy QR",
+        "team": "Mời đồng nghiệp hoặc nhân viên",
+        "teamDesc": "Người cùng quản lý chương trình hoặc đổi quà tại quầy.",
+        "teamAction": "Mời"
+      },
+      "attention": {
+        "title": "Cần bạn xử lý",
+        "lowStock": "“{prize}” còn {left}/{total} · {campaign}",
+        "addStock": "Thêm quà",
+        "paused": "{campaign} đang tạm dừng, khách không chơi được",
+        "open": "Mở",
+        "endingSoon": "{campaign} kết thúc trong 3 ngày tới",
+        "extend": "Gia hạn",
+        "unpublished": "{campaign} có thay đổi chưa publish",
+        "review": "Xem"
+      },
+      "campaigns": "Chương trình của bạn",
+      "allCampaigns": "Xem tất cả ({count})",
+      "noCampaigns": "Chưa có chương trình nào. Làm theo các bước ở trên để tạo chương trình đầu tiên.",
+      "plays": "{count} lượt chơi",
+      "continueEditing": "Tiếp tục soạn",
+      "share": "Chia sẻ & QR",
+      "templates": "Mẫu gợi ý",
+      "allTemplates": "Tất cả mẫu"
+    },
+    "openPlay": "Mở trang chơi"
   }
 }

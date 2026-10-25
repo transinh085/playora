@@ -2,11 +2,13 @@
 
 import { App, Button, Card, Flex, Input, Tag, Typography, theme } from 'antd';
 import { Check, Sparkles } from 'lucide-react';
-import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { useBrandKits } from '@/features/brand-kits/api';
+import { brandFromKit } from '../../lib/brand';
+import { campaignRoutes } from '../../lib/routes';
 import { useCreateCampaign } from '../../mock/hooks';
 import { buildScreens, TEMPLATES } from '../../mock/templates';
 import type { Occasion, SkinInfo, SkinKey, TemplateKey } from '../../mock/types';
@@ -26,6 +28,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
   const { message } = App.useApp();
   const router = useRouter();
   const create = useCreateCampaign();
+  const brandKits = useBrandKits(orgId);
   const [occasion, setOccasion] = useState<Occasion | 'all'>('all');
   const [picked, setPicked] = useState<{ templateKey: TemplateKey; skinKey: SkinKey } | null>(null);
   const [name, setName] = useState('');
@@ -62,9 +65,14 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
   const submit = async () => {
     if (!picked || !name.trim()) return;
     try {
-      const campaign = await create.mutateAsync({ ...picked, name: name.trim() });
+      const campaign = await create.mutateAsync({
+        ...picked,
+        orgId,
+        name: name.trim(),
+        brand: brandFromKit(brandKits.data?.items[0]),
+      });
       message.success(t('created'));
-      router.push(`/orgs/${orgId}/labs/builder/${campaign.id}` as Route);
+      router.push(campaignRoutes(orgId).edit(campaign.id));
     } catch {
       message.error(t('createFailed'));
     }

@@ -41,14 +41,14 @@
   },
   "nav": {
     "home": "Home",
-    "events": "Campaigns",
+    "campaigns": "Campaigns",
     "brandKits": "Brand kits",
     "assets": "Media library",
     "templates": "Templates",
+    "redeem": "Redeem",
     "reports": "Reports",
     "settings": "Settings",
-    "canvasLab": "Canvas editor",
-    "builderLab": "Game builder (lab)"
+    "canvasLab": "Canvas editor"
   },
   "events": {
     "title": "Campaigns",
@@ -117,8 +117,7 @@
     "search": "Search by name or link",
     "allStatuses": "All statuses",
     "noMatch": "No campaigns match these filters.",
-    "newBlank": "Blank campaign",
-    "fromTemplate": "Start from a template"
+    "newBlank": "Blank campaign"
   },
   "eventNav": {
     "overview": "Overview",
@@ -539,66 +538,6 @@
     },
     "back": "Back to Studio"
   },
-  "templates": {
-    "title": "Templates",
-    "subtitle": "Pick a template, then swap in your store's photos and prizes. Every template comes with prize control and redemption.",
-    "filterOccasion": "Occasion",
-    "filterKind": "Play style",
-    "all": "All",
-    "kinds": {
-      "instant": "Instant win",
-      "skill": "Skill"
-    },
-    "occasions": {
-      "tet": "Lunar New Year",
-      "chung": "Any occasion"
-    },
-    "empty": "No templates match these filters.",
-    "previewTitle": "Template preview",
-    "previewHint": "Click the game to try it. Colours come from your first brand kit.",
-    "skins": "Look",
-    "slots": "Replaceable images",
-    "noSlots": "This template uses built-in images.",
-    "useTemplate": "Use this template",
-    "create": {
-      "title": "New campaign from “{name}”",
-      "name": "Campaign name",
-      "brandKit": "Brand kit",
-      "noBrandKit": "No brand kit",
-      "linkHint": "The join link is generated for you. You can change it in Campaign settings.",
-      "submit": "Create and start editing",
-      "gameFailed": "The campaign was created, but the game could not be added. Add it again from the Games tab."
-    }
-  },
-  "home": {
-    "title": "Home",
-    "subtitle": "What to do next and your campaigns.",
-    "create": "New campaign",
-    "gettingStarted": "Get started with Playora",
-    "steps": {
-      "brand": "Add your store's logo and colours",
-      "brandDesc": "Create a brand kit once; every game uses it.",
-      "brandAction": "Create brand kit",
-      "campaign": "Create your first campaign",
-      "campaignDesc": "Pick a template, then swap in your photos and prizes.",
-      "campaignAction": "Pick a template",
-      "open": "Open a campaign to guests",
-      "openDesc": "Publish the game, set the schedule, then print the QR for your counter.",
-      "openAction": "See what is missing",
-      "team": "Invite a teammate",
-      "teamDesc": "Someone to run campaigns with you.",
-      "teamAction": "Invite"
-    },
-    "campaigns": "Your campaigns",
-    "allCampaigns": "View all",
-    "noCampaigns": "No campaigns yet. Follow the steps above to create your first one.",
-    "noSchedule": "No schedule yet",
-    "continueEditing": "Continue editing",
-    "share": "Share & QR",
-    "moreCampaigns": "{count} more campaigns.",
-    "templates": "Suggested templates",
-    "allTemplates": "All templates"
-  },
   "builderLab": {
     "mechanisms": {
       "luck": "Good luck",
@@ -878,7 +817,7 @@
       "pageTitle": "Minigame campaigns",
       "pageDescription": "Pick a template, quick-edit it, set prizes and publish. Prototype: data lives in this browser only.",
       "create": {
-        "title": "Create a campaign",
+        "title": "Pick a template",
         "hint": "Pick a template and a look, name it and start editing. Images, text and colours can all be changed later."
       },
       "occasions": {
@@ -1040,7 +979,148 @@
         "wins": "Wins",
         "redeemed": "Redeemed",
         "budget": "Budget used"
-      }
+      },
+      "openOps": "Open campaign page"
     }
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Each campaign is a prize minigame that runs on a schedule, with prizes redeemed at your counter.",
+    "create": "New campaign",
+    "createSubtitle": "Every template comes with prize control, anti-fraud and counter redemption.",
+    "backToList": "Back to campaigns",
+    "notFound": "Campaign not found",
+    "all": "All",
+    "search": "Search by name",
+    "noMatch": "No campaigns match these filters.",
+    "empty": "No campaigns yet.",
+    "edit": "Edit design",
+    "columns": {
+      "name": "Campaign",
+      "status": "Status",
+      "period": "Dates",
+      "plays": "Plays",
+      "stock": "Prizes left"
+    },
+    "phase": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "live": "Live",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "share": "Share & QR",
+      "prizes": "Prizes & redemption",
+      "players": "Players",
+      "settings": "Settings"
+    },
+    "continueEditing": "Continue editing",
+    "editDesign": "Edit design",
+    "resume": "Resume",
+    "rehearse": "Try it",
+    "draft": {
+      "blocked": "{count} things to fix before publishing",
+      "ready": "Ready to publish",
+      "hint": "Publish from the editor. After that, this page shows the link, QR and numbers.",
+      "fix": "Fix"
+    },
+    "stock": {
+      "title": "Prize stock",
+      "edit": "Edit prizes",
+      "left": "{left}/{total} left",
+      "issued": "{issued} issued · {redeemed} redeemed"
+    },
+    "recent": {
+      "title": "Recent plays",
+      "empty": "No plays yet. Share the link or print the QR so guests can start."
+    },
+    "players": {
+      "title": "{count} plays",
+      "time": "Time",
+      "player": "Player",
+      "outcome": "Result",
+      "prize": "Prize",
+      "code": "Code"
+    },
+    "outcome": {
+      "win": "Won",
+      "lose": "No prize",
+      "closed": "Closed",
+      "no_turns": "No turns left"
+    },
+    "share": {
+      "draft": "This campaign is not published yet, so there is no guest link. You can still try it with the draft link."
+    },
+    "vouchers": {
+      "title": "Issued codes",
+      "desk": "Open redemption desk",
+      "empty": "No codes issued yet.",
+      "code": "Code",
+      "issued": "Issued",
+      "status": "Status",
+      "redeemed": "Redeemed",
+      "pending": "Not redeemed"
+    },
+    "settings": {
+      "scheduleTitle": "End time",
+      "scheduleHint": "Extend by moving the end time. Players and codes are kept.",
+      "endsAt": "Ends at",
+      "extended": "End time updated",
+      "runTitle": "Running",
+      "pause": "Pause",
+      "end": "End now",
+      "endConfirm": "End the campaign now? Guests can no longer play; issued codes can still be redeemed.",
+      "runHint": "While paused, guests cannot play until you resume.",
+      "deleteTitle": "Delete campaign",
+      "delete": "Delete",
+      "deleteConfirm": "Delete “{name}” with all its plays and codes?",
+      "deleted": "Campaign deleted",
+      "deleteBlocked": "The campaign is live or scheduled. Pause or end it before deleting.",
+      "deleteHint": "This cannot be undone."
+    },
+    "home": {
+      "title": "Home",
+      "subtitle": "What needs you today and your campaigns.",
+      "gettingStarted": "Get started with Playora",
+      "steps": {
+        "brand": "Add your store's logo and colours",
+        "brandDesc": "Create a brand kit once; new campaigns pick up its colours.",
+        "brandAction": "Create brand kit",
+        "campaign": "Create your first campaign",
+        "campaignDesc": "Pick a template, then swap in your photos and prizes.",
+        "campaignAction": "Pick a template",
+        "publish": "Set prizes and rules, then publish",
+        "publishDesc": "A pre-flight check catches problems and fixes most in one click.",
+        "publishAction": "Set prizes & rules",
+        "share": "Put the QR at your counter",
+        "shareDesc": "Done when the first real play comes in.",
+        "shareAction": "Get the QR",
+        "team": "Invite a teammate",
+        "teamDesc": "Someone to run campaigns or redeem prizes at the counter.",
+        "teamAction": "Invite"
+      },
+      "attention": {
+        "title": "Needs your attention",
+        "lowStock": "“{prize}” has {left}/{total} left · {campaign}",
+        "addStock": "Add stock",
+        "paused": "{campaign} is paused; guests cannot play",
+        "open": "Open",
+        "endingSoon": "{campaign} ends within 3 days",
+        "extend": "Extend",
+        "unpublished": "{campaign} has unpublished changes",
+        "review": "Review"
+      },
+      "campaigns": "Your campaigns",
+      "allCampaigns": "View all ({count})",
+      "noCampaigns": "No campaigns yet. Follow the steps above to create your first one.",
+      "plays": "{count} plays",
+      "continueEditing": "Continue editing",
+      "share": "Share & QR",
+      "templates": "Suggested templates",
+      "allTemplates": "All templates"
+    },
+    "openPlay": "Open player page"
   }
 }

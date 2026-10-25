@@ -19,6 +19,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
+import { campaignRoutes } from '../lib/routes';
 import { useCampaign, useLabSync } from '../mock/hooks';
 import type { Campaign } from '../mock/types';
 import { CampaignStatusTag } from './editor/campaign-status-tag';
@@ -30,13 +31,21 @@ import { QuickEditPanel } from './quick-edit/quick-edit-panel';
 import { RulesPrizesPanel } from './rules-prizes-panel';
 
 /** The three-mode builder (docs/15 §4.2) over one campaign draft, autosaved. */
-export function BuilderEditor({ orgId, campaignId }: { orgId: string; campaignId: string }) {
+export function BuilderEditor({
+  orgId,
+  campaignId,
+  initialMode = 'quick',
+}: {
+  orgId: string;
+  campaignId: string;
+  initialMode?: EditorMode;
+}) {
   const t = useTranslations('builderLab.editor');
   const router = useRouter();
   useLabSync();
   const query = useCampaign(campaignId);
   const { draft, update, flush, saveState } = useCampaignDraft(query.data);
-  const home = `/orgs/${orgId}/labs/builder` as Route;
+  const home = campaignRoutes(orgId).list;
 
   if (query.isError) {
     return (
@@ -64,6 +73,7 @@ export function BuilderEditor({ orgId, campaignId }: { orgId: string; campaignId
   return (
     <EditorShell
       orgId={orgId}
+      initialMode={initialMode}
       server={query.data}
       draft={draft}
       update={update}
@@ -75,6 +85,7 @@ export function BuilderEditor({ orgId, campaignId }: { orgId: string; campaignId
 
 function EditorShell({
   orgId,
+  initialMode,
   server,
   draft,
   update,
@@ -82,6 +93,7 @@ function EditorShell({
   saveState,
 }: {
   orgId: string;
+  initialMode: EditorMode;
   server: Campaign;
   draft: Campaign;
   update: (patch: DraftPatch) => void;
@@ -91,7 +103,7 @@ function EditorShell({
   const t = useTranslations('builderLab.editor');
   const { token } = theme.useToken();
   const wide = Grid.useBreakpoint().lg ?? true;
-  const [mode, setMode] = useState<EditorMode>('quick');
+  const [mode, setMode] = useState<EditorMode>(initialMode);
   const [screen, setScreen] = useState<ScreenKey>('cover');
   const [publishing, setPublishing] = useState(false);
   const links = labLinks(orgId, draft.id);
@@ -127,7 +139,7 @@ function EditorShell({
       >
         <Flex align="center" gap={8} className="min-w-0 flex-1">
           <Tooltip title={t('back')}>
-            <Link href={`/orgs/${orgId}/labs/builder` as Route} aria-label={t('back')}>
+            <Link href={campaignRoutes(orgId).detail(draft.id)} aria-label={t('back')}>
               <Button
                 type="text"
                 tabIndex={-1}

@@ -49,19 +49,28 @@ Kho mẫu → Tạo nhanh (tên và brand kit điền sẵn, slug tự sinh) →
 
 Mỗi màn kết thúc bằng việc đưa người dùng sang bước sau, không trả về danh sách.
 
-## 5. Lộ trình
+## 5. Lộ trình (cập nhật 25/10/2026, sau Builder Lab)
 
-| PR | Nội dung | Phạm vi |
+Builder Lab ([15 §11](./15-game-builder-plan.md#11-builder-lab--prototype-frontend-với-backend-giả-25102026)) đã thay mô hình Sự kiện → nhiều Trò chơi bằng **một Campaign** (mẫu, skin, màu, màn canvas, giải, luật, lịch). Studio gộp về mô hình này.
+
+| Đã xong | Nội dung |
+|---|---|
+| S1 | Sidebar chỉ có route thật, "Chương trình", docs desktop-first |
+| S2 · S3 | Kho mẫu + tạo nhanh, Trang chủ, tab Tổng quan (trên mô hình cũ; thay ở A) |
+
+**A — Đưa Lab vào Studio** (frontend, backend giả trong `features/builder-lab/mock`):
+
+| | Nội dung | Trạng thái |
 |---|---|---|
-| S1 | Khung app: sidebar chỉ còn route có thật, Labs sau cờ, gộp Thành viên về `/settings`, đổi "Sự kiện" → "Chương trình", bấm tên chương trình ra Tổng quan; sửa docs sang desktop-first | FE + docs |
-| S2 | Trang Kho mẫu + tạo nhanh (createEvent → createGame → Builder) | FE |
-| S3 | Khung Builder 4 bước, gỡ control trùng | FE · **agent builder phụ trách** |
-| S4 | Bước Luật chơi: chuyển lịch, định danh, form, consent từ Cài đặt chương trình | FE · **agent builder phụ trách** |
-| S5 | Trạng thái suy ra khi publish, checklist, màn chia sẻ | API + FE |
-| S6 | Trang chủ, danh sách chương trình có số liệu | API + FE |
-| S7 | Bước Giải thưởng (**agent builder**); tab Giải & đổi quà ở Vận hành | API + FE |
-| S8 | Đổi quà + vai trò nhân viên | API + FE |
+| A1 | Sidebar: Trang chủ · Chương trình (`/campaigns`) · Kho mẫu (`/campaigns/new`) · Đổi quà (`/redeem`). Editor toàn màn hình ở `/campaigns/:id/edit`, người chơi giả lập ở `/play/:id`. Mọi URL qua `lib/routes.ts` | Xong |
+| A2 | Trang vận hành `/campaigns/:id`: Tổng quan (số liệu, tồn kho, lượt gần đây; nháp thì hiện việc còn chặn publish) · Chia sẻ & QR · Giải & đổi quà · Người chơi · Cài đặt | Xong |
+| A3 | Trang chủ đọc campaign: Cần xử lý (quà dưới 20 %, tạm dừng, sắp kết thúc, có thay đổi chưa publish), checklist bắt đầu, chương trình, mẫu gợi ý | Xong |
+| A4 | Quầy đổi quà trong khung app | Xong |
+| A5 | Campaign mới lấy màu chính/nhấn từ brand kit đầu tiên của tổ chức | Xong (chọn ảnh từ Thư viện ảnh: chưa) |
+| A6 | Vòng đời suy ra (`lib/phase.ts`): Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; kết thúc ngay, gia hạn; không xoá khi đang chạy/đã lên lịch | Xong |
 
-Mọi thứ bên trong editor (`features/games/components/editor-*`, canvas, các bước soạn) do agent builder làm theo [15](./15-game-builder-plan.md); luồng ở đây chỉ dừng ở chỗ mở editor và nhận lại khi publish.
+**B — API thật thay backend giả** (P0 của [15](./15-game-builder-plan.md)): contract `campaigns` / `plays` / `vouchers` / `stats`, vai trò "chỉ đổi quà", e2e API có cross-tenant; đổi `mock/hooks.ts` sang `useRouteQuery`. Cần ADR chọn lưu Campaign trên `events` + `games` + `game_versions` (đề xuất) hay bảng mới.
+
+**C — Dọn:** gỡ UI sự kiện/trò chơi/khách mời cũ (`/events/**`, editor cũ, chia đội), Canvas lab; đổi tên `features/builder-lab` → `features/campaigns`; e2e theo luồng mới.
 
 PR có phần API phải hỏi trước khi sửa `packages/contracts` (AGENTS.md).

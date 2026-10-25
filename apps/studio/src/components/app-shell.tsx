@@ -31,7 +31,7 @@ import {
   Settings,
   Shapes,
   Sun,
-  Wand2,
+  TicketCheck,
 } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -48,13 +48,13 @@ const { Sider, Header, Content } = Layout;
 
 type NavKey =
   | 'home'
-  | 'events'
+  | 'campaigns'
   | 'templates'
+  | 'redeem'
   | 'brandKits'
   | 'assets'
   | 'settings'
-  | 'canvasLab'
-  | 'builderLab';
+  | 'canvasLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
@@ -63,16 +63,17 @@ interface NavItem {
 type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
 
 /**
- * Sidebar navigation, grouped like the games-vt admin (docs/13 §3.4). Only routes that exist
- * are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
+ * Sidebar navigation, grouped like the games-vt admin (docs/13 §3.4, docs/16 §3). Only routes that
+ * exist are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
  */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
   { key: 'start', items: [{ key: 'home', icon: House, path: '' }] },
   {
     key: 'campaigns',
     items: [
-      { key: 'events', icon: CalendarDays, path: 'events' },
-      { key: 'templates', icon: LayoutTemplate, path: 'templates' },
+      { key: 'campaigns', icon: CalendarDays, path: 'campaigns' },
+      { key: 'templates', icon: LayoutTemplate, path: 'campaigns/new' },
+      { key: 'redeem', icon: TicketCheck, path: 'redeem' },
     ],
   },
   {
@@ -87,16 +88,16 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     ? [
         {
           key: 'labs' as const,
-          items: [
-            { key: 'builderLab' as const, icon: Wand2, path: 'labs/builder' },
-            { key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' },
-          ],
+          items: [{ key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' }],
         },
       ]
     : []),
 ];
 
-const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+/** Longest path first, so `campaigns/new` wins over `campaigns`. */
+const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).sort(
+  (a, b) => b.path.length - a.path.length,
+);
 
 export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.ReactNode }) {
   const t = useTranslations();
@@ -124,7 +125,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
       )
     : undefined;
-  const inEvent = /\/events\/[^/]+/.test(pathname);
+  const inEvent = /\/(events|campaigns)\/(?!new\b)[^/]+/.test(pathname);
 
   const navMenuItems: MenuProps['items'] = current
     ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {

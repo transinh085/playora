@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import * as api from './api';
 import { subscribeDb } from './db';
@@ -12,9 +12,11 @@ import type { Campaign } from './types';
  */
 const keys = {
   all: ['builder-lab'] as const,
-  campaigns: ['builder-lab', 'campaigns'] as const,
+  campaigns: (orgId: string) => ['builder-lab', 'campaigns', orgId] as const,
   campaign: (id: string) => ['builder-lab', 'campaign', id] as const,
   stats: (id: string) => ['builder-lab', 'stats', id] as const,
+  plays: (id: string) => ['builder-lab', 'plays', id] as const,
+  issued: (id: string) => ['builder-lab', 'issued', id] as const,
   vouchers: (campaignId: string, playerId: string) =>
     ['builder-lab', 'vouchers', campaignId, playerId] as const,
 };
@@ -25,14 +27,29 @@ export function useLabSync() {
   useEffect(() => subscribeDb(() => client.invalidateQueries({ queryKey: keys.all })), [client]);
 }
 
-export const useCampaigns = () =>
-  useQuery({ queryKey: keys.campaigns, queryFn: api.listCampaigns });
+export const useCampaigns = (orgId: string) =>
+  useQuery({ queryKey: keys.campaigns(orgId), queryFn: () => api.listCampaigns(orgId) });
 
 export const useCampaign = (id: string) =>
   useQuery({ queryKey: keys.campaign(id), queryFn: () => api.getCampaign(id), retry: false });
 
 export const useCampaignStats = (id: string) =>
   useQuery({ queryKey: keys.stats(id), queryFn: () => api.getCampaignStats(id) });
+
+/** Stats for many campaigns at once (Home attention list). */
+export const useCampaignsStats = (ids: readonly string[]) =>
+  useQueries({
+    queries: ids.map((id) => ({
+      queryKey: keys.stats(id),
+      queryFn: () => api.getCampaignStats(id),
+    })),
+  });
+
+export const useCampaignPlays = (id: string) =>
+  useQuery({ queryKey: keys.plays(id), queryFn: () => api.listCampaignPlays(id) });
+
+export const useCampaignVouchers = (id: string) =>
+  useQuery({ queryKey: keys.issued(id), queryFn: () => api.listCampaignVouchers(id) });
 
 export const useMyVouchers = (campaignId: string, playerId: string) =>
   useQuery({
@@ -82,4 +99,19 @@ export function useStartPlay() {
 export function useRedeemVoucher() {
   const invalidate = useInvalidateAll();
   return useMutation({ mutationFn: api.redeemVoucher, onSuccess: invalidate });
+}
+
+export function usePauseCampaign() {
+  const invalidate = useInvalidateAll();
+  return useMutation({ mutationFn: api.pauseCampaign, onSuccess: invalidate });
+}
+
+export function useResumeCampaign() {
+  const invalidate = useInvalidateAll();
+  return useMutation({ mutationFn: api.resumeCampaign, onSuccess: invalidate });
+}
+
+export function useEndCampaign() {
+  const invalidate = useInvalidateAll();
+  return useMutation({ mutationFn: api.endCampaign, onSuccess: invalidate });
 }

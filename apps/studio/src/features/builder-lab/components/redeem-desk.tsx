@@ -16,12 +16,9 @@ import {
   Typography,
   theme,
 } from 'antd';
-import { ArrowLeft, Gift, ScanLine } from 'lucide-react';
-import type { Route } from 'next';
-import Link from 'next/link';
+import { Gift, ScanLine } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState } from 'react';
-import { LogoMark } from '@/components/logo';
 import { LabApiError, lookupVoucher } from '../mock/api';
 import { useLabSync, useRedeemVoucher } from '../mock/hooks';
 import { normalizeCode } from './redeem/code';
@@ -37,7 +34,8 @@ interface Redemption {
  * Staff redemption desk (docs/14 §3.4 核销): type or scan the customer's code, check it, then
  * confirm. Redeeming is final, so it always goes through a confirm dialog.
  */
-export function RedeemDesk({ orgId }: { orgId: string }) {
+/** Counter screen for staff (docs/12 §11), inside the app shell; works one-handed on a phone. */
+export function RedeemDesk() {
   useLabSync();
   const t = useTranslations('builderLab.redeem');
   const format = useFormatter();
@@ -120,31 +118,12 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
   const data = code && !lookupError ? lookup.data : undefined;
 
   return (
-    <div className="flex h-dvh flex-col" style={{ background: token.colorBgLayout }}>
-      <Flex
-        align="center"
-        gap="small"
-        className="px-4 py-3"
-        style={{
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
-        <Link href={`/orgs/${orgId}/labs/builder` as Route} aria-label={t('backToLab')}>
-          <Button type="text" icon={<ArrowLeft size={16} />} aria-label={t('backToLab')} />
-        </Link>
-        <LogoMark className="size-6" aria-hidden />
-        <Typography.Title level={5} className="m-0">
-          {t('title')}
-        </Typography.Title>
-      </Flex>
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <Flex vertical gap="large" className="mx-auto w-full max-w-[520px] p-4">
+    <div className="flex flex-col">
+      <div>
+        <Flex vertical gap="large" className="w-full max-w-[560px]">
           <Card>
             <form onSubmit={submit}>
               <Flex vertical gap="middle">
-                <Typography.Text type="secondary">{t('subtitle')}</Typography.Text>
                 <label htmlFor="redeem-code">
                   <Typography.Text strong>{t('codeLabel')}</Typography.Text>
                 </label>

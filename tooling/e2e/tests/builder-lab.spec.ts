@@ -19,14 +19,13 @@ test('builder lab: create from template → set rules → publish → play on a 
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
   const org = new URL(page.url()).pathname;
 
-  // Labs is hidden from the sidebar in production builds, so open it by URL.
-  await page.goto(`${org}/labs/builder`);
+  await page.goto(`${org}/campaigns/new`);
 
   // Template gallery → new campaign.
   await page.getByText('Vòng quay may mắn').first().click();
-  await page.getByRole('textbox', { name: 'Tên campaign' }).fill('Vòng quay e2e');
-  await page.getByRole('button', { name: 'Tạo campaign' }).click();
-  await expect(page).toHaveURL(/\/labs\/builder\/[0-9a-f-]{36}$/);
+  await page.getByRole('textbox', { name: 'Tên chương trình' }).fill('Vòng quay e2e');
+  await page.getByRole('button', { name: 'Tạo chương trình', exact: true }).click();
+  await expect(page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}\/edit$/);
 
   // Quick edit: the title slot drives the preview.
   await page.getByRole('textbox', { name: 'Tiêu đề' }).fill('QUAY NGAY');
@@ -44,7 +43,7 @@ test('builder lab: create from template → set rules → publish → play on a 
   await dialog.getByRole('button', { name: 'Publish' }).click();
   await expect(dialog.getByText('Đã publish v1')).toBeVisible();
   const live = await dialog
-    .locator('a[href*="/labs/play/"]:not([href*="rehearsal"])')
+    .locator('a[href*="/play/"]:not([href*="rehearsal"])')
     .first()
     .getAttribute('href');
   expect(live).toBeTruthy();
@@ -65,8 +64,24 @@ test('builder lab: create from template → set rules → publish → play on a 
 
   // Staff redeems it once.
   const desk = await context.newPage();
-  await desk.goto(`${org}/labs/redeem?code=${code}`);
+  await desk.goto(`${org}/redeem?code=${code}`);
   await desk.getByRole('button', { name: /Xác nhận đổi quà/ }).click();
   await desk.getByRole('dialog').getByRole('button').last().click();
   await expect(desk.getByText('Đổi quà thành công')).toBeVisible();
+
+  // The campaign shows up in the Studio list as live and opens its operations page (docs/16 §2).
+  await page.goto(`${org}/campaigns`);
+  const row = page.getByTestId('campaign-table').getByRole('row', { name: /Vòng quay e2e/ });
+  await expect(row.locator('[data-phase="live"]')).toBeVisible();
+  await row.getByRole('link', { name: 'Vòng quay e2e' }).click();
+  await expect(page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId('prize-stock')).toContainText('Đã phát 1 · đã đổi 1');
+
+  // A live campaign cannot be deleted; pausing it shows on Home as something to act on.
+  await page.getByRole('tab', { name: 'Cài đặt' }).click();
+  await expect(page.getByRole('button', { name: 'Xoá' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Tạm dừng' }).click();
+  await expect(page.locator('[data-phase="paused"]').first()).toBeVisible();
+  await page.goto(org);
+  await expect(page.getByTestId('home-attention')).toContainText('đang tạm dừng');
 });

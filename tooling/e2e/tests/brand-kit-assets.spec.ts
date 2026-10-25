@@ -17,7 +17,8 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
-  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
+  // The legacy event pages are no longer in the sidebar (docs/16); open them by URL.
+  await page.goto(`${new URL(page.url()).pathname}/events`);
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
   await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
@@ -34,7 +35,7 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
   await page.getByRole('button', { name: 'Tạo', exact: true }).click();
   await expect(page.getByText(`Kit ${id}`).first()).toBeVisible();
 
-  await page.getByRole('link', { name: 'Chương trình', exact: true }).click();
+  await page.goto(page.url().replace(/\/brand-kits$/, '/events'));
   await page.getByRole('link', { name: 'Cài đặt chương trình' }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events\/[^/]+\/settings$/);
 

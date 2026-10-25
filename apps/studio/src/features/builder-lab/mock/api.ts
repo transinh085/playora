@@ -1,4 +1,5 @@
 import { decide, type PrizeRulesInput, type SimulationResult, simulate } from '@playora/core/prize';
+import { campaignPhase } from '../lib/phase';
 import { readDb, updateDb } from './db';
 import { buildScreens, defaultPrizes, defaultRules, getSkin } from './templates';
 import type {
@@ -29,7 +30,8 @@ export class LabApiError extends Error {
       | 'NOT_PUBLISHED'
       | 'INVALID_RULES'
       | 'VOUCHER_NOT_FOUND'
-      | 'VOUCHER_REDEEMED',
+      | 'VOUCHER_REDEEMED'
+      | 'CAMPAIGN_RUNNING',
     message?: string,
   ) {
     super(message ?? code);
@@ -54,8 +56,12 @@ function voucherCode(): string {
 
 // ── Campaigns ────────────────────────────────────────────────────────────────────
 
-export async function listCampaigns(): Promise<Campaign[]> {
-  return wait([...readDb().campaigns].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listCampaigns(orgId?: string): Promise<Campaign[]> {
+  return wait(
+    readDb()
+      .campaigns.filter((c) => !orgId || !c.orgId || c.orgId === orgId)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+  );
 }
 
 export async function getCampaign(id: string): Promise<Campaign> {
@@ -63,17 +69,21 @@ export async function getCampaign(id: string): Promise<Campaign> {
 }
 
 export async function createCampaign(input: {
+  orgId?: string;
   name: string;
   templateKey: TemplateKey;
   skinKey: SkinKey;
+  /** Colours from the organization's brand kit; defaults to the skin's palette. */
+  brand?: Partial<Campaign['brand']>;
 }): Promise<Campaign> {
   const now = new Date().toISOString();
   const campaign: Campaign = {
     id: crypto.randomUUID(),
+    orgId: input.orgId,
     name: input.name,
     templateKey: input.templateKey,
     skinKey: input.skinKey,
-    brand: { ...getSkin(input.skinKey).brand },
+    brand: { ...getSkin(input.skinKey).brand, ...input.brand },
     screens: buildScreens(input.templateKey, input.skinKey),
     prizes: defaultPrizes(),
     rules: defaultRules(),
@@ -103,7 +113,10 @@ export async function updateCampaign(
   return wait(updated);
 }
 
+/** A running campaign must be paused or ended first (docs/12 §12). */
 export async function deleteCampaign(id: string): Promise<void> {
+  const phase = campaignPhase(findCampaign(id));
+  if (phase === 'live' || phase === 'scheduled') throw new LabApiError('CAMPAIGN_RUNNING');
   updateDb((db) => {
     db.campaigns = db.campaigns.filter((c) => c.id !== id);
     db.plays = db.plays.filter((p) => p.campaignId !== id);
@@ -133,6 +146,51 @@ export async function publishCampaign(id: string): Promise<Campaign> {
     return next;
   });
   return wait(published);
+}
+
+function patchCampaign(id: string, patch: (c: Campaign) => Partial<Campaign>): Campaign {
+  return updateDb((db) => {
+    const index = db.campaigns.findIndex((c) => c.id === id);
+    const current = db.campaigns[index];
+    if (!current) throw new LabApiError('NOT_FOUND');
+    const next = { ...current, ...patch(current), updatedAt: new Date().toISOString() };
+    db.campaigns[index] = next;
+    return next;
+  });
+}
+
+export async function pauseCampaign(id: string): Promise<Campaign> {
+  return wait(patchCampaign(id, () => ({ paused: true })));
+}
+
+export async function resumeCampaign(id: string): Promise<Campaign> {
+  return wait(patchCampaign(id, () => ({ paused: false })));
+}
+
+/** Ends now by moving the end time; extending later sets a new end time and keeps all data. */
+export async function endCampaign(id: string): Promise<Campaign> {
+  return wait(
+    patchCampaign(id, (c) => ({
+      paused: false,
+      rules: { ...c.rules, endsAt: new Date().toISOString() },
+    })),
+  );
+}
+
+export async function listCampaignPlays(campaignId: string): Promise<PlayRecord[]> {
+  return wait(
+    readDb()
+      .plays.filter((p) => p.campaignId === campaignId && !p.rehearsal && p.outcome !== 'no_turns')
+      .sort((a, b) => b.at.localeCompare(a.at)),
+  );
+}
+
+export async function listCampaignVouchers(campaignId: string): Promise<Voucher[]> {
+  return wait(
+    readDb()
+      .vouchers.filter((v) => v.campaignId === campaignId && !v.rehearsal)
+      .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)),
+  );
 }
 
 // ── Prize engine bridge ──────────────────────────────────────────────────────────
@@ -182,6 +240,15 @@ export async function startPlay(input: {
     const campaign = db.campaigns.find((c) => c.id === input.campaignId);
     if (!campaign) throw new LabApiError('NOT_FOUND');
     if (!input.rehearsal && campaign.status !== 'published') throw new LabApiError('NOT_PUBLISHED');
+    if (!input.rehearsal && campaign.paused) {
+      return {
+        outcome: 'closed',
+        reason: 'paused',
+        prize: null,
+        voucherCode: null,
+        turnsLeftToday: 0,
+      };
+    }
 
     const now = new Date();
     const today = dayKey(now.toISOString());

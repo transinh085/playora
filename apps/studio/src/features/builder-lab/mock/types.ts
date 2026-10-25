@@ -58,6 +58,8 @@ export type CampaignStatus = 'draft' | 'published';
 
 export interface Campaign {
   id: string;
+  /** Owning organization. Lab data created before org scoping has none and shows everywhere. */
+  orgId?: string;
   name: string;
   templateKey: TemplateKey;
   skinKey: SkinKey;
@@ -66,6 +68,8 @@ export interface Campaign {
   prizes: LabPrize[];
   rules: LabRules;
   status: CampaignStatus;
+  /** Organizer paused a published campaign; plays are closed until resumed. */
+  paused?: boolean;
   /** Last published version number; 0 = never published. */
   version: number;
   publishedAt: string | null;

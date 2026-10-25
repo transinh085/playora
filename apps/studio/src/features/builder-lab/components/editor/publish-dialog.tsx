@@ -4,6 +4,7 @@ import { Alert, App, Button, Divider, Flex, Modal, QRCode, Typography, theme } f
 import {
   CircleX,
   ExternalLink,
+  Gauge,
   Gift,
   Play,
   QrCode,
@@ -14,22 +15,27 @@ import {
   Wallet,
   Wand2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
 import { hasBlockingIssues, type PreflightIssue, preflight } from '../../lib/preflight';
+import { campaignRoutes } from '../../lib/routes';
 import { useCampaignStats, usePublishCampaign } from '../../mock/hooks';
 import type { Campaign } from '../../mock/types';
 import type { DraftPatch } from './use-campaign-draft';
 
 export type EditorMode = 'quick' | 'customize' | 'rules';
 
-export const labLinks = (orgId: string, campaignId: string) => ({
-  play: `/orgs/${orgId}/labs/play/${campaignId}`,
-  rehearsal: `/orgs/${orgId}/labs/play/${campaignId}?rehearsal=1`,
-  redeem: `/orgs/${orgId}/labs/redeem`,
-});
+export const labLinks = (orgId: string, campaignId: string) => {
+  const routes = campaignRoutes(orgId);
+  return {
+    play: routes.play(campaignId),
+    rehearsal: routes.rehearsal(campaignId),
+    redeem: routes.redeem,
+  };
+};
 
 /**
  * Publish = pre-flight (one-click fixes, errors block) → publish → share panel with QR, links and
@@ -104,15 +110,18 @@ export function PublishDialog({
       footer={
         published ? (
           <Flex justify="end" gap={8}>
-            <Button onClick={onClose}>{t('close')}</Button>
             <Button
-              type="primary"
               icon={<ExternalLink className="size-4" />}
               href={labLinks(orgId, campaign.id).play}
               target="_blank"
             >
               {t('openPlay')}
             </Button>
+            <Link href={campaignRoutes(orgId).detail(campaign.id)}>
+              <Button type="primary" icon={<Gauge className="size-4" />} tabIndex={-1}>
+                {t('openOps')}
+              </Button>
+            </Link>
           </Flex>
         ) : (
           <Flex justify="end" gap={8}>
@@ -234,12 +243,19 @@ function IssueRow({
 }
 
 function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
+  return (
+    <Flex vertical gap={20} data-testid="publish-success">
+      <ShareLinks orgId={orgId} campaign={campaign} />
+      <CampaignMetrics campaignId={campaign.id} />
+    </Flex>
+  );
+}
+
+/** Live numbers of a campaign; rehearsal plays are never counted. */
+export function CampaignMetrics({ campaignId }: { campaignId: string }) {
   const t = useTranslations('builderLab.publish');
   const format = useFormatter();
-  const { token } = theme.useToken();
-  const stats = useCampaignStats(campaign.id);
-  const links = labLinks(orgId, campaign.id);
-  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  const stats = useCampaignStats(campaignId);
   const s = stats.data;
 
   const metrics = [
@@ -276,49 +292,58 @@ function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign
   ] as const;
 
   return (
-    <Flex vertical gap={20} data-testid="publish-success">
-      <Flex gap={20} wrap align="start">
-        <div
-          className="shrink-0"
-          style={{
-            border: `1px solid ${token.colorBorderSecondary}`,
-            borderRadius: token.borderRadiusLG,
-          }}
-        >
-          <QRCode value={`${origin}${links.play}`} size={168} bordered={false} />
-        </div>
-        <Flex vertical gap={14} className="min-w-0 flex-1">
-          <LinkRow
-            icon={<QrCode className="size-4" />}
-            label={t('liveLink')}
-            hint={t('liveHint')}
-            href={links.play}
-            copy={`${origin}${links.play}`}
-          />
-          <LinkRow
-            icon={<Play className="size-4" />}
-            label={t('rehearsalLink')}
-            hint={t('rehearsalHint')}
-            href={links.rehearsal}
-            copy={`${origin}${links.rehearsal}`}
-          />
-          <LinkRow
-            icon={<TicketCheck className="size-4" />}
-            label={t('redeemLink')}
-            hint={t('redeemHint')}
-            href={links.redeem}
-            copy={`${origin}${links.redeem}`}
-          />
-        </Flex>
-      </Flex>
+    <div
+      className="grid gap-3"
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
+    >
+      {metrics.map((m) => (
+        <MetricCard key={m.label} {...m} loading={stats.isLoading} />
+      ))}
+    </div>
+  );
+}
+
+/** QR and the three links of a published campaign: play, rehearsal, redeem desk. */
+export function ShareLinks({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
+  const t = useTranslations('builderLab.publish');
+  const { token } = theme.useToken();
+  const links = labLinks(orgId, campaign.id);
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+
+  return (
+    <Flex gap={20} wrap align="start">
       <div
-        className="grid gap-3"
-        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
+        className="shrink-0"
+        style={{
+          border: `1px solid ${token.colorBorderSecondary}`,
+          borderRadius: token.borderRadiusLG,
+        }}
       >
-        {metrics.map((m) => (
-          <MetricCard key={m.label} {...m} loading={stats.isLoading} />
-        ))}
+        <QRCode value={`${origin}${links.play}`} size={168} bordered={false} />
       </div>
+      <Flex vertical gap={14} className="min-w-0 flex-1">
+        <LinkRow
+          icon={<QrCode className="size-4" />}
+          label={t('liveLink')}
+          hint={t('liveHint')}
+          href={links.play}
+          copy={`${origin}${links.play}`}
+        />
+        <LinkRow
+          icon={<Play className="size-4" />}
+          label={t('rehearsalLink')}
+          hint={t('rehearsalHint')}
+          href={links.rehearsal}
+          copy={`${origin}${links.rehearsal}`}
+        />
+        <LinkRow
+          icon={<TicketCheck className="size-4" />}
+          label={t('redeemLink')}
+          hint={t('redeemHint')}
+          href={links.redeem}
+          copy={`${origin}${links.redeem}`}
+        />
+      </Flex>
     </Flex>
   );
 }

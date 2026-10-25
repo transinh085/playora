@@ -13,7 +13,6 @@ import {
   theme,
 } from 'antd';
 import { ArrowLeft, Gift, RotateCcw, UserPlus } from 'lucide-react';
-import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
@@ -23,6 +22,7 @@ import {
 } from '@/features/canvas-editor/components/canvas-screen';
 import { useCanvasLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { ARTBOARD_WIDTH, resolveColor, type ScreenKey } from '@/features/canvas-editor/lib/model';
+import { campaignRoutes } from '../lib/routes';
 import { Mechanism } from '../mechanisms/mechanism';
 import { useReducedMotion } from '../mechanisms/use-play-round';
 import { LabApiError } from '../mock/api';
@@ -57,7 +57,7 @@ export function LabPlayer({
   useLabSync();
   const t = useTranslations('builderLab.player');
   const campaign = useCampaign(campaignId);
-  const base = `/orgs/${orgId}/labs`;
+  const routes = campaignRoutes(orgId);
 
   let content: ReactNode;
   if (campaign.isPending) {
@@ -74,7 +74,7 @@ export function LabPlayer({
         title={t('errors.notFoundTitle')}
         subTitle={t('errors.notFoundBody')}
         extra={
-          <Link href={`${base}/builder` as Route}>
+          <Link href={routes.list}>
             <Button type="primary">{t('errors.backToCampaigns')}</Button>
           </Link>
         }
@@ -88,10 +88,10 @@ export function LabPlayer({
         subTitle={t('errors.notPublishedBody')}
         extra={
           <Flex gap="small" justify="center" wrap>
-            <Link href={`${base}/play/${campaignId}?rehearsal=1` as Route}>
+            <Link href={routes.rehearsal(campaignId)}>
               <Button type="primary">{t('errors.openRehearsal')}</Button>
             </Link>
-            <Link href={`${base}/builder/${campaignId}` as Route}>
+            <Link href={routes.edit(campaignId)}>
               <Button>{t('backToEditor')}</Button>
             </Link>
           </Flex>
@@ -301,7 +301,7 @@ function PlayerSession({
 
   const redeemUrl =
     result?.voucherCode && typeof window !== 'undefined'
-      ? `${window.location.origin}/orgs/${orgId}/labs/redeem?code=${result.voucherCode}`
+      ? `${window.location.origin}${campaignRoutes(orgId).redeem}?code=${result.voucherCode}`
       : '';
 
   return (
@@ -313,7 +313,7 @@ function PlayerSession({
         style={{ borderBottom: `1px solid ${token.colorBorderSecondary}` }}
       >
         <Tooltip title={t('backToEditor')}>
-          <Link href={`/orgs/${orgId}/labs/builder/${campaign.id}` as Route}>
+          <Link href={campaignRoutes(orgId).edit(campaign.id)}>
             <Button type="text" icon={<ArrowLeft size={16} />} aria-label={t('backToEditor')} />
           </Link>
         </Tooltip>
