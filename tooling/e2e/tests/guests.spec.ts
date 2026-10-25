@@ -20,7 +20,7 @@ test('import guest list CSV, assign random balanced teams, and configure join QR
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
   const createDialog = page.getByRole('dialog');
   await createDialog.getByLabel('Tên chương trình').fill('YEP Guests 2026');
   await createDialog.getByLabel('Đường dẫn tham gia').fill(slug);

@@ -32,8 +32,8 @@ export function CreateEventDialog({ orgId }: { orgId: string }) {
 
   return (
     <>
-      <Button type="primary" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>
-        {t('events.new')}
+      <Button icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>
+        {t('events.newBlank')}
       </Button>
 
       <Modal

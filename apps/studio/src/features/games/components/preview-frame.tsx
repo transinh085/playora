@@ -3,13 +3,8 @@
 import type { PreviewBrand, PreviewOutcomePreset } from '@playora/game-sdk';
 import { Card, Select } from 'antd';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { PLAY_URL } from '@/lib/env';
-import {
-  buildPreviewUpdateMessage,
-  isPreviewReadyMessage,
-  resolvePlayOrigin,
-} from '../lib/builder-helpers';
+import { usePreviewChannel } from '../lib/use-preview-channel';
 
 export interface PreviewFrameProps {
   templateId: string;
@@ -35,38 +30,16 @@ export function PreviewFrame({
   playUrl = PLAY_URL,
 }: PreviewFrameProps) {
   const t = useTranslations();
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const playOrigin = useMemo(() => resolvePlayOrigin(playUrl), [playUrl]);
-  const previewSrc = `${playUrl}/preview?template=${encodeURIComponent(templateId)}`;
-
-  const postPreviewMessage = useCallback(() => {
-    const win = iframeRef.current?.contentWindow;
-    if (!win) return;
-    const message = buildPreviewUpdateMessage({
-      config,
-      skinKey: skinKey || undefined,
-      brand,
-      locale,
-      outcome,
-      assets,
-    });
-    win.postMessage(message, playOrigin);
-  }, [config, skinKey, brand, locale, outcome, assets, playOrigin]);
-
-  useEffect(() => {
-    postPreviewMessage();
-  }, [postPreviewMessage]);
-
-  useEffect(() => {
-    const onMessage = (event: MessageEvent) => {
-      if (event.origin !== playOrigin) return;
-      if (isPreviewReadyMessage(event.data)) {
-        postPreviewMessage();
-      }
-    };
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, [postPreviewMessage, playOrigin]);
+  const { iframeRef, previewSrc, onLoad } = usePreviewChannel({
+    templateId,
+    config,
+    skinKey,
+    brand,
+    locale,
+    outcome,
+    assets,
+    playUrl,
+  });
 
   return (
     <Card
@@ -97,7 +70,7 @@ export function PreviewFrame({
             title={t('games.previewTitle')}
             src={previewSrc}
             data-testid="preview-iframe"
-            onLoad={postPreviewMessage}
+            onLoad={onLoad}
             className="h-full w-full border-0"
           />
         </div>

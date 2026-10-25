@@ -20,7 +20,7 @@ test('create games from template gallery, reorder, edit in 2-column builder with
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
   const createEventDialog = page.getByRole('dialog');
   await createEventDialog.getByLabel('Tên chương trình').fill('YEP Builder 2026');
   await createEventDialog.getByLabel('Đường dẫn tham gia').fill(slug);

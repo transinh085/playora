@@ -20,6 +20,7 @@ import {
   CalendarDays,
   ChevronsUpDown,
   ImageIcon,
+  LayoutTemplate,
   LogOut,
   Menu as MenuIcon,
   Moon,
@@ -43,7 +44,7 @@ import { LogoMark } from './logo';
 
 const { Sider, Header, Content } = Layout;
 
-type NavKey = 'events' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
+type NavKey = 'events' | 'templates' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
@@ -56,7 +57,13 @@ type NavGroupKey = 'campaigns' | 'brand' | 'organization' | 'labs';
  * are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
  */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
-  { key: 'campaigns', items: [{ key: 'events', icon: CalendarDays, path: 'events' }] },
+  {
+    key: 'campaigns',
+    items: [
+      { key: 'events', icon: CalendarDays, path: 'events' },
+      { key: 'templates', icon: LayoutTemplate, path: 'templates' },
+    ],
+  },
   {
     key: 'brand',
     items: [

@@ -18,7 +18,7 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
-  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Tên chương trình').fill(`YEP Brand ${id}`);
   await dialog.getByLabel('Đường dẫn tham gia').fill(`yep-brand-${id}`);

@@ -20,7 +20,7 @@ test('configure event identity, registration form and consent in Studio, then pl
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
-  await page.getByRole('button', { name: 'Tạo chương trình' }).click();
+  await page.getByRole('button', { name: 'Tạo chương trình trống' }).click();
   const createDialog = page.getByRole('dialog');
   await createDialog.getByLabel('Tên chương trình').fill('YEP Join 2026');
   await createDialog.getByLabel('Đường dẫn tham gia').fill(slug);

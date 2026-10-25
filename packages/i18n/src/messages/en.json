@@ -43,7 +43,7 @@
     "events": "Campaigns",
     "brandKits": "Brand kits",
     "assets": "Media library",
-    "templates": "Game library",
+    "templates": "Templates",
     "reports": "Reports",
     "settings": "Settings",
     "canvasLab": "Canvas editor"
@@ -114,7 +114,9 @@
     "metricDraft": "Drafts",
     "search": "Search by name or link",
     "allStatuses": "All statuses",
-    "noMatch": "No campaigns match these filters."
+    "noMatch": "No campaigns match these filters.",
+    "newBlank": "Blank campaign",
+    "fromTemplate": "Start from a template"
   },
   "eventNav": {
     "overview": "Overview",
@@ -526,5 +528,36 @@
       "sampleEvent": "Lunar New Year Wheel 2027"
     },
     "back": "Back to Studio"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Pick a template, then swap in your store's photos and prizes. Every template comes with prize control and redemption.",
+    "filterOccasion": "Occasion",
+    "filterKind": "Play style",
+    "all": "All",
+    "kinds": {
+      "instant": "Instant win",
+      "skill": "Skill"
+    },
+    "occasions": {
+      "tet": "Lunar New Year",
+      "chung": "Any occasion"
+    },
+    "empty": "No templates match these filters.",
+    "previewTitle": "Template preview",
+    "previewHint": "Click the game to try it. Colours come from your first brand kit.",
+    "skins": "Look",
+    "slots": "Replaceable images",
+    "noSlots": "This template uses built-in images.",
+    "useTemplate": "Use this template",
+    "create": {
+      "title": "New campaign from “{name}”",
+      "name": "Campaign name",
+      "brandKit": "Brand kit",
+      "noBrandKit": "No brand kit",
+      "linkHint": "The join link is generated for you. You can change it in Campaign settings.",
+      "submit": "Create and start editing",
+      "gameFailed": "The campaign was created, but the game could not be added. Add it again from the Games tab."
+    }
   }
 }
