@@ -90,6 +90,8 @@ Không dùng chữ in hoa toàn bộ cho nhãn; không thêm "eyebrow" trên ti�
 
 ### 3.4 Luật Studio (theo games-vt)
 
+**Thứ tự layer CSS:** mỗi app khai báo `@layer properties, theme, base, antd, components, utilities;` **trước** `@import "tailwindcss"` trong `globals.css`; nếu không, antd đứng cuối và đè utilities của Tailwind.
+
 Cấu hình ở `packages/ui/src/theme/studio-theme.ts` + `StudioProvider` (`variant="filled"`): màu chính teal, success/warning/error `#10b981 / #f59e0b / #ef4444`, `borderRadius` 8, nút cao 36 weight 500, card bo 12 không shadow (viền `colorBorderSecondary`), neutral và thang chữ mặc định của antd, sidebar và header nền trắng.
 
 - **Khung:** sidebar 250 px (thu gọn được; Drawer trên mobile) gồm khối brand cao 64, chọn tổ chức, menu chia nhóm có nhãn in hoa; header 64 gồm nút thu gọn, breadcrumb, nút sáng/tối, avatar + tên + email. Nội dung cách mép 24 px, dùng full chiều rộng.

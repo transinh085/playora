@@ -47,7 +47,8 @@
     "templates": "Templates",
     "reports": "Reports",
     "settings": "Settings",
-    "canvasLab": "Canvas editor"
+    "canvasLab": "Canvas editor",
+    "builderLab": "Game builder (lab)"
   },
   "events": {
     "title": "Campaigns",
@@ -597,5 +598,449 @@
     "moreCampaigns": "{count} more campaigns.",
     "templates": "Suggested templates",
     "allTemplates": "All templates"
+  },
+  "builderLab": {
+    "mechanisms": {
+      "luck": "Good luck",
+      "spin": "SPIN",
+      "wheelLabel": "Lucky wheel, tap to spin",
+      "scratchHere": "SCRATCH HERE",
+      "scratchLabel": "Scratch card, scratch to reveal",
+      "winTitle": "You won",
+      "loseTitle": "Better luck next time",
+      "boxLabel": "Gift box {n}",
+      "pickBox": "Pick a box"
+    },
+    "player": {
+      "rehearsal": "Rehearsal",
+      "live": "Live",
+      "newPlayer": "New player",
+      "newPlayerDone": "Switched to a new player",
+      "restart": "Back to start",
+      "backToEditor": "Back to editor",
+      "myPrizes": "My prizes",
+      "playerId": "Player {id}",
+      "defaultName": "there",
+      "loading": "Loading campaign…",
+      "form": {
+        "namePlaceholder": "Jane Nguyen",
+        "phonePlaceholder": "0901 234 567",
+        "nameRequired": "Enter your name",
+        "phoneInvalid": "That phone number looks wrong (e.g. 0901234567)",
+        "consentRequired": "Please agree to continue"
+      },
+      "voucher": {
+        "title": "Redemption code",
+        "hint": "Show this code to staff",
+        "collapse": "Collapse",
+        "show": "Show redemption code"
+      },
+      "noTurns": {
+        "title": "You're out of turns for today",
+        "body": "Come back tomorrow to play again!",
+        "ok": "Got it"
+      },
+      "closed": {
+        "title": "This campaign hasn't started or has ended",
+        "body": "Check the campaign dates and come back.",
+        "ok": "Got it"
+      },
+      "vouchers": {
+        "title": "My prizes",
+        "empty": "You have no prizes yet",
+        "issuedAt": "Won at {time}",
+        "redeemed": "Redeemed",
+        "notRedeemed": "Not redeemed",
+        "unknownPrize": "Prize no longer in the campaign"
+      },
+      "rules": {
+        "title": "Rules",
+        "playsPerDay": "You get {count} play(s) per day.",
+        "maxWins": "Each player can win up to {count} prize(s) over the whole campaign.",
+        "window": "Runs {start} – {end}.",
+        "hours": "Playable {start}–{end} every day.",
+        "allDay": "Playable all day.",
+        "form": "You leave your name and phone number before playing.",
+        "prizes": "Prizes",
+        "prizeLine": "{name} · {count} available",
+        "fairness": "The system draws each result at random when you play; nobody picks winners in advance.",
+        "redeem": "Bring your redemption code to the counter. Each code can be redeemed once.",
+        "rehearsalNote": "Rehearsal: schedule and opening hours are ignored, and test prizes don't count in real numbers.",
+        "ok": "Got it"
+      },
+      "actions": {
+        "zalo": "The live game would open the shop's Zalo OA.",
+        "phone": "The live game would call the shop.",
+        "link": "The live game would open the shop's link."
+      },
+      "errors": {
+        "playFailed": "Couldn't start the play, please try again.",
+        "notFoundTitle": "Campaign not found",
+        "notFoundBody": "It was deleted or the link is wrong.",
+        "backToCampaigns": "Back to campaigns",
+        "notPublishedTitle": "This campaign isn't published yet",
+        "notPublishedBody": "The live link only works after publishing. Use the rehearsal link to preview it.",
+        "openRehearsal": "Open rehearsal link"
+      }
+    },
+    "redeem": {
+      "title": "Redeem prizes",
+      "subtitle": "Enter the customer's code to check and redeem it. Redemption can't be undone.",
+      "backToLab": "Back to Builder Lab",
+      "codeLabel": "Redemption code",
+      "codePlaceholder": "e.g. K7M2QX",
+      "check": "Check",
+      "campaign": "Campaign",
+      "issuedAt": "Won at",
+      "status": "Status",
+      "notRedeemed": "Not redeemed",
+      "redeemed": "Redeemed",
+      "redeemedAt": "Redeemed at {time}",
+      "rehearsal": "Rehearsal",
+      "rehearsalNote": "This code comes from a rehearsal play, not a real prize.",
+      "unknownPrize": "Prize no longer in the campaign",
+      "confirm": "Confirm redemption",
+      "confirmTitle": "Redeem code {code}?",
+      "confirmBody": "The code will be marked as redeemed. This can't be undone.",
+      "confirmOk": "Redeem",
+      "cancel": "Cancel",
+      "successTitle": "Prize redeemed",
+      "successBody": "Hand {prize} to the customer.",
+      "notFound": "Code {code} wasn't found. Check each character.",
+      "alreadyRedeemed": "Code {code} was already redeemed at {time}.",
+      "alreadyRedeemedShort": "Code {code} was already redeemed.",
+      "genericError": "Something went wrong, please try again.",
+      "newCode": "Enter another code",
+      "sessionTitle": "Redeemed this session",
+      "sessionEmpty": "Nothing redeemed yet."
+    },
+    "rules": {
+      "title": "Rules & prizes",
+      "subtitle": "Choose how prizes are given, list your prizes, then set the rules. The system decides who wins — nobody can pick winners in advance.",
+      "steps": {
+        "label": "Step {step}",
+        "mode": "How prizes are given",
+        "modeHint": "Choose this first: how should prizes be handed out?",
+        "prizes": "Prize list",
+        "prizesHint": "One card per prize. Move them up or down to set the display order.",
+        "rules": "Game rules",
+        "rulesHint": "Each rule is one sentence. Click a number or a switch to change it."
+      },
+      "mode": {
+        "label": "How prizes are given",
+        "overall": {
+          "title": "One overall win rate",
+          "description": "Set one win rate for every play. Prizes with more stock come out more often.",
+          "example": "E.g. 35% of plays win a prize, 65% win nothing.",
+          "rateLabel": "Win rate",
+          "rateHint": "Out of every 100 plays, about {rate} win a prize and {lose} win nothing."
+        },
+        "perPrize": {
+          "title": "A rate for each prize",
+          "description": "Set the chance of each prize yourself. The rest of the plays win nothing.",
+          "example": "E.g. coffee 25%, voucher 10%, tumbler 2%.",
+          "over": "The rates add up to {total}% — more than 100%",
+          "overHint": "Lower the rate of some prizes so the total is at most 100%.",
+          "total": "Total win chance: {total}% · {lose}% of plays win nothing",
+          "totalHint": "Enter a rate (%) on each prize in Step 2."
+        },
+        "guaranteed": {
+          "title": "Everyone wins",
+          "description": "Every play wins a prize until stock runs out.",
+          "example": "E.g. with 200 prizes, the first 200 plays all win.",
+          "note": "Once prizes run out, later players see an out-of-prizes screen. Prizes with more stock come out more often."
+        }
+      },
+      "prizes": {
+        "presets": "Ready-made images",
+        "upload": "Upload a photo",
+        "uploadTooLarge": "That image is too large. Choose one under 500 KB.",
+        "uploadFailed": "Could not read that image. Try another one.",
+        "changeImage": "Change the image for {name}",
+        "newName": "Prize {n}",
+        "empty": "No prizes yet. Add at least one prize.",
+        "name": "Prize name",
+        "namePlaceholder": "E.g. Salted coffee",
+        "quantity": "Quantity",
+        "value": "Value",
+        "probability": "Win rate",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "remove": "Remove prize",
+        "add": "Add prize",
+        "totalStock": "Total prizes: <b>{count}</b>",
+        "totalValue": "Total value: <b>{value}</b>",
+        "totalProbability": "Total rate: <b>{total}%</b>"
+      },
+      "sentences": {
+        "plays": "Each customer gets <n></n> plays per day",
+        "playsLabel": "Plays per day",
+        "maxWins": "Each customer wins at most <n></n> prizes",
+        "maxWinsLabel": "Maximum prizes per customer",
+        "window": "The campaign runs from <start></start> to <end></end>",
+        "startLabel": "Start time",
+        "endLabel": "End time",
+        "hoursLabel": "Only give prizes during set hours",
+        "hoursOn": "Only give prizes from <start></start> to <end></end>",
+        "hoursStartLabel": "Prizes start at",
+        "hoursEndLabel": "Prizes stop at",
+        "hoursOff": "Give prizes all day (turn on to limit to opening hours)",
+        "pacingLabel": "Spread prizes evenly",
+        "pacing": "Spread prizes evenly over the campaign (so they do not all go on day one)",
+        "budgetLabel": "Budget limit",
+        "budgetOn": "Limit the budget to <amount></amount>",
+        "budgetOff": "Limit the prize budget",
+        "formLabel": "Ask for customer details",
+        "form": "Ask for name and phone number before playing"
+      },
+      "summary": {
+        "title": "Rules summary",
+        "modeOverall": "About {rate}% of plays win a prize; prizes with more stock come out more often.",
+        "modePerPrize": "Each prize has its own rate, {total}% in total; the other {lose}% of plays win nothing.",
+        "modeGuaranteed": "Everyone who plays wins a prize until stock runs out.",
+        "noPrizes": "No prizes yet.",
+        "prizes": "{count} kinds of prize, {stock} in total, worth {value}.",
+        "plays": "Each customer can play {count} times a day.",
+        "maxWins": "Each customer gets at most {count} prizes over the whole campaign.",
+        "window": "Runs from {start} to {end} ({days} days).",
+        "hours": "Prizes are only given from {start} to {end} each day.",
+        "hoursAllDay": "Prizes are given all day.",
+        "pacingOn": "Prizes are spread evenly over the campaign.",
+        "pacingOff": "Prizes are given until they run out, which can be early on busy days.",
+        "budget": "Stops giving prizes once their total value reaches {amount}.",
+        "budgetOff": "No budget limit (only the prize quantities).",
+        "formOn": "Customers leave their name and phone number before playing.",
+        "formOff": "Customers play straight away without leaving details."
+      },
+      "issues": {
+        "title": "Fix these before simulating and publishing",
+        "noPrizes": "Add at least one prize.",
+        "noStock": "Every prize has quantity 0. Enter a quantity for at least one.",
+        "probabilityOver": "The prize rates add up to {total}%; they must be at most 100%.",
+        "windowOrder": "The end time must be after the start time.",
+        "hoursOrder": "The time prizes stop must be after the time they start.",
+        "budgetBelowCheapest": "The budget is below the cheapest prize, so no prize could be given."
+      },
+      "sim": {
+        "title": "Simulation",
+        "extra": "Runs on your device and does not touch the live campaign",
+        "input": "About <n></n> customers come and play each day",
+        "inputLabel": "Customers per day",
+        "assumption": "Simulates {days} days, {plays} plays per customer per day, with café-like lunch and afternoon peaks.",
+        "blocked": "Fix the problems above to see the simulation.",
+        "noPrizes": "Add prizes to see the simulation.",
+        "failed": "Could not run the simulation with the current rules.",
+        "plays": "Plays",
+        "closedPlays": "{count} plays outside prize hours",
+        "playsSub": "over {days} days",
+        "wins": "Prizes given",
+        "winsSub": "{left} left over",
+        "winRate": "Real win rate",
+        "winRateSub": "of plays during prize hours",
+        "cost": "Prize cost",
+        "costBudget": "budget {budget}",
+        "costSub": "total value of prizes given",
+        "stockOut": "Prizes run out on day {day}, around {time}",
+        "stockLeft": "{count} prizes ({percent}%) left at the end",
+        "perDayTitle": "Prizes given per day",
+        "perDayAria": "Chart of prizes given per day over {days} days",
+        "perDayMax": "Peak {max} prizes/day",
+        "perDayTooltip": "Day {day}: {count} prizes",
+        "perPrizeTitle": "Left per prize",
+        "perPrizeLeft": "{left}/{quantity} left",
+        "applyPacing": "Spread evenly",
+        "warnings": {
+          "stockOutEarly": "Prizes run out after day {day} — customers on later days will win nothing.",
+          "leftover": "{percent}% of prizes ({count}) are left when the campaign ends.",
+          "budgetReached": "The budget was reached — some plays won nothing because the budget ran out.",
+          "limitBlocks": "{percent}% of plays won nothing because the customer already had the maximum prizes.",
+          "noWins": "Nobody won a prize in the simulation.",
+          "healthy": "There are enough prizes for the whole campaign, with {percent}% left over."
+        },
+        "suggestions": {
+          "turnOnPacing": "Turn on \"Spread prizes evenly over the campaign\".",
+          "lowerRate": "Lower the overall win rate.",
+          "raiseRate": "Raise the overall win rate.",
+          "lowerProbability": "Lower the prize rates.",
+          "raiseProbability": "Raise the prize rates.",
+          "addStock": "Add more prizes.",
+          "fewerPrizes": "Stock fewer prizes to match your traffic.",
+          "longerHours": "Widen the prize hours.",
+          "raiseBudget": "Raise the budget or turn the budget limit off.",
+          "raiseMaxWins": "Let each customer win more prizes."
+        }
+      }
+    },
+    "home": {
+      "title": "Builder Lab",
+      "badge": "Experimental",
+      "back": "Back to Studio",
+      "pageTitle": "Minigame campaigns",
+      "pageDescription": "Pick a template, quick-edit it, set prizes and publish. Prototype: data lives in this browser only.",
+      "create": {
+        "title": "Create a campaign",
+        "hint": "Pick a template and a look, name it and start editing. Images, text and colours can all be changed later."
+      },
+      "occasions": {
+        "all": "All",
+        "tet": "Tết",
+        "opening": "Grand opening",
+        "everyday": "Everyday"
+      },
+      "templates": {
+        "spin-wheel": "Lucky wheel",
+        "scratch-card": "Scratch card",
+        "gift-box": "Mystery gift box"
+      },
+      "skins": {
+        "tet": "Tết red",
+        "grand-opening": "Grand opening",
+        "everyday": "Everyday"
+      },
+      "defaultName": "{template} · {skin}",
+      "created": "Campaign created",
+      "createFailed": "Couldn't create the campaign. Please try again.",
+      "nameLabel": "Campaign name",
+      "namePlaceholder": "Campaign name, e.g. Tết wheel – Moc Coffee",
+      "pickFirst": "Pick a template above first",
+      "createButton": "Create campaign",
+      "list": {
+        "title": "Your campaigns",
+        "count": "{count, plural, one {# campaign} other {# campaigns}}",
+        "empty": "No campaigns yet. Pick a template above to start.",
+        "open": "Edit",
+        "play": "Play",
+        "playLive": "Open the live game",
+        "playRehearsal": "Rehearse the draft (not counted in stats)",
+        "delete": "Delete",
+        "deleteConfirm": "Delete “{name}”? Its plays and voucher codes are deleted too.",
+        "deleted": "Campaign deleted",
+        "meta": "{version, select, 0 {Not published} other {v{version}}} · updated {time}"
+      }
+    },
+    "editor": {
+      "notFound": "Campaign not found",
+      "notFoundHint": "It was deleted, or it only exists in another browser.",
+      "backHome": "Back to campaigns",
+      "back": "Back to campaigns",
+      "name": "Campaign name",
+      "untitled": "Untitled campaign",
+      "rehearse": "Rehearse",
+      "publish": "Publish",
+      "customizeNarrow": "Customize works best on a wide screen. On a phone, use Quick edit.",
+      "modes": {
+        "quick": "Quick edit",
+        "customize": "Customize",
+        "rules": "Rules & prizes"
+      },
+      "save": {
+        "saving": "Saving…",
+        "saved": "Saved",
+        "error": "Not saved"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published v{version}",
+        "dirty": "Published v{version} · unpublished changes"
+      },
+      "screens": {
+        "cover": "Cover",
+        "form": "Form",
+        "game": "Game",
+        "resultWin": "Win",
+        "resultLose": "No win"
+      }
+    },
+    "quickEdit": {
+      "slots": {
+        "logo": "Logo",
+        "productPhoto": "Product photo",
+        "title": "Title",
+        "promoText": "Tagline",
+        "cta": "Start button"
+      },
+      "usage": "{count, plural, one {Used in 1 place} other {Used in # places}}",
+      "tooLarge": "Image too large (5 MB max).",
+      "uploadFailed": "Couldn't read this image.",
+      "upload": "Upload image",
+      "uploadHint": "PNG, JPG, WEBP or SVG, up to 5 MB",
+      "stickers": "Or pick a built-in image",
+      "presets": {
+        "logo": "Sample logo",
+        "apricot": "Apricot blossom",
+        "envelope": "Red envelope",
+        "lantern": "Lantern",
+        "coin": "Coin",
+        "coffee": "Coffee cup",
+        "gift": "Gift box",
+        "star": "Star",
+        "balloon": "Balloons"
+      },
+      "images": "Images",
+      "imagesHint": "Change it once; every screen showing it follows.",
+      "texts": "Text",
+      "textsHint": "Cover text and the start button.",
+      "skin": "Look",
+      "skinHint": "Switching keeps your edited content, prizes and rules.",
+      "brand": "Brand colours",
+      "brandHint": "Everything that uses a brand colour follows.",
+      "skinConfirmTitle": "Switch look?",
+      "skinConfirm": "The screens are rebuilt in the new look. Your logo, images, text, prizes and rules are kept; layout changes made in Customize are lost.",
+      "skinConfirmOk": "Switch look"
+    },
+    "publish": {
+      "title": "Check before publishing",
+      "doneTitle": "Published v{version}",
+      "published": "Published v{version}",
+      "failed": "Couldn't publish. Check rules & prizes and try again.",
+      "close": "Close",
+      "openPlay": "Open the game",
+      "cancel": "Cancel",
+      "publish": "Publish",
+      "publishAgain": "Publish v{version}",
+      "summaryErrors": "{count, plural, one {1 error to fix before publishing} other {# errors to fix before publishing}}",
+      "summaryWarnings": "{count, plural, one {1 warning; you can still publish} other {# warnings; you can still publish}}",
+      "summaryReady": "Everything is ready",
+      "summaryHint": "Click Fix to fix it automatically, or open the matching mode to adjust it yourself.",
+      "readyHint": "Prizes, schedule and screens look good. Players see this version as soon as you publish.",
+      "fixAll": "Fix all ({count})",
+      "fix": "Fix",
+      "goTo": "Open to fix",
+      "areas": {
+        "prizes": "Prizes",
+        "rules": "Rules",
+        "screens": "Screens"
+      },
+      "levels": {
+        "error": "Error",
+        "warning": "Warning"
+      },
+      "issues": {
+        "noPrizes": "There are no prizes yet.",
+        "zeroQuantity": "Prize “{name}” has a quantity of 0.",
+        "probabilitySum": "Prize chances add up to {sum}%, more than 100%.",
+        "endInPast": "The end time has already passed.",
+        "endBeforeStart": "The end time is before the start time.",
+        "lowStock": "Only {total} prizes in total; they may run out on day one.",
+        "smallText": "Text “{name}” is {size}px, hard to read on a phone (12px or more).",
+        "smallButton": "Button “{name}” is {size}px tall, hard to tap (44px or more).",
+        "offCanvas": "“{name}” is outside the screen, so players can't see it.",
+        "lowContrast": "“{name}” has {ratio}:1 contrast with the background, hard to read (3:1 or more).",
+        "emptyTitle": "The title is empty."
+      },
+      "liveLink": "Game link",
+      "liveHint": "Print the QR code on a standee or table, or share the link on Zalo or your fanpage.",
+      "rehearsalLink": "Rehearsal link",
+      "rehearsalHint": "For staff to try; rehearsal plays never count in stats or stock.",
+      "redeemLink": "Redeem desk",
+      "redeemHint": "Staff enter the player's code to hand over the prize.",
+      "stats": {
+        "plays": "Plays",
+        "players": "Players",
+        "wins": "Wins",
+        "redeemed": "Redeemed",
+        "budget": "Budget used"
+      }
+    }
   }
 }

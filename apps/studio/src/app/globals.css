@@ -1,3 +1,5 @@
+/* Layer order must be declared before Tailwind's import, or antd ends up last and beats utilities (ADR-013). */
+@layer properties, theme, base, antd, components, utilities;
 @import "tailwindcss";
 @import "@playora/ui/styles.css";
 @source "../../../../packages/ui/src";

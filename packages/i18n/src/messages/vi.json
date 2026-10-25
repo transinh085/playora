@@ -47,7 +47,8 @@
     "templates": "Kho mẫu",
     "reports": "Báo cáo",
     "settings": "Cài đặt",
-    "canvasLab": "Canvas editor"
+    "canvasLab": "Canvas editor",
+    "builderLab": "Game builder (lab)"
   },
   "events": {
     "title": "Chương trình",
@@ -597,5 +598,449 @@
     "moreCampaigns": "Còn {count} chương trình khác.",
     "templates": "Mẫu gợi ý",
     "allTemplates": "Kho mẫu"
+  },
+  "builderLab": {
+    "mechanisms": {
+      "luck": "Chúc may mắn",
+      "spin": "QUAY",
+      "wheelLabel": "Vòng quay may mắn, chạm để quay",
+      "scratchHere": "CÀO Ở ĐÂY",
+      "scratchLabel": "Thẻ cào, cào để xem kết quả",
+      "winTitle": "Bạn trúng",
+      "loseTitle": "Chúc bạn may mắn lần sau",
+      "boxLabel": "Hộp quà {n}",
+      "pickBox": "Chọn một hộp"
+    },
+    "player": {
+      "rehearsal": "Chơi thử",
+      "live": "Đang chạy",
+      "newPlayer": "Người chơi mới",
+      "newPlayerDone": "Đã đổi sang người chơi mới",
+      "restart": "Về màn đầu",
+      "backToEditor": "Về trình chỉnh sửa",
+      "myPrizes": "Quà của tôi",
+      "playerId": "Người chơi {id}",
+      "defaultName": "bạn",
+      "loading": "Đang tải chương trình…",
+      "form": {
+        "namePlaceholder": "Nguyễn Văn A",
+        "phonePlaceholder": "0901 234 567",
+        "nameRequired": "Nhập họ tên của bạn",
+        "phoneInvalid": "Số điện thoại chưa đúng (VD: 0901234567)",
+        "consentRequired": "Bạn cần đồng ý để tiếp tục"
+      },
+      "voucher": {
+        "title": "Mã đổi quà",
+        "hint": "Đưa mã này cho nhân viên",
+        "collapse": "Thu gọn",
+        "show": "Xem mã đổi quà"
+      },
+      "noTurns": {
+        "title": "Bạn đã hết lượt hôm nay",
+        "body": "Quay lại ngày mai để chơi tiếp nhé!",
+        "ok": "Đã hiểu"
+      },
+      "closed": {
+        "title": "Chương trình chưa mở hoặc đã kết thúc",
+        "body": "Hãy xem lại thời gian diễn ra chương trình rồi quay lại nhé.",
+        "ok": "Đã hiểu"
+      },
+      "vouchers": {
+        "title": "Quà của tôi",
+        "empty": "Bạn chưa có quà nào",
+        "issuedAt": "Nhận lúc {time}",
+        "redeemed": "Đã đổi",
+        "notRedeemed": "Chưa đổi",
+        "unknownPrize": "Quà không còn trong chương trình"
+      },
+      "rules": {
+        "title": "Thể lệ",
+        "playsPerDay": "Mỗi ngày bạn có {count} lượt chơi.",
+        "maxWins": "Mỗi người nhận tối đa {count} phần quà trong cả chương trình.",
+        "window": "Thời gian: {start} – {end}.",
+        "hours": "Giờ chơi: {start}–{end} mỗi ngày.",
+        "allDay": "Chơi được cả ngày.",
+        "form": "Bạn cần để lại tên và số điện thoại trước khi chơi.",
+        "prizes": "Quà tặng",
+        "prizeLine": "{name} · {count} phần",
+        "fairness": "Kết quả do hệ thống quyết định ngẫu nhiên lúc bạn chơi; không ai chọn trước người trúng.",
+        "redeem": "Mang mã đổi quà đến quầy. Mỗi mã chỉ đổi được một lần.",
+        "rehearsalNote": "Đang chơi thử: bỏ qua lịch và giờ chơi, quà thử không tính vào số liệu thật.",
+        "ok": "Đã hiểu"
+      },
+      "actions": {
+        "zalo": "Bản thật sẽ mở Zalo OA của quán.",
+        "phone": "Bản thật sẽ gọi điện cho quán.",
+        "link": "Bản thật sẽ mở liên kết của quán."
+      },
+      "errors": {
+        "playFailed": "Chưa bắt đầu được lượt chơi, thử lại nhé.",
+        "notFoundTitle": "Không tìm thấy chương trình",
+        "notFoundBody": "Chương trình đã bị xoá hoặc liên kết không đúng.",
+        "backToCampaigns": "Về danh sách chương trình",
+        "notPublishedTitle": "Chương trình chưa được xuất bản",
+        "notPublishedBody": "Link chính thức chỉ chạy sau khi xuất bản. Dùng link chơi thử để xem trước.",
+        "openRehearsal": "Mở link chơi thử"
+      }
+    },
+    "redeem": {
+      "title": "Đổi quà",
+      "subtitle": "Nhập mã khách đưa để kiểm tra và đổi quà. Đổi rồi thì không hoàn tác được.",
+      "backToLab": "Về Builder Lab",
+      "codeLabel": "Mã đổi quà",
+      "codePlaceholder": "VD: K7M2QX",
+      "check": "Kiểm tra",
+      "campaign": "Chương trình",
+      "issuedAt": "Nhận lúc",
+      "status": "Trạng thái",
+      "notRedeemed": "Chưa đổi",
+      "redeemed": "Đã đổi",
+      "redeemedAt": "Đã đổi lúc {time}",
+      "rehearsal": "Chơi thử",
+      "rehearsalNote": "Mã này từ lượt chơi thử, không phải quà thật.",
+      "unknownPrize": "Quà không còn trong chương trình",
+      "confirm": "Xác nhận đổi quà",
+      "confirmTitle": "Đổi quà cho mã {code}?",
+      "confirmBody": "Mã sẽ được đánh dấu đã đổi. Thao tác này không hoàn tác được.",
+      "confirmOk": "Đổi quà",
+      "cancel": "Huỷ",
+      "successTitle": "Đổi quà thành công",
+      "successBody": "Trao {prize} cho khách.",
+      "notFound": "Không tìm thấy mã {code}. Kiểm tra lại từng ký tự.",
+      "alreadyRedeemed": "Mã {code} đã được đổi lúc {time}.",
+      "alreadyRedeemedShort": "Mã {code} đã được đổi trước đó.",
+      "genericError": "Có lỗi xảy ra, thử lại nhé.",
+      "newCode": "Nhập mã khác",
+      "sessionTitle": "Đã đổi trong phiên này",
+      "sessionEmpty": "Chưa đổi quà nào."
+    },
+    "rules": {
+      "title": "Luật & giải",
+      "subtitle": "Chọn cách phát quà, nhập danh sách quà, rồi đặt luật chơi. Hệ thống tự quyết định ai trúng — không ai chọn trước được.",
+      "steps": {
+        "label": "Bước {step}",
+        "mode": "Cách phát giải",
+        "modeHint": "Chọn trước tiên: quà sẽ được phát ra theo cách nào?",
+        "prizes": "Danh sách quà",
+        "prizesHint": "Mỗi món quà một thẻ. Kéo lên/xuống để sắp thứ tự hiển thị.",
+        "rules": "Luật chơi",
+        "rulesHint": "Mỗi luật là một câu. Bấm vào ô số hoặc công tắc để đổi."
+      },
+      "mode": {
+        "label": "Cách phát giải",
+        "overall": {
+          "title": "Tỉ lệ trúng chung",
+          "description": "Đặt một tỉ lệ trúng cho mọi lượt chơi. Quà nào còn nhiều sẽ ra nhiều hơn.",
+          "example": "Ví dụ: 35% lượt chơi trúng quà, 65% không trúng.",
+          "rateLabel": "Tỉ lệ trúng",
+          "rateHint": "Cứ 100 lượt chơi thì khoảng {rate} lượt trúng quà, {lose} lượt không trúng."
+        },
+        "perPrize": {
+          "title": "Mỗi giải một tỉ lệ",
+          "description": "Tự đặt tỉ lệ cho từng món quà. Phần còn lại là không trúng.",
+          "example": "Ví dụ: cà phê 25%, voucher 10%, bình giữ nhiệt 2%.",
+          "over": "Tổng tỉ lệ đang là {total}% — vượt quá 100%",
+          "overHint": "Giảm tỉ lệ ở một vài món quà để tổng không quá 100%.",
+          "total": "Tổng tỉ lệ trúng: {total}% · còn {lose}% lượt không trúng",
+          "totalHint": "Nhập tỉ lệ (%) ở từng món quà trong Bước 2."
+        },
+        "guaranteed": {
+          "title": "Ai chơi cũng có quà",
+          "description": "Mỗi lượt chơi đều trúng một món cho đến khi hết quà.",
+          "example": "Ví dụ: 200 quà thì 200 lượt chơi đầu tiên đều trúng.",
+          "note": "Khi đã hết quà, khách chơi sau sẽ thấy màn hình hết quà. Quà nào còn nhiều sẽ ra nhiều hơn."
+        }
+      },
+      "prizes": {
+        "presets": "Hình có sẵn",
+        "upload": "Tải ảnh lên",
+        "uploadTooLarge": "Ảnh quá lớn. Hãy chọn ảnh dưới 500 KB.",
+        "uploadFailed": "Không đọc được ảnh. Thử ảnh khác nhé.",
+        "changeImage": "Đổi hình cho {name}",
+        "newName": "Quà {n}",
+        "empty": "Chưa có quà nào. Thêm ít nhất một món quà.",
+        "name": "Tên quà",
+        "namePlaceholder": "Vd. Ly cà phê muối",
+        "quantity": "Số lượng",
+        "value": "Giá trị",
+        "probability": "Tỉ lệ trúng",
+        "moveUp": "Đưa lên",
+        "moveDown": "Đưa xuống",
+        "remove": "Xoá quà",
+        "add": "Thêm quà",
+        "totalStock": "Tổng số quà: <b>{count}</b>",
+        "totalValue": "Tổng giá trị: <b>{value}</b>",
+        "totalProbability": "Tổng tỉ lệ: <b>{total}%</b>"
+      },
+      "sentences": {
+        "plays": "Mỗi khách được chơi <n></n> lượt mỗi ngày",
+        "playsLabel": "Số lượt chơi mỗi ngày",
+        "maxWins": "Mỗi khách trúng tối đa <n></n> quà",
+        "maxWinsLabel": "Số quà tối đa mỗi khách",
+        "window": "Chương trình chạy từ <start></start> đến <end></end>",
+        "startLabel": "Thời gian bắt đầu",
+        "endLabel": "Thời gian kết thúc",
+        "hoursLabel": "Chỉ phát quà trong khung giờ",
+        "hoursOn": "Chỉ phát quà từ <start></start> đến <end></end>",
+        "hoursStartLabel": "Giờ bắt đầu phát quà",
+        "hoursEndLabel": "Giờ ngừng phát quà",
+        "hoursOff": "Phát quà cả ngày (bật để chỉ phát trong giờ mở cửa)",
+        "pacingLabel": "Rải đều quà",
+        "pacing": "Rải đều quà suốt chương trình (không phát hết trong ngày đầu)",
+        "budgetLabel": "Giới hạn ngân sách",
+        "budgetOn": "Giới hạn ngân sách <amount></amount>",
+        "budgetOff": "Giới hạn ngân sách quà",
+        "formLabel": "Hỏi thông tin khách",
+        "form": "Hỏi tên và số điện thoại trước khi chơi"
+      },
+      "summary": {
+        "title": "Tóm tắt luật",
+        "modeOverall": "Khoảng {rate}% lượt chơi trúng quà; quà còn nhiều ra nhiều hơn.",
+        "modePerPrize": "Mỗi món quà có tỉ lệ riêng, tổng {total}%; {lose}% lượt còn lại không trúng.",
+        "modeGuaranteed": "Ai chơi cũng trúng một món cho đến khi hết quà.",
+        "noPrizes": "Chưa có quà nào.",
+        "prizes": "Có {count} loại quà, tổng {stock} món, trị giá {value}.",
+        "plays": "Mỗi khách chơi được {count} lượt mỗi ngày.",
+        "maxWins": "Mỗi khách nhận tối đa {count} quà trong cả chương trình.",
+        "window": "Chạy từ {start} đến {end} ({days} ngày).",
+        "hours": "Chỉ phát quà từ {start} đến {end} mỗi ngày.",
+        "hoursAllDay": "Phát quà cả ngày.",
+        "pacingOn": "Quà được rải đều suốt chương trình.",
+        "pacingOff": "Quà phát đến khi hết, có thể hết sớm nếu đông khách.",
+        "budget": "Ngừng phát khi tổng giá trị quà đạt {amount}.",
+        "budgetOff": "Không giới hạn ngân sách (chỉ giới hạn theo số lượng quà).",
+        "formOn": "Khách để lại tên và số điện thoại trước khi chơi.",
+        "formOff": "Khách chơi ngay, không cần để lại thông tin."
+      },
+      "issues": {
+        "title": "Cần sửa trước khi mô phỏng và publish",
+        "noPrizes": "Thêm ít nhất một món quà.",
+        "noStock": "Mọi món quà đều có số lượng 0. Nhập số lượng cho ít nhất một món.",
+        "probabilityOver": "Tổng tỉ lệ các quà là {total}%, phải không quá 100%.",
+        "windowOrder": "Thời gian kết thúc phải sau thời gian bắt đầu.",
+        "hoursOrder": "Giờ ngừng phát quà phải sau giờ bắt đầu.",
+        "budgetBelowCheapest": "Ngân sách thấp hơn món quà rẻ nhất, sẽ không phát được quà nào."
+      },
+      "sim": {
+        "title": "Mô phỏng",
+        "extra": "Chạy thử trên máy, không ảnh hưởng chương trình thật",
+        "input": "Mỗi ngày khoảng <n></n> khách ghé chơi",
+        "inputLabel": "Số khách mỗi ngày",
+        "assumption": "Mô phỏng {days} ngày, mỗi khách chơi {plays} lượt/ngày, khách đông vào trưa và chiều như quán cà phê.",
+        "blocked": "Sửa các lỗi ở trên để xem mô phỏng.",
+        "noPrizes": "Thêm quà để xem mô phỏng.",
+        "failed": "Không chạy được mô phỏng với luật hiện tại.",
+        "plays": "Lượt chơi",
+        "closedPlays": "{count} lượt ngoài giờ phát quà",
+        "playsSub": "trong {days} ngày",
+        "wins": "Quà đã phát",
+        "winsSub": "còn dư {left} món",
+        "winRate": "Tỉ lệ trúng thực tế",
+        "winRateSub": "trên lượt chơi trong giờ phát quà",
+        "cost": "Chi phí quà",
+        "costBudget": "ngân sách {budget}",
+        "costSub": "tổng giá trị quà đã phát",
+        "stockOut": "Hết quà vào ngày {day}, khoảng {time}",
+        "stockLeft": "Còn dư {count} món ({percent}%) khi kết thúc",
+        "perDayTitle": "Số quà phát mỗi ngày",
+        "perDayAria": "Biểu đồ số quà phát mỗi ngày trong {days} ngày",
+        "perDayMax": "Cao nhất {max} quà/ngày",
+        "perDayTooltip": "Ngày {day}: {count} quà",
+        "perPrizeTitle": "Còn lại theo từng quà",
+        "perPrizeLeft": "còn {left}/{quantity}",
+        "applyPacing": "Bật rải đều",
+        "warnings": {
+          "stockOutEarly": "Quà hết sau ngày {day} — khách các ngày sau sẽ không trúng gì.",
+          "leftover": "Còn dư {percent}% quà ({count} món) khi chương trình kết thúc.",
+          "budgetReached": "Đã chạm ngân sách — một số lượt chơi không trúng vì hết ngân sách.",
+          "limitBlocks": "{percent}% lượt chơi không trúng vì khách đã nhận đủ số quà tối đa.",
+          "noWins": "Không ai trúng quà trong mô phỏng.",
+          "healthy": "Quà đủ cho cả chương trình, còn dư {percent}%."
+        },
+        "suggestions": {
+          "turnOnPacing": "Bật \"Rải đều quà suốt chương trình\".",
+          "lowerRate": "Giảm tỉ lệ trúng chung.",
+          "raiseRate": "Tăng tỉ lệ trúng chung.",
+          "lowerProbability": "Giảm tỉ lệ ở các món quà.",
+          "raiseProbability": "Tăng tỉ lệ ở các món quà.",
+          "addStock": "Thêm số lượng quà.",
+          "fewerPrizes": "Bớt số lượng quà cho vừa lượng khách.",
+          "longerHours": "Mở rộng khung giờ phát quà.",
+          "raiseBudget": "Tăng ngân sách hoặc tắt giới hạn ngân sách.",
+          "raiseMaxWins": "Cho mỗi khách trúng nhiều quà hơn."
+        }
+      }
+    },
+    "home": {
+      "title": "Builder Lab",
+      "badge": "Thử nghiệm",
+      "back": "Về Studio",
+      "pageTitle": "Campaign minigame",
+      "pageDescription": "Chọn mẫu, sửa nhanh, đặt giải rồi publish. Bản thử nghiệm: dữ liệu chỉ lưu trên trình duyệt này.",
+      "create": {
+        "title": "Tạo campaign mới",
+        "hint": "Chọn một mẫu và giao diện, đặt tên, rồi bắt đầu chỉnh. Ảnh, chữ và màu đổi được hết sau."
+      },
+      "occasions": {
+        "all": "Tất cả",
+        "tet": "Tết",
+        "opening": "Khai trương",
+        "everyday": "Quanh năm"
+      },
+      "templates": {
+        "spin-wheel": "Vòng quay may mắn",
+        "scratch-card": "Thẻ cào",
+        "gift-box": "Hộp quà bí mật"
+      },
+      "skins": {
+        "tet": "Tết đỏ",
+        "grand-opening": "Khai trương",
+        "everyday": "Quanh năm"
+      },
+      "defaultName": "{template} · {skin}",
+      "created": "Đã tạo campaign",
+      "createFailed": "Không tạo được campaign. Thử lại nhé.",
+      "nameLabel": "Tên campaign",
+      "namePlaceholder": "Tên campaign, ví dụ: Vòng quay Tết – Cà phê Mộc",
+      "pickFirst": "Chọn một mẫu ở trên trước",
+      "createButton": "Tạo campaign",
+      "list": {
+        "title": "Campaign của bạn",
+        "count": "{count} campaign",
+        "empty": "Chưa có campaign nào. Chọn một mẫu ở trên để bắt đầu.",
+        "open": "Sửa",
+        "play": "Chơi",
+        "playLive": "Mở trang chơi thật",
+        "playRehearsal": "Chơi thử bản nháp (không tính số liệu)",
+        "delete": "Xoá",
+        "deleteConfirm": "Xoá “{name}”? Lượt chơi và mã đổi quà cũng bị xoá.",
+        "deleted": "Đã xoá campaign",
+        "meta": "{version, select, 0 {Chưa publish} other {v{version}}} · cập nhật {time}"
+      }
+    },
+    "editor": {
+      "notFound": "Không tìm thấy campaign",
+      "notFoundHint": "Campaign này đã bị xoá hoặc chỉ có trên một trình duyệt khác.",
+      "backHome": "Về danh sách campaign",
+      "back": "Về danh sách campaign",
+      "name": "Tên campaign",
+      "untitled": "Campaign chưa đặt tên",
+      "rehearse": "Chơi thử",
+      "publish": "Publish",
+      "customizeNarrow": "Chế độ Tuỳ biến dùng tốt nhất trên màn hình rộng. Trên điện thoại hãy dùng Sửa nhanh.",
+      "modes": {
+        "quick": "Sửa nhanh",
+        "customize": "Tuỳ biến",
+        "rules": "Luật & giải"
+      },
+      "save": {
+        "saving": "Đang lưu…",
+        "saved": "Đã lưu",
+        "error": "Chưa lưu được"
+      },
+      "status": {
+        "draft": "Nháp",
+        "published": "Đã publish v{version}",
+        "dirty": "Đã publish v{version} · có thay đổi chưa publish"
+      },
+      "screens": {
+        "cover": "Trang bìa",
+        "form": "Biểu mẫu",
+        "game": "Màn chơi",
+        "resultWin": "Trúng",
+        "resultLose": "Không trúng"
+      }
+    },
+    "quickEdit": {
+      "slots": {
+        "logo": "Logo",
+        "productPhoto": "Ảnh sản phẩm",
+        "title": "Tiêu đề",
+        "promoText": "Khẩu hiệu",
+        "cta": "Nút bắt đầu"
+      },
+      "usage": "{count, plural, one {Dùng ở 1 chỗ} other {Dùng ở # chỗ}}",
+      "tooLarge": "Ảnh quá lớn (tối đa 5 MB).",
+      "uploadFailed": "Không đọc được ảnh này.",
+      "upload": "Tải ảnh lên",
+      "uploadHint": "PNG, JPG, WEBP hoặc SVG, tối đa 5 MB",
+      "stickers": "Hoặc chọn hình có sẵn",
+      "presets": {
+        "logo": "Logo mẫu",
+        "apricot": "Hoa mai",
+        "envelope": "Bao lì xì",
+        "lantern": "Đèn lồng",
+        "coin": "Đồng xu",
+        "coffee": "Ly cà phê",
+        "gift": "Hộp quà",
+        "star": "Ngôi sao",
+        "balloon": "Bóng bay"
+      },
+      "images": "Hình ảnh",
+      "imagesHint": "Đổi một lần, mọi màn có hình này đều đổi theo.",
+      "texts": "Chữ",
+      "textsHint": "Chữ trên trang bìa và nút bắt đầu.",
+      "skin": "Giao diện",
+      "skinHint": "Đổi giao diện giữ nguyên nội dung bạn đã sửa, giải thưởng và luật chơi.",
+      "brand": "Màu thương hiệu",
+      "brandHint": "Mọi phần tử dùng màu thương hiệu sẽ đổi theo.",
+      "skinConfirmTitle": "Đổi giao diện?",
+      "skinConfirm": "Các màn sẽ được dựng lại theo giao diện mới. Logo, ảnh, chữ bạn đã đổi, giải thưởng và luật chơi được giữ; chỉnh sửa vị trí ở chế độ Tuỳ biến sẽ mất.",
+      "skinConfirmOk": "Đổi giao diện"
+    },
+    "publish": {
+      "title": "Kiểm tra trước khi publish",
+      "doneTitle": "Đã publish v{version}",
+      "published": "Đã publish v{version}",
+      "failed": "Chưa publish được. Kiểm tra luật & giải rồi thử lại.",
+      "close": "Đóng",
+      "openPlay": "Mở trang chơi",
+      "cancel": "Huỷ",
+      "publish": "Publish",
+      "publishAgain": "Publish v{version}",
+      "summaryErrors": "{count, plural, one {Có 1 lỗi cần sửa trước khi publish} other {Có # lỗi cần sửa trước khi publish}}",
+      "summaryWarnings": "{count, plural, one {Có 1 lưu ý, vẫn publish được} other {Có # lưu ý, vẫn publish được}}",
+      "summaryReady": "Mọi thứ đã sẵn sàng",
+      "summaryHint": "Bấm Sửa để sửa tự động, hoặc mở chế độ tương ứng để tự chỉnh.",
+      "readyHint": "Giải thưởng, lịch chạy và các màn đều ổn. Khách sẽ thấy bản này ngay khi bạn publish.",
+      "fixAll": "Sửa tất cả ({count})",
+      "fix": "Sửa",
+      "goTo": "Mở để sửa",
+      "areas": {
+        "prizes": "Giải thưởng",
+        "rules": "Luật chơi",
+        "screens": "Màn hình"
+      },
+      "levels": {
+        "error": "Lỗi",
+        "warning": "Lưu ý"
+      },
+      "issues": {
+        "noPrizes": "Chưa có giải thưởng nào.",
+        "zeroQuantity": "Giải “{name}” có số lượng 0.",
+        "probabilitySum": "Tổng tỉ lệ trúng các giải là {sum}%, vượt quá 100%.",
+        "endInPast": "Thời gian kết thúc đã qua.",
+        "endBeforeStart": "Thời gian kết thúc trước thời gian bắt đầu.",
+        "lowStock": "Tổng chỉ có {total} phần quà, có thể hết ngay ngày đầu.",
+        "smallText": "Chữ “{name}” cỡ {size}px, khó đọc trên điện thoại (nên từ 12px).",
+        "smallButton": "Nút “{name}” cao {size}px, khó bấm (nên từ 44px).",
+        "offCanvas": "“{name}” nằm ngoài màn hình nên khách không thấy.",
+        "lowContrast": "“{name}” có độ tương phản {ratio}:1 với nền, khó đọc (nên từ 3:1).",
+        "emptyTitle": "Tiêu đề đang để trống."
+      },
+      "liveLink": "Link chơi",
+      "liveHint": "In mã QR lên standee, bàn hoặc gửi link qua Zalo, fanpage.",
+      "rehearsalLink": "Link chơi thử",
+      "rehearsalHint": "Cho nhân viên thử; lượt chơi thử không tính vào số liệu và kho quà.",
+      "redeemLink": "Quầy đổi quà",
+      "redeemHint": "Nhân viên nhập mã của khách để đổi quà.",
+      "stats": {
+        "plays": "Lượt chơi",
+        "players": "Người chơi",
+        "wins": "Lượt trúng",
+        "redeemed": "Đã đổi quà",
+        "budget": "Ngân sách đã dùng"
+      }
+    }
   }
 }

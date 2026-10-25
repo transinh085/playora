@@ -31,6 +31,7 @@ import {
   Settings,
   Shapes,
   Sun,
+  Wand2,
 } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -45,7 +46,15 @@ import { LogoMark } from './logo';
 
 const { Sider, Header, Content } = Layout;
 
-type NavKey = 'home' | 'events' | 'templates' | 'brandKits' | 'assets' | 'settings' | 'canvasLab';
+type NavKey =
+  | 'home'
+  | 'events'
+  | 'templates'
+  | 'brandKits'
+  | 'assets'
+  | 'settings'
+  | 'canvasLab'
+  | 'builderLab';
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
@@ -78,7 +87,10 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     ? [
         {
           key: 'labs' as const,
-          items: [{ key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' }],
+          items: [
+            { key: 'builderLab' as const, icon: Wand2, path: 'labs/builder' },
+            { key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' },
+          ],
         },
       ]
     : []),

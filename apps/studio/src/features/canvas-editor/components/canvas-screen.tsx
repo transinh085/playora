@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import {
   ARTBOARD_WIDTH,
   type BrandPalette,
+  type ButtonElement,
   type CanvasElement,
   DEMO_PRIZES,
+  type FormElement,
+  type GameStageElement,
   presetSrc,
   resolveColor,
   type ScreenDoc,
@@ -30,12 +33,32 @@ export interface CanvasLabels {
   sampleEvent: string;
 }
 
+export interface CanvasPrize {
+  name: string;
+  image?: string;
+  remaining: number;
+}
+
+export interface CanvasRuntime {
+  /** Draws the template's mechanism inside the game stage (player); a demo wheel otherwise. */
+  renderStage?: (element: GameStageElement) => ReactNode;
+  /** Draws a real, fillable form inside the form box (player); a static mock otherwise. */
+  renderForm?: (element: FormElement) => ReactNode;
+  /** Makes buttons interactive (player). */
+  onButton?: (element: ButtonElement) => void;
+  /** The campaign's prizes for `prizeList` elements; demo prizes otherwise. */
+  prizes?: CanvasPrize[];
+  /** Real values for `{prize.name}`, `{player.name}`, `{event.name}`; samples from labels otherwise. */
+  variables?: Partial<Record<'prize.name' | 'player.name' | 'event.name', string>>;
+}
+
 export function CanvasScreen({
   screen,
   brand,
   scale,
   labels,
   animate,
+  runtime,
 }: {
   screen: ScreenDoc;
   brand: BrandPalette;
@@ -43,6 +66,7 @@ export function CanvasScreen({
   labels: CanvasLabels;
   /** Change this value to replay enter animations; undefined disables them. */
   animate?: number;
+  runtime?: CanvasRuntime;
 }) {
   const { background } = screen;
   const from = resolveColor(background.color, brand);
@@ -93,7 +117,7 @@ export function CanvasScreen({
                       : undefined,
                 }}
               >
-                <ElementView element={element} brand={brand} labels={labels} />
+                <ElementView element={element} brand={brand} labels={labels} runtime={runtime} />
               </div>
             </div>
           ),
@@ -110,21 +134,24 @@ const KEYFRAMES = `
 @keyframes canvas-bounce { 0% { opacity: 0; transform: scale(.3) } 60% { opacity: 1; transform: scale(1.08) } 80% { transform: scale(.96) } 100% { transform: none } }
 `;
 
-function fillVariables(text: string, labels: CanvasLabels) {
+function fillVariables(text: string, labels: CanvasLabels, runtime?: CanvasRuntime) {
+  const v = runtime?.variables ?? {};
   return text
-    .replaceAll('{prize.name}', labels.samplePrize)
-    .replaceAll('{player.name}', labels.sampleName)
-    .replaceAll('{event.name}', labels.sampleEvent);
+    .replaceAll('{prize.name}', v['prize.name'] ?? labels.samplePrize)
+    .replaceAll('{player.name}', v['player.name'] ?? labels.sampleName)
+    .replaceAll('{event.name}', v['event.name'] ?? labels.sampleEvent);
 }
 
 function ElementView({
   element,
   brand,
   labels,
+  runtime,
 }: {
   element: CanvasElement;
   brand: BrandPalette;
   labels: CanvasLabels;
+  runtime?: CanvasRuntime;
 }) {
   const c = (value: Parameters<typeof resolveColor>[0]) => resolveColor(value, brand);
   const fill = { width: '100%', height: '100%' } as const;
@@ -154,7 +181,7 @@ function ElementView({
             textShadow: element.font === 'heading' ? '0 2px 0 rgba(0,0,0,.25)' : undefined,
           }}
         >
-          {fillVariables(element.content, labels)}
+          {fillVariables(element.content, labels, runtime)}
         </div>
       );
     case 'image':
@@ -172,27 +199,34 @@ function ElementView({
           }}
         />
       );
-    case 'button':
-      return (
-        <div
-          style={{
-            ...fill,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: c(element.background),
-            color: c(element.color),
-            borderRadius: element.radius,
-            fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: element.fontSize,
-            boxShadow: '0 5px 0 rgba(0,0,0,.28)',
-            letterSpacing: 0.5,
-          }}
+    case 'button': {
+      const style = {
+        ...fill,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: c(element.background),
+        color: c(element.color),
+        borderRadius: element.radius,
+        fontFamily: 'var(--font-display)',
+        fontWeight: 800,
+        fontSize: element.fontSize,
+        boxShadow: '0 5px 0 rgba(0,0,0,.28)',
+        letterSpacing: 0.5,
+      } as const;
+      const onButton = runtime?.onButton;
+      return onButton ? (
+        <button
+          type="button"
+          onClick={() => onButton(element)}
+          style={{ ...style, border: 0, padding: 0, cursor: 'pointer' }}
         >
           {element.label}
-        </div>
+        </button>
+      ) : (
+        <div style={style}>{element.label}</div>
       );
+    }
     case 'shape':
       return (
         <div
@@ -221,7 +255,7 @@ function ElementView({
             color: c(element.color),
           }}
         >
-          {DEMO_PRIZES.map((prize, i) => (
+          {(runtime?.prizes ?? DEMO_PRIZES).slice(0, 6).map((prize: CanvasPrize, i) => (
             <div
               key={prize.name}
               style={{
@@ -240,7 +274,7 @@ function ElementView({
             >
               {/* biome-ignore lint/performance/noImgElement: built-in sticker */}
               <img
-                src={presetSrc(['coin', 'envelope', 'logo'][i])}
+                src={prize.image || presetSrc(['coin', 'envelope', 'logo'][i])}
                 alt=""
                 style={{ width: 36, height: 36 }}
               />
@@ -255,8 +289,9 @@ function ElementView({
         </div>
       );
     case 'gameStage':
-      return <DemoWheel brand={brand} />;
+      return runtime?.renderStage ? runtime.renderStage(element) : <DemoWheel brand={brand} />;
     case 'form':
+      if (runtime?.renderForm) return runtime.renderForm(element);
       return (
         <div
           style={{

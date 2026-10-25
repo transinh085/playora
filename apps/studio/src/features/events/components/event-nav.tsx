@@ -109,7 +109,7 @@ export function EventNav({ orgId, eventId }: { orgId: string; eventId: string })
         <Link
           href={href as Route}
           data-testid={testId}
-          className="inline-flex items-center gap-2 !text-inherit"
+          className="inline-flex items-center gap-2 text-inherit"
         >
           <Icon className="size-4" />
           <span>{t(labelKey)}</span>

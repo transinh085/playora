@@ -86,6 +86,7 @@
         "@playora/api-client": "workspace:*",
         "@playora/auth": "workspace:*",
         "@playora/contracts": "workspace:*",
+        "@playora/core": "workspace:*",
         "@playora/game-sdk": "workspace:*",
         "@playora/i18n": "workspace:*",
         "@playora/ui": "workspace:*",
