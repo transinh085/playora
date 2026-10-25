@@ -4,7 +4,7 @@
  * Apps import this after `@import "tailwindcss";` and add `@source` for packages/ui.
  *
  * Three layers:
- *   1. Primitives  (--violet-*, --ink-*, --spotlight-*, --stage-*, --team-*): raw OKLCH values, never used
+ *   1. Primitives  (--teal-*, --violet-*, --ink-*, --spotlight-*, --stage-*, --team-*): raw OKLCH values, never used
  *      directly in components.
  *   2. Studio / Semantic (--background, --foreground, --border… bridged to Ant Design tokens): the console for organisers. Light + `.dark`.
  *   3. Game        (--game-*): everything players and the LED screen see. Swapped per event by a skin
@@ -16,6 +16,19 @@
 
 :root {
   /* ── 1. Primitives ─────────────────────────────────────────────────────────────── */
+  /* Brand teal (hue 192). Studio uses it only for the primary action, links, focus and selection. */
+  --teal-50: oklch(0.975 0.018 192);
+  --teal-100: oklch(0.945 0.035 192);
+  --teal-200: oklch(0.89 0.065 192);
+  --teal-300: oklch(0.81 0.095 192);
+  --teal-400: oklch(0.72 0.115 192);
+  --teal-500: oklch(0.6 0.1 192);
+  --teal-600: oklch(0.53 0.088 192);
+  --teal-700: oklch(0.46 0.076 192);
+  --teal-800: oklch(0.37 0.06 192);
+  --teal-900: oklch(0.29 0.05 192);
+
+  /* Legacy stage accent, kept for the `classic` skin only. */
   --violet-50: oklch(0.97 0.02 293);
   --violet-100: oklch(0.94 0.04 293);
   --violet-200: oklch(0.88 0.08 293);
@@ -27,18 +40,18 @@
   --violet-800: oklch(0.35 0.17 293);
   --violet-900: oklch(0.28 0.13 293);
 
-  /* Neutrals carry a faint violet bias so greys sit with the brand instead of looking default. */
-  --ink-50: oklch(0.985 0.003 290);
-  --ink-100: oklch(0.966 0.006 290);
-  --ink-200: oklch(0.925 0.01 290);
-  --ink-300: oklch(0.87 0.014 290);
-  --ink-400: oklch(0.71 0.02 290);
-  --ink-500: oklch(0.555 0.022 290);
-  --ink-600: oklch(0.44 0.022 290);
-  --ink-700: oklch(0.37 0.02 290);
-  --ink-800: oklch(0.27 0.018 290);
-  --ink-900: oklch(0.205 0.016 290);
-  --ink-950: oklch(0.155 0.014 290);
+  /* Cool neutrals (hue 255), close to Atlassian's: they carry almost all of the Studio UI. */
+  --ink-50: oklch(0.985 0.002 255);
+  --ink-100: oklch(0.967 0.004 255);
+  --ink-200: oklch(0.925 0.007 255);
+  --ink-300: oklch(0.87 0.01 255);
+  --ink-400: oklch(0.71 0.014 255);
+  --ink-500: oklch(0.555 0.016 255);
+  --ink-600: oklch(0.44 0.017 255);
+  --ink-700: oklch(0.37 0.017 255);
+  --ink-800: oklch(0.27 0.015 255);
+  --ink-900: oklch(0.205 0.013 255);
+  --ink-950: oklch(0.155 0.011 255);
 
   /* Spotlight: the warm stage-light gold. The one loud colour in the system. */
   --spotlight-300: oklch(0.91 0.11 85);
@@ -73,12 +86,12 @@
   --duration-stage: 640ms;
 
   /* ── 2. Studio / Semantic (bridged to Ant Design) ─────────────────────────────── */
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: var(--ant-color-bg-layout, var(--ink-50));
   --foreground: var(--ant-color-text, var(--ink-950));
   --muted-foreground: var(--ant-color-text-secondary, var(--ink-500));
   --border: var(--ant-color-border, var(--ink-200));
-  --primary: var(--ant-color-primary, var(--violet-600));
+  --primary: var(--ant-color-primary, var(--teal-600));
   --primary-foreground: oklch(0.985 0 0);
 
   --success: var(--ant-color-success, oklch(0.56 0.15 152));
@@ -114,7 +127,7 @@
   --foreground: var(--ant-color-text, var(--ink-50));
   --muted-foreground: var(--ant-color-text-secondary, var(--ink-400));
   --border: var(--ant-color-border, oklch(1 0 0 / 10%));
-  --primary: var(--ant-color-primary, var(--violet-400));
+  --primary: var(--ant-color-primary, var(--teal-400));
   --primary-foreground: var(--ink-950);
 
   --success: var(--ant-color-success, oklch(0.72 0.16 152));
@@ -177,12 +190,12 @@
 /* Day: light ground for booths, kiosks and H5 games played outdoors or in bright halls. */
 [data-skin="day"] {
   --game-bg: var(--ink-50);
-  --game-glow: oklch(0.9 0.07 293 / 70%);
+  --game-glow: oklch(0.92 0.06 192 / 70%);
   --game-fg: var(--ink-950);
   --game-muted: var(--ink-500);
   --game-surface: oklch(1 0 0);
   --game-border: var(--ink-200);
-  --game-primary: var(--violet-600);
+  --game-primary: var(--teal-600);
   --game-primary-fg: oklch(0.99 0 0);
   --game-accent: var(--spotlight-400);
   --game-accent-fg: var(--ink-950);

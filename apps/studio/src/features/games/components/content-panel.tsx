@@ -39,10 +39,8 @@ export function ContentPanel({
 
   return (
     <div className="flex flex-col gap-4" data-testid="content-panel">
-      <div className="flex flex-col gap-1.5">
-        <Typography.Text strong className="text-sm">
-          {t('games.gameNameLabel')}
-        </Typography.Text>
+      <div className="flex flex-col gap-2">
+        <Typography.Text strong>{t('games.gameNameLabel')}</Typography.Text>
         <Input
           value={name}
           onChange={(e) => onChangeName(e.target.value)}

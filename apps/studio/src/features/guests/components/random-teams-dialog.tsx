@@ -2,7 +2,7 @@
 
 import { AssignRandomTeamsBody, type ErrorCode } from '@playora/contracts';
 import { applyApiError } from '@playora/ui/form';
-import { App, Button, Form, Input, Modal } from 'antd';
+import { App, Button, Flex, Form, Input, Modal, Typography } from 'antd';
 import { Shuffle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -72,9 +72,9 @@ export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: 
         footer={null}
         destroyOnHidden
       >
-        <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
+        <Typography.Paragraph type="secondary">
           {t('guests.randomTeamsDescription')}
-        </p>
+        </Typography.Paragraph>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
@@ -99,7 +99,7 @@ export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: 
             <Input.TextArea rows={4} placeholder={t('guests.teamNamesPlaceholder')} />
           </Form.Item>
 
-          <div className="mt-6 flex justify-end gap-2">
+          <Flex justify="end" gap={8} className="mt-6">
             <Button
               onClick={() => {
                 setOpen(false);
@@ -111,7 +111,7 @@ export function RandomTeamsDialog({ orgId, eventId }: { orgId: string; eventId: 
             <Button type="primary" htmlType="submit" loading={assign.isPending}>
               {t('guests.assignSubmit')}
             </Button>
-          </div>
+          </Flex>
         </Form>
       </Modal>
     </>

@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 
 const SCALES = [
   {
-    name: 'violet',
-    note: 'Thương hiệu, hành động chính ở Studio',
+    name: 'teal',
+    note: 'Thương hiệu: chỉ cho hành động chính, link, focus, mục đang chọn',
     steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
   },
   {
     name: 'ink',
-    note: 'Neutral, ngả tím nhẹ',
+    note: 'Neutral xám lạnh, gánh gần hết giao diện Studio',
     steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   },
   {
@@ -25,6 +25,11 @@ const SCALES = [
     steps: [300, 400, 500, 600],
   },
   { name: 'stage', note: 'Nền đêm cho skin sân khấu', steps: [800, 900, 950] },
+  {
+    name: 'violet',
+    note: 'Legacy: chỉ còn cho skin classic',
+    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+  },
 ];
 
 const TEAM_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -38,10 +43,10 @@ const SEMANTIC = [
 ];
 
 const TYPE_STUDIO = [
-  { cls: 'text-3xl font-semibold tracking-tight', label: 'Tiêu đề trang · 30/36 · 600' },
-  { cls: 'text-xl font-semibold', label: 'Tiêu đề khối · 20/28 · 600' },
-  { cls: 'text-base', label: 'Nội dung · 16/24 · 400' },
-  { cls: 'text-sm', label: 'Bảng, form · 14/20 · 400' },
+  { cls: 'text-2xl font-semibold', label: 'Tiêu đề trang · 24/28 · 600' },
+  { cls: 'text-xl font-semibold', label: 'Tiêu đề modal · 20/24 · 600' },
+  { cls: 'text-base font-semibold', label: 'Tiêu đề khối · 16/20 · 600' },
+  { cls: 'text-sm', label: 'Nội dung, bảng, form · 14/20 · 400' },
   { cls: 'text-xs text-muted-foreground', label: 'Chú thích · 12/16 · 400' },
 ];
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { App, Button, Card, Skeleton, Typography } from 'antd';
+import { Alert, App, Button, Card, Skeleton, Typography } from 'antd';
 import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -76,19 +76,16 @@ export function AcceptInvitationCard() {
   const roleKey = invitation?.role && isOrgRole(invitation.role) ? invitation.role : 'viewer';
 
   return (
-    <main className="flex min-h-dvh items-center justify-center p-6 bg-[var(--ant-color-bg-layout)]">
-      <Card
-        className="w-full max-w-md"
-        title={<span className="text-xl font-semibold">{t('auth.inviteTitle')}</span>}
-      >
+    <main className="flex min-h-dvh items-center justify-center p-6">
+      <Card className="w-full max-w-md" title={t('auth.inviteTitle')}>
         {invitation && (
-          <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
+          <Typography.Paragraph type="secondary">
             {t('auth.inviteDescription', {
               inviter: invitation.inviterEmail,
               organization: invitation.organizationName,
               role: t(`members.roles.${roleKey}`),
             })}
-          </p>
+          </Typography.Paragraph>
         )}
 
         {(sessionPending || invitationQuery.isPending) && (
@@ -98,20 +95,10 @@ export function AcceptInvitationCard() {
         )}
 
         {invitationQuery.isError && (
-          <div className="mb-3">
-            <Typography.Text type="danger" className="text-sm">
-              {t('auth.inviteError')}
-            </Typography.Text>
-          </div>
+          <Alert type="error" showIcon title={t('auth.inviteError')} className="mb-3" />
         )}
 
-        {actionError && (
-          <div className="mb-3">
-            <Typography.Text type="danger" className="text-sm">
-              {actionError}
-            </Typography.Text>
-          </div>
-        )}
+        {actionError && <Alert type="error" showIcon title={actionError} className="mb-3" />}
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
           {invitation && (

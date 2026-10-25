@@ -9,7 +9,7 @@ export default async function EventLayout({
 }) {
   const { orgId, eventId } = await params;
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <EventHeader orgId={orgId} eventId={eventId} />
       <EventNav orgId={orgId} eventId={eventId} />
       {children}

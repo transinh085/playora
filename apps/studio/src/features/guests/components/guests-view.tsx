@@ -1,9 +1,11 @@
 'use client';
 
 import type { ErrorCode, ImportGuestsResult } from '@playora/contracts';
-import { Alert, App, Card, Spin } from 'antd';
+import { Alert, App, Skeleton } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { QueryError } from '@/components/query-error';
+import { TableCard } from '@/components/table-card';
 import { useEvent } from '@/features/events/api';
 import {
   useClearGuests,
@@ -58,28 +60,24 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
   });
 
   if (eventQuery.isPending) {
-    return (
-      <div className="flex justify-center py-16">
-        <Spin size="large" />
-      </div>
-    );
+    return <Skeleton active paragraph={{ rows: 6 }} className="py-4" />;
   }
 
   if (eventQuery.isError) {
-    return <p className="text-sm text-[var(--ant-color-error)]">{t('common.unknownError')}</p>;
+    return <QueryError onRetry={() => eventQuery.refetch()} />;
   }
 
   const event = eventQuery.data;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <JoinQrCard slug={event.slug} />
 
       {lastImportResult && (
         <Alert
           type={lastImportResult.errors.length > 0 ? 'warning' : 'success'}
-          closable
-          onClose={() => setLastImportResult(null)}
+          showIcon
+          closable={{ onClose: () => setLastImportResult(null) }}
           title={t('guests.importSummary', {
             inserted: lastImportResult.inserted,
             updated: lastImportResult.updated,
@@ -88,8 +86,8 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
         />
       )}
 
-      <Card>
-        <div className="flex flex-col gap-4">
+      <TableCard
+        toolbar={
           <GuestsToolbar
             orgId={orgId}
             eventId={eventId}
@@ -102,21 +100,21 @@ export function GuestsView({ orgId, eventId }: { orgId: string; eventId: string 
             onClearAll={() => clearMutation.mutate({ params: { orgId, eventId } })}
             isClearing={clearMutation.isPending}
           />
-
-          <GuestsTable
-            guests={guestsQuery.data?.items ?? []}
-            loading={guestsQuery.isPending}
-            onReleaseDevice={(guestId) =>
-              releaseDeviceMutation.mutate({ params: { orgId, eventId, guestId } })
-            }
-            onRemoveGuest={(guestId) =>
-              removeMutation.mutate({ params: { orgId, eventId, guestId } })
-            }
-            isReleasing={releaseDeviceMutation.isPending}
-            isRemoving={removeMutation.isPending}
-          />
-        </div>
-      </Card>
+        }
+      >
+        <GuestsTable
+          guests={guestsQuery.data?.items ?? []}
+          loading={guestsQuery.isPending}
+          onReleaseDevice={(guestId) =>
+            releaseDeviceMutation.mutate({ params: { orgId, eventId, guestId } })
+          }
+          onRemoveGuest={(guestId) =>
+            removeMutation.mutate({ params: { orgId, eventId, guestId } })
+          }
+          isReleasing={releaseDeviceMutation.isPending}
+          isRemoving={removeMutation.isPending}
+        />
+      </TableCard>
 
       <ImportGuestsDialog
         orgId={orgId}

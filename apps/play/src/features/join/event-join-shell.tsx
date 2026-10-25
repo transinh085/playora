@@ -11,7 +11,7 @@ import { GameButton } from '@playora/ui/game/game-button';
 import { GameRoot } from '@playora/ui/game/game-root';
 import { JoinPanel } from '@playora/ui/game/join-panel';
 import type { BrandKitTheme } from '@playora/ui/lib/game-theme';
-import { Alert, Checkbox, Form, Input, Radio } from 'antd';
+import { Alert, Checkbox, Form, Input, Radio, Typography, theme } from 'antd';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { api } from '@/lib/api';
@@ -44,6 +44,7 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
   const tErrors = useTranslations('errors');
   const { session, hydrated, setSession } = usePlayerSession(event.slug);
   const [form] = Form.useForm<JoinFormValues>();
+  const { token } = theme.useToken();
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -189,8 +190,14 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
               className="h-16 w-auto object-contain"
             />
           )}
-          <p className="text-game-muted text-sm font-medium">{t('welcomeTo')}</p>
-          <h1 className="font-game text-3xl font-bold text-balance">{event.name}</h1>
+          <Typography.Text type="secondary">{t('welcomeTo')}</Typography.Text>
+          <Typography.Title
+            level={1}
+            className="!m-0 font-game text-balance"
+            style={{ fontSize: token.fontSizeHeading2, lineHeight: token.lineHeightHeading2 }}
+          >
+            {event.name}
+          </Typography.Title>
           <JoinPanel
             url={`play.playora.vn/${event.slug}`}
             className="mt-1 justify-center rounded-game border border-game-border bg-game-surface px-4 py-2.5 text-left text-sm"
@@ -206,18 +213,24 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
               <span className="size-2 rounded-full bg-game-primary" />
               {t('joinedWaiting')}
             </span>
-            <p className="font-game text-2xl font-bold" data-testid="player-display-name">
+            <Typography.Text
+              strong
+              className="font-game"
+              style={{ fontSize: token.fontSizeHeading3, lineHeight: token.lineHeightHeading3 }}
+              data-testid="player-display-name"
+            >
               {session.player.displayName}
-            </p>
+            </Typography.Text>
             {session.player.team && (
-              <p className="text-game-muted text-base font-medium" data-testid="player-team">
-                {t('teamLabel')}{' '}
-                <span className="text-game-fg font-semibold">{session.player.team}</span>
-              </p>
+              <Typography.Text type="secondary" data-testid="player-team">
+                {t('teamLabel')} <Typography.Text strong>{session.player.team}</Typography.Text>
+              </Typography.Text>
             )}
           </section>
         ) : event.status === 'draft' ? (
-          <p className="text-game-muted text-center">{t('eventDraftNotice')}</p>
+          <Typography.Paragraph type="secondary" className="!m-0 text-center">
+            {t('eventDraftNotice')}
+          </Typography.Paragraph>
         ) : (
           <Form<JoinFormValues>
             form={form}
@@ -225,10 +238,10 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
             initialValues={initialValues}
             onFinish={handleSubmit}
             requiredMark={(label, { required }) => (
-              <span className="text-sm font-semibold text-game-fg">
+              <>
                 {label}
-                {required && <span className="text-game-urgent"> *</span>}
-              </span>
+                {required && <Typography.Text type="danger"> *</Typography.Text>}
+              </>
             )}
             className="grid gap-4 rounded-game border border-game-border bg-game-surface p-5 backdrop-blur-sm"
           >
@@ -238,7 +251,7 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
                 type="error"
                 showIcon={false}
                 title={tErrors('PLAYER_LIMIT_REACHED')}
-                className="text-center text-sm font-medium"
+                className="text-center"
               />
             )}
 
@@ -265,10 +278,8 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
                     className="mb-0 text-left"
                   >
                     <Checkbox>
-                      <span className="text-base text-game-fg">
-                        {fieldLabel}
-                        {field.required && <span className="text-game-urgent"> *</span>}
-                      </span>
+                      {fieldLabel}
+                      {field.required && <Typography.Text type="danger"> *</Typography.Text>}
                     </Checkbox>
                   </Form.Item>
                 );
@@ -335,10 +346,8 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
                       className="mb-0"
                     >
                       <Checkbox>
-                        <span className="text-sm leading-relaxed text-game-fg">
-                          {consentText}
-                          {consent.required && <span className="text-game-urgent"> *</span>}
-                        </span>
+                        {consentText}
+                        {consent.required && <Typography.Text type="danger"> *</Typography.Text>}
                       </Checkbox>
                     </Form.Item>
                   );
@@ -352,7 +361,7 @@ export function EventJoinShell({ event }: { event: PublicEvent }) {
                 type="error"
                 showIcon={false}
                 title={errorMsg}
-                className="text-center text-sm font-medium"
+                className="text-center"
               />
             )}
 

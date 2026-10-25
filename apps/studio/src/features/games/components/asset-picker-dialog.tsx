@@ -1,8 +1,9 @@
 'use client';
 
 import type { AssetSummary, TemplateAssetSlot } from '@playora/contracts';
-import { Button, Empty, Modal } from 'antd';
+import { Button, Empty, Flex, Modal, Typography } from 'antd';
 import { useTranslations } from 'next-intl';
+import { Caption } from '@/components/caption';
 import type { AssetPickerModalState } from '../lib/use-game-editor';
 
 export function AssetPickerDialog({
@@ -43,30 +44,25 @@ export function AssetPickerDialog({
             {matchingAssets.map((asset) => {
               const thumbUrl = asset.variants.w320?.url ?? asset.url;
               return (
-                <button
+                <Button
                   key={asset.id}
-                  type="button"
                   data-testid={`asset-picker-item-${asset.id}`}
                   onClick={() => {
                     state?.onChange(asset.id);
                     onClose();
                   }}
-                  className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-[var(--ant-color-border-secondary)] p-2 text-xs transition hover:border-[var(--ant-color-primary)]"
+                  className="!h-auto min-w-0 flex-col !p-2"
                 >
                   {asset.kind === 'image' ? (
                     // biome-ignore lint/performance/noImgElement: presigned S3 asset URL
-                    <img
-                      src={thumbUrl}
-                      alt={asset.id}
-                      className="h-20 w-full rounded object-contain"
-                    />
+                    <img src={thumbUrl} alt={asset.id} className="h-20 w-full object-contain" />
                   ) : (
-                    <div className="flex h-20 w-full items-center justify-center rounded bg-[var(--ant-color-fill-tertiary)] font-mono">
-                      {asset.kind}
-                    </div>
+                    <Flex align="center" justify="center" className="h-20 w-full">
+                      <Typography.Text code>{asset.kind}</Typography.Text>
+                    </Flex>
                   )}
-                  <span className="truncate font-mono text-[10px]">{asset.id.slice(-8)}</span>
-                </button>
+                  <Caption className="max-w-full truncate">{asset.id.slice(-8)}</Caption>
+                </Button>
               );
             })}
           </div>

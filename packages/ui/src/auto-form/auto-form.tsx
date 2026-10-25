@@ -2,7 +2,7 @@
 
 import { toNamePath, zodRule } from '@playora/ui/form';
 import { cn } from '@playora/ui/lib/utils';
-import { Alert, Collapse, Form, type FormRule, Tag } from 'antd';
+import { Alert, Card, Collapse, Form, type FormRule, Tag } from 'antd';
 import * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale } from './types';
 import {
@@ -19,6 +19,7 @@ import {
 } from './utils';
 import {
   CustomWidgetControl,
+  FieldHint,
   ListWidgetControl,
   LocalizedWidgetControl,
   renderScalarControl,
@@ -46,9 +47,7 @@ function renderFieldLabel(field: FieldDescriptor, label: string, locale: Locale)
     <span className="inline-flex items-center gap-2">
       <span>{label}</span>
       {field.hotEditable && (
-        <Tag className="m-0 text-[10px] leading-tight">
-          {locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}
-        </Tag>
+        <Tag className="m-0">{locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}</Tag>
       )}
     </span>
   );
@@ -66,17 +65,17 @@ function AutoFormField(props: FieldRendererProps) {
 
   if (!CustomWidget && (field.widget === 'object' || (field.type === 'object' && field.fields))) {
     return (
-      <fieldset
+      <Card
+        size="small"
+        role="group"
+        aria-label={label}
         data-slot="autoform-object"
         data-widget="object"
         data-field-path={path}
-        className="grid gap-3 rounded-lg border p-4"
+        title={renderFieldLabel(field, label, locale)}
       >
-        <legend className="px-1 text-sm font-semibold">
-          {renderFieldLabel(field, label, locale)}
-        </legend>
-        {description && <p className="-mt-1 text-xs opacity-70">{description}</p>}
         <div className="grid gap-3">
+          {description && <FieldHint>{description}</FieldHint>}
           {(field.fields ?? []).map((child) => (
             <AutoFormField
               key={`${path}.${child.key}`}
@@ -86,13 +85,13 @@ function AutoFormField(props: FieldRendererProps) {
               relNamePath={[...relNamePath, child.key]}
             />
           ))}
+          {errorMsg && (
+            <FieldHint type="danger" role="alert" data-slot="field-error">
+              {errorMsg}
+            </FieldHint>
+          )}
         </div>
-        {errorMsg && (
-          <p role="alert" data-slot="field-error" className="text-xs">
-            {errorMsg}
-          </p>
-        )}
-      </fieldset>
+      </Card>
     );
   }
 

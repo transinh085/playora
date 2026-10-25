@@ -1,11 +1,13 @@
 'use client';
 
-import { Button, Skeleton, Tabs, Typography } from 'antd';
-import { ArrowLeft, Gamepad2, Gift, LayoutDashboard, Settings, Users } from 'lucide-react';
+import { Skeleton, Tabs } from 'antd';
+import { Gamepad2, Gift, LayoutDashboard, Settings, Users } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { PageHeader } from '@/components/page-header';
+import { QueryError } from '@/components/query-error';
 import { useEvent } from '../api';
 import { EventStatusBadge } from './event-status-badge';
 
@@ -18,37 +20,19 @@ export function EventHeader({ orgId, eventId }: { orgId: string; eventId: string
   }
 
   if (eventQuery.isError) {
-    return (
-      <Typography.Text type="danger" className="text-sm">
-        {t('common.unknownError')}
-      </Typography.Text>
-    );
+    return <QueryError onRetry={() => eventQuery.refetch()} />;
   }
 
   const event = eventQuery.data;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <Link href={`/orgs/${orgId}/events` as Route}>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<ArrowLeft className="size-4" />}
-            aria-label={t('eventNav.backToEvents')}
-          />
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold">{event.name}</h1>
-            <EventStatusBadge status={event.status} />
-          </div>
-          <Typography.Text type="secondary" className="text-sm">
-            /{event.slug}
-          </Typography.Text>
-        </div>
-      </div>
-    </div>
+    <PageHeader
+      title={event.name}
+      tags={<EventStatusBadge status={event.status} />}
+      description={`/${event.slug}`}
+      backHref={`/orgs/${orgId}/events` as Route}
+      backLabel={t('eventNav.backToEvents')}
+    />
   );
 }
 
@@ -122,7 +106,11 @@ export function EventNav({ orgId, eventId }: { orgId: string; eventId: string })
     return {
       key,
       label: (
-        <Link href={href as Route} data-testid={testId} className="inline-flex items-center gap-2">
+        <Link
+          href={href as Route}
+          data-testid={testId}
+          className="inline-flex items-center gap-2 !text-inherit"
+        >
           <Icon className="size-4" />
           <span>{t(labelKey)}</span>
         </Link>

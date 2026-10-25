@@ -11,6 +11,7 @@ import {
   Card,
   Checkbox,
   Divider,
+  Empty,
   Form,
   type FormInstance,
   type FormRule,
@@ -109,7 +110,7 @@ export function EventRegistrationSection({
   return (
     <Card title={t('events.participationTitle')}>
       <div className="grid gap-6">
-        <Typography.Paragraph type="secondary" className="mb-0 text-sm">
+        <Typography.Paragraph type="secondary" className="!m-0">
           {t('events.participationDescription')}
         </Typography.Paragraph>
 
@@ -123,9 +124,9 @@ export function EventRegistrationSection({
           {(fields, { add, remove }, { errors }) => (
             <div className="grid gap-4">
               <div className="flex items-center justify-between">
-                <Typography.Text strong className="text-base">
+                <Typography.Title level={5} className="!m-0">
                   {t('events.formTitle')}
-                </Typography.Text>
+                </Typography.Title>
                 <Button
                   htmlType="button"
                   size="small"
@@ -144,94 +145,91 @@ export function EventRegistrationSection({
               </div>
 
               {fields.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-[var(--ant-color-border)] p-4 text-center text-sm text-[var(--ant-color-text-secondary)]">
-                  {t('events.formEmpty')}
-                </p>
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('events.formEmpty')} />
               ) : (
                 <div className="grid gap-4">
                   {fields.map((field, idx) => {
                     const currentType = watchedFields[idx]?.type ?? 'text';
                     return (
-                      <div
-                        key={field.key}
-                        className="grid gap-3 rounded-lg border border-[var(--ant-color-border)] p-4"
-                      >
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <Form.Item
-                            name={[field.name, 'key']}
-                            label={t('events.fieldKey')}
-                            rules={rules}
-                            className="mb-0"
-                          >
-                            <Input placeholder="full_name" />
-                          </Form.Item>
+                      <Card key={field.key} size="small">
+                        <div className="grid gap-3">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <Form.Item
+                              name={[field.name, 'key']}
+                              label={t('events.fieldKey')}
+                              rules={rules}
+                              className="mb-0"
+                            >
+                              <Input placeholder="full_name" />
+                            </Form.Item>
 
-                          <Form.Item
-                            name={[field.name, 'type']}
-                            label={t('events.fieldType')}
-                            rules={rules}
-                            className="mb-0"
-                          >
-                            <Select
-                              aria-label={`${t('events.fieldType')} ${idx + 1}`}
-                              options={fieldTypeOptions}
-                            />
-                          </Form.Item>
+                            <Form.Item
+                              name={[field.name, 'type']}
+                              label={t('events.fieldType')}
+                              rules={rules}
+                              className="mb-0"
+                            >
+                              <Select
+                                aria-label={`${t('events.fieldType')} ${idx + 1}`}
+                                options={fieldTypeOptions}
+                              />
+                            </Form.Item>
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <Form.Item
+                              name={[field.name, 'label', 'vi']}
+                              label={t('events.fieldLabelVi')}
+                              rules={rules}
+                              className="mb-0"
+                            >
+                              <Input />
+                            </Form.Item>
+
+                            <Form.Item
+                              name={[field.name, 'label', 'en']}
+                              label={t('events.fieldLabelEn')}
+                              rules={rules}
+                              className="mb-0"
+                            >
+                              <Input />
+                            </Form.Item>
+                          </div>
+
+                          {currentType === 'select' && (
+                            <Form.Item
+                              name={[field.name, 'options']}
+                              label={t('events.fieldOptions')}
+                              rules={rules}
+                              className="mb-0"
+                            >
+                              <CommaOptionsInput />
+                            </Form.Item>
+                          )}
+
+                          <div className="flex items-center justify-between pt-1">
+                            <Form.Item
+                              name={[field.name, 'required']}
+                              valuePropName="checked"
+                              noStyle
+                            >
+                              <Checkbox>{t('events.fieldRequired')}</Checkbox>
+                            </Form.Item>
+
+                            <Button
+                              htmlType="button"
+                              type="text"
+                              danger
+                              size="small"
+                              icon={<Trash2 className="size-4" />}
+                              onClick={() => remove(field.name)}
+                              aria-label={t('events.removeField')}
+                            >
+                              {t('events.removeField')}
+                            </Button>
+                          </div>
                         </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <Form.Item
-                            name={[field.name, 'label', 'vi']}
-                            label={t('events.fieldLabelVi')}
-                            rules={rules}
-                            className="mb-0"
-                          >
-                            <Input />
-                          </Form.Item>
-
-                          <Form.Item
-                            name={[field.name, 'label', 'en']}
-                            label={t('events.fieldLabelEn')}
-                            rules={rules}
-                            className="mb-0"
-                          >
-                            <Input />
-                          </Form.Item>
-                        </div>
-
-                        {currentType === 'select' && (
-                          <Form.Item
-                            name={[field.name, 'options']}
-                            label={t('events.fieldOptions')}
-                            rules={rules}
-                            className="mb-0"
-                          >
-                            <CommaOptionsInput />
-                          </Form.Item>
-                        )}
-
-                        <div className="flex items-center justify-between pt-1">
-                          <Form.Item
-                            name={[field.name, 'required']}
-                            valuePropName="checked"
-                            noStyle
-                          >
-                            <Checkbox>{t('events.fieldRequired')}</Checkbox>
-                          </Form.Item>
-
-                          <Button
-                            htmlType="button"
-                            type="text"
-                            danger
-                            size="small"
-                            icon={<Trash2 className="size-4" />}
-                            onClick={() => remove(field.name)}
-                            aria-label={t('events.removeField')}
-                          >
-                            {t('events.removeField')}
-                          </Button>
-                        </div>
-                      </div>
+                      </Card>
                     );
                   })}
                 </div>

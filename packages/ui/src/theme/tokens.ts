@@ -6,6 +6,21 @@
  * `styles.css` exposes the corresponding CSS custom properties.
  */
 
+/** Brand. Studio uses it only for the primary action, links, focus and selection (docs/13 §3.1). */
+export const teal = {
+  50: '#eafbfa',
+  100: '#d3f5f3',
+  200: '#a8e9e6',
+  300: '#70d5d1',
+  400: '#2bbbb7',
+  500: '#129390',
+  600: '#0f7c79',
+  700: '#0b6563',
+  800: '#094a48',
+  900: '#003332',
+} as const;
+
+/** Legacy stage accent, kept for the `classic` game skin only. */
 export const violet = {
   50: '#f5f3ff',
   100: '#ece7ff',
@@ -19,18 +34,19 @@ export const violet = {
   900: '#2f1061',
 } as const;
 
+/** Cool neutral (hue 255): carries almost all of the Studio UI. */
 export const ink = {
-  50: '#fafafc',
-  100: '#f3f3f8',
-  200: '#e6e5ed',
-  300: '#d4d3dd',
-  400: '#a1a0ad',
-  500: '#72717f',
-  600: '#52515e',
-  700: '#3f3e4a',
-  800: '#26252f',
-  900: '#17161e',
-  950: '#0c0b12',
+  50: '#f9fafb',
+  100: '#f2f4f7',
+  200: '#e3e6eb',
+  300: '#d0d5db',
+  400: '#9ca2aa',
+  500: '#6d747d',
+  600: '#4c535c',
+  700: '#3a4049',
+  800: '#22272e',
+  900: '#13181d',
+  950: '#090c11',
 } as const;
 
 export const spotlight = {
@@ -65,7 +81,7 @@ export const medal = {
 
 export const semantic = {
   light: {
-    primary: violet[600],
+    primary: teal[600],
     success: '#008c45',
     warning: '#ed990e',
     info: '#2474cf',
@@ -81,7 +97,7 @@ export const semantic = {
     borderSecondary: ink[100],
   },
   dark: {
-    primary: violet[400],
+    primary: teal[400],
     success: '#42c070',
     warning: '#f5ae39',
     info: '#5fa1f3',
@@ -98,11 +114,13 @@ export const semantic = {
   },
 } as const;
 
+/** Atlassian-style radius scale: sm tags/tooltips · md controls · lg cards/menus · xl modals/tables. */
 export const radius = {
-  sm: 6,
-  md: 8,
-  lg: 10,
-  xl: 14,
+  xs: 2,
+  sm: 4,
+  md: 6,
+  lg: 8,
+  xl: 12,
   game: 20,
 } as const;
 
@@ -113,6 +131,7 @@ export const font = {
 } as const;
 
 export const tokens = {
+  teal,
   violet,
   ink,
   spotlight,

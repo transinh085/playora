@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { z } from 'zod';
+import { Caption } from '@/components/caption';
 import { authClient } from '@/lib/auth-client';
 
 const schema = z.object({
@@ -99,11 +100,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   return (
     <Card
       className="w-full max-w-sm"
-      title={
-        <span className="text-xl font-semibold">
-          {mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
-        </span>
-      }
+      title={mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
     >
       <Form
         form={form}
@@ -128,14 +125,12 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
 
         {error && (
           <div className="mb-4">
-            <Typography.Text type="danger" className="text-sm">
-              {error}
-            </Typography.Text>
+            <Typography.Text type="danger">{error}</Typography.Text>
           </div>
         )}
         {magicLinkSentTo && (
           <div className="mb-4">
-            <Typography.Text type="secondary" className="text-sm">
+            <Typography.Text type="secondary">
               {t('magicLinkSent', { email: magicLinkSentTo })}
             </Typography.Text>
           </div>
@@ -152,8 +147,8 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             {mode === 'sign-in' ? t('signIn') : t('signUp')}
           </Button>
 
-          <Divider plain className="my-1 text-xs text-[var(--ant-color-text-secondary)]">
-            {t('orDivider')}
+          <Divider plain className="my-1">
+            <Caption>{t('orDivider')}</Caption>
           </Divider>
 
           <Button

@@ -1,8 +1,8 @@
 'use client';
 
 import { type GuestTeamsResponse, UNASSIGNED_TEAM_FILTER } from '@playora/contracts';
-import { Button, Input, Popconfirm, Select, Tag } from 'antd';
-import { Search, Trash2, Upload } from 'lucide-react';
+import { Button, Flex, Input, Popconfirm, Select, Tag, Typography } from 'antd';
+import { Flag, Search, Trash2, Upload, Users, UserX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { RandomTeamsDialog } from './random-teams-dialog';
 
@@ -47,30 +47,46 @@ export function GuestsToolbar({
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold">{t('guests.teamsTitle')}</h2>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <Tag>{t('guests.totalGuests', { count: totalCount })}</Tag>
-            <Tag color="orange">
-              {t('guests.unassigned')}: {unassignedCount}
+    <Flex vertical gap={16}>
+      <Flex vertical gap={8}>
+        <Typography.Title level={5} className="!m-0">
+          {t('guests.teamsTitle')}
+        </Typography.Title>
+        <Flex wrap align="center" gap={4}>
+          <Tag icon={<Users className="size-3" />}>
+            {t('guests.totalGuests', { count: totalCount })}
+          </Tag>
+          <Tag color="orange" icon={<UserX className="size-3" />}>
+            {t('guests.unassigned')}: {unassignedCount}
+          </Tag>
+          {teamsData?.items.map((item) => (
+            <Tag key={item.team} color="blue" icon={<Flag className="size-3" />}>
+              {item.team}: {item.count}
             </Tag>
-            {teamsData?.items.map((item) => (
-              <Tag key={item.team} color="blue">
-                {item.team}: {item.count}
-              </Tag>
-            ))}
-          </div>
-        </div>
+          ))}
+        </Flex>
+      </Flex>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="primary" icon={<Upload className="size-4" />} onClick={onOpenImport}>
-            {t('guests.importTitle')}
-          </Button>
+      <Flex wrap align="center" justify="space-between" gap={12}>
+        <Flex wrap align="center" gap={12} className="min-w-0 flex-1">
+          <Input
+            className="max-w-80"
+            placeholder={t('guests.searchPlaceholder')}
+            allowClear
+            prefix={<Search className="size-4" />}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          <Select
+            className="w-52"
+            aria-label={t('guests.team')}
+            value={teamFilter}
+            onChange={onTeamFilterChange}
+            options={teamOptions}
+          />
+        </Flex>
 
-          <RandomTeamsDialog orgId={orgId} eventId={eventId} />
-
+        <Flex wrap align="center" gap={8}>
           {totalCount > 0 && (
             <Popconfirm
               title={t('guests.clearAll')}
@@ -83,26 +99,14 @@ export function GuestsToolbar({
               </Button>
             </Popconfirm>
           )}
-        </div>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          className="max-w-xs"
-          placeholder={t('guests.searchPlaceholder')}
-          allowClear
-          prefix={<Search className="size-4 text-[var(--ant-color-text-tertiary)]" />}
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-        <Select
-          className="w-52"
-          aria-label={t('guests.team')}
-          value={teamFilter}
-          onChange={onTeamFilterChange}
-          options={teamOptions}
-        />
-      </div>
-    </div>
+          <RandomTeamsDialog orgId={orgId} eventId={eventId} />
+
+          <Button type="primary" icon={<Upload className="size-4" />} onClick={onOpenImport}>
+            {t('guests.importTitle')}
+          </Button>
+        </Flex>
+      </Flex>
+    </Flex>
   );
 }

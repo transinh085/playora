@@ -9,7 +9,7 @@ import {
   type FormDescriptor,
   type WidgetProps,
 } from '@playora/ui/auto-form';
-import { Button, Collapse } from 'antd';
+import { Collapse, Segmented } from 'antd';
 import { useTranslations } from 'next-intl';
 import type * as React from 'react';
 import { useState } from 'react';
@@ -62,26 +62,21 @@ export function TemplatePanel({
 
   return (
     <div className="flex flex-col gap-4" data-testid="template-panel">
-      <div className="flex flex-wrap items-center gap-1.5" data-testid="editor-groups-column">
-        <Button
-          size="small"
-          type={selectedGroup === 'all' ? 'primary' : 'default'}
-          data-testid="editor-group-all"
-          onClick={() => setSelectedGroup('all')}
-        >
-          {t('games.groupAll')}
-        </Button>
-        {descriptor.groups.map((grp) => (
-          <Button
-            key={grp}
-            size="small"
-            type={selectedGroup === grp ? 'primary' : 'default'}
-            data-testid={`editor-group-${grp}`}
-            onClick={() => setSelectedGroup(grp)}
-          >
-            {groupLabel(grp)}
-          </Button>
-        ))}
+      <div data-testid="editor-groups-column">
+        <Segmented<string>
+          value={selectedGroup}
+          onChange={setSelectedGroup}
+          options={[
+            {
+              value: 'all',
+              label: <span data-testid="editor-group-all">{t('games.groupAll')}</span>,
+            },
+            ...descriptor.groups.map((grp) => ({
+              value: grp,
+              label: <span data-testid={`editor-group-${grp}`}>{groupLabel(grp)}</span>,
+            })),
+          ]}
+        />
       </div>
 
       <AutoForm

@@ -1,9 +1,10 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Button, Card, Tag } from 'antd';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Button, Card, Divider, Empty, Flex, Tag, Typography, theme } from 'antd';
+import { Palette, Pencil, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { IconTile } from '@/components/icon-tile';
 
 const COLOR_SLOTS = ['primary', 'secondary', 'background', 'text'] as const;
 
@@ -19,64 +20,91 @@ export function BrandKitList({
   onRemove: (brandKitId: string) => void;
 }) {
   const t = useTranslations();
+  const { token } = theme.useToken();
+  const cardStyle = { border: `1px solid ${token.colorBorderSecondary}` };
 
   if (items.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-[var(--ant-color-border)] p-10 text-center text-[var(--ant-color-text-secondary)]">
-        {t('brandKits.empty')}
-      </p>
+      <Card variant="borderless" style={cardStyle}>
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('brandKits.empty')} />
+      </Card>
     );
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2">
       {items.map((kit) => (
         <Card
           key={kit.id}
-          title={<span className="text-base font-semibold">{kit.name}</span>}
-          extra={
-            <div className="flex items-center gap-1.5">
-              {COLOR_SLOTS.map((slot) => {
-                const color = kit.tokens.colors[slot];
-                if (!color) return null;
-                return (
-                  <span
-                    key={slot}
-                    className="size-5 rounded-full border border-[var(--ant-color-border)]"
-                    style={{ backgroundColor: color }}
-                  />
-                );
-              })}
-            </div>
-          }
+          variant="borderless"
+          style={cardStyle}
+          styles={{ body: { padding: '16px 20px' } }}
         >
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap gap-1.5">
-              {kit.tokens.fontHeading && <Tag className="m-0">{kit.tokens.fontHeading}</Tag>}
-              {kit.tokens.fontBody && <Tag className="m-0">{kit.tokens.fontBody}</Tag>}
+          <Flex align="center" gap={12}>
+            <IconTile>
+              <Palette className="size-5" />
+            </IconTile>
+            <div className="min-w-0 flex-1">
+              <Typography.Text strong ellipsis className="block" style={{ fontSize: 15 }}>
+                {kit.name}
+              </Typography.Text>
+              <Flex align="center" gap={6} className="mt-1.5">
+                {COLOR_SLOTS.map((slot) => {
+                  const color = kit.tokens.colors[slot];
+                  if (!color) return null;
+                  return (
+                    <span
+                      key={slot}
+                      className="size-5 shrink-0"
+                      style={{
+                        backgroundColor: color,
+                        borderRadius: token.borderRadiusSM,
+                        border: `1px solid ${token.colorBorder}`,
+                      }}
+                    />
+                  );
+                })}
+              </Flex>
             </div>
+          </Flex>
 
-            <div className="flex justify-end gap-2 border-t border-[var(--ant-color-border-secondary)] pt-3">
-              <Button
-                htmlType="button"
-                size="small"
-                icon={<Pencil className="size-3.5" />}
-                onClick={() => onEdit(kit)}
-              >
-                {t('brandKits.edit')}
-              </Button>
-              <Button
-                htmlType="button"
-                type="text"
-                danger
-                size="small"
-                icon={<Trash2 className="size-4" />}
-                aria-label={t('common.delete')}
-                disabled={isRemoving}
-                onClick={() => onRemove(kit.id)}
-              />
-            </div>
-          </div>
+          {(kit.tokens.fontHeading || kit.tokens.fontBody) && (
+            <Flex wrap gap={8} className="mt-3">
+              {kit.tokens.fontHeading && (
+                <Tag variant="filled" className="!m-0">
+                  {kit.tokens.fontHeading}
+                </Tag>
+              )}
+              {kit.tokens.fontBody && (
+                <Tag variant="filled" className="!m-0">
+                  {kit.tokens.fontBody}
+                </Tag>
+              )}
+            </Flex>
+          )}
+
+          <Divider size="small" />
+
+          <Flex justify="end" gap={8}>
+            <Button
+              htmlType="button"
+              size="small"
+              icon={<Pencil className="size-3.5" />}
+              onClick={() => onEdit(kit)}
+            >
+              {t('brandKits.edit')}
+            </Button>
+            <Button
+              htmlType="button"
+              type="text"
+              danger
+              size="small"
+              icon={<Trash2 className="size-4" />}
+              aria-label={t('common.delete')}
+              disabled={isRemoving}
+              onClick={() => onRemove(kit.id)}
+            />
+          </Flex>
         </Card>
       ))}
     </div>

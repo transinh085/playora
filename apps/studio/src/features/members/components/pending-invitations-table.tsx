@@ -1,7 +1,9 @@
 'use client';
 
-import { Button, Empty, Popconfirm, Table, type TableProps, Tag } from 'antd';
+import { Button, Empty, Flex, Popconfirm, Table, type TableProps, Tag, Typography } from 'antd';
 import { useFormatter, useTranslations } from 'next-intl';
+import { Caption } from '@/components/caption';
+import { TableCard } from '@/components/table-card';
 import { isOrgRole, type OrgRole } from '@/lib/permissions';
 
 export interface InvitationItem {
@@ -35,7 +37,7 @@ export function PendingInvitationsTable({
       title: t('members.email'),
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <span className="font-medium">{email}</span>,
+      render: (email: string) => <Typography.Text strong>{email}</Typography.Text>,
     },
     {
       title: t('members.role'),
@@ -51,12 +53,12 @@ export function PendingInvitationsTable({
       dataIndex: 'expiresAt',
       key: 'expiresAt',
       render: (expiresAt: string | Date) => (
-        <span className="text-xs text-[var(--ant-color-text-secondary)]">
+        <Caption>
           {format.dateTime(new Date(expiresAt), {
             dateStyle: 'medium',
             timeStyle: 'short',
           })}
-        </span>
+        </Caption>
       ),
     },
     ...(canManage
@@ -68,7 +70,7 @@ export function PendingInvitationsTable({
             render: (_: unknown, inv: InvitationItem) => {
               const invRole: OrgRole = inv.role && isOrgRole(inv.role) ? inv.role : 'viewer';
               return (
-                <div className="flex justify-end gap-2">
+                <Flex justify="end" gap={8}>
                   <Button
                     size="small"
                     disabled={busyId === inv.id}
@@ -88,7 +90,7 @@ export function PendingInvitationsTable({
                       {t('members.cancelInvite')}
                     </Button>
                   </Popconfirm>
-                </div>
+                </Flex>
               );
             },
           },
@@ -97,22 +99,24 @@ export function PendingInvitationsTable({
   ];
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">{t('members.pendingTitle')}</h2>
-      {invitations.length === 0 ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={t('members.pendingEmpty')}
-          className="my-6"
-        />
-      ) : (
+    <section className="flex flex-col gap-3">
+      <Typography.Title level={5} className="!m-0">
+        {t('members.pendingTitle')}
+      </Typography.Title>
+      <TableCard>
         <Table<InvitationItem>
           rowKey="id"
           dataSource={invitations}
           columns={columns}
           pagination={false}
+          scroll={{ x: 560 }}
+          locale={{
+            emptyText: (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('members.pendingEmpty')} />
+            ),
+          }}
         />
-      )}
+      </TableCard>
     </section>
   );
 }

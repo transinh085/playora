@@ -3,6 +3,7 @@
 import { cn } from '@playora/ui/lib/utils';
 import {
   Button,
+  Card,
   ColorPicker,
   Form,
   type FormListFieldData,
@@ -14,11 +15,31 @@ import {
   Slider,
   Space,
   Switch,
+  Typography,
+  theme,
 } from 'antd';
 import { ArrowDown, ArrowUp, ImageIcon, Plus, Trash2 } from 'lucide-react';
 import type * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale, WidgetProps } from './types';
 import { createDefaultValueForField, resolveLocalized } from './utils';
+
+/** body-sm (12/20) secondary text for hints inside the form (mirrors Studio's `Caption`). */
+export function FieldHint({
+  children,
+  type = 'secondary',
+  ...rest
+}: Omit<React.ComponentProps<typeof Typography.Text>, 'style'>) {
+  const { token } = theme.useToken();
+  return (
+    <Typography.Text
+      type={type}
+      {...rest}
+      style={{ fontSize: token.fontSizeSM, lineHeight: token.lineHeightSM }}
+    >
+      {children}
+    </Typography.Text>
+  );
+}
 
 export function SliderWidgetControl(props: {
   id?: string;
@@ -90,7 +111,7 @@ export function ColorWidgetControl(props: {
         onChange={(_, cssHex) => onChange?.(cssHex)}
       />
       {brandPalette && brandPalette.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5" data-slot="brand-palette">
+        <div className="flex flex-wrap items-center gap-2" data-slot="brand-palette">
           {brandPalette.map((swatch) => (
             <button
               key={swatch}
@@ -101,7 +122,7 @@ export function ColorWidgetControl(props: {
               disabled={disabled}
               onClick={() => onChange?.(swatch)}
               className={cn(
-                'size-6 cursor-pointer rounded-full border transition-transform hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                'size-6 cursor-pointer rounded-full border disabled:cursor-not-allowed disabled:opacity-50',
                 colorStr.toLowerCase() === swatch.toLowerCase() && 'ring-2',
               )}
               style={{ backgroundColor: swatch }}
@@ -138,9 +159,9 @@ export function AssetWidgetControl(props: {
   return (
     <div className="grid gap-2" data-slot="asset-widget">
       {slot && (slot.ratio || slot.minPx) && (
-        <p className="text-xs opacity-70" data-slot="asset-constraints">
+        <FieldHint data-slot="asset-constraints">
           {[slot.ratio, slot.minPx ? `≥${slot.minPx}px` : undefined].filter(Boolean).join(' · ')}
-        </p>
+        </FieldHint>
       )}
       {props.renderAssetPicker ? (
         props.renderAssetPicker(pickerProps)
@@ -211,11 +232,12 @@ export function ListWidgetControl(props: {
         return (
           <div className="grid gap-3" data-slot="list-widget">
             {listFields.map((lf, idx) => (
-              <div key={lf.key} data-slot="list-item" className="grid gap-3 rounded-lg border p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold">
-                    {itemLabel} #{idx + 1}
-                  </span>
+              <Card
+                key={lf.key}
+                size="small"
+                data-slot="list-item"
+                title={`${itemLabel} #${idx + 1}`}
+                extra={
                   <div className="flex items-center gap-1">
                     <Button
                       type="text"
@@ -243,9 +265,10 @@ export function ListWidgetControl(props: {
                       onClick={() => canRemove && remove(lf.name)}
                     />
                   </div>
-                </div>
+                }
+              >
                 {renderItemFields(lf, idx)}
-              </div>
+              </Card>
             ))}
             <Button
               type="dashed"

@@ -93,15 +93,15 @@ describe('studioTheme', () => {
   test('maps primitive tokens into light and dark antd ThemeConfig', () => {
     const lightCfg = getStudioTheme('light');
     const darkCfg = getStudioTheme('dark');
-    expect(lightCfg.token?.colorPrimary).toBe(tokens.violet[600]);
-    expect(darkCfg.token?.colorPrimary).toBe(tokens.violet[400]);
+    expect(lightCfg.token?.colorPrimary).toBe(tokens.teal[600]);
+    expect(darkCfg.token?.colorPrimary).toBe(tokens.teal[400]);
 
     const light = antdTheme.getDesignToken(lightCfg);
     const dark = antdTheme.getDesignToken(darkCfg);
 
-    expect(light.colorPrimary.toLowerCase()).toBe(tokens.violet[600]);
+    expect(light.colorPrimary.toLowerCase()).toBe(tokens.teal[600]);
     expect(dark.colorPrimary).not.toBe('#000000');
-    expect(light.borderRadius).toBe(tokens.radius.lg);
-    expect(dark.borderRadius).toBe(tokens.radius.lg);
+    expect(light.borderRadius).toBe(8);
+    expect(dark.borderRadius).toBe(8);
   });
 });

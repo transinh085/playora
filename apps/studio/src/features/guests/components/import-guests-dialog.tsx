@@ -7,7 +7,7 @@ import type {
   PreviewGuestsResponse,
 } from '@playora/contracts';
 import { applyApiError } from '@playora/ui/form';
-import { Alert, App, Button, Form, Modal, Spin, Upload } from 'antd';
+import { Alert, App, Button, Flex, Form, Modal, Skeleton, Typography, theme, Upload } from 'antd';
 import { Upload as UploadIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -38,6 +38,7 @@ export function ImportGuestsDialog({
   const t = useTranslations();
   const { message } = App.useApp();
   const [form] = Form.useForm<FormValues>();
+  const { token } = theme.useToken();
 
   const [fileName, setFileName] = useState('');
   const [fileContent, setFileContent] = useState('');
@@ -139,19 +140,17 @@ export function ImportGuestsDialog({
       open={open}
       onCancel={handleClose}
       title={
-        <div className="flex items-center gap-2">
+        <Flex align="center" gap={8}>
           <UploadIcon className="size-4" />
           <span>{t('guests.importTitle')}</span>
-        </div>
+        </Flex>
       }
       width={720}
       footer={null}
       destroyOnHidden={false}
       forceRender
     >
-      <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">
-        {t('guests.importDescription')}
-      </p>
+      <Typography.Paragraph type="secondary">{t('guests.importDescription')}</Typography.Paragraph>
 
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="mb-4">
@@ -165,23 +164,15 @@ export function ImportGuestsDialog({
               return false;
             }}
           >
-            <p className="flex justify-center pb-2">
-              <UploadIcon className="size-8 text-[var(--ant-color-primary)]" />
+            <p className="ant-upload-drag-icon flex justify-center">
+              <UploadIcon className="size-8" style={{ color: token.colorPrimary }} />
             </p>
-            <p className="ant-upload-text text-sm font-medium">
-              {fileName || t('guests.selectFile')}
-            </p>
-            <p className="ant-upload-hint text-xs text-[var(--ant-color-text-tertiary)]">
-              {t('guests.importDescription')}
-            </p>
+            <p className="ant-upload-text">{fileName || t('guests.selectFile')}</p>
+            <p className="ant-upload-hint">{t('guests.importDescription')}</p>
           </Upload.Dragger>
         </div>
 
-        {previewMutation.isPending && (
-          <div className="my-6 flex justify-center">
-            <Spin />
-          </div>
-        )}
+        {previewMutation.isPending && <Skeleton active paragraph={{ rows: 3 }} className="my-6" />}
 
         {preview && (
           <ImportPreviewSection
@@ -195,13 +186,14 @@ export function ImportGuestsDialog({
           <Alert
             className="mt-4"
             type="warning"
+            showIcon
             title={t('guests.importSummary', {
               inserted: importResult.inserted,
               updated: importResult.updated,
               skipped: importResult.skipped,
             })}
             description={
-              <ul className="list-disc pl-4 text-xs">
+              <ul className="list-disc pl-4">
                 {importResult.errors.slice(0, 10).map((err) => (
                   <li key={err.row}>
                     {t('guests.rowErrorItem', { row: err.row, message: err.message })}
@@ -212,7 +204,7 @@ export function ImportGuestsDialog({
           />
         )}
 
-        <div className="mt-6 flex justify-end gap-2">
+        <Flex justify="end" gap={8} className="mt-6">
           <Button onClick={handleClose}>{t('common.cancel')}</Button>
           <Button
             type="primary"
@@ -223,7 +215,7 @@ export function ImportGuestsDialog({
           >
             {t('guests.importSubmit')}
           </Button>
-        </div>
+        </Flex>
       </Form>
     </Modal>
   );

@@ -1,9 +1,10 @@
 'use client';
 
 import { assetsApi, type ErrorCode } from '@playora/contracts';
-import { App, Button, Empty, Skeleton } from 'antd';
+import { App, Card, Empty, Skeleton, theme } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { QueryError } from '@/components/query-error';
 import { api } from '@/lib/api';
 import { useAssets, useInvalidateAssets, useRemoveAsset } from '../api';
 import {
@@ -19,6 +20,8 @@ import { AssetUploadToolbar } from './asset-upload-toolbar';
 export function AssetsManager({ orgId }: { orgId: string }) {
   const t = useTranslations();
   const { message } = App.useApp();
+  const { token } = theme.useToken();
+  const cardStyle = { border: `1px solid ${token.colorBorderSecondary}` };
   const invalidateAssets = useInvalidateAssets();
   const [filter, setFilter] = useState<FilterKind>('all');
   const [cropPreset, setCropPreset] = useState<CropPreset>('none');
@@ -77,26 +80,24 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       />
 
       {query.isPending ? (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[0, 1, 2].map((i) => (
-            <Skeleton.Node key={i} active className="!h-56 !w-full rounded-xl" />
+            <Card key={i} variant="borderless" style={cardStyle} styles={{ body: { padding: 0 } }}>
+              <Skeleton.Node active className="!h-40 !w-full" />
+              <div className="px-4 py-3.5">
+                <Skeleton active title={false} paragraph={{ rows: 2 }} />
+              </div>
+            </Card>
           ))}
         </div>
       ) : query.isError ? (
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-[var(--ant-color-error)]">{t('common.unknownError')}</span>
-          <Button size="small" onClick={() => query.refetch()}>
-            {t('common.retry')}
-          </Button>
-        </div>
+        <QueryError onRetry={() => query.refetch()} />
       ) : query.data.items.length === 0 ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={t('assets.empty')}
-          className="my-12"
-        />
+        <Card variant="borderless" style={cardStyle}>
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('assets.empty')} />
+        </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {query.data.items.map((asset) => (
             <AssetCard
               key={asset.id}

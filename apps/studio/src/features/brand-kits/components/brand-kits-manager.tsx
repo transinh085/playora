@@ -7,9 +7,10 @@ import {
   type ErrorCode,
 } from '@playora/contracts';
 import { applyApiError, useZodForm } from '@playora/ui/form';
-import { App, Button, Form, Skeleton, Typography } from 'antd';
+import { App, Form, Skeleton } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
+import { QueryError } from '@/components/query-error';
 import { useAssets } from '@/features/assets/api';
 import { useBrandKits, useCreateBrandKit, useRemoveBrandKit, useUpdateBrandKit } from '../api';
 import {
@@ -46,14 +47,7 @@ export function BrandKitsManager({ orgId }: { orgId: string }) {
   }
 
   if (kitsQuery.isError) {
-    return (
-      <div className="flex items-center gap-3 text-sm">
-        <Typography.Text type="danger">{t('common.unknownError')}</Typography.Text>
-        <Button size="small" onClick={() => kitsQuery.refetch()}>
-          {t('common.retry')}
-        </Button>
-      </div>
-    );
+    return <QueryError onRetry={() => kitsQuery.refetch()} />;
   }
 
   const kits = kitsQuery.data?.items ?? [];

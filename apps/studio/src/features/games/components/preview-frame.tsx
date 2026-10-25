@@ -71,10 +71,9 @@ export function PreviewFrame({
   return (
     <Card
       data-testid="editor-preview-column"
-      title={<span className="text-sm font-semibold">{t('games.previewTitle')}</span>}
+      title={t('games.previewTitle')}
       extra={
         <Select
-          size="small"
           value={outcome}
           onChange={onChangeOutcome}
           options={[

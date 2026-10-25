@@ -90,6 +90,8 @@ test('create games from template gallery, reorder, edit in 2-column builder with
   const publishDialog = page.getByTestId('publish-confirm-dialog');
   await expect(publishDialog).toContainText('v1');
   await publishDialog.getByTestId('confirm-publish-button').click();
+  // Wait for the closing animation: the modal wrap swallows clicks until it is gone.
+  await expect(publishDialog).toBeHidden();
 
   await expect(page.getByTestId('published-version-badge')).toContainText('Đã xuất bản v1');
 

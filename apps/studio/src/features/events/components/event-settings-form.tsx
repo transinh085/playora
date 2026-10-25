@@ -7,10 +7,11 @@ import {
   UpdateEventBody,
 } from '@playora/contracts';
 import { applyApiError, useZodForm } from '@playora/ui/form';
-import { App, Button, Form, Skeleton, Typography } from 'antd';
+import { App, Button, Form, Skeleton } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import type { z } from 'zod';
+import { QueryError } from '@/components/query-error';
 import { useBrandKits } from '@/features/brand-kits/api';
 import { useEvent, useUpdateEvent } from '../api';
 import { EventGeneralSection, EventScheduleSection } from './event-settings-form-general';
@@ -40,8 +41,6 @@ export function toEventSettingsFormValues(event: EventSummary): Values {
 }
 
 export function EventSettingsForm({ orgId, eventId }: { orgId: string; eventId: string }) {
-  const t = useTranslations();
-
   const eventQuery = useEvent(orgId, eventId);
   const kitsQuery = useBrandKits(orgId, 100);
 
@@ -50,14 +49,7 @@ export function EventSettingsForm({ orgId, eventId }: { orgId: string; eventId: 
   }
 
   if (eventQuery.isError || !eventQuery.data) {
-    return (
-      <div className="flex items-center gap-3 text-sm">
-        <Typography.Text type="danger">{t('common.unknownError')}</Typography.Text>
-        <Button size="small" onClick={() => eventQuery.refetch()}>
-          {t('common.retry')}
-        </Button>
-      </div>
-    );
+    return <QueryError onRetry={() => eventQuery.refetch()} />;
   }
 
   return (

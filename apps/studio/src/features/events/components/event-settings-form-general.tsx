@@ -125,7 +125,7 @@ export function EventScheduleSection({
   return (
     <Card title={t('events.scheduleTitle')}>
       <div className="grid gap-4">
-        <Typography.Paragraph type="secondary" className="mb-0 text-sm">
+        <Typography.Paragraph type="secondary" className="!m-0">
           {t('events.scheduleDescription')}
         </Typography.Paragraph>
 

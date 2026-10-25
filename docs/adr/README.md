@@ -15,3 +15,4 @@
 | [011](./011-remove-live-engine.md) | Gỡ live engine (realtime/LED) khỏi sản phẩm; code lưu ở tag `archive/live-engine` | Accepted | 24/10/2026 |
 | [012](./012-campaign-architecture.md) | Kiến trúc v2: play engine + prize engine trên API, Game SDK v2 (`instant`/`skill`), dữ liệu campaign | Accepted | 24/10/2026 |
 | [013](./013-antd-ui.md) | Chuyển giao diện sang Ant Design v6, form `useZodForm`, `StudioProvider`/`PlayProvider`, ngân sách bundle Play mới | Accepted | 24/10/2026 |
+| [014](./014-free-canvas-screen-editor.md) | Editor canvas tự do cho các màn của game (artboard 375, `gameStage` do template vẽ, một renderer cho Play và Studio) | Proposed | 25/10/2026 |

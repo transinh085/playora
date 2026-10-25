@@ -57,7 +57,9 @@ Phiên bản: **v3.0 (bản nháp)** · 25/10/2026 · Owner: Head of Product · 
 2. **Luật và giải:** cách phát giải, lượt chơi, khung giờ, quà theo ngày, giới hạn mỗi người, mã tham gia. Viết bằng câu dễ hiểu ("Mỗi khách quay 1 lần/ngày").
 3. **Flow:** bật/tắt form, chọn trường thu thập, màn kết quả, nút gọi Zalo hoặc đặt bàn.
 
-**Không** làm editor bố cục tự do (kéo vị trí phần tử).
+4. **Bố cục màn ([ADR-014](./adr/014-free-canvas-screen-editor.md), 25/10/2026):** canvas tự do cho mọi màn (Cover, Form, Kết quả…): đặt chữ, ảnh, nút, sticker ở vị trí tuỳ ý. Cơ chế game vẫn do template vẽ trong khung `gameStage`.
+
+~~**Không** làm editor bố cục tự do (kéo vị trí phần tử).~~ Thay bởi mục 4 ở trên.
 
 ---
 
@@ -104,7 +106,7 @@ Phiên bản: **v3.0 (bản nháp)** · 25/10/2026 · Owner: Head of Product · 
 
 - **Quiz / poll / bình chọn / dự đoán.**
 - **Game LED / sân khấu realtime** (code lưu ở tag `archive/live-engine`).
-- **Editor bố cục tự do**, canvas kéo-thả, editor logic kiểu Epub360.
+- ~~**Editor bố cục tự do**, canvas kéo-thả~~ (đang đề xuất làm, xem [ADR-014](./adr/014-free-canvas-screen-editor.md) và [15](./15-game-builder-plan.md)); vẫn **không** làm editor logic kiểu Epub360.
 - **Thương mại**: flash sale, mua nhóm, mặc cả, phân phối hoa hồng.
 - **Bộ SaaS đầy đủ** như 凡科 (web, shop, CRM, quản lý cửa hàng).
 - Lì xì tiền mặt, cá cược, chia quỹ thưởng, đổi thưởng ra tiền.

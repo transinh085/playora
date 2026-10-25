@@ -45,6 +45,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
 - UI: use components from `antd` and providers/theme/form helpers from `@playora/ui/{providers,theme,form,game}` (ADR-013); toast/confirm via `App.useApp()` (never static `message.*`); Tailwind only for layout/spacing, no hard-coded colors.
+- Before any UI work, read `docs/13-design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 
 ## Git

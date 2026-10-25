@@ -6,13 +6,39 @@ import {
   localize,
   type TemplateSummary,
 } from '@playora/contracts';
-import { App, Button, Empty, Tag, Typography } from 'antd';
-import { ArrowDown, ArrowUp, GripVertical, Pencil, Trash2 } from 'lucide-react';
+import { App, Button, Card, Empty, Tag, Typography, theme } from 'antd';
+import {
+  ArrowDown,
+  ArrowUp,
+  CircleCheck,
+  FerrisWheel,
+  Gamepad2,
+  Gift,
+  GripVertical,
+  type LucideIcon,
+  Pencil,
+  PencilLine,
+  ShoppingBasket,
+  Ticket,
+  Trash2,
+} from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { Caption } from '@/components/caption';
+import { IconTile, type Tone } from '@/components/icon-tile';
 import { useRemoveGame, useReorderGames } from '../api';
+
+/** Icon + tile tone per template, so each game row is recognisable at a glance. */
+const TEMPLATE_VISUALS: Record<string, { icon: LucideIcon; tone: Tone }> = {
+  'spin-wheel': { icon: FerrisWheel, tone: 'primary' },
+  'scratch-card': { icon: Ticket, tone: 'warning' },
+  'gift-box': { icon: Gift, tone: 'success' },
+  'catch-items': { icon: ShoppingBasket, tone: 'info' },
+};
+const DEFAULT_VISUAL = { icon: Gamepad2, tone: 'primary' as Tone };
 
 export function GameList({
   orgId,
@@ -28,6 +54,9 @@ export function GameList({
   const t = useTranslations();
   const locale = useLocale();
   const { message } = App.useApp();
+  const router = useRouter();
+  const { token } = theme.useToken();
+  const cardStyle = { border: `1px solid ${token.colorBorderSecondary}` };
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   const messageFor = (code: ErrorCode) => t(`errors.${code}`);
@@ -81,101 +110,120 @@ export function GameList({
 
   if (games.length === 0) {
     return (
-      <div
-        data-testid="games-empty-state"
-        className="rounded-lg border border-dashed border-[var(--ant-color-border)] p-8 text-center"
-      >
+      <Card variant="borderless" style={cardStyle} data-testid="games-empty-state">
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('games.empty')} />
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="grid gap-2" data-testid="games-list">
+    <div className="grid gap-3" data-testid="games-list">
       {games.map((game, idx) => {
         const tpl = templates.find((item) => item.id === game.templateId);
         const skinObj = tpl?.skins.find((s) => s.key === game.skinKey);
+        const editHref = `/orgs/${orgId}/events/${eventId}/games/${game.id}` as Route;
+        const visual = TEMPLATE_VISUALS[game.templateId] ?? DEFAULT_VISUAL;
+        const TemplateIcon = visual.icon;
         return (
-          // biome-ignore lint/a11y/noStaticElementInteractions: HTML5 drag-and-drop row; keyboard reorder uses the explicit Up/Down buttons
-          <div
+          <Card
             key={game.id}
+            variant="borderless"
+            style={{
+              ...cardStyle,
+              ...(draggedId === game.id && { opacity: 0.5 }),
+            }}
+            styles={{ body: { padding: '14px 16px' } }}
             draggable
             onDragStart={() => setDraggedId(game.id)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(game.id)}
             data-testid={`game-row-${game.id}`}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ant-color-border-secondary)] bg-[var(--ant-color-bg-container)] p-3 transition hover:border-[var(--ant-color-primary-border)]"
           >
-            <div className="flex items-center gap-3">
-              <GripVertical className="size-4 cursor-grab text-[var(--ant-color-text-tertiary)]" />
-              <Tag variant="filled" className="!m-0 font-mono text-xs">
-                #{idx + 1}
-              </Tag>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/orgs/${orgId}/events/${eventId}/games/${game.id}` as Route}
-                    className="font-medium text-[var(--ant-color-text)] hover:underline"
-                    data-testid={`game-link-${game.id}`}
-                  >
-                    {game.name}
-                  </Link>
-                  {game.currentVersion ? (
-                    <Tag color="success" variant="filled" data-testid={`game-status-${game.id}`}>
-                      {t('games.publishedBadge', { version: game.currentVersion })}
-                    </Tag>
-                  ) : (
-                    <Tag variant="filled" data-testid={`game-status-${game.id}`}>
-                      {t('games.statusDraft')}
-                    </Tag>
-                  )}
-                </div>
-                <Typography.Text type="secondary" className="text-xs">
-                  {tpl ? localize(tpl.name, locale) : game.templateId}
-                  {skinObj ? ` · ${localize(skinObj.name, locale)}` : ''}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <Typography.Text type="secondary" className="flex cursor-grab">
+                  <GripVertical className="size-4" />
                 </Typography.Text>
+                <IconTile tone={visual.tone}>
+                  <TemplateIcon className="size-5" />
+                </IconTile>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={editHref}
+                      data-testid={`game-link-${game.id}`}
+                      style={{ color: token.colorText, fontWeight: 600, fontSize: 15 }}
+                    >
+                      {game.name}
+                    </Link>
+                    {game.currentVersion ? (
+                      <Tag
+                        color="success"
+                        variant="filled"
+                        icon={<CircleCheck className="size-3" />}
+                        className="!m-0 inline-flex items-center gap-1"
+                        data-testid={`game-status-${game.id}`}
+                      >
+                        {t('games.publishedBadge', { version: game.currentVersion })}
+                      </Tag>
+                    ) : (
+                      <Tag
+                        variant="filled"
+                        icon={<PencilLine className="size-3" />}
+                        className="!m-0 inline-flex items-center gap-1"
+                        data-testid={`game-status-${game.id}`}
+                      >
+                        {t('games.statusDraft')}
+                      </Tag>
+                    )}
+                  </div>
+                  <Caption>
+                    #{idx + 1} · {tpl ? localize(tpl.name, locale) : game.templateId}
+                    {skinObj ? ` · ${localize(skinObj.name, locale)}` : ''}
+                  </Caption>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-1.5">
-              <Button
-                type="text"
-                size="small"
-                icon={<ArrowUp className="size-4" />}
-                aria-label={t('games.moveUp')}
-                data-testid={`game-move-up-${game.id}`}
-                disabled={idx === 0 || reorderMutation.isPending}
-                onClick={() => moveGame(idx, -1)}
-              />
-              <Button
-                type="text"
-                size="small"
-                icon={<ArrowDown className="size-4" />}
-                aria-label={t('games.moveDown')}
-                data-testid={`game-move-down-${game.id}`}
-                disabled={idx === games.length - 1 || reorderMutation.isPending}
-                onClick={() => moveGame(idx, 1)}
-              />
-              <Link
-                href={`/orgs/${orgId}/events/${eventId}/games/${game.id}` as Route}
-                data-testid={`game-edit-${game.id}`}
-              >
-                <Button size="small" icon={<Pencil className="size-3.5" />}>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<ArrowUp className="size-4" />}
+                  aria-label={t('games.moveUp')}
+                  data-testid={`game-move-up-${game.id}`}
+                  disabled={idx === 0 || reorderMutation.isPending}
+                  onClick={() => moveGame(idx, -1)}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<ArrowDown className="size-4" />}
+                  aria-label={t('games.moveDown')}
+                  data-testid={`game-move-down-${game.id}`}
+                  disabled={idx === games.length - 1 || reorderMutation.isPending}
+                  onClick={() => moveGame(idx, 1)}
+                />
+                <Button
+                  size="small"
+                  icon={<Pencil className="size-4" />}
+                  data-testid={`game-edit-${game.id}`}
+                  onClick={() => router.push(editHref)}
+                >
                   {t('games.editGame')}
                 </Button>
-              </Link>
-              <Button
-                type="text"
-                danger
-                size="small"
-                icon={<Trash2 className="size-4" />}
-                aria-label={t('games.deleteGame')}
-                data-testid={`game-delete-${game.id}`}
-                disabled={removeMutation.isPending}
-                onClick={() => removeMutation.mutate({ params: { orgId, gameId: game.id } })}
-              />
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<Trash2 className="size-4" />}
+                  aria-label={t('games.deleteGame')}
+                  data-testid={`game-delete-${game.id}`}
+                  disabled={removeMutation.isPending}
+                  onClick={() => removeMutation.mutate({ params: { orgId, gameId: game.id } })}
+                />
+              </div>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>

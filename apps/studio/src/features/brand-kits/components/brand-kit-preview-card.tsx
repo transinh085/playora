@@ -25,10 +25,7 @@ export function BrandKitPreviewCard({
   const bgAsset = imageAssets.find((a) => a.id === watchedTokens?.backgroundAssetId);
 
   return (
-    <Card
-      title={<span className="text-base font-semibold">{t('brandKits.previewTitle')}</span>}
-      className="h-fit"
-    >
+    <Card title={t('brandKits.previewTitle')} className="h-fit">
       <GameRoot
         brand={{
           primary: watchedTokens?.colors?.primary,

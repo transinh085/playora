@@ -1,5 +1,5 @@
 import { theme as antdTheme, type ThemeConfig } from 'antd';
-import { font, ink, radius, spotlight, stage, violet } from './tokens';
+import { font, ink, radius, spotlight, stage, teal, violet } from './tokens';
 
 /**
  * Runtime theming for game surfaces (player, kiosk).
@@ -75,7 +75,7 @@ export const skinPalettes: Record<Skin, SkinPalette> = {
   day: {
     bg: ink[50],
     fg: ink[950],
-    primary: violet[600],
+    primary: teal[600],
     primaryFg: '#fcfcfc',
     accent: spotlight[400],
     accentFg: ink[950],

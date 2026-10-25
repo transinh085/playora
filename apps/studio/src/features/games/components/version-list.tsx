@@ -1,8 +1,10 @@
 'use client';
 
 import { type GameVersionSummary, localize, type TemplateSkinSummary } from '@playora/contracts';
-import { Empty, Tag, Typography } from 'antd';
+import { Divider, Empty, Tag } from 'antd';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { Fragment } from 'react';
+import { Caption } from '@/components/caption';
 
 export function VersionList({
   versions,
@@ -26,43 +28,39 @@ export function VersionList({
   }
 
   return (
-    <div className="grid gap-2" data-testid="version-list">
-      {versions.map((ver) => {
+    <div className="flex flex-col" data-testid="version-list">
+      {versions.map((ver, idx) => {
         const isCurrent = ver.version === currentVersion;
         const skinObj = skins.find((s) => s.key === ver.skinKey);
         return (
-          <div
-            key={ver.id}
-            data-testid={`version-row-${ver.version}`}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--ant-color-border-secondary)] p-3"
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Tag color="processing" variant="filled" className="!m-0 font-mono">
-                  v{ver.version}
-                </Tag>
-                {isCurrent && (
-                  <Tag color="success" variant="filled" className="!m-0">
-                    {t('games.versionCurrent')}
+          <Fragment key={ver.id}>
+            {idx > 0 && <Divider className="!my-3" />}
+            <div
+              data-testid={`version-row-${ver.version}`}
+              className="flex flex-wrap items-center justify-between gap-2"
+            >
+              <div className="flex flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Tag color="processing" variant="filled" className="!m-0">
+                    v{ver.version}
                   </Tag>
-                )}
-                {skinObj && (
-                  <Typography.Text type="secondary" className="text-xs">
-                    {localize(skinObj.name, locale)}
-                  </Typography.Text>
-                )}
+                  {isCurrent && (
+                    <Tag color="success" variant="filled" className="!m-0">
+                      {t('games.versionCurrent')}
+                    </Tag>
+                  )}
+                  {skinObj && <Caption>{localize(skinObj.name, locale)}</Caption>}
+                </div>
+                <Caption>{t('games.versionHash', { hash: ver.configHash.slice(0, 8) })}</Caption>
               </div>
-              <Typography.Text type="secondary" className="font-mono text-xs">
-                {t('games.versionHash', { hash: ver.configHash.slice(0, 8) })}
-              </Typography.Text>
+              <Caption>
+                {format.dateTime(new Date(ver.createdAt), {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })}
+              </Caption>
             </div>
-            <Typography.Text type="secondary" className="text-xs">
-              {format.dateTime(new Date(ver.createdAt), {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
-            </Typography.Text>
-          </div>
+          </Fragment>
         );
       })}
     </div>

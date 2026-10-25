@@ -12,7 +12,7 @@ Cập nhật: 24/10/2026 (phân kỳ theo [00](./00-product-strategy.md) v2.1) �
 
 **Nguyên tắc (rút ra từ nghiên cứu):**
 
-1. **Engine cố định + cấu hình** (giống 凡科/Guandayun, Drimify). Không có canvas tự do ở v1. Template là code; người dùng chỉ đổi cấu hình, asset và skin.
+1. **Engine cố định + cấu hình** (giống 凡科/Guandayun, Drimify). Template là code: cơ chế game, luật và giải là cấu hình. **[ADR-014]** Bố cục mỗi màn là **canvas tự do** do người dùng soạn; cơ chế game nằm trong khung `gameStage`.
 2. **Một flow chuẩn cho mọi game** (giống Drimify, Qualifio). Học một lần, dùng cho mọi template.
 3. **Prize, Participation, Anti-cheat, Data là dịch vụ nền tảng**, không nằm trong template. Template mới tự động thừa hưởng toàn bộ.
 4. **Kế thừa theo tầng** Org → Client (Brand) → Event → Game (giống Qualifio). Sửa brand kit một lần thì mọi game đổi theo.
@@ -116,6 +116,10 @@ Mỗi màn có: nền (ảnh/màu/video ngắn), tiêu đề, nội dung rich te
 - **[v3] Thứ tự trong tab Giải thưởng:** chọn **cách phát giải** (`mode`, §6.2) trước, sau đó chỉ hiện các trường mà mode đó cần (học từ 派奖方式 của 凡科). Tab "Luật & điều kiện" vẫn tách riêng.
 - **[v3] Link nháp chơi thử:** chia sẻ QR/link nháp cho tối đa N người thật (mặc định 20) chơi thử trước khi publish, không tính quota, dữ liệu `env=rehearsal`.
 
+### 4.1a Canvas editor [ADR-014]
+
+Bố cục 3 cột ở §4.1 đổi thành: **cột trái** = danh sách màn (Flow) + bảng lớp của màn đang chọn (kéo đổi thứ tự); **giữa** = canvas artboard 375 (kéo, đổi kích thước, xoay, snap); **phải** = thuộc tính phần tử đang chọn (hoặc thuộc tính màn khi không chọn gì). Thanh công cụ trên canvas: thêm phần tử (chữ, ảnh, nút, hình, đếm ngược, danh sách giải), undo/redo, zoom, xem thử. Các tab cấu hình cũ (Gameplay, Giải thưởng, Luật, Nâng cao) vẫn giữ ở cột phải khi chọn màn Game hoặc mở mục cấu hình. Chi tiết dữ liệu và loại phần tử: [ADR-014](./adr/014-free-canvas-screen-editor.md).
+
 ### 4.1b Bố cục mobile [v3]
 
 Bố cục 3 cột ở trên chỉ dùng cho màn hình rộng. Trên điện thoại (bản chính):
@@ -138,7 +142,7 @@ Bố cục 3 cột ở trên chỉ dùng cho màn hình rộng. Trên điện th
 - **Giải:** chọn cách phát giải → danh sách giải → số lượng → giới hạn mỗi người.
 - **Luật:** lượt chơi, khung giờ, form; mỗi luật hiện bằng một câu dễ hiểu ("Mỗi khách quay 1 lần/ngày").
 - **Thêm:** brand kit, kênh/QR, nâng cao.
-- Không có kéo-thả bố cục ([00 §4](./00-product-strategy.md#4-định-vị)).
+- **[ADR-014]** Canvas trên điện thoại: chạm chọn, kéo di chuyển, sửa chữ/ảnh/màu trong bottom sheet; đổi kích thước bằng thanh trượt.
 
 ### 4.2 Auto-form từ zod
 

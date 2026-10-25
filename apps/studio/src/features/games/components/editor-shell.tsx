@@ -2,11 +2,12 @@
 
 import { localize } from '@playora/contracts';
 import type { AssetPickerRenderProps } from '@playora/ui/auto-form';
-import { Alert, Button, Card, Empty, Input, Select, Skeleton, Tabs, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Input, Select, Skeleton, Tabs, Tag } from 'antd';
 import { ArrowLeft, Rocket, Save } from 'lucide-react';
 import type { Route } from 'next';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { QueryError } from '@/components/query-error';
 import { useGameEditor } from '../lib/use-game-editor';
 import { AssetPickerDialog } from './asset-picker-dialog';
 import { ContentPanel } from './content-panel';
@@ -28,6 +29,7 @@ export function EditorShell({
   surfaces?: TemplateEditorSurfaces;
 }) {
   const t = useTranslations();
+  const router = useRouter();
   const editor = useGameEditor({ orgId, eventId, gameId });
 
   if (editor.isPending) {
@@ -44,11 +46,7 @@ export function EditorShell({
   }
 
   if (editor.isError || !editor.game || !editor.template || !editor.descriptor) {
-    return (
-      <Typography.Text type="danger" className="text-sm">
-        {t('common.unknownError')}
-      </Typography.Text>
-    );
+    return <QueryError />;
   }
 
   const { game, template, descriptor } = editor;
@@ -69,65 +67,65 @@ export function EditorShell({
   return (
     <div className="flex flex-col gap-4" data-testid="game-editor">
       {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ant-color-border-secondary)] bg-[var(--ant-color-bg-container)] p-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href={backHref}>
+      <Card size="small">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               type="text"
-              shape="circle"
               icon={<ArrowLeft className="size-4" />}
               aria-label={t('games.backToEvent')}
+              onClick={() => router.push(backHref)}
             />
-          </Link>
-          <Input
-            value={editor.name}
-            onChange={(e) => editor.setName(e.target.value)}
-            data-testid="editor-game-name"
-            className="!w-56 font-semibold"
-            aria-label={t('games.gameNameLabel')}
-          />
-          <Select
-            value={editor.skinKey || template.skins[0]?.key || ''}
-            onChange={editor.setSkinKey}
-            options={template.skins.map((s) => ({
-              value: s.key,
-              label: localize(s.name, editor.locale),
-            }))}
-            className="w-44"
-            data-testid="editor-skin-select"
-            aria-label={t('games.skinLabel')}
-          />
-          {currentVersionNumber ? (
-            <Tag color="success" variant="filled" data-testid="published-version-badge">
-              {t('games.publishedBadge', { version: currentVersionNumber })}
-            </Tag>
-          ) : (
-            <Tag variant="filled" data-testid="draft-status-badge">
-              {t('games.statusDraft')}
-            </Tag>
-          )}
-        </div>
+            <Input
+              value={editor.name}
+              onChange={(e) => editor.setName(e.target.value)}
+              data-testid="editor-game-name"
+              className="!w-56"
+              aria-label={t('games.gameNameLabel')}
+            />
+            <Select
+              value={editor.skinKey || template.skins[0]?.key || ''}
+              onChange={editor.setSkinKey}
+              options={template.skins.map((s) => ({
+                value: s.key,
+                label: localize(s.name, editor.locale),
+              }))}
+              className="w-44"
+              data-testid="editor-skin-select"
+              aria-label={t('games.skinLabel')}
+            />
+            {currentVersionNumber ? (
+              <Tag color="success" variant="filled" data-testid="published-version-badge">
+                {t('games.publishedBadge', { version: currentVersionNumber })}
+              </Tag>
+            ) : (
+              <Tag variant="filled" data-testid="draft-status-badge">
+                {t('games.statusDraft')}
+              </Tag>
+            )}
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            icon={<Save className="size-4" />}
-            data-testid="save-draft-button"
-            loading={editor.isSaving}
-            onClick={editor.handleSaveDraft}
-          >
-            {t('games.saveDraft')}
-          </Button>
-          <Button
-            type="primary"
-            icon={<Rocket className="size-4" />}
-            data-testid="publish-button"
-            loading={editor.isPublishing}
-            onClick={() => editor.setPublishDialogOpen(true)}
-          >
-            {t('games.publish')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              icon={<Save className="size-4" />}
+              data-testid="save-draft-button"
+              loading={editor.isSaving}
+              onClick={editor.handleSaveDraft}
+            >
+              {t('games.saveDraft')}
+            </Button>
+            <Button
+              type="primary"
+              icon={<Rocket className="size-4" />}
+              data-testid="publish-button"
+              loading={editor.isPublishing}
+              onClick={() => editor.setPublishDialogOpen(true)}
+            >
+              {t('games.publish')}
+            </Button>
+          </div>
         </div>
-      </div>
+      </Card>
 
       {/* Warning banner when editing non-hotEditable fields after publish */}
       {editor.showLockedWarning && (

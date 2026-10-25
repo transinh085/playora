@@ -1,7 +1,7 @@
 'use client';
 
 import { buildEventJoinUrl } from '@playora/contracts';
-import { App, Button, Card, Form, Input } from 'antd';
+import { App, Button, Card, Flex, Form, Input, Typography } from 'antd';
 import { Copy, Download, QrCode } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
@@ -39,13 +39,13 @@ export function JoinQrCard({ slug }: { slug: string }) {
   return (
     <Card
       title={
-        <div className="flex items-center gap-2">
+        <Flex align="center" gap={8}>
           <QrCode className="size-4" />
           <span>{t('qrTitle')}</span>
-        </div>
+        </Flex>
       }
     >
-      <p className="mb-4 text-sm text-[var(--ant-color-text-secondary)]">{t('qrDescription')}</p>
+      <Typography.Paragraph type="secondary">{t('qrDescription')}</Typography.Paragraph>
       <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
         <div className="flex size-36 items-center justify-center rounded-lg border border-[var(--ant-color-border-secondary)] bg-[var(--ant-color-bg-container)] p-2">
           {qrDataUrl ? (
@@ -66,13 +66,10 @@ export function JoinQrCard({ slug }: { slug: string }) {
               />
             </Form.Item>
           </Form>
-          <p
-            className="truncate font-mono text-xs text-[var(--ant-color-text-secondary)]"
-            data-testid="join-url"
-          >
+          <Typography.Text type="secondary" ellipsis className="font-mono" data-testid="join-url">
             {joinUrl}
-          </p>
-          <div className="flex flex-wrap gap-2">
+          </Typography.Text>
+          <Flex wrap gap={8}>
             <Button icon={<Copy className="size-4" />} onClick={copyLink}>
               {t('copyLink')}
             </Button>
@@ -85,7 +82,7 @@ export function JoinQrCard({ slug }: { slug: string }) {
                 {t('downloadPng')}
               </Button>
             )}
-          </div>
+          </Flex>
         </div>
       </div>
     </Card>

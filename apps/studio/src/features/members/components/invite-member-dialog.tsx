@@ -1,7 +1,7 @@
 'use client';
 
 import { useZodForm } from '@playora/ui/form';
-import { App, Button, Form, Input, Modal, Select } from 'antd';
+import { App, Button, Flex, Form, Input, Modal, Select, Typography } from 'antd';
 import { UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -65,7 +65,7 @@ export function InviteMemberDialog({
 
   return (
     <>
-      <Button icon={<UserPlus className="size-4" />} onClick={() => setOpen(true)}>
+      <Button type="primary" icon={<UserPlus className="size-4" />} onClick={() => setOpen(true)}>
         {t('members.invite')}
       </Button>
 
@@ -79,9 +79,9 @@ export function InviteMemberDialog({
         footer={null}
         destroyOnHidden
       >
-        <p className="mb-6 text-sm text-[var(--ant-color-text-secondary)]">
+        <Typography.Paragraph type="secondary">
           {t('members.inviteDescription')}
-        </p>
+        </Typography.Paragraph>
 
         <Form
           form={form}
@@ -103,12 +103,12 @@ export function InviteMemberDialog({
             />
           </Form.Item>
 
-          <div className="mt-6 flex justify-end gap-2">
+          <Flex justify="end" gap={8} className="mt-6">
             <Button onClick={() => setOpen(false)}>{t('common.cancel')}</Button>
             <Button type="primary" htmlType="submit" loading={isSubmitting}>
               {t('members.sendInvite')}
             </Button>
-          </div>
+          </Flex>
         </Form>
       </Modal>
     </>

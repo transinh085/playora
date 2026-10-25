@@ -1,7 +1,19 @@
 'use client';
 
-import { Avatar, Button, Popconfirm, Select, Table, type TableProps, Tag } from 'antd';
+import {
+  Avatar,
+  Button,
+  Flex,
+  Popconfirm,
+  Select,
+  Table,
+  type TableProps,
+  Tag,
+  Typography,
+} from 'antd';
 import { useTranslations } from 'next-intl';
+import { Caption } from '@/components/caption';
+import { TableCard } from '@/components/table-card';
 import { isOwnerRole, type OrgRole, parseMemberRoles } from '@/lib/permissions';
 
 export interface MemberItem {
@@ -48,20 +60,18 @@ export function MembersTable({
       render: (_, member) => {
         const isSelf = member.userId === currentUserId;
         return (
-          <div className="flex items-center gap-3">
+          <Flex align="center" gap={12}>
             <Avatar size={32}>
               {(member.user.name || member.user.email).slice(0, 1).toUpperCase()}
             </Avatar>
-            <div>
-              <div className="flex items-center gap-2 font-medium">
-                <span>{member.user.name}</span>
+            <Flex vertical>
+              <Flex align="center" gap={8}>
+                <Typography.Text strong>{member.user.name}</Typography.Text>
                 {isSelf && <Tag variant="filled">{t('members.you')}</Tag>}
-              </div>
-              <div className="text-xs text-[var(--ant-color-text-secondary)]">
-                {member.user.email}
-              </div>
-            </div>
-          </div>
+              </Flex>
+              <Caption>{member.user.email}</Caption>
+            </Flex>
+          </Flex>
         );
       },
     },
@@ -129,6 +139,14 @@ export function MembersTable({
   ];
 
   return (
-    <Table<MemberItem> rowKey="id" dataSource={members} columns={columns} pagination={false} />
+    <TableCard>
+      <Table<MemberItem>
+        rowKey="id"
+        dataSource={members}
+        columns={columns}
+        pagination={false}
+        scroll={{ x: 560 }}
+      />
+    </TableCard>
   );
 }

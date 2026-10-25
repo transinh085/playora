@@ -1,9 +1,19 @@
 'use client';
 
 import type { GuestEntry } from '@playora/contracts';
-import { Button, Empty, Popconfirm, Table, type TableColumnsType, Tag } from 'antd';
+import {
+  Button,
+  Empty,
+  Flex,
+  Popconfirm,
+  Table,
+  type TableColumnsType,
+  Tag,
+  Typography,
+} from 'antd';
 import { Trash2, Unlock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Caption } from '@/components/caption';
 
 export interface GuestsTableProps {
   guests: GuestEntry[];
@@ -29,26 +39,20 @@ export function GuestsTable({
       title: t('guests.code'),
       dataIndex: 'externalCode',
       key: 'externalCode',
-      render: (code: string) => <span className="font-mono text-xs">{code}</span>,
+      render: (code: string) => <Typography.Text code>{code}</Typography.Text>,
     },
     {
       title: t('guests.displayName'),
       dataIndex: 'displayName',
       key: 'displayName',
-      render: (name: string) => <span className="font-medium">{name}</span>,
+      render: (name: string) => <Typography.Text strong>{name}</Typography.Text>,
     },
     {
       title: t('guests.team'),
       dataIndex: 'team',
       key: 'team',
       render: (team: string | null) =>
-        team ? (
-          <Tag color="blue">{team}</Tag>
-        ) : (
-          <span className="text-xs text-[var(--ant-color-text-tertiary)]">
-            {t('guests.unassigned')}
-          </span>
-        ),
+        team ? <Tag color="blue">{team}</Tag> : <Caption>{t('guests.unassigned')}</Caption>,
     },
     {
       title: t('guests.attributes'),
@@ -58,9 +62,7 @@ export function GuestsTable({
         const text = Object.entries(attributes ?? {})
           .map(([k, v]) => `${k}: ${v}`)
           .join(' · ');
-        return (
-          <span className="text-xs text-[var(--ant-color-text-secondary)]">{text || '—'}</span>
-        );
+        return <Caption>{text || '—'}</Caption>;
       },
     },
     {
@@ -69,11 +71,11 @@ export function GuestsTable({
       width: 160,
       align: 'right',
       render: (_: unknown, guest: GuestEntry) => (
-        <div className="flex items-center justify-end gap-1">
+        <Flex align="center" justify="end" gap={4}>
           {guest.checkedInAt && (
             <Button
               size="small"
-              icon={<Unlock className="size-3.5" />}
+              icon={<Unlock className="size-4" />}
               disabled={isReleasing}
               onClick={() => onReleaseDevice(guest.id)}
             >
@@ -94,7 +96,7 @@ export function GuestsTable({
               disabled={isRemoving}
             />
           </Popconfirm>
-        </div>
+        </Flex>
       ),
     },
   ];
@@ -108,13 +110,7 @@ export function GuestsTable({
       pagination={false}
       scroll={{ x: 600 }}
       locale={{
-        emptyText: (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t('guests.empty')}
-            className="py-8"
-          />
-        ),
+        emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('guests.empty')} />,
       }}
     />
   );

@@ -2,7 +2,7 @@
 
 import { Slug } from '@playora/contracts';
 import { useZodForm } from '@playora/ui/form';
-import { App, Button, Card, Form, Input } from 'antd';
+import { App, Button, Card, Form, Input, Typography } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -55,8 +55,10 @@ export function OnboardingForm() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col py-16">
-      <Card title={<span className="text-xl font-semibold">{t('title')}</span>}>
-        <p className="mb-6 text-sm text-[var(--ant-color-text-secondary)]">{t('description')}</p>
+      <Card title={t('title')}>
+        <Typography.Paragraph type="secondary" className="mb-6">
+          {t('description')}
+        </Typography.Paragraph>
         <Form
           form={form}
           layout="vertical"

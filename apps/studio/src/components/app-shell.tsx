@@ -1,16 +1,35 @@
 'use client';
 
 import type { MyOrg } from '@playora/contracts';
-import { Avatar, Button, Dropdown, Layout, Menu, type MenuProps } from 'antd';
+import {
+  Avatar,
+  Breadcrumb,
+  Button,
+  Drawer,
+  Dropdown,
+  Flex,
+  Grid,
+  Layout,
+  Menu,
+  type MenuProps,
+  Tooltip,
+  Typography,
+  theme,
+} from 'antd';
 import {
   BarChart3,
   CalendarDays,
+  ChevronsUpDown,
   Gamepad2,
   ImageIcon,
   LogOut,
+  Menu as MenuIcon,
   Moon,
   Palette,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
+  Shapes,
   Sun,
 } from 'lucide-react';
 import type { Route } from 'next';
@@ -18,24 +37,59 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
+import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
-import { Logo } from './logo';
+import { Caption } from './caption';
+import { LogoMark } from './logo';
 
 const { Sider, Header, Content } = Layout;
 
-const nav = [
-  { key: 'events', icon: CalendarDays, path: 'events' },
-  { key: 'brandKits', icon: Palette, path: 'brand-kits' },
-  { key: 'assets', icon: ImageIcon, path: 'assets' },
-  { key: 'templates', icon: Gamepad2, path: 'templates' },
-  { key: 'reports', icon: BarChart3, path: 'reports' },
-  { key: 'settings', icon: Settings, path: 'settings' },
-] as const;
+type NavKey =
+  | 'events'
+  | 'templates'
+  | 'reports'
+  | 'brandKits'
+  | 'assets'
+  | 'settings'
+  | 'canvasLab';
+interface NavItem {
+  key: NavKey;
+  icon: typeof CalendarDays;
+  path: string;
+}
+
+/** Sidebar navigation, grouped like the games-vt admin (docs/13 §5). */
+const NAV_GROUPS: { key: 'campaigns' | 'brand' | 'organization' | 'labs'; items: NavItem[] }[] = [
+  {
+    key: 'campaigns',
+    items: [
+      { key: 'events', icon: CalendarDays, path: 'events' },
+      { key: 'templates', icon: Gamepad2, path: 'templates' },
+      { key: 'reports', icon: BarChart3, path: 'reports' },
+    ],
+  },
+  {
+    key: 'brand',
+    items: [
+      { key: 'brandKits', icon: Palette, path: 'brand-kits' },
+      { key: 'assets', icon: ImageIcon, path: 'assets' },
+    ],
+  },
+  { key: 'organization', items: [{ key: 'settings', icon: Settings, path: 'settings' }] },
+  { key: 'labs', items: [{ key: 'canvasLab', icon: Shapes, path: 'labs/canvas' }] },
+];
+
+const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
 
 export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
+  const { token } = theme.useToken();
+  const screens = Grid.useBreakpoint();
+  const isMobile = screens.md === false;
+  const [collapsed, setCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { orgId } = useParams<{ orgId?: string }>();
   const { data: session } = authClient.useSession();
   const { resolvedTheme, setTheme } = useTheme();
@@ -48,123 +102,209 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   }
 
   const activeNav = current
-    ? nav.find(({ path }) => pathname.startsWith(`/orgs/${current.id}/${path}`))
+    ? NAV.find(({ path }) => pathname.startsWith(`/orgs/${current.id}/${path}`))
     : undefined;
-  const selectedNavKey = activeNav?.key;
-
-  const orgMenuItems: MenuProps['items'] = orgs.map((org) => ({
-    key: org.id,
-    label: org.name,
-    onClick: () => router.push(`/orgs/${org.id}/events`),
-  }));
+  const inEvent = /\/events\/[^/]+/.test(pathname);
 
   const navMenuItems: MenuProps['items'] = current
-    ? nav.map(({ key, icon: Icon, path }) => {
-        const href = `/orgs/${current.id}/${path}`;
-        return {
+    ? NAV_GROUPS.map((group) => ({
+        key: group.key,
+        type: 'group',
+        label: t(`navGroups.${group.key}`).toUpperCase(),
+        children: group.items.map(({ key, icon: Icon, path }) => ({
           key,
           icon: <Icon className="size-4" />,
-          label: <Link href={href as Route}>{t(`nav.${key}`)}</Link>,
-        };
-      })
+          label: (
+            <Link
+              href={`/orgs/${current.id}/${path}` as Route}
+              onClick={() => setDrawerOpen(false)}
+            >
+              {t(`nav.${key}`)}
+            </Link>
+          ),
+        })),
+      }))
     : [];
+
+  const breadcrumbs = [
+    { title: <Link href="/">{t('shell.home')}</Link> },
+    // Plain text, not links: the sidebar already links each section (and e2e finds those by name).
+    ...(activeNav ? [{ title: t(`nav.${activeNav.key}`) }] : []),
+    ...(inEvent ? [{ title: t('shell.eventDetail') }] : []),
+  ];
+
+  const showLabels = !collapsed || isMobile;
+  const userName = session?.user.name ?? '';
+
+  const sidebar = (
+    <Flex vertical className="h-full">
+      <Link
+        href="/"
+        aria-label={t('common.appName')}
+        className="flex h-16 shrink-0 items-center gap-3"
+        style={{
+          padding: showLabels ? '0 24px' : '0 20px',
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          color: 'inherit',
+        }}
+      >
+        <LogoMark className="size-9" aria-hidden />
+        {showLabels && (
+          <div className="min-w-0">
+            <div
+              className="font-display"
+              style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}
+            >
+              playora
+            </div>
+            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+              {t('shell.studio')}
+            </Typography.Text>
+          </div>
+        )}
+      </Link>
+      {current && showLabels && (
+        <div className="px-4 pt-4">
+          <Dropdown
+            menu={{
+              items: orgs.map((org) => ({
+                key: org.id,
+                label: org.name,
+                onClick: () => router.push(`/orgs/${org.id}/events`),
+              })),
+              selectedKeys: [current.id],
+            }}
+            trigger={['click']}
+          >
+            <Button block aria-label={t('shell.switchOrg')} className="!justify-between">
+              <Typography.Text ellipsis>{current.name}</Typography.Text>
+              <ChevronsUpDown className="size-4 shrink-0" />
+            </Button>
+          </Dropdown>
+        </div>
+      )}
+      {current && (
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden pb-4">
+          <Menu
+            mode="inline"
+            inlineCollapsed={!showLabels}
+            selectedKeys={activeNav ? [activeNav.key] : []}
+            items={navMenuItems}
+            className="mt-2"
+          />
+        </nav>
+      )}
+    </Flex>
+  );
 
   return (
     <Layout className="min-h-dvh">
-      <Sider
-        width={240}
-        breakpoint="md"
-        collapsedWidth={0}
-        trigger={null}
-        className="border-r border-[var(--ant-color-border-secondary)]"
-      >
-        <div className="flex h-full flex-col gap-4 p-4">
-          <Link href="/" className="px-2 py-1" aria-label={t('common.appName')}>
-            <Logo />
-          </Link>
-          {current && (
+      {isMobile ? (
+        <Drawer
+          placement="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          closable={false}
+          size={280}
+          styles={{ body: { padding: 0 } }}
+        >
+          {sidebar}
+        </Drawer>
+      ) : (
+        <Sider
+          width={250}
+          collapsed={collapsed}
+          trigger={null}
+          className="sticky top-0 h-dvh"
+          style={{ borderRight: `1px solid ${token.colorBorderSecondary}` }}
+        >
+          {sidebar}
+        </Sider>
+      )}
+      <Layout className="min-w-0">
+        <Header
+          className="sticky top-0 z-10 flex items-center justify-between"
+          style={{
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            padding: isMobile ? '0 12px' : undefined,
+          }}
+        >
+          <Flex align="center" gap={16}>
+            <Tooltip
+              title={
+                isMobile ? t('shell.openNav') : collapsed ? t('shell.expand') : t('shell.collapse')
+              }
+            >
+              <Button
+                type="text"
+                aria-label={
+                  isMobile
+                    ? t('shell.openNav')
+                    : collapsed
+                      ? t('shell.expand')
+                      : t('shell.collapse')
+                }
+                icon={
+                  isMobile ? (
+                    <MenuIcon className="size-4" />
+                  ) : collapsed ? (
+                    <PanelLeftOpen className="size-4" />
+                  ) : (
+                    <PanelLeftClose className="size-4" />
+                  )
+                }
+                onClick={() => (isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed))}
+              />
+            </Tooltip>
+            {!isMobile && <Breadcrumb items={breadcrumbs} />}
+          </Flex>
+          <Flex align="center" gap={16}>
+            <Button
+              type="text"
+              shape="circle"
+              aria-label="Theme"
+              icon={
+                resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />
+              }
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+            />
             <Dropdown
               menu={{
-                items: orgMenuItems,
-                selectedKeys: [current.id],
+                items: [
+                  {
+                    key: 'sign-out',
+                    icon: <LogOut className="size-4" />,
+                    label: t('auth.signOut'),
+                    danger: true,
+                    onClick: signOut,
+                  },
+                ],
               }}
+              placement="bottomRight"
               trigger={['click']}
+              arrow
             >
-              <Button className="w-full justify-between truncate text-left">
-                <span className="truncate">{current.name}</span>
-              </Button>
+              <button
+                type="button"
+                aria-label="User menu"
+                className="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0"
+              >
+                <Avatar style={{ backgroundColor: token.colorPrimary, fontWeight: 600 }}>
+                  {userName.slice(0, 1).toUpperCase() || '?'}
+                </Avatar>
+                {!isMobile && (
+                  <Flex vertical align="start" style={{ lineHeight: 1.2 }}>
+                    <Typography.Text strong style={{ fontSize: 13 }}>
+                      {userName}
+                    </Typography.Text>
+                    <Caption style={{ fontSize: 11 }}>{session?.user.email}</Caption>
+                  </Flex>
+                )}
+              </button>
             </Dropdown>
-          )}
-          {current && (
-            <nav className="grid gap-1">
-              <Menu
-                mode="inline"
-                selectedKeys={selectedNavKey ? [selectedNavKey] : []}
-                items={navMenuItems}
-                className="border-none bg-transparent"
-              />
-            </nav>
-          )}
-        </div>
-      </Sider>
-      <Layout className="flex min-w-0 flex-col">
-        <Header
-          style={{ height: 56, lineHeight: 'normal', padding: '0 16px' }}
-          className="flex items-center justify-end gap-2 border-b border-[var(--ant-color-border-secondary)]"
-        >
-          <Button
-            type="text"
-            shape="circle"
-            aria-label="Theme"
-            icon={
-              resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />
-            }
-            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-          />
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: 'user-info',
-                  type: 'group',
-                  label: (
-                    <div className="py-1">
-                      <div className="font-medium text-[var(--ant-color-text)]">
-                        {session?.user.name}
-                      </div>
-                      <div className="text-xs text-[var(--ant-color-text-secondary)]">
-                        {session?.user.email}
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  type: 'divider',
-                },
-                {
-                  key: 'sign-out',
-                  icon: <LogOut className="size-4" />,
-                  label: t('auth.signOut'),
-                  danger: true,
-                  onClick: signOut,
-                },
-              ],
-            }}
-            placement="bottomRight"
-            trigger={['click']}
-          >
-            <button
-              type="button"
-              className="cursor-pointer rounded-full border-0 bg-transparent p-0 outline-none"
-              aria-label="User menu"
-            >
-              <Avatar size={32} className="cursor-pointer">
-                {session?.user.name?.slice(0, 1).toUpperCase() ?? '?'}
-              </Avatar>
-            </button>
-          </Dropdown>
+          </Flex>
         </Header>
-        <Content className="flex-1 p-6">{children}</Content>
+        <Content style={{ margin: isMobile ? 12 : 24 }}>{children}</Content>
       </Layout>
     </Layout>
   );

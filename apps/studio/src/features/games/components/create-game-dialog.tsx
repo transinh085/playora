@@ -2,10 +2,11 @@
 
 import { CreateGameBody, type ErrorCode, localize, type TemplateSummary } from '@playora/contracts';
 import { applyApiError, useZodForm } from '@playora/ui/form';
-import { App, Button, Card, Form, Input, Modal, Radio, Tag, Typography } from 'antd';
+import { App, Button, Card, Form, Input, Modal, Radio, Tag, Typography, theme } from 'antd';
 import { Plus } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { Caption } from '@/components/caption';
 import { useCreateGame } from '../api';
 
 export function CreateGameDialog({
@@ -20,6 +21,7 @@ export function CreateGameDialog({
   const t = useTranslations();
   const locale = useLocale();
   const { message } = App.useApp();
+  const { token } = theme.useToken();
   const [open, setOpen] = useState(false);
 
   const { form, rules, parse } = useZodForm(CreateGameBody);
@@ -116,26 +118,22 @@ export function CreateGameDialog({
                     hoverable
                     data-testid={`template-card-${tpl.id}`}
                     onClick={() => handleSelectTemplate(tpl)}
-                    className={
-                      isSelected
-                        ? 'border-[var(--ant-color-primary)] bg-[var(--ant-color-primary-bg)]'
-                        : ''
-                    }
+                    style={isSelected ? { borderColor: token.colorPrimary } : undefined}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <Radio checked={isSelected}>
-                        <span className="font-semibold">{localize(tpl.name, locale)}</span>
+                        <Typography.Text strong>{localize(tpl.name, locale)}</Typography.Text>
                       </Radio>
                       <Tag variant="filled" className="!m-0">
                         {tpl.kind}
                       </Tag>
                     </div>
-                    <p className="mt-1 text-xs text-[var(--ant-color-text-secondary)]">
-                      {localize(tpl.description, locale)}
-                    </p>
+                    <div className="mt-1">
+                      <Caption>{localize(tpl.description, locale)}</Caption>
+                    </div>
                     <div className="mt-3 flex flex-wrap gap-1">
                       {tpl.tags.map((tag) => (
-                        <Tag key={tag} variant="filled" className="!m-0 text-[10px]">
+                        <Tag key={tag} variant="filled" className="!m-0">
                           {tag}
                         </Tag>
                       ))}

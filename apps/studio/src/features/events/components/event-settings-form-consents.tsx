@@ -4,7 +4,9 @@ import { UpdateEventBody } from '@playora/contracts';
 import { zodRule } from '@playora/ui/form';
 import {
   Button,
+  Card,
   Checkbox,
+  Empty,
   Form,
   type FormInstance,
   type FormRule,
@@ -41,9 +43,9 @@ export function EventConsentsList({
       {(fields, { add, remove }, { errors }) => (
         <div className="grid gap-4">
           <div className="flex items-center justify-between">
-            <Typography.Text strong className="text-base">
+            <Typography.Title level={5} className="!m-0">
               {t('events.consentsTitle')}
-            </Typography.Text>
+            </Typography.Title>
             <Button
               htmlType="button"
               size="small"
@@ -61,66 +63,63 @@ export function EventConsentsList({
           </div>
 
           {fields.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-[var(--ant-color-border)] p-4 text-center text-sm text-[var(--ant-color-text-secondary)]">
-              {t('events.consentsEmpty')}
-            </p>
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('events.consentsEmpty')} />
           ) : (
             <div className="grid gap-4">
               {fields.map((field, idx) => {
                 const savedVersion = watchedConsents[idx]?.textVersion;
                 return (
-                  <div
-                    key={field.key}
-                    className="grid gap-3 rounded-lg border border-[var(--ant-color-border)] p-4"
-                  >
-                    <div className="flex items-center justify-between gap-2">
+                  <Card key={field.key} size="small">
+                    <div className="grid gap-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <Form.Item
+                          name={[field.name, 'purpose']}
+                          label={t('events.consentPurpose')}
+                          rules={rules}
+                          className="mb-0 flex-1"
+                        >
+                          <Input placeholder="participation" />
+                        </Form.Item>
+                        {savedVersion && <Tag className="m-0">{savedVersion}</Tag>}
+                      </div>
+
                       <Form.Item
-                        name={[field.name, 'purpose']}
-                        label={t('events.consentPurpose')}
+                        name={[field.name, 'text', 'vi']}
+                        label={t('events.consentTextVi')}
                         rules={rules}
-                        className="mb-0 flex-1"
+                        className="mb-0"
                       >
-                        <Input placeholder="participation" />
-                      </Form.Item>
-                      {savedVersion && <Tag className="m-0">{savedVersion}</Tag>}
-                    </div>
-
-                    <Form.Item
-                      name={[field.name, 'text', 'vi']}
-                      label={t('events.consentTextVi')}
-                      rules={rules}
-                      className="mb-0"
-                    >
-                      <Input.TextArea rows={2} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name={[field.name, 'text', 'en']}
-                      label={t('events.consentTextEn')}
-                      rules={rules}
-                      className="mb-0"
-                    >
-                      <Input />
-                    </Form.Item>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <Form.Item name={[field.name, 'required']} valuePropName="checked" noStyle>
-                        <Checkbox>{t('events.consentRequired')}</Checkbox>
+                        <Input.TextArea rows={2} />
                       </Form.Item>
 
-                      <Button
-                        htmlType="button"
-                        type="text"
-                        danger
-                        size="small"
-                        icon={<Trash2 className="size-4" />}
-                        onClick={() => remove(field.name)}
-                        aria-label={t('events.removeConsent')}
+                      <Form.Item
+                        name={[field.name, 'text', 'en']}
+                        label={t('events.consentTextEn')}
+                        rules={rules}
+                        className="mb-0"
                       >
-                        {t('events.removeConsent')}
-                      </Button>
+                        <Input />
+                      </Form.Item>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <Form.Item name={[field.name, 'required']} valuePropName="checked" noStyle>
+                          <Checkbox>{t('events.consentRequired')}</Checkbox>
+                        </Form.Item>
+
+                        <Button
+                          htmlType="button"
+                          type="text"
+                          danger
+                          size="small"
+                          icon={<Trash2 className="size-4" />}
+                          onClick={() => remove(field.name)}
+                          aria-label={t('events.removeConsent')}
+                        >
+                          {t('events.removeConsent')}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>

@@ -64,11 +64,7 @@ export function CreateEventDialog({ orgId }: { orgId: string }) {
             name="slug"
             label={t('events.slug')}
             rules={rules}
-            extra={
-              <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                {t('events.slugHint', { slug: currentSlug || 'yep-2026' })}
-              </span>
-            }
+            extra={t('events.slugHint', { slug: currentSlug || 'yep-2026' })}
           >
             <Input placeholder="yep-2026" />
           </Form.Item>

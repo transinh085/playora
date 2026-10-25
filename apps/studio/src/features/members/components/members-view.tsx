@@ -4,6 +4,8 @@ import { App, Button, Popconfirm, Skeleton } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { PageHeader } from '@/components/page-header';
+import { QueryError } from '@/components/query-error';
 import { authClient } from '@/lib/auth-client';
 import { assignableRolesFor, can, isOwnerRole, type OrgRole } from '@/lib/permissions';
 import { useInvalidateOrgMembers, useOrgMembers } from '../api';
@@ -23,7 +25,7 @@ export function MembersView({ orgId }: { orgId: string }) {
 
   if (query.isPending) {
     return (
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <Skeleton active paragraph={{ rows: 6 }} className="py-4" />
       </div>
     );
@@ -31,11 +33,8 @@ export function MembersView({ orgId }: { orgId: string }) {
 
   if (query.isError) {
     return (
-      <div className="mx-auto flex max-w-5xl items-center gap-3 text-sm">
-        <span className="text-[var(--ant-color-error)]">{t('common.unknownError')}</span>
-        <Button size="small" onClick={() => query.refetch()}>
-          {t('common.retry')}
-        </Button>
+      <div>
+        <QueryError onRetry={() => query.refetch()} />
       </div>
     );
   }
@@ -141,30 +140,28 @@ export function MembersView({ orgId }: { orgId: string }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{t('members.title')}</h1>
-          <p className="text-sm text-[var(--ant-color-text-secondary)]">
-            {t('members.description')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canLeave && (
-            <Popconfirm
-              title={t('members.leaveConfirm')}
-              okText={t('members.leave')}
-              cancelText={t('common.cancel')}
-              okButtonProps={{ danger: true }}
-              onConfirm={onLeaveOrg}
-              disabled={busyId === 'leave'}
-            >
-              <Button disabled={busyId === 'leave'}>{t('members.leave')}</Button>
-            </Popconfirm>
-          )}
-          {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
-        </div>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={t('members.title')}
+        description={t('members.description')}
+        extra={
+          <>
+            {canLeave && (
+              <Popconfirm
+                title={t('members.leaveConfirm')}
+                okText={t('members.leave')}
+                cancelText={t('common.cancel')}
+                okButtonProps={{ danger: true }}
+                onConfirm={onLeaveOrg}
+                disabled={busyId === 'leave'}
+              >
+                <Button disabled={busyId === 'leave'}>{t('members.leave')}</Button>
+              </Popconfirm>
+            )}
+            {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
+          </>
+        }
+      />
 
       <MembersTable
         members={org.members}
