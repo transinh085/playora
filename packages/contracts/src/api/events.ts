@@ -110,7 +110,7 @@ export const CreateEventBody = z
     startsAt: IsoDateTime.optional(),
     endsAt: IsoDateTime.optional(),
   })
-  .refine((e) => !e.startsAt || !e.endsAt || e.startsAt < e.endsAt, {
+  .refine((e) => !e.startsAt || !e.endsAt || Date.parse(e.startsAt) < Date.parse(e.endsAt), {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
     path: ['endsAt'],
   });

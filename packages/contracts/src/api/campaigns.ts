@@ -85,7 +85,7 @@ export const CampaignRules = z
     /** Show the Form screen (name, phone, consent) before the game. */
     collectForm: z.boolean(),
   })
-  .refine((r) => r.startsAt < r.endsAt, {
+  .refine((r) => Date.parse(r.startsAt) < Date.parse(r.endsAt), {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
     path: ['endsAt'],
   })
