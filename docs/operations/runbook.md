@@ -49,7 +49,7 @@ Nguyên tắc chung: **ưu tiên không phát sai giải hơn là giữ game ch�
 - [x] Test cross-tenant tự động cho mọi endpoint Studio đều xanh (27/10/2026, `apps/api/test/*.e2e.test.ts`).
 - [x] Test mô phỏng 1 triệu lượt: 0 vượt tồn kho, 0 vượt ngân sách, 0 vượt giới hạn/người (`acceptance.test.ts`; `PRIZE_SIM_FULL=1` chạy 4 triệu).
 - [ ] k6 Play API ở đỉnh dự kiến: p95 < 200 ms, 0 lỗi 5xx, kết quả khớp DB. Đã đạt trên laptop 26/10 (p95 150 ms, [REPORT](../../tooling/loadtest/REPORT.md)); chạy lại trên VM production.
-- [ ] Mã hoá PII + HMAC lookup hoạt động; key không nằm trong repo.
+- [x] Mã hoá PII + HMAC lookup hoạt động; key không nằm trong repo (27/10/2026: SĐT AES-256-GCM `phone_enc` + HMAC `phone_hash`; production từ chối khoá dev). Cần sinh `PII_ENCRYPTION_KEY`, `PII_HMAC_KEY` thật.
 - [ ] Rate limit, Turnstile, giới hạn tốc độ phát giải đã bật. Code xong (mức Chuẩn mặc định); cần `TURNSTILE_*` thật trên production.
 - [ ] Đã thử trên thiết bị thật: iPhone SE, iPhone đời gần, Samsung A-series, Xiaomi tầm thấp, Zalo/Facebook in-app.
 

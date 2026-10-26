@@ -39,6 +39,7 @@ Dọn dẹp: UI events/games/guests cũ đã gỡ (API giữ nguyên vì Campaig
 ## 3. Quyết định chờ founder duyệt
 
 - **D-21** (`docs/product/decisions.md`): cho vượt quota lượt đổi quà 10% trước khi chặn ở quầy, để không làm quán mất mặt với khách đã trúng.
+- **D-22**: một SĐT chỉ là một người chơi mỗi chương trình; đổi thiết bị với cùng SĐT bị báo trùng (an toàn hơn khi chưa có OTP, nhưng khách đổi trình duyệt sẽ bị chặn).
 - Thông tin chuyển khoản trên trang "Gói & sử dụng" đang là placeholder: `apps/studio/src/features/billing/lib/plans.ts`.
 
 ## 4. Việc bên ngoài cần mua hoặc đăng ký
@@ -58,6 +59,6 @@ Chi tiết cấu hình ở [infra/README](../../infra/README.md) và [runbook §
 | 9 | Tài khoản ngân hàng/VietQR thật cho trang gói | Thu tiền thủ công (M2 mới có PayOS) |
 | 10 | Art thật cho 3 mẫu × skin Tết/quanh năm/khai trương (thuê ngoài hoặc mua bộ hình) | P2.1 |
 | 11 | Ý kiến luật sư: khuyến mại may rủi gắn mua hàng, PDPL; ToS, Privacy Policy, DPA tiếng Việt | P2.4, compliance §5 |
-| 12 | Sinh khoá bí mật production: `BETTER_AUTH_SECRET`, khoá ký token người chơi, khoá mã hoá PII | Không dùng giá trị dev |
+| 12 | Sinh khoá bí mật production (`openssl rand -base64 32`): `BETTER_AUTH_SECRET`, khoá ký token người chơi, `PII_ENCRYPTION_KEY`, `PII_HMAC_KEY` | Production từ chối giá trị dev |
 | 13 | Thiết bị thử: iPhone SE, iPhone mới, Samsung A, Xiaomi tầm thấp; mở trong Zalo/Facebook in-app | Gate P0 |
 | 14 | 5–10 quán pilot có ngày chạy; 5 người thử dựng chương trình | Gate M0, P1, P2 |

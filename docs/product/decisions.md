@@ -32,6 +32,7 @@ Ghi mọi quyết định **sản phẩm và kinh doanh** (phạm vi, khách hà
 | D-19 | 26/10/2026 | Pilot Tết theo kiểu **dựng hộ miễn phí** 5–10 quán, đổi lại số liệu và case study | Chưa có khách; cần bằng chứng kết quả | Đã chốt | roadmap, [business-model](../business/business-model.md) |
 | D-20 | 26/10/2026 | Giá: thuê bao tháng/năm cho quán; Free soạn đầy đủ, khoá theo số lượt đổi quà/tháng và watermark | Gắn giá với giá trị (khách tới quán), khác WOAY bán quota lượt | Đã chốt 26/10 cho M1; đo ở M2 | [business-model §3](../business/business-model.md) |
 | D-21 | 27/10/2026 | Quota lượt đổi quà có **ân hạn 10%**: Studio cảnh báo ở 80% và 100% hạn mức tháng, quầy chỉ từ chối đổi quà khi vượt 110% (Free 110, Quán 2.200, Chuỗi 11.000). Mã đã chặn vẫn giữ nguyên, đổi được khi nâng gói hoặc sang tháng. Lượt chơi và lượt thử (rehearsal) không bao giờ bị giới hạn | Khách đã trúng mà bị từ chối ngay ở quầy làm quán mất mặt; ân hạn cho chủ quán thời gian nâng gói sau cảnh báo | Thử nghiệm — **chờ founder duyệt** | BIL-02, [api](../engineering/api.md) |
+| D-22 | 27/10/2026 | Một SĐT là một người chơi trong mỗi chương trình; SĐT đã dùng trên thiết bị khác thì báo trùng (409), không gộp phiên | SĐT chưa xác thực OTP: gộp phiên sẽ cho người khác lấy mã quà của khách chỉ bằng cách gõ số. Đổi lại, khách đổi trình duyệt (Zalo in-app → Safari) bị chặn, chưa có cách mở khoá | Chờ founder duyệt; xem lại khi có OTP (M2) | [security §3](../engineering/security.md) |
 
 ## Câu hỏi đang mở
 
