@@ -20,6 +20,10 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /player\..*\.spec\.ts/ },
+    // Player flows on the engines guests actually use: Safari on a small iPhone, Chrome on a
+    // mid-range Android (runbook §3.1; real devices are still required before the pilot).
+    { name: 'iphone-se', use: { ...devices['iPhone SE'] }, testMatch: /play-.*\.spec\.ts/ },
+    { name: 'galaxy', use: { ...devices['Galaxy S9+'] }, testMatch: /play-.*\.spec\.ts/ },
   ],
   webServer: [
     {
