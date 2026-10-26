@@ -57,6 +57,7 @@ Nguyên tắc chung: **ưu tiên không phát sai giải hơn là giữ game ch�
 
 - [ ] **Backup đã chạy thử (`backup tested`):** chạy `./infra/scripts/backup.sh` trên VM production, xác nhận file `.dump` và `.dump.sha256` xuất hiện trên bucket S3 (`BACKUP_S3_BUCKET`) và cron hằng ngày đã bật.
 - [ ] **Diễn tập khôi phục (`restore drill`):** chạy `TARGET_DATABASE_URL=<db-drill> RESTORE_CONFIRM=yes ./infra/scripts/restore.sh <latest-dump>`, kiểm tra số dòng `events`, `prizes`, `awards`, `voucher_codes` khớp và ghi thời gian khôi phục thực tế (RTO: `___ giây`, ngày diễn tập: `___/___/2026`).
+  - Diễn tập trên máy dev 27/10/2026: `backup.sh` → MinIO → `restore.sh` sang DB riêng, số dòng `events/prizes/awards/plays/players` khớp 100% (598/169/5.999/30.022/6.197), restore 1 giây. Phát hiện và sửa: container `aws-cli` dự phòng thiếu `--network host`. **Vẫn phải diễn tập lại trên VM production.**
 - [ ] **Uptime monitor:** đã cấu hình kiểm tra định kỳ (mỗi 60 giây) cho `https://api.playora.vn/v1/health/ready` (kỳ vọng HTTP 200 và `"status":"ok"`), `https://studio.playora.vn/login`, `https://play.playora.vn` và `https://playora.vn`.
 - [ ] **Kênh cảnh báo (`alert channel`):** cảnh báo khi `/v1/health/ready` lỗi liên tiếp ≥ 2 lần, chứng chỉ TLS sắp hết hạn, lỗi 5xx hoặc độ trễ tăng cao đã gửi thử thành công về điện thoại founder (Telegram / Zalo / cuộc gọi khẩn).
 
