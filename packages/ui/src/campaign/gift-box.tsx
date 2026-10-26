@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import type { PlayResult } from '@playora/contracts';
 import { useState } from 'react';
-import type { BrandPalette } from '@/features/canvas-editor/lib/model';
-import type { PlayResult } from '../mock/types';
+import type { MechanismLabels } from './labels';
 import type { MechanismProps } from './mechanism';
+import type { BrandPalette } from './model';
 import { usePlayRound, useReducedMotion } from './use-play-round';
 
 const BOXES = [0, 1, 2] as const;
@@ -12,8 +12,7 @@ const BOXES = [0, 1, 2] as const;
 const SHAKE_MS = 800;
 
 /** Three gift boxes: the player picks one, the server decides what's inside. */
-export function GiftBox({ brand, play }: Omit<MechanismProps, 'mechanism'>) {
-  const t = useTranslations('builderLab.mechanisms');
+export function GiftBox({ brand, play, labels }: Omit<MechanismProps, 'mechanism'>) {
   const reduced = useReducedMotion();
   const round = usePlayRound(play);
   const [chosen, setChosen] = useState<number | null>(null);
@@ -45,7 +44,7 @@ export function GiftBox({ brand, play }: Omit<MechanismProps, 'mechanism'>) {
       }}
     >
       <fieldset
-        aria-label={t('pickBox')}
+        aria-label={labels.pickBox}
         style={{
           all: 'unset',
           position: 'absolute',
@@ -63,7 +62,7 @@ export function GiftBox({ brand, play }: Omit<MechanismProps, 'mechanism'>) {
             <button
               key={i}
               type="button"
-              aria-label={t('boxLabel', { n: i + 1 })}
+              aria-label={labels.boxLabel(i + 1)}
               disabled={!round.interactive}
               onClick={() => pick(i)}
               style={{
@@ -96,7 +95,9 @@ export function GiftBox({ brand, play }: Omit<MechanismProps, 'mechanism'>) {
           );
         })}
       </fieldset>
-      {opened && round.result && <Reveal result={round.result} brand={brand} reduced={reduced} />}
+      {opened && round.result && (
+        <Reveal result={round.result} brand={brand} reduced={reduced} labels={labels} />
+      )}
     </div>
   );
 }
@@ -180,12 +181,13 @@ function Reveal({
   result,
   brand,
   reduced,
+  labels,
 }: {
   result: PlayResult;
   brand: BrandPalette;
   reduced: boolean;
+  labels: MechanismLabels;
 }) {
-  const t = useTranslations('builderLab.mechanisms');
   const win = result.outcome === 'win' && result.prize;
   return (
     <div
@@ -232,7 +234,6 @@ function Reveal({
         }}
       >
         {win && result.prize?.image && (
-          // biome-ignore lint/performance/noImgElement: data-URL prize images
           <img
             src={result.prize.image}
             alt=""
@@ -240,10 +241,10 @@ function Reveal({
           />
         )}
         {win && (
-          <div style={{ fontSize: '6cqmin', fontWeight: 600, opacity: 0.8 }}>{t('winTitle')}</div>
+          <div style={{ fontSize: '6cqmin', fontWeight: 600, opacity: 0.8 }}>{labels.winTitle}</div>
         )}
         <div style={{ fontSize: win ? '9cqmin' : '8cqmin', fontWeight: 800, lineHeight: 1.15 }}>
-          {win ? result.prize?.name : t('loseTitle')}
+          {win ? result.prize?.name : labels.loseTitle}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { LabPrize } from '../mock/types';
+import type { CampaignPrize } from '@playora/contracts';
 import {
   buildSlices,
   MIN_SLICES,
@@ -9,7 +9,7 @@ import {
   targetSliceIndex,
 } from './wheel-math';
 
-const prize = (id: string): LabPrize => ({ id, name: id, quantity: 1, valueVnd: 0 });
+const prize = (id: string): CampaignPrize => ({ id, name: id, quantity: 1, valueVnd: 0 });
 const prizes = [prize('a'), prize('b'), prize('c')];
 
 describe('buildSlices', () => {

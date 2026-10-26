@@ -1,7 +1,7 @@
 'use client';
 
+import type { PlayResult } from '@playora/contracts';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PlayResult } from '../mock/types';
 import type { MechanismProps } from './mechanism';
 
 export type RoundPhase = 'idle' | 'pending' | 'reveal' | 'done';

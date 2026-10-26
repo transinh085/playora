@@ -1,5 +1,6 @@
 'use client';
 
+import { type CanvasLabels, type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
 import { Tag, theme } from 'antd';
 import { type Dispatch, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
@@ -20,7 +21,6 @@ import {
   MAX_ARTBOARD_HEIGHT,
   MIN_ARTBOARD_HEIGHT,
 } from '../lib/model';
-import { type CanvasLabels, type CanvasPrize, CanvasScreen } from './canvas-screen';
 
 /** MIME type the toolbox puts on drag events, carrying an `AddableType`. */
 export const TOOLBOX_MIME = 'application/x-playora-canvas-element';

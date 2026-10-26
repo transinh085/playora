@@ -1,14 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useId } from 'react';
-import type { CanvasLabels } from '@/features/canvas-editor/components/canvas-screen';
-import {
-  type BrandPalette,
-  type FormElement,
-  resolveColor,
-} from '@/features/canvas-editor/lib/model';
 import type { PlayerFormErrors, PlayerFormValues } from './form-validation';
+import type { CampaignPlayerLabels } from './labels';
+import { type BrandPalette, type FormElement, resolveColor } from './model';
 
 /**
  * The real, fillable form drawn inside the canvas form box (`CanvasRuntime.renderForm`). Game
@@ -24,12 +19,11 @@ export function PlayerForm({
 }: {
   element: FormElement;
   brand: BrandPalette;
-  labels: CanvasLabels;
+  labels: CampaignPlayerLabels;
   values: PlayerFormValues;
   errors: PlayerFormErrors;
   onChange: (patch: Partial<PlayerFormValues>) => void;
 }) {
-  const t = useTranslations('builderLab.player.form');
   const id = useId();
   const color = resolveColor(element.color, brand);
 
@@ -52,7 +46,7 @@ export function PlayerForm({
         id={`${id}-${key}-error`}
         style={{ fontSize: 12, fontWeight: 600, color: brand.accent }}
       >
-        {t(code)}
+        {labels.form.errors[code]}
       </span>
     ) : null;
   };
@@ -69,11 +63,11 @@ export function PlayerForm({
       }}
     >
       <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        <span style={{ fontSize: 14, fontWeight: 600 }}>{labels.fullName}</span>
+        <span style={{ fontSize: 14, fontWeight: 600 }}>{labels.canvas.fullName}</span>
         <input
           value={values.name}
           onChange={(e) => onChange({ name: e.target.value })}
-          placeholder={t('namePlaceholder')}
+          placeholder={labels.form.namePlaceholder}
           autoComplete="name"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${id}-name-error` : undefined}
@@ -82,11 +76,11 @@ export function PlayerForm({
         {error('name')}
       </label>
       <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        <span style={{ fontSize: 14, fontWeight: 600 }}>{labels.phone}</span>
+        <span style={{ fontSize: 14, fontWeight: 600 }}>{labels.canvas.phone}</span>
         <input
           value={values.phone}
           onChange={(e) => onChange({ phone: e.target.value })}
-          placeholder={t('phonePlaceholder')}
+          placeholder={labels.form.phonePlaceholder}
           type="tel"
           inputMode="tel"
           autoComplete="tel"
@@ -105,7 +99,7 @@ export function PlayerForm({
           style={{ width: 20, height: 20, margin: 0, flex: 'none', accentColor: brand.accent }}
         />
         <span style={{ display: 'flex', flexDirection: 'column', gap: 4, lineHeight: 1.35 }}>
-          {labels.consent}
+          {labels.canvas.consent}
           {error('consent')}
         </span>
       </label>

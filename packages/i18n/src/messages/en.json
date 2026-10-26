@@ -696,33 +696,9 @@
       "text": "Text",
       "surface": "Surface"
     },
-    "render": {
-      "days": "Days",
-      "hours": "Hours",
-      "minutes": "Min",
-      "seconds": "Sec",
-      "remaining": "{count} left",
-      "fullName": "Full name",
-      "phone": "Phone number",
-      "consent": "I agree to receive offers from the shop",
-      "sampleName": "Minh Anh",
-      "samplePrize": "Salted coffee",
-      "sampleEvent": "Lunar New Year Wheel 2027"
-    },
     "back": "Back to Studio"
   },
   "builderLab": {
-    "mechanisms": {
-      "luck": "Good luck",
-      "spin": "SPIN",
-      "wheelLabel": "Lucky wheel, tap to spin",
-      "scratchHere": "SCRATCH HERE",
-      "scratchLabel": "Scratch card, scratch to reveal",
-      "winTitle": "You won",
-      "loseTitle": "Better luck next time",
-      "boxLabel": "Gift box {n}",
-      "pickBox": "Pick a box"
-    },
     "player": {
       "rehearsal": "Rehearsal",
       "live": "Live",
@@ -732,54 +708,7 @@
       "backToEditor": "Back to editor",
       "myPrizes": "My prizes",
       "playerId": "Player {id}",
-      "defaultName": "there",
       "loading": "Loading campaign…",
-      "form": {
-        "namePlaceholder": "Jane Nguyen",
-        "phonePlaceholder": "0901 234 567",
-        "nameRequired": "Enter your name",
-        "phoneInvalid": "That phone number looks wrong (e.g. 0901234567)",
-        "consentRequired": "Please agree to continue"
-      },
-      "voucher": {
-        "title": "Redemption code",
-        "hint": "Show this code to staff",
-        "collapse": "Collapse",
-        "show": "Show redemption code"
-      },
-      "noTurns": {
-        "title": "You're out of turns for today",
-        "body": "Come back tomorrow to play again!",
-        "ok": "Got it"
-      },
-      "closed": {
-        "title": "This campaign hasn't started or has ended",
-        "body": "Check the campaign dates and come back.",
-        "ok": "Got it"
-      },
-      "vouchers": {
-        "title": "My prizes",
-        "empty": "You have no prizes yet",
-        "issuedAt": "Won at {time}",
-        "redeemed": "Redeemed",
-        "notRedeemed": "Not redeemed",
-        "unknownPrize": "Prize no longer in the campaign"
-      },
-      "rules": {
-        "title": "Rules",
-        "playsPerDay": "You get {count} play(s) per day.",
-        "maxWins": "Each player can win up to {count} prize(s) over the whole campaign.",
-        "window": "Runs {start} – {end}.",
-        "hours": "Playable {start}–{end} every day.",
-        "allDay": "Playable all day.",
-        "form": "You leave your name and phone number before playing.",
-        "prizes": "Prizes",
-        "prizeLine": "{name} · {count} available",
-        "fairness": "The system draws each result at random when you play; nobody picks winners in advance.",
-        "redeem": "Bring your redemption code to the counter. Each code can be redeemed once.",
-        "rehearsalNote": "Rehearsal: schedule and opening hours are ignored, and test prizes don't count in real numbers.",
-        "ok": "Got it"
-      },
       "actions": {
         "zalo": "The live game would open the shop's Zalo OA.",
         "phone": "The live game would call the shop.",
@@ -1168,6 +1097,80 @@
         "budget": "Budget used"
       },
       "openOps": "Open campaign page"
+    }
+  },
+  "campaignPlayer": {
+    "render": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Min",
+      "seconds": "Sec",
+      "remaining": "{count} left",
+      "fullName": "Full name",
+      "phone": "Phone number",
+      "consent": "I agree to receive offers from the shop",
+      "sampleName": "Minh Anh",
+      "samplePrize": "Salted coffee",
+      "sampleEvent": "Lunar New Year Wheel 2027"
+    },
+    "mechanisms": {
+      "luck": "Good luck",
+      "spin": "SPIN",
+      "wheelLabel": "Lucky wheel, tap to spin",
+      "scratchHere": "SCRATCH HERE",
+      "scratchLabel": "Scratch card, scratch to reveal",
+      "winTitle": "You won",
+      "loseTitle": "Better luck next time",
+      "boxLabel": "Gift box {n}",
+      "pickBox": "Pick a box"
+    },
+    "defaultName": "there",
+    "myPrizes": "My prizes",
+    "form": {
+      "namePlaceholder": "Jane Nguyen",
+      "phonePlaceholder": "0901 234 567",
+      "nameRequired": "Enter your name",
+      "phoneInvalid": "That phone number looks wrong (e.g. 0901234567)",
+      "consentRequired": "Please agree to continue"
+    },
+    "voucher": {
+      "title": "Redemption code",
+      "hint": "Show this code to staff",
+      "collapse": "Collapse",
+      "show": "Show redemption code"
+    },
+    "noTurns": {
+      "title": "You're out of turns for today",
+      "body": "Come back tomorrow to play again!",
+      "ok": "Got it"
+    },
+    "closed": {
+      "title": "This campaign hasn't started or has ended",
+      "body": "Check the campaign dates and come back.",
+      "ok": "Got it"
+    },
+    "vouchers": {
+      "title": "My prizes",
+      "empty": "You have no prizes yet",
+      "issuedAt": "Won at {time}",
+      "redeemed": "Redeemed",
+      "notRedeemed": "Not redeemed",
+      "unknownPrize": "Prize no longer in the campaign"
+    },
+    "rules": {
+      "title": "Rules",
+      "playsPerDay": "You get {count} play(s) per day.",
+      "maxWins": "Each player can win up to {count} prize(s) over the whole campaign.",
+      "window": "Runs {start} – {end}.",
+      "hours": "Playable {start}–{end} every day.",
+      "allDay": "Playable all day.",
+      "form": "You leave your name and phone number before playing.",
+      "prizes": "Prizes",
+      "prizeLine": "{name} · {count} available",
+      "fairness": "The system draws each result at random when you play; nobody picks winners in advance.",
+      "redeem": "Bring your redemption code to the counter. Each code can be redeemed once.",
+      "rehearsalNote": "Rehearsal: schedule and opening hours are ignored, and test prizes don't count in real numbers.",
+      "ok": "Got it"
     }
   },
   "campaigns": {

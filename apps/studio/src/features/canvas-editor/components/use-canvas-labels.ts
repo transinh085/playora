@@ -1,26 +1,30 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import {
+  type CampaignPlayerLabels,
+  type CanvasLabels,
+  createCampaignPlayerLabels,
+  type MechanismLabels,
+} from '@playora/ui/campaign';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
-import type { CanvasLabels } from './canvas-screen';
+
+/** Every label of the shared campaign renderer, from the `campaignPlayer` messages. */
+export function useCampaignPlayerLabels(): CampaignPlayerLabels {
+  const t = useTranslations('campaignPlayer');
+  const format = useFormatter();
+  return useMemo(
+    () => createCampaignPlayerLabels(t, (value, options) => format.dateTime(value, options)),
+    [t, format],
+  );
+}
 
 /** Translated runtime labels for `CanvasScreen` (countdown units, form fields, sample values). */
 export function useCanvasLabels(): CanvasLabels {
-  const t = useTranslations('canvasLab.render');
-  return useMemo(
-    () => ({
-      days: t('days'),
-      hours: t('hours'),
-      minutes: t('minutes'),
-      seconds: t('seconds'),
-      remaining: (count) => t('remaining', { count }),
-      fullName: t('fullName'),
-      phone: t('phone'),
-      consent: t('consent'),
-      sampleName: t('sampleName'),
-      samplePrize: t('samplePrize'),
-      sampleEvent: t('sampleEvent'),
-    }),
-    [t],
-  );
+  return useCampaignPlayerLabels().canvas;
+}
+
+/** Translated labels for an idle or playing `Mechanism`. */
+export function useMechanismLabels(): MechanismLabels {
+  return useCampaignPlayerLabels().mechanism;
 }

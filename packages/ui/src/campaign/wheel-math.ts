@@ -1,16 +1,19 @@
-import type { LabPrize, PlayResult } from '../mock/types';
+import type { CampaignPrize, PlayResult } from '@playora/contracts';
+
+/** What the wheel needs from a prize. */
+export type WheelPrize = Pick<CampaignPrize, 'id' | 'name' | 'image'>;
 
 /**
  * Pure spin-wheel geometry. The wheel only *shows* the server's result: these helpers pick a
  * slice that matches the returned prize (or a "good luck" slice on a loss) and the rotation that
  * lands it under the pointer. Nothing here can change what was won.
  */
-export type WheelSlice = { kind: 'prize'; prize: LabPrize } | { kind: 'luck' };
+export type WheelSlice = { kind: 'prize'; prize: WheelPrize } | { kind: 'luck' };
 
 export const MIN_SLICES = 6;
 
 /** Prizes interleaved with "good luck" slices; prizes repeat until the wheel has `MIN_SLICES`. */
-export function buildSlices(prizes: LabPrize[]): WheelSlice[] {
+export function buildSlices(prizes: readonly WheelPrize[]): WheelSlice[] {
   if (prizes.length === 0) return Array.from({ length: MIN_SLICES }, () => ({ kind: 'luck' }));
   const count = Math.max(prizes.length * 2, MIN_SLICES);
   return Array.from({ length: count }, (_, i): WheelSlice => {

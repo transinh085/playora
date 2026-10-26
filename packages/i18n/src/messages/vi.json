@@ -696,33 +696,9 @@
       "text": "Chữ",
       "surface": "Bề mặt"
     },
-    "render": {
-      "days": "Ngày",
-      "hours": "Giờ",
-      "minutes": "Phút",
-      "seconds": "Giây",
-      "remaining": "Còn {count}",
-      "fullName": "Họ tên",
-      "phone": "Số điện thoại",
-      "consent": "Tôi đồng ý nhận ưu đãi từ quán",
-      "sampleName": "Minh Anh",
-      "samplePrize": "Ly cà phê muối",
-      "sampleEvent": "Vòng quay Tết 2027"
-    },
     "back": "Về Studio"
   },
   "builderLab": {
-    "mechanisms": {
-      "luck": "Chúc may mắn",
-      "spin": "QUAY",
-      "wheelLabel": "Vòng quay may mắn, chạm để quay",
-      "scratchHere": "CÀO Ở ĐÂY",
-      "scratchLabel": "Thẻ cào, cào để xem kết quả",
-      "winTitle": "Bạn trúng",
-      "loseTitle": "Chúc bạn may mắn lần sau",
-      "boxLabel": "Hộp quà {n}",
-      "pickBox": "Chọn một hộp"
-    },
     "player": {
       "rehearsal": "Chơi thử",
       "live": "Đang chạy",
@@ -732,54 +708,7 @@
       "backToEditor": "Về trình chỉnh sửa",
       "myPrizes": "Quà của tôi",
       "playerId": "Người chơi {id}",
-      "defaultName": "bạn",
       "loading": "Đang tải chương trình…",
-      "form": {
-        "namePlaceholder": "Nguyễn Văn A",
-        "phonePlaceholder": "0901 234 567",
-        "nameRequired": "Nhập họ tên của bạn",
-        "phoneInvalid": "Số điện thoại chưa đúng (VD: 0901234567)",
-        "consentRequired": "Bạn cần đồng ý để tiếp tục"
-      },
-      "voucher": {
-        "title": "Mã đổi quà",
-        "hint": "Đưa mã này cho nhân viên",
-        "collapse": "Thu gọn",
-        "show": "Xem mã đổi quà"
-      },
-      "noTurns": {
-        "title": "Bạn đã hết lượt hôm nay",
-        "body": "Quay lại ngày mai để chơi tiếp nhé!",
-        "ok": "Đã hiểu"
-      },
-      "closed": {
-        "title": "Chương trình chưa mở hoặc đã kết thúc",
-        "body": "Hãy xem lại thời gian diễn ra chương trình rồi quay lại nhé.",
-        "ok": "Đã hiểu"
-      },
-      "vouchers": {
-        "title": "Quà của tôi",
-        "empty": "Bạn chưa có quà nào",
-        "issuedAt": "Nhận lúc {time}",
-        "redeemed": "Đã đổi",
-        "notRedeemed": "Chưa đổi",
-        "unknownPrize": "Quà không còn trong chương trình"
-      },
-      "rules": {
-        "title": "Thể lệ",
-        "playsPerDay": "Mỗi ngày bạn có {count} lượt chơi.",
-        "maxWins": "Mỗi người nhận tối đa {count} phần quà trong cả chương trình.",
-        "window": "Thời gian: {start} – {end}.",
-        "hours": "Giờ chơi: {start}–{end} mỗi ngày.",
-        "allDay": "Chơi được cả ngày.",
-        "form": "Bạn cần để lại tên và số điện thoại trước khi chơi.",
-        "prizes": "Quà tặng",
-        "prizeLine": "{name} · {count} phần",
-        "fairness": "Kết quả do hệ thống quyết định ngẫu nhiên lúc bạn chơi; không ai chọn trước người trúng.",
-        "redeem": "Mang mã đổi quà đến quầy. Mỗi mã chỉ đổi được một lần.",
-        "rehearsalNote": "Đang chơi thử: bỏ qua lịch và giờ chơi, quà thử không tính vào số liệu thật.",
-        "ok": "Đã hiểu"
-      },
       "actions": {
         "zalo": "Bản thật sẽ mở Zalo OA của quán.",
         "phone": "Bản thật sẽ gọi điện cho quán.",
@@ -1168,6 +1097,80 @@
         "budget": "Ngân sách đã dùng"
       },
       "openOps": "Mở trang vận hành"
+    }
+  },
+  "campaignPlayer": {
+    "render": {
+      "days": "Ngày",
+      "hours": "Giờ",
+      "minutes": "Phút",
+      "seconds": "Giây",
+      "remaining": "Còn {count}",
+      "fullName": "Họ tên",
+      "phone": "Số điện thoại",
+      "consent": "Tôi đồng ý nhận ưu đãi từ quán",
+      "sampleName": "Minh Anh",
+      "samplePrize": "Ly cà phê muối",
+      "sampleEvent": "Vòng quay Tết 2027"
+    },
+    "mechanisms": {
+      "luck": "Chúc may mắn",
+      "spin": "QUAY",
+      "wheelLabel": "Vòng quay may mắn, chạm để quay",
+      "scratchHere": "CÀO Ở ĐÂY",
+      "scratchLabel": "Thẻ cào, cào để xem kết quả",
+      "winTitle": "Bạn trúng",
+      "loseTitle": "Chúc bạn may mắn lần sau",
+      "boxLabel": "Hộp quà {n}",
+      "pickBox": "Chọn một hộp"
+    },
+    "defaultName": "bạn",
+    "myPrizes": "Quà của tôi",
+    "form": {
+      "namePlaceholder": "Nguyễn Văn A",
+      "phonePlaceholder": "0901 234 567",
+      "nameRequired": "Nhập họ tên của bạn",
+      "phoneInvalid": "Số điện thoại chưa đúng (VD: 0901234567)",
+      "consentRequired": "Bạn cần đồng ý để tiếp tục"
+    },
+    "voucher": {
+      "title": "Mã đổi quà",
+      "hint": "Đưa mã này cho nhân viên",
+      "collapse": "Thu gọn",
+      "show": "Xem mã đổi quà"
+    },
+    "noTurns": {
+      "title": "Bạn đã hết lượt hôm nay",
+      "body": "Quay lại ngày mai để chơi tiếp nhé!",
+      "ok": "Đã hiểu"
+    },
+    "closed": {
+      "title": "Chương trình chưa mở hoặc đã kết thúc",
+      "body": "Hãy xem lại thời gian diễn ra chương trình rồi quay lại nhé.",
+      "ok": "Đã hiểu"
+    },
+    "vouchers": {
+      "title": "Quà của tôi",
+      "empty": "Bạn chưa có quà nào",
+      "issuedAt": "Nhận lúc {time}",
+      "redeemed": "Đã đổi",
+      "notRedeemed": "Chưa đổi",
+      "unknownPrize": "Quà không còn trong chương trình"
+    },
+    "rules": {
+      "title": "Thể lệ",
+      "playsPerDay": "Mỗi ngày bạn có {count} lượt chơi.",
+      "maxWins": "Mỗi người nhận tối đa {count} phần quà trong cả chương trình.",
+      "window": "Thời gian: {start} – {end}.",
+      "hours": "Giờ chơi: {start}–{end} mỗi ngày.",
+      "allDay": "Chơi được cả ngày.",
+      "form": "Bạn cần để lại tên và số điện thoại trước khi chơi.",
+      "prizes": "Quà tặng",
+      "prizeLine": "{name} · {count} phần",
+      "fairness": "Kết quả do hệ thống quyết định ngẫu nhiên lúc bạn chơi; không ai chọn trước người trúng.",
+      "redeem": "Mang mã đổi quà đến quầy. Mỗi mã chỉ đổi được một lần.",
+      "rehearsalNote": "Đang chơi thử: bỏ qua lịch và giờ chơi, quà thử không tính vào số liệu thật.",
+      "ok": "Đã hiểu"
     }
   },
   "campaigns": {

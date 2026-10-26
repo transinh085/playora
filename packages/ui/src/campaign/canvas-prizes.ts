@@ -1,9 +1,9 @@
-import type { CanvasPrize } from '@/features/canvas-editor/components/canvas-screen';
-import type { Campaign } from '../../mock/types';
+import type { CampaignPrize } from '@playora/contracts';
+import type { CanvasPrize } from './canvas-screen';
 
 /** Campaign prizes as shown by canvas `prizeList` elements; stock defaults to the full quantity. */
 export function toCanvasPrizes(
-  campaign: Pick<Campaign, 'prizes'>,
+  campaign: { prizes: readonly Pick<CampaignPrize, 'id' | 'name' | 'image' | 'quantity'>[] },
   remaining?: Record<string, number>,
 ): CanvasPrize[] {
   return campaign.prizes.map((p) => ({

@@ -1,13 +1,27 @@
 'use client';
 
+import type { CampaignPrize, CampaignRules, PlayResult } from '@playora/contracts';
 import { Button, Drawer, Empty, Flex, QRCode, Result, Spin, Tag, Typography, theme } from 'antd';
 import { ChevronDown, Gift } from 'lucide-react';
-import { useFormatter, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { useMyVouchers } from '../../mock/hooks';
-import type { Campaign, PlayResult } from '../../mock/types';
+import type { CampaignPlayerLabels } from './labels';
 
-/** Bottom sheet rendered in place, so it stays inside the phone frame (which is `relative`). */
+/** The rules the player is told about (a subset of the contract `CampaignRules`). */
+export type CampaignPlayerRules = Pick<
+  CampaignRules,
+  'startsAt' | 'endsAt' | 'openingHours' | 'playsPerDay' | 'maxWinsPerPlayer' | 'collectForm'
+>;
+
+/** One voucher in "Quà của tôi". `prizeName` is null when the prize left the campaign. */
+export interface PlayerVoucher {
+  code: string;
+  prizeName: string | null;
+  prizeImage?: string;
+  issuedAt: string;
+  redeemedAt: string | null;
+}
+
+/** Bottom sheet rendered in place, so it stays inside the player box (which is `relative`). */
 export function PhoneSheet({
   open,
   onClose,
@@ -49,21 +63,23 @@ export function PhoneSheet({
 export function NoticeSheet({
   kind,
   onClose,
+  labels,
 }: {
   kind: 'noTurns' | 'closed' | null;
   onClose: () => void;
+  labels: CampaignPlayerLabels;
 }) {
-  const t = useTranslations('builderLab.player');
+  const notice = kind ? labels.notice[kind] : null;
   return (
     <PhoneSheet open={kind !== null} onClose={onClose}>
-      {kind && (
+      {notice && (
         <Result
           status={kind === 'noTurns' ? 'info' : 'warning'}
-          title={t(`${kind}.title`)}
-          subTitle={t(`${kind}.body`)}
+          title={notice.title}
+          subTitle={notice.body}
           extra={
             <Button type="primary" onClick={onClose}>
-              {t(`${kind}.ok`)}
+              {notice.ok}
             </Button>
           }
         />
@@ -76,33 +92,32 @@ export function NoticeSheet({
 export function RulesSheet({
   open,
   onClose,
-  campaign,
+  rules,
+  prizes,
   rehearsal,
+  labels,
 }: {
   open: boolean;
   onClose: () => void;
-  campaign: Campaign;
+  rules: CampaignPlayerRules;
+  prizes: readonly Pick<CampaignPrize, 'id' | 'name' | 'quantity'>[];
   rehearsal: boolean;
+  labels: CampaignPlayerLabels;
 }) {
-  const t = useTranslations('builderLab.player.rules');
-  const format = useFormatter();
-  const { rules, prizes } = campaign;
-  const date = (iso: string) => format.dateTime(new Date(iso), { dateStyle: 'medium' });
+  const l = labels.rules;
   const lines = [
-    t('window', { start: date(rules.startsAt), end: date(rules.endsAt) }),
-    rules.openingHours
-      ? t('hours', { start: rules.openingHours.start, end: rules.openingHours.end })
-      : t('allDay'),
-    t('playsPerDay', { count: rules.playsPerDay }),
-    t('maxWins', { count: rules.maxWinsPerPlayer }),
-    ...(rules.collectForm ? [t('form')] : []),
-    t('fairness'),
-    t('redeem'),
+    l.window(rules.startsAt, rules.endsAt),
+    rules.openingHours ? l.hours(rules.openingHours.start, rules.openingHours.end) : l.allDay,
+    l.playsPerDay(rules.playsPerDay),
+    l.maxWins(rules.maxWinsPerPlayer),
+    ...(rules.collectForm ? [l.form] : []),
+    l.fairness,
+    l.redeem,
   ];
   return (
-    <PhoneSheet open={open} onClose={onClose} title={t('title')}>
+    <PhoneSheet open={open} onClose={onClose} title={l.title}>
       <Flex vertical gap="middle">
-        {rehearsal && <Tag color="gold">{t('rehearsalNote')}</Tag>}
+        {rehearsal && <Tag color="gold">{l.rehearsalNote}</Tag>}
         <ul className="m-0 flex flex-col gap-2 pl-5">
           {lines.map((line) => (
             <li key={line}>
@@ -112,57 +127,52 @@ export function RulesSheet({
         </ul>
         {prizes.length > 0 && (
           <div>
-            <Typography.Title level={5}>{t('prizes')}</Typography.Title>
+            <Typography.Title level={5}>{l.prizes}</Typography.Title>
             <ul className="m-0 flex flex-col gap-1 pl-5">
               {prizes.map((prize) => (
                 <li key={prize.id}>
-                  <Typography.Text>
-                    {t('prizeLine', { name: prize.name, count: prize.quantity })}
-                  </Typography.Text>
+                  <Typography.Text>{l.prizeLine(prize.name, prize.quantity)}</Typography.Text>
                 </li>
               ))}
             </ul>
           </div>
         )}
         <Button type="primary" block onClick={onClose}>
-          {t('ok')}
+          {l.ok}
         </Button>
       </Flex>
     </PhoneSheet>
   );
 }
 
-/** "Quà của tôi": every voucher this player won in this run (live or rehearsal). */
+/** "Quà của tôi": every voucher this player won. */
 export function MyPrizesSheet({
   open,
   onClose,
-  campaignId,
-  playerId,
-  rehearsal,
+  vouchers,
+  loading,
+  labels,
 }: {
   open: boolean;
   onClose: () => void;
-  campaignId: string;
-  playerId: string;
-  rehearsal: boolean;
+  vouchers: readonly PlayerVoucher[];
+  loading: boolean;
+  labels: CampaignPlayerLabels;
 }) {
-  const t = useTranslations('builderLab.player.vouchers');
-  const format = useFormatter();
+  const l = labels.vouchers;
   const { token } = theme.useToken();
-  const vouchers = useMyVouchers(campaignId, playerId);
-  const mine = (vouchers.data ?? []).filter((v) => v.rehearsal === rehearsal);
 
   return (
-    <PhoneSheet open={open} onClose={onClose} title={t('title')} size="70%">
-      {vouchers.isLoading ? (
+    <PhoneSheet open={open} onClose={onClose} title={l.title} size="70%">
+      {loading ? (
         <Flex justify="center" className="py-6">
           <Spin />
         </Flex>
-      ) : mine.length === 0 ? (
-        <Empty description={t('empty')} />
+      ) : vouchers.length === 0 ? (
+        <Empty description={l.empty} />
       ) : (
         <Flex vertical gap="small">
-          {mine.map((voucher) => (
+          {vouchers.map((voucher) => (
             <Flex
               key={voucher.code}
               gap="middle"
@@ -173,32 +183,24 @@ export function MyPrizesSheet({
                 borderRadius: token.borderRadiusLG,
               }}
             >
-              {voucher.prize?.image ? (
-                // biome-ignore lint/performance/noImgElement: data-URL prize images
-                <img src={voucher.prize.image} alt="" width={40} height={40} />
+              {voucher.prizeImage ? (
+                <img src={voucher.prizeImage} alt="" width={40} height={40} />
               ) : (
                 <Gift size={32} color={token.colorTextTertiary} />
               )}
               <Flex vertical className="min-w-0 flex-1">
                 <Typography.Text strong ellipsis>
-                  {voucher.prize?.name ?? t('unknownPrize')}
+                  {voucher.prizeName ?? l.unknownPrize}
                 </Typography.Text>
                 <Typography.Text copyable className="font-mono">
                   {voucher.code}
                 </Typography.Text>
-                <Typography.Text type="secondary">
-                  {t('issuedAt', {
-                    time: format.dateTime(new Date(voucher.issuedAt), {
-                      dateStyle: 'short',
-                      timeStyle: 'short',
-                    }),
-                  })}
-                </Typography.Text>
+                <Typography.Text type="secondary">{l.issuedAt(voucher.issuedAt)}</Typography.Text>
               </Flex>
               {voucher.redeemedAt ? (
-                <Tag>{t('redeemed')}</Tag>
+                <Tag>{l.redeemed}</Tag>
               ) : (
-                <Tag color="success">{t('notRedeemed')}</Tag>
+                <Tag color="success">{l.notRedeemed}</Tag>
               )}
             </Flex>
           ))}
@@ -210,7 +212,7 @@ export function MyPrizesSheet({
 
 /**
  * Floating card over the win screen with the voucher code and its QR (docs/research/guandayun-teardown.md §3.4: staff
- * scan or type it at the counter). The QR opens the lab redeem desk with the code filled in.
+ * scan or type it at the counter). The QR encodes `redeemUrl`.
  */
 export function VoucherCard({
   result,
@@ -218,22 +220,24 @@ export function VoucherCard({
   expanded,
   onToggle,
   onOpenPrizes,
+  labels,
 }: {
   result: PlayResult;
   redeemUrl: string;
   expanded: boolean;
   onToggle: () => void;
   onOpenPrizes: () => void;
+  labels: CampaignPlayerLabels;
 }) {
-  const t = useTranslations('builderLab.player');
   const { token } = theme.useToken();
-  if (!result.voucherCode) return null;
+  const code = result.voucher?.code;
+  if (!code) return null;
 
   if (!expanded) {
     return (
       <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
         <Button type="primary" shape="round" icon={<Gift size={16} />} onClick={onToggle}>
-          {t('voucher.show')}
+          {labels.voucher.show}
         </Button>
       </div>
     );
@@ -250,13 +254,13 @@ export function VoucherCard({
         }}
       >
         <Flex justify="space-between" align="center" className="w-full">
-          <Typography.Text type="secondary">{t('voucher.title')}</Typography.Text>
+          <Typography.Text type="secondary">{labels.voucher.title}</Typography.Text>
           <Button
             type="text"
             size="small"
             icon={<ChevronDown size={16} />}
             onClick={onToggle}
-            aria-label={t('voucher.collapse')}
+            aria-label={labels.voucher.collapse}
           />
         </Flex>
         <QRCode value={redeemUrl} size={132} bordered={false} />
@@ -266,11 +270,11 @@ export function VoucherCard({
           className="font-mono"
           style={{ fontSize: token.fontSizeHeading3, letterSpacing: 4 }}
         >
-          {result.voucherCode}
+          {code}
         </Typography.Text>
-        <Typography.Text>{t('voucher.hint')}</Typography.Text>
+        <Typography.Text>{labels.voucher.hint}</Typography.Text>
         <Button block onClick={onOpenPrizes} icon={<Gift size={16} />}>
-          {t('myPrizes')}
+          {labels.myPrizes}
         </Button>
       </div>
     </div>

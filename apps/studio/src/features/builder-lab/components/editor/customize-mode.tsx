@@ -1,12 +1,12 @@
 'use client';
 
+import { toCanvasPrizes } from '@playora/ui/campaign';
 import { Alert, Grid } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
 import type { Campaign } from '../../mock/types';
 import { CampaignStage } from './phone-preview';
-import { toCanvasPrizes } from './to-canvas-prizes';
 import type { DraftPatch } from './use-campaign-draft';
 
 /** "Customize": the full canvas (ADR-014) on the campaign's own screens and brand. */
