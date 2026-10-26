@@ -9,7 +9,7 @@ export const WATERMARK_HREF = 'https://playora.vn/?ref=watermark';
 export function PlayoraWatermark() {
   const t = useTranslations('play');
   return (
-    <Tag bordered={false} className="m-0" data-testid="playora-watermark">
+    <Tag variant="filled" className="m-0" data-testid="playora-watermark">
       <Typography.Link href={WATERMARK_HREF} target="_blank" rel="noopener">
         {t('watermark')}
       </Typography.Link>

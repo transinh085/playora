@@ -161,21 +161,33 @@ let orgId = '';
 let campaignId = '';
 let slug = '';
 
-test.beforeAll(async () => {
+/** A fresh owner and org: Free allows one running campaign per org (BIL-02). */
+async function newOrg() {
   const id = unique();
   const signUp = await authPost('/sign-up/email', {
     email: `play-${id}@test.playora.local`,
     password: 'e2e-password-123',
     name: 'Play Owner',
   });
-  cookie = signUp.headers
+  const ownerCookie = signUp.headers
     .getSetCookie()
     .map((c) => c.split(';')[0])
     .join('; ');
   const org = (await (
-    await authPost('/organization/create', { name: `Play Org ${id}`, slug: `play-${id}` }, cookie)
+    await authPost(
+      '/organization/create',
+      { name: `Play Org ${id}`, slug: `play-${id}` },
+      ownerCookie,
+    )
   ).json()) as { id: string };
-  orgId = org.id;
+  return { cookie: ownerCookie, orgId: org.id, id };
+}
+
+test.beforeAll(async () => {
+  const owner = await newOrg();
+  cookie = owner.cookie;
+  orgId = owner.orgId;
+  const id = owner.id;
 
   slug = `e2e-play-${id}`;
   const campaign = await apiCall<{ id: string }>(
@@ -275,8 +287,14 @@ test('guest must redeem prize before replay when requireRedeemBeforeReplay is tr
     },
   };
 
-  const c = await apiCall<{ id: string }>('POST', `/orgs/${orgId}/campaigns`, cookie, body);
-  await apiCall('POST', `/orgs/${orgId}/campaigns/${c.id}/publish`, cookie);
+  const owner = await newOrg();
+  const c = await apiCall<{ id: string }>(
+    'POST',
+    `/orgs/${owner.orgId}/campaigns`,
+    owner.cookie,
+    body,
+  );
+  await apiCall('POST', `/orgs/${owner.orgId}/campaigns/${c.id}/publish`, owner.cookie);
 
   await page.goto(`${PLAY}/${replaySlug}`);
   await page.getByRole('button', { name: 'CHƠI NGAY' }).click();
@@ -307,7 +325,7 @@ test('guest must redeem prize before replay when requireRedeemBeforeReplay is tr
   await expect(notice.getByRole('button', { name: 'Quà của tôi' })).toBeVisible();
 
   // Redeem the voucher via API at the shop counter
-  await apiCall('POST', `/orgs/${orgId}/vouchers/${code}/redeem`, cookie);
+  await apiCall('POST', `/orgs/${owner.orgId}/vouchers/${code}/redeem`, owner.cookie);
 
   // Third tap: now that the voucher is redeemed, the player can play again!
   await spinBtn.click();
