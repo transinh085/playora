@@ -39,7 +39,7 @@ export const labLinks = (orgId: string, campaignId: string) => {
 
 /**
  * Publish = pre-flight (one-click fixes, errors block) → publish → share panel with QR, links and
- * live numbers (docs/15 §4: "PRE-FLIGHT → PUBLISH").
+ * live numbers (docs/product/specs/builder.md §4.5: "PRE-FLIGHT → PUBLISH").
  */
 export function PublishDialog({
   open,

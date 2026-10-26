@@ -45,7 +45,7 @@ export function PhoneSheet({
   );
 }
 
-/** "Out of turns" / "closed" notice (docs/12 §3.1 result branches). */
+/** "Out of turns" / "closed" notice (docs/product/specs/builder.md §3.1 result branches). */
 export function NoticeSheet({
   kind,
   onClose,
@@ -209,7 +209,7 @@ export function MyPrizesSheet({
 }
 
 /**
- * Floating card over the win screen with the voucher code and its QR (docs/14 §3.4: staff
+ * Floating card over the win screen with the voucher code and its QR (docs/research/guandayun-teardown.md §3.4: staff
  * scan or type it at the counter). The QR opens the lab redeem desk with the code filled in.
  */
 export function VoucherCard({

@@ -30,7 +30,7 @@ import { PhaseTag } from './phase-tag';
 const PHASES: CampaignPhase[] = ['live', 'scheduled', 'draft', 'paused', 'ended'];
 
 /**
- * All campaigns of the organization (docs/16 §3): what is running and how it is doing. A row
+ * All campaigns of the organization (docs/product/specs/studio-ux.md §3): what is running and how it is doing. A row
  * opens the campaign's operations page; drafts go straight back to the editor.
  */
 export function CampaignList({ orgId }: { orgId: string }) {

@@ -1,6 +1,6 @@
 import { LabPlayer } from '@/features/builder-lab/components/lab-player';
 
-/** Simulated player app (docs/15 §11) until Play serves campaigns from the real API. */
+/** Simulated player app (docs/plans/2026-10-25-game-builder-plan.md §11) until Play serves campaigns from the real API. */
 export default async function CampaignPlayPage({
   params,
   searchParams,

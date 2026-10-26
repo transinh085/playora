@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 
 /**
- * Every Studio URL of a campaign in one place (docs/16 §3). Campaign pages live in the app shell;
+ * Every Studio URL of a campaign in one place (docs/product/specs/studio-ux.md §3). Campaign pages live in the app shell;
  * the editor and the simulated player are full screen.
  */
 export function campaignRoutes(orgId: string) {

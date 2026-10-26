@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import type { z } from 'zod';
 
-/** See docs/04-game-catalog.md §1, docs/12-builder-spec.md §2.1, and ADR-012 §3. */
+/** See docs/product/specs/game-catalog.md §1, docs/product/specs/builder.md §2.1, and ADR-012 §3. */
 export type GameKind = 'instant' | 'skill';
 export type Locale = 'vi' | 'en';
 export type LocalizedText = Partial<Record<Locale, string>> & { vi: string };

@@ -14,7 +14,7 @@ export interface AuditEntry {
   ip?: string;
 }
 
-/** Append-only audit trail for sensitive actions (docs/08-security-compliance.md §1.2). */
+/** Append-only audit trail for sensitive actions (docs/engineering/security.md §1.2). */
 @Injectable()
 export class AuditService {
   constructor(@Inject(DB) private readonly db: Database) {}

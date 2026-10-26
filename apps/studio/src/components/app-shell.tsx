@@ -63,7 +63,7 @@ interface NavItem {
 type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
 
 /**
- * Sidebar navigation, grouped like the games-vt admin (docs/13 §3.4, docs/16 §3). Only routes that
+ * Sidebar navigation, grouped like the games-vt admin (docs/engineering/design-system.md §3.4, docs/product/specs/studio-ux.md §3). Only routes that
  * exist are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
  */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [

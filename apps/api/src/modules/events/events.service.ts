@@ -6,7 +6,7 @@ import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
 import { EventsRepository } from './events.repository';
 
-/** Free plan cap until billing lands (docs/02-business-model.md §3.2). */
+/** Free plan cap until billing lands (docs/business/business-model.md §3.2). */
 export const FREE_PLAYER_LIMIT = 100;
 
 type ListQuery = RouteArgs<typeof eventsApi.list>['query'];

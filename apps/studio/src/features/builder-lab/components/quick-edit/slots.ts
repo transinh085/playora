@@ -9,7 +9,7 @@ import { buildScreens, skinBrand } from '../../mock/templates';
 import type { Campaign, SkinKey } from '../../mock/types';
 
 /**
- * Quick edit (docs/15 §4.2): a slot is one piece of content shared by every element that carries
+ * Quick edit (docs/product/specs/builder.md §4.2): a slot is one piece of content shared by every element that carries
  * it, on every screen. Image slots hold a `src`, text slots a `content`, the CTA a button `label`.
  */
 export type SlotKind = 'image' | 'text' | 'button';

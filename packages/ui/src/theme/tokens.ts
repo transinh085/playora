@@ -6,7 +6,7 @@
  * `styles.css` exposes the corresponding CSS custom properties.
  */
 
-/** Brand. Studio uses it only for the primary action, links, focus and selection (docs/13 §3.1). */
+/** Brand. Studio uses it only for the primary action, links, focus and selection (docs/engineering/design-system.md §3.1). */
 export const teal = {
   50: '#eafbfa',
   100: '#d3f5f3',

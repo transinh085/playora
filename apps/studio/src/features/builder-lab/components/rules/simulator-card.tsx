@@ -23,7 +23,7 @@ function useDebounced<T>(value: T, ms: number): T {
   return debounced;
 }
 
-/** "If ~N customers play each day, what happens to my prizes?" (docs/12 §6.5). */
+/** "If ~N customers play each day, what happens to my prizes?" (docs/product/specs/prizes-redemption.md §5). */
 export function SimulatorCard({
   campaign,
   blocked,

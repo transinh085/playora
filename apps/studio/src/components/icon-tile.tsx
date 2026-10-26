@@ -4,7 +4,7 @@ import { Flex, theme } from 'antd';
 
 export type Tone = 'primary' | 'success' | 'warning' | 'error' | 'info';
 
-/** Tinted icon tile: pale tone background, tone-coloured icon (games-vt look, docs/13 §3.4). */
+/** Tinted icon tile: pale tone background, tone-coloured icon (games-vt look, docs/engineering/design-system.md §3.4). */
 export function IconTile({
   tone = 'primary',
   size = 44,

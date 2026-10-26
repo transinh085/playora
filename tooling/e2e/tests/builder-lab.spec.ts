@@ -2,7 +2,7 @@ import { expect, test } from './fixtures';
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-test('builder lab: create from template → set rules → publish → play on a phone → redeem at the counter (docs/15 prototype)', async ({
+test('builder lab: create from template → set rules → publish → play on a phone → redeem at the counter (docs/plans/2026-10-25-game-builder-plan.md prototype)', async ({
   page,
   context,
 }) => {
@@ -69,7 +69,7 @@ test('builder lab: create from template → set rules → publish → play on a 
   await desk.getByRole('dialog').getByRole('button').last().click();
   await expect(desk.getByText('Đổi quà thành công')).toBeVisible();
 
-  // The campaign shows up in the Studio list as live and opens its operations page (docs/16 §2).
+  // The campaign shows up in the Studio list as live and opens its operations page (docs/product/specs/studio-ux.md §2).
   await page.goto(`${org}/campaigns`);
   const row = page.getByTestId('campaign-table').getByRole('row', { name: /Vòng quay e2e/ });
   await expect(row.locator('[data-phase="live"]')).toBeVisible();

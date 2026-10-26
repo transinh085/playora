@@ -13,7 +13,7 @@ import { buildScreens, defaultPrizes } from '../mock/templates';
 import type { Campaign } from '../mock/types';
 
 /**
- * Pre-flight before publish (docs/15 §4.3 item 6): checks a campaign the way a careful reviewer
+ * Pre-flight before publish (docs/product/specs/builder.md §4.5): checks a campaign the way a careful reviewer
  * would and, where the fix is obvious, offers a one-click patch. Errors block publishing;
  * warnings only inform. Pure, so the publish dialog re-runs it on every draft change.
  */

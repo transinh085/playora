@@ -4,7 +4,7 @@ import { font, ink, semantic, teal } from './tokens';
 export type StudioThemeMode = 'light' | 'dark';
 
 /**
- * Studio follows the games-vt admin look (docs/13 §3): antd's own neutrals and type scale, radius 8,
+ * Studio follows the games-vt admin look (docs/engineering/design-system.md §3): antd's own neutrals and type scale, radius 8,
  * borderless cards at radius 12, 36px buttons at weight 500, filled inputs (set on the provider).
  * Only the brand colour is Playora's.
  */

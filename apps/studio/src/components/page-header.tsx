@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 
 /**
- * Page title row for every Studio page (docs/13 §5, after games-vt's PageHeader): bold title with
+ * Page title row for every Studio page (docs/engineering/design-system.md §5, after games-vt's PageHeader): bold title with
  * inline tags, a one-line description under it, an outlined back button, and actions on the right.
  */
 export function PageHeader({

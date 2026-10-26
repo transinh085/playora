@@ -40,7 +40,7 @@ import { MyPrizesSheet, NoticeSheet, RulesSheet, VoucherCard } from './player/pl
 import { usePlayerId } from './player/use-player-id';
 
 /**
- * The playable campaign (docs/12 §3.1): Cover → Form? → Game → Result → award detail, drawn from
+ * The playable campaign (docs/product/specs/builder.md §3.1): Cover → Form? → Game → Result → award detail, drawn from
  * the campaign's canvas screens. On desktop it sits in a phone frame with a lab toolbar; on a
  * phone it fills the screen. Every outcome comes from `startPlay` (the server); the mechanism
  * only animates towards it.

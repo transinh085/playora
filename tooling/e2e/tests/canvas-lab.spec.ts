@@ -16,7 +16,7 @@ test('canvas lab: add, move, undo and delete elements on a screen (ADR-014 proto
   await page.getByLabel('Tên tổ chức').fill(`Canvas Org ${id}`);
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
-  // The legacy event pages are no longer in the sidebar (docs/16); open them by URL.
+  // The legacy event pages are no longer in the sidebar (docs/product/specs/studio-ux.md); open them by URL.
   await page.goto(`${new URL(page.url()).pathname}/events`);
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 

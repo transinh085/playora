@@ -4,11 +4,24 @@ Instructions for AI coding agents (Claude Code, Codex, Antigravity…) working i
 
 ## What this is
 
-Playora is a gamified campaign builder: branded prize minigames (spin wheel, scratch card, gift box, catch items) built from template × seasonal skin, with a server-side prize engine (odds, inventory, pacing, limits, budget), and agency white-label. No quiz/poll, no live/LED stage games (removed in strategy v2.1). Product source of truth: `docs/00-product-strategy.md`. Requirements by phase (M1…M4): `docs/prd.md`. Code architecture and conventions: `docs/10-dev-setup-conventions.md` — read §3 before adding a feature.
+Playora helps small shops (first: cafés and bubble-tea shops) bring customers in and back with branded prize minigames: a builder (template × skin, quick edit, free canvas, rules & prizes), a server-side prize engine (odds, inventory, pacing, limits, budget), redemption at the counter, and outcome reports (customers who came to the counter, came back, prize cost). The builder is the core; the outcome is what we sell. No quiz/poll, no live/LED stage games.
+
+Docs (Vietnamese) live in `docs/`, split by kind — start at `docs/README.md`:
+
+| Folder                                           | What                                                                                                    | Binding? |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------- |
+| `docs/product/`                                  | strategy (source of truth), PRD with IDs and status, roadmap, decision log, glossary, `specs/` per area | Yes      |
+| `docs/business/`                                 | business model, legal compliance                                                                        | Yes      |
+| `docs/engineering/`                              | architecture, data model, API, conventions, design system, security                                     | Yes      |
+| `docs/operations/`                               | environments/deploy, runbook                                                                            | Yes      |
+| `docs/adr/`                                      | architecture decisions (template: `000-template.md`)                                                    | Yes      |
+| `docs/research/`, `docs/plans/`, `docs/archive/` | inputs, dated plans, superseded docs                                                                    | No       |
+
+Read `docs/engineering/conventions.md` §3 before adding a feature, and the spec in `docs/product/specs/` for the area you touch.
 
 ## Stack
 
-Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · shadcn/ui + Tailwind v4 · Biome · TypeScript 6 (not 7).
+Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · Ant Design v6 + Tailwind v4 (layout only) · Biome · TypeScript 6 (not 7).
 
 ## Commands
 
@@ -45,7 +58,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
 - UI: use components from `antd` and providers/theme/form helpers from `@playora/ui/{providers,theme,form,game}` (ADR-013); toast/confirm via `App.useApp()` (never static `message.*`); Tailwind only for layout/spacing, no hard-coded colors.
-- Before any UI work, read `docs/13-design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
+- Before any UI work, read `docs/engineering/design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 
 ## Git
@@ -63,17 +76,27 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 - Migrations are shared: never run `db:generate` for someone else's schema change, and coordinate before merging two branches that both add migrations (renumber the later one).
 - Stay inside the scope of your task brief; if you must touch a shared contract (`packages/contracts`) beyond it, stop and ask.
 
+## Keeping docs true
+
+- A PR that changes behaviour updates the doc that describes it: the PRD row's status (`⬜ → 🧪 → ✅`), the spec section, or `docs/engineering/*`.
+- Costly-to-reverse technical choice → new ADR from `docs/adr/000-template.md` (status Proposed until the user accepts). Product scope, pricing or priority change → a row in `docs/product/decisions.md`; never decide those silently in code.
+- New docs go in the right folder, `kebab-case.md`, no number prefixes. Never delete an ADR or decision; supersede it.
+- Code comments cite docs as `docs/<folder>/<file>.md §n`; if you renumber a section, `git grep "docs/"` and fix the citations.
+- Work that is not in the current roadmap phase (`docs/product/roadmap.md` P0–P2) needs the user's go-ahead first.
+
 ## Definition of done
 
-`bun run ci` green · new code has tests at the right layer (`docs/10` §7) · e2e green if UI changed · docs/ADR updated if architecture changed · no new console errors in the browser.
+`bun run ci` green · new code has tests at the right layer (`docs/engineering/conventions.md` §7) · e2e green if UI changed · docs kept true (see above) · no new console errors in the browser.
 
 ## Where things are
 
-| Need                               | Look at                                                                                |
-| ---------------------------------- | -------------------------------------------------------------------------------------- |
-| Reference backend module           | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                    |
-| Reference Studio page              | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                       |
-| Request pipeline (guards, filters) | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                |
-| Game template interfaces           | `packages/game-sdk/src/index.ts`, `docs/04-game-catalog.md`, `docs/12-builder-spec.md` |
-| Background jobs                    | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                      |
-| Decisions and their reasons        | `docs/adr/`                                                                            |
+| Need                                      | Look at                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| Reference backend module                  | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`              |
+| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                 |
+| Request pipeline (guards, filters)        | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`          |
+| Game template interfaces                  | `packages/game-sdk/src/index.ts`, `docs/product/specs/{game-catalog,builder}.md` |
+| Background jobs                           | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                |
+| Decisions and their reasons               | `docs/adr/` (technical), `docs/product/decisions.md` (product)                   |
+| What to build next and why                | `docs/product/roadmap.md`, `docs/product/prd.md` (status column)                 |
+| Campaign builder prototype (mock backend) | `apps/studio/src/features/builder-lab/` (`mock/api.ts` mirrors the planned API)  |

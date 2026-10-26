@@ -16,7 +16,7 @@ export interface ChecklistItem {
 }
 
 /**
- * Ordered "what to do next" list with progress (docs/16 §4): every open item links to the exact
+ * Ordered "what to do next" list with progress (docs/product/specs/studio-ux.md §4): every open item links to the exact
  * place that finishes it, so pages hand the user to the next step instead of leaving them on a list.
  */
 export function Checklist({

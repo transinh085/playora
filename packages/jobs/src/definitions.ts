@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Every background job: queue, name and payload schema. API enqueues, worker processes,
- * both validate against the same schema (docs/05-architecture.md §9).
+ * both validate against the same schema (docs/engineering/architecture.md §9).
  */
 export const jobs = {
   'asset.process': {

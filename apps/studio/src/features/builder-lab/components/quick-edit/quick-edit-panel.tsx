@@ -20,7 +20,7 @@ import { presentSlots, readSlot, SLOT_KIND, slotUsage, switchSkin, writeSlot } f
 
 const BRAND_KEYS: BrandColorKey[] = ['primary', 'accent', 'background', 'text', 'surface'];
 
-/** Quick edit's left column: slot cards, skin switcher and brand colours (docs/15 §4.2). */
+/** Quick edit's left column: slot cards, skin switcher and brand colours (docs/product/specs/builder.md §4.2). */
 export function QuickEditPanel({
   campaign,
   onChange,

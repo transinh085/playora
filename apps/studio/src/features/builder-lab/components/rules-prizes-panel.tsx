@@ -12,7 +12,7 @@ import { RulesSentencesStep } from './rules/rules-sentences-step';
 import { SimulatorCard } from './rules/simulator-card';
 
 /**
- * "Rules & prizes" mode (docs/15 §4.2): how prizes are given → prize list → rules as sentences →
+ * "Rules & prizes" mode (docs/product/specs/builder.md §4.2): how prizes are given → prize list → rules as sentences →
  * simulation. The server engine decides every outcome; nothing here picks or targets a winner.
  */
 export function RulesPrizesPanel({

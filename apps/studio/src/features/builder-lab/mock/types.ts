@@ -1,5 +1,5 @@
 /**
- * Builder Lab data model (docs/15). Shaped like the future API contracts so the mock in
+ * Builder Lab data model (docs/plans/2026-10-25-game-builder-plan.md). Shaped like the future API contracts so the mock in
  * `./api.ts` can be swapped for `@playora/api-client` calls without touching the UI.
  */
 import type { PrizeMode } from '@playora/core/prize';

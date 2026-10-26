@@ -25,7 +25,7 @@ export function StudioProvider({ mode = 'light', theme, children }: StudioProvid
 
   return (
     <StyleProvider layer>
-      {/* Filled inputs everywhere, like the games-vt admin (docs/13 §3). */}
+      {/* Filled inputs everywhere, like the games-vt admin (docs/engineering/design-system.md §3). */}
       <ConfigProvider theme={resolvedTheme} variant="filled">
         <App>{children}</App>
       </ConfigProvider>

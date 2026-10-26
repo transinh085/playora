@@ -1,5 +1,5 @@
 /**
- * Conventional Commits: `type(scope)?: subject` — docs/10-dev-setup-conventions.md §4.4.
+ * Conventional Commits: `type(scope)?: subject` — docs/engineering/conventions.md §8.
  * Usage (lefthook commit-msg): bun tooling/scripts/check-commit-msg.ts .git/COMMIT_EDITMSG
  */
 const TYPES = [

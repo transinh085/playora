@@ -1,7 +1,7 @@
 import type { Campaign, PlayRecord, Voucher } from './types';
 
 /**
- * In-browser stand-in for the API's database (docs/15: frontend first, backend later). Lives in
+ * In-browser stand-in for the API's database (docs/plans/2026-10-25-game-builder-plan.md: frontend first, backend later). Lives in
  * localStorage so a refresh, a second tab (the player) and the staff redeem screen share data.
  */
 export interface LabDb {

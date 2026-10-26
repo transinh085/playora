@@ -17,7 +17,7 @@ test('create brand kit and attach it to an event in settings', async ({ page }) 
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
-  // The legacy event pages are no longer in the sidebar (docs/16); open them by URL.
+  // The legacy event pages are no longer in the sidebar (docs/product/specs/studio-ux.md); open them by URL.
   await page.goto(`${new URL(page.url()).pathname}/events`);
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
 
