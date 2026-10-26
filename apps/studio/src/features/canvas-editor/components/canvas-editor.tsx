@@ -53,7 +53,7 @@ export function CanvasEditor({ orgId }: { orgId: string }) {
         toolbarStart={
           <>
             <Tooltip title={t('back')}>
-              <Link href={`/orgs/${orgId}/events` as Route} aria-label={t('back')}>
+              <Link href={`/orgs/${orgId}/campaigns` as Route} aria-label={t('back')}>
                 <Button
                   type="text"
                   tabIndex={-1}

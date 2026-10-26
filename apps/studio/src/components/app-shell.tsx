@@ -153,7 +153,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
       )
     : undefined;
-  const inEvent = /\/(events|campaigns)\/(?!new\b)[^/]+/.test(pathname);
+  const inEvent = /\/campaigns\/(?!new\b)[^/]+/.test(pathname);
 
   const navMenuItems: MenuProps['items'] = current
     ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {
