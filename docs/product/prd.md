@@ -4,7 +4,7 @@ Phiên bản: **v4.0** · 26/10/2026 · Owner: PO · Theo [strategy.md](./strate
 
 **Giai đoạn:** M0 Discovery · **M1** vòng lõi + pilot Tết (→ 02/2027) · **M2** self-serve + giữ chân v1 (03–05/2027) · **M3** Zalo + giữ chân v2 (06–09/2027) · **M4** kênh + Tết 2028 (10–12/2027) · **Later** 2028+. Lịch chi tiết: [roadmap.md](./roadmap.md).
 
-**Hiện trạng** (cột cuối mỗi bảng): ✅ chạy với API thật · 🧪 có trong Builder Lab (UI thật, backend giả trong `apps/studio/src/features/builder-lab/mock`) · ⬜ chưa làm.
+**Hiện trạng** (cột cuối mỗi bảng): ✅ chạy với API thật · 🧪 bản thử nghiệm (chưa đủ cho pilot) · ⬜ chưa làm.
 
 ---
 
@@ -85,7 +85,7 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 |---|---|---|---|
 | ORG-01 | Đăng nhập email + mật khẩu; Google, magic link | M1 | ✅ (Google bật khi có client id) |
 | ORG-02 | Tổ chức, mời thành viên, vai trò `owner/admin/editor/operator/viewer` | M1 | ✅ |
-| ORG-02a | Vai trò **"chỉ đổi quà"**: chỉ thấy Quầy đổi quà | M1 | ⬜ |
+| ORG-02a | Vai trò **"chỉ đổi quà"**: chỉ thấy Quầy đổi quà | M1 | ✅ |
 | ORG-06 | Audit log (giải, đổi quà, export, phát hành) | M1 | ✅ (một phần) |
 | ORG-07 | 2FA cho owner/admin | M2 | ⬜ |
 | ORG-03 | Workspace theo quán cho agency/freelancer | M4 | ⬜ |
@@ -113,22 +113,22 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| BLD-01 | Kho mẫu lọc theo dịp, ngành, mục tiêu; xem trước chơi được | M1 (trong Studio), M2 (công khai, SEO) | 🧪 |
+| BLD-01 | Kho mẫu lọc theo dịp, ngành, mục tiêu; xem trước chơi được | M1 (trong Studio), M2 (công khai, SEO) | ✅ (trong Studio) |
 | BLD-02 | Auto-form sinh từ `configSchema` cho phần riêng của mẫu | M1 | ✅ (editor cũ) |
-| BLD-03 | Preview thật: cùng renderer với Play, kết quả giả lập chọn được | M1 | 🧪 |
-| BLD-04 | Brand kit (logo, màu, font) áp cho mọi chương trình | M1 | ✅ API · 🧪 áp vào chương trình mới |
+| BLD-03 | Preview thật: cùng renderer với Play, kết quả giả lập chọn được | M1 | ✅ |
+| BLD-04 | Brand kit (logo, màu, font) áp cho mọi chương trình | M1 | ✅ |
 | BLD-06 | Skin: M1 mỗi mẫu 3 skin (Tết, quanh năm, khai trương) có hình thật; M2 bộ theo dịp | M1/M2 | 🧪 (3 mẫu × 3 skin, chưa có art thật) |
-| BLD-07 | Flow chuẩn: Bìa → Form → Game → Kết quả (4 biến thể) → Quà của tôi | M1 | 🧪 |
-| BLD-08 | Phát hành tạo phiên bản bất biến; chỉ chữ/nhãn sửa nóng được, có audit | M1 | ✅ (game version) · 🧪 (campaign) |
-| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | 🧪 |
+| BLD-07 | Flow chuẩn: Bìa → Form → Game → Kết quả (4 biến thể) → Quà của tôi | M1 | ✅ |
+| BLD-08 | Phát hành tạo phiên bản bất biến; chỉ chữ/nhãn sửa nóng được, có audit | M1 | ✅ |
+| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | ✅ |
 | BLD-13 | Thư viện ảnh: upload, tối ưu ảnh, cắt theo ô | M1 | ✅ upload · ⬜ cắt theo ô |
-| BLD-14 | Tự lưu, undo/redo | M1 | 🧪 |
+| BLD-14 | Tự lưu, undo/redo | M1 | ✅ |
 | BLD-15 | Nhân bản chương trình; thùng rác 14 ngày | M2 | ⬜ |
-| BLD-19 | **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà) | M1 | 🧪 |
-| BLD-20 | **Tuỳ biến**: canvas tự do cho mọi màn ([ADR-014](../adr/014-free-canvas-screen-editor.md)) | M1 (beta) | 🧪 |
-| BLD-21 | **Luật & giải**: chọn cách phát giải trước, luật viết bằng câu, mô phỏng | M1 | 🧪 |
+| BLD-19 | **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà) | M1 | ✅ |
+| BLD-20 | **Tuỳ biến**: canvas tự do cho mọi màn ([ADR-014](../adr/014-free-canvas-screen-editor.md)) | M1 (beta) | ✅ |
+| BLD-21 | **Luật & giải**: chọn cách phát giải trước, luật viết bằng câu, mô phỏng | M1 | ✅ |
 | BLD-22 | Chụp ảnh sản phẩm → **tự xoá nền** → cắt theo ô | M2 | ⬜ |
-| BLD-23 | Link nháp chơi thử (≤ 20 người, không trừ kho) | M1 | 🧪 |
+| BLD-23 | Link nháp chơi thử (≤ 20 người, không trừ kho) | M1 | ✅ |
 | BLD-24 | Thêm mẫu mới chỉ bằng một thư mục + lệnh `gen:template` | M1 | ⬜ |
 | BLD-17 | AI dựng nháp từ một câu tiếng Việt / link fanpage; AI không quyết định kết quả | M2 | ⬜ |
 | BLD-16 | Lưu thành mẫu riêng của tổ chức | M4 | ⬜ |
@@ -140,13 +140,13 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| EVT-01 | Vòng đời suy ra: Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; gia hạn; không xoá khi đang chạy | M1 | 🧪 |
+| EVT-01 | Vòng đời suy ra: Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; gia hạn; không xoá khi đang chạy | M1 | ✅ |
 | EVT-02 | Danh tính: ẩn danh (thiết bị), form (tên, SĐT), danh sách khách mời | M1 | ✅ (join cũ) |
-| EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ API · 🧪 Play |
+| EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ |
 | EVT-10 | QR tham gia (PNG/SVG/PDF), mẫu standee | M1 | 🧪 |
 | EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ⬜ |
 | EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ⬜ |
-| EVT-14 | Lượt chơi theo ngày/tổng/khung giờ; thêm lượt khi chia sẻ (giới hạn) | M1/M2 | 🧪 |
+| EVT-14 | Lượt chơi theo ngày/tổng/khung giờ; thêm lượt khi chia sẻ (giới hạn) | M1/M2 | ✅ |
 | EVT-09 | Chạy thử bằng bot N lượt, không trừ kho thật | M1 | ⬜ |
 | EVT-03 | OTP SĐT (ZNS ưu tiên, SMS dự phòng) | M2 | ⬜ |
 | EVT-07 | Mã tham gia (in trên hoá đơn/nắp ly), mỗi mã có QR | M3 | ⬜ |
@@ -170,7 +170,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| GAM-01 | Instant-win: token lượt chơi dùng một lần; server quyết định kết quả và giải trước khi client animate | M1 | 🧪 (`decide()` thật, lưu trữ giả) |
+| GAM-01 | Instant-win: token lượt chơi dùng một lần; server quyết định kết quả và giải trước khi client animate | M1 | ✅ |
 | GAM-02 | Skill: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M1 | ⬜ |
 | GAM-03 | Cùng phiên bản chạy trên Player và Kiosk | M1/M3 | ⬜ |
 | GAM-04 | Renderer M1: vòng quay, cào thẻ, mở hộp (instant); hứng quà (skill) | M1 | ✅ vòng quay · 🧪 cào, mở hộp · ⬜ hứng quà |
@@ -181,14 +181,14 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| PRZ-01 | Giải: tên, ảnh, loại, số lượng, **giá vốn** | M1 | 🧪 |
-| PRZ-05 | Cách phát: `per_prize_probability`, `overall_win_rate`, `guaranteed`; trừ kho nguyên tử | M1 | 🧪 |
+| PRZ-01 | Giải: tên, ảnh, loại, số lượng, **giá vốn** | M1 | ✅ |
+| PRZ-05 | Cách phát: `per_prize_probability`, `overall_win_rate`, `guaranteed`; trừ kho nguyên tử | M1 | ✅ |
 | PRZ-06 | `score_threshold` (skill) M1; `scheduled_moments`, `rank_based` M2 | M1/M2 | ⬜ |
-| PRZ-07 | Rải quà: `time_uniform`, `opening_hours` (M1); `batch_release`, `end_flush` (M2) | M1/M2 | 🧪 (lõi có, chưa nối API) |
-| PRZ-08 | Mô phỏng phát giải trước khi phát hành | M1 | 🧪 |
-| PRZ-09 | Kho mã voucher (import/sinh), giải an ủi, **ngân sách tổng**, giới hạn giải/người | M1 | 🧪 (một phần) |
-| PRZ-03 | Thông báo trúng trên Player ("Quà của tôi") | M1 | 🧪 |
-| PRZ-10 | **Đổi quà tại quầy**: quét/nhập mã, không hoàn tác, chống đổi hai lần; hạn đổi | M1 | 🧪 |
+| PRZ-07 | Rải quà: `time_uniform`, `opening_hours` (M1); `batch_release`, `end_flush` (M2) | M1/M2 | ✅ (`time_uniform`, `opening_hours`) |
+| PRZ-08 | Mô phỏng phát giải trước khi phát hành | M1 | ✅ |
+| PRZ-09 | Kho mã voucher (import/sinh), giải an ủi, **ngân sách tổng**, giới hạn giải/người | M1 | ✅ (sinh mã, ngân sách, giới hạn) |
+| PRZ-03 | Thông báo trúng trên Player ("Quà của tôi") | M1 | ✅ |
+| PRZ-10 | **Đổi quà tại quầy**: quét/nhập mã, không hoàn tác, chống đổi hai lần; hạn đổi | M1 | ✅ |
 | PRZ-14 | Điểm đổi quà theo cửa hàng (chuỗi nhiều quán) | M2 | ⬜ |
 | PRZ-11 | Thông báo trúng qua email/ZNS | M3 | ⬜ |
 | PRZ-02 | Bốc thăm cuối chương trình (commit–reveal, trang công bố) | M2 | ⬜ |

@@ -1,6 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { ApiError } from '@playora/api-client';
+import { useRouteQuery } from '@playora/api-client/react';
+import { meApi, ReopenVoucherBody } from '@playora/contracts';
+import { applyApiError, useZodForm } from '@playora/ui/form';
 import {
   Alert,
   App,
@@ -9,19 +12,22 @@ import {
   Descriptions,
   Empty,
   Flex,
+  Form,
   Input,
+  Modal,
   Result,
   Space,
   Tag,
   Typography,
   theme,
 } from 'antd';
-import { Gift, ScanLine } from 'lucide-react';
+import { Gift, RotateCcw, ScanLine } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState } from 'react';
 import { Caption } from '@/components/caption';
-import { LabApiError, lookupVoucher } from '../mock/api';
-import { useLabSync, useRedeemVoucher } from '../mock/hooks';
+import { api } from '@/lib/api';
+import { can } from '@/lib/permissions';
+import { useRedeemVoucher, useReopenVoucher, useVoucherLookup } from '../api';
 import { normalizeCode } from './redeem/code';
 
 interface Redemption {
@@ -32,21 +38,31 @@ interface Redemption {
 }
 
 /**
- * Staff redemption desk (docs/research/guandayun-teardown.md §3.4 核销): type or scan the customer's code, check it, then
- * confirm. Redeeming is final, so it always goes through a confirm dialog.
+ * Staff redemption desk (docs/product/specs/prizes-redemption.md §6): type or scan the customer's code,
+ * check it, then confirm. Designed to work one-handed on a phone at the counter ("Quầy đổi quà").
+ * Owners can reopen a redeemed voucher with an audit reason.
  */
-/** Counter screen for staff (docs/product/specs/prizes-redemption.md §6), inside the app shell; works one-handed on a phone. */
-export function RedeemDesk() {
-  useLabSync();
+export function RedeemDesk({ orgId }: { orgId: string }) {
   const t = useTranslations('builderLab.redeem');
+  const tErrors = useTranslations('errors');
   const format = useFormatter();
   const { modal, message } = App.useApp();
   const { token } = theme.useToken();
+  const myOrgs = useRouteQuery(api, meApi.orgs, {});
+  const role = myOrgs.data?.items.find((o) => o.id === orgId)?.role;
+  const canRedeem = role ? can(role, { voucher: ['redeem'] }) : true;
+  const canReopen = can(role, { voucher: ['reopen'] });
+
   const [input, setInput] = useState('');
   const [code, setCode] = useState('');
   const [session, setSession] = useState<Redemption[]>([]);
   const [justRedeemed, setJustRedeemed] = useState<Redemption | null>(null);
-  const redeem = useRedeemVoucher();
+  const [reopenOpen, setReopenOpen] = useState(false);
+
+  const lookup = useVoucherLookup(orgId, code);
+  const redeem = useRedeemVoucher(orgId);
+  const reopen = useReopenVoucher(orgId);
+  const reopenForm = useZodForm(ReopenVoucherBody);
 
   // The player's QR links here with `?code=` filled in.
   useEffect(() => {
@@ -56,14 +72,6 @@ export function RedeemDesk() {
       setCode(fromUrl);
     }
   }, []);
-
-  // A query (not a one-off call) so another tab's redemption refreshes the card via `useLabSync`.
-  const lookup = useQuery({
-    queryKey: ['builder-lab', 'redeem-lookup', code],
-    queryFn: () => lookupVoucher(code),
-    enabled: code.length > 0,
-    retry: false,
-  });
 
   const time = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: 'short', timeStyle: 'short' });
@@ -82,30 +90,63 @@ export function RedeemDesk() {
     const data = lookup.data;
     if (!data) return;
     modal.confirm({
-      title: t('confirmTitle', { code: data.voucher.code }),
+      title: t('confirmTitle', { code: data.code }),
       content: t('confirmBody'),
       okText: t('confirmOk'),
       cancelText: t('cancel'),
       onOk: async () => {
         try {
-          const voucher = await redeem.mutateAsync(data.voucher.code);
+          const voucher = await redeem.mutateAsync(data.code);
           const entry: Redemption = {
             code: voucher.code,
-            prizeName: data.prize?.name ?? t('unknownPrize'),
-            campaignName: data.campaignName,
+            prizeName: voucher.prize.name,
+            campaignName: voucher.campaign.name,
             at: voucher.redeemedAt ?? new Date().toISOString(),
           };
           setJustRedeemed(entry);
-          setSession((list) => [entry, ...list]);
+          setSession((list) => [entry, ...list.filter((item) => item.code !== entry.code)]);
         } catch (error) {
-          message.error(
-            error instanceof LabApiError && error.code === 'VOUCHER_REDEEMED'
-              ? t('alreadyRedeemedShort', { code: data.voucher.code })
-              : t('genericError'),
-          );
+          if (error instanceof ApiError) {
+            if (error.code === 'VOUCHER_ALREADY_REDEEMED') {
+              message.error(t('alreadyRedeemedShort', { code: data.code }));
+              void lookup.refetch();
+              return;
+            }
+            if (tErrors.has(error.code)) {
+              message.error(tErrors(error.code));
+              void lookup.refetch();
+              return;
+            }
+          }
+          message.error(t('genericError'));
         }
       },
     });
+  };
+
+  const submitReopen = async () => {
+    const data = lookup.data;
+    if (!data) return;
+    const raw = await reopenForm.form.validateFields().catch(() => null);
+    if (!raw) return;
+    const body = reopenForm.parse(raw);
+    try {
+      await reopen.mutateAsync({ params: { orgId, code: data.code }, body });
+      setReopenOpen(false);
+      reopenForm.form.resetFields();
+      setSession((list) => list.filter((item) => item.code !== data.code));
+      message.success(t('reopenedSuccess', { code: data.code }));
+    } catch (err) {
+      if (
+        !applyApiError(reopenForm.form, err, (errCode) =>
+          tErrors.has(errCode as never) ? tErrors(errCode as never) : t('genericError'),
+        )
+      ) {
+        const msg =
+          err instanceof ApiError && tErrors.has(err.code) ? tErrors(err.code) : t('genericError');
+        message.error(msg);
+      }
+    }
   };
 
   const startOver = () => {
@@ -115,12 +156,14 @@ export function RedeemDesk() {
   };
 
   const lookupError = lookup.error;
-  const notFound = lookupError instanceof LabApiError && lookupError.code === 'VOUCHER_NOT_FOUND';
+  const notFound =
+    lookupError instanceof ApiError &&
+    (lookupError.code === 'VOUCHER_NOT_FOUND' || lookupError.status === 404);
   const data = code && !lookupError ? lookup.data : undefined;
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <Flex vertical gap="large" className="w-full">
+    <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <Flex vertical gap="middle" className="w-full">
         <Card
           variant="borderless"
           style={{
@@ -156,7 +199,7 @@ export function RedeemDesk() {
                   htmlType="submit"
                   size="large"
                   loading={lookup.isFetching}
-                  disabled={!input}
+                  disabled={input.length < 4}
                 >
                   {t('check')}
                 </Button>
@@ -178,7 +221,7 @@ export function RedeemDesk() {
               title={t('successTitle')}
               subTitle={t('successBody', { prize: justRedeemed.prizeName })}
               extra={
-                <Button type="primary" size="large" onClick={startOver}>
+                <Button type="primary" size="large" block onClick={startOver}>
                   {t('newCode')}
                 </Button>
               }
@@ -187,7 +230,15 @@ export function RedeemDesk() {
         ) : notFound ? (
           <Alert type="error" showIcon title={t('notFound', { code })} />
         ) : lookupError ? (
-          <Alert type="error" showIcon title={t('genericError')} />
+          <Alert
+            type="error"
+            showIcon
+            title={
+              lookupError instanceof ApiError && tErrors.has(lookupError.code)
+                ? tErrors(lookupError.code)
+                : t('genericError')
+            }
+          />
         ) : data ? (
           <Card
             variant="borderless"
@@ -198,18 +249,18 @@ export function RedeemDesk() {
           >
             <Flex vertical gap="middle">
               <Flex gap="middle" align="center">
-                {data.prize?.image ? (
-                  // biome-ignore lint/performance/noImgElement: data-URL prize images
+                {data.prize.image ? (
+                  // biome-ignore lint/performance/noImgElement: prize image or preset SVG
                   <img
                     src={data.prize.image}
                     alt=""
                     width={64}
                     height={64}
-                    className="rounded-lg border object-cover"
+                    className="shrink-0 rounded-lg border object-cover"
                   />
                 ) : (
                   <div
-                    className="flex items-center justify-center rounded-lg"
+                    className="flex shrink-0 items-center justify-center rounded-lg"
                     style={{ width: 64, height: 64, background: token.colorFillSecondary }}
                   >
                     <Gift size={36} color={token.colorPrimary} />
@@ -217,56 +268,99 @@ export function RedeemDesk() {
                 )}
                 <Flex vertical className="min-w-0">
                   <Typography.Title level={4} className="!m-0">
-                    {data.prize?.name ?? t('unknownPrize')}
+                    {data.prize.name}
                   </Typography.Title>
                   <Typography.Text className="font-mono text-base" type="secondary">
-                    {data.voucher.code}
+                    {data.code}
                   </Typography.Text>
                 </Flex>
               </Flex>
-              {data.voucher.rehearsal && <Alert type="info" showIcon title={t('rehearsalNote')} />}
+
+              {data.rehearsal && <Alert type="info" showIcon title={t('rehearsalNote')} />}
+
               <Descriptions
                 column={1}
                 size="small"
                 bordered
                 items={[
-                  { key: 'campaign', label: t('campaign'), children: data.campaignName },
-                  { key: 'issued', label: t('issuedAt'), children: time(data.voucher.issuedAt) },
+                  { key: 'campaign', label: t('campaign'), children: data.campaign.name },
+                  ...(data.playerName
+                    ? [{ key: 'player', label: t('player'), children: data.playerName }]
+                    : []),
+                  { key: 'issued', label: t('issuedAt'), children: time(data.issuedAt) },
+                  ...(data.expiresAt
+                    ? [{ key: 'expires', label: t('expiresAt'), children: time(data.expiresAt) }]
+                    : []),
+                  ...(data.redeemedByName
+                    ? [
+                        {
+                          key: 'redeemedBy',
+                          label: t('redeemedBy'),
+                          children: data.redeemedByName,
+                        },
+                      ]
+                    : []),
                   {
                     key: 'status',
                     label: t('status'),
                     children: (
                       <Space size="small" wrap>
-                        {data.voucher.redeemedAt ? (
-                          <Tag>{t('redeemedAt', { time: time(data.voucher.redeemedAt) })}</Tag>
+                        {data.status === 'redeemed' && data.redeemedAt ? (
+                          <Tag>{t('redeemedAt', { time: time(data.redeemedAt) })}</Tag>
+                        ) : data.status === 'expired' ? (
+                          <Tag color="warning">{t('expired')}</Tag>
+                        ) : data.status === 'void' ? (
+                          <Tag color="error">{t('void')}</Tag>
                         ) : (
                           <Tag color="success">{t('notRedeemed')}</Tag>
                         )}
-                        {data.voucher.rehearsal && <Tag color="gold">{t('rehearsal')}</Tag>}
+                        {data.rehearsal && <Tag color="gold">{t('rehearsal')}</Tag>}
                       </Space>
                     ),
                   },
                 ]}
               />
-              {data.voucher.redeemedAt ? (
-                <Alert
-                  type="warning"
-                  showIcon
-                  title={t('alreadyRedeemed', {
-                    code: data.voucher.code,
-                    time: time(data.voucher.redeemedAt),
-                  })}
-                />
+
+              {data.status === 'redeemed' ? (
+                <Flex vertical gap="small">
+                  <Alert
+                    type="warning"
+                    showIcon
+                    title={
+                      data.redeemedAt
+                        ? t('alreadyRedeemed', {
+                            code: data.code,
+                            time: time(data.redeemedAt),
+                          })
+                        : t('alreadyRedeemedShort', { code: data.code })
+                    }
+                  />
+                  {canReopen && (
+                    <Button
+                      icon={<RotateCcw className="size-4" />}
+                      onClick={() => setReopenOpen(true)}
+                      block
+                    >
+                      {t('reopen')}
+                    </Button>
+                  )}
+                </Flex>
+              ) : data.status === 'expired' ? (
+                <Alert type="warning" showIcon title={t('expiredAlert', { code: data.code })} />
+              ) : data.status === 'void' ? (
+                <Alert type="error" showIcon title={t('voidAlert', { code: data.code })} />
               ) : (
-                <Button
-                  type="primary"
-                  size="large"
-                  block
-                  onClick={confirm}
-                  loading={redeem.isPending}
-                >
-                  {t('confirm')}
-                </Button>
+                canRedeem && (
+                  <Button
+                    type="primary"
+                    size="large"
+                    block
+                    onClick={confirm}
+                    loading={redeem.isPending}
+                  >
+                    {t('confirm')}
+                  </Button>
+                )
               )}
             </Flex>
           </Card>
@@ -320,6 +414,39 @@ export function RedeemDesk() {
           )}
         </Card>
       </div>
+
+      <Modal
+        open={reopenOpen}
+        title={data ? t('reopenTitle', { code: data.code }) : t('reopen')}
+        onCancel={() => {
+          setReopenOpen(false);
+          reopenForm.form.resetFields();
+        }}
+        onOk={() => void submitReopen()}
+        okText={t('reopenSubmit')}
+        cancelText={t('cancel')}
+        confirmLoading={reopen.isPending}
+        destroyOnHidden
+      >
+        <Flex vertical gap="middle">
+          <Typography.Text type="secondary">{t('reopenDescription')}</Typography.Text>
+          <Form form={reopenForm.form} layout="vertical" requiredMark={false}>
+            <Form.Item
+              name="reason"
+              label={t('reopenReasonLabel')}
+              rules={reopenForm.rules}
+              className="!mb-0"
+            >
+              <Input.TextArea
+                rows={3}
+                maxLength={500}
+                showCount
+                placeholder={t('reopenReasonPlaceholder')}
+              />
+            </Form.Item>
+          </Form>
+        </Flex>
+      </Modal>
     </div>
   );
 }

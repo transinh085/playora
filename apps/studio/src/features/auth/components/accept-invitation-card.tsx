@@ -5,7 +5,7 @@ import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { authClient, isOrgRole } from '@/lib/auth-client';
+import { authClient, isOrgRole, isRedeemerOnly } from '@/lib/auth-client';
 import { useInvalidateMyOrgs, useInvitation } from '../api';
 
 export function AcceptInvitationCard() {
@@ -42,7 +42,10 @@ export function AcceptInvitationCard() {
       message.success(
         t('auth.inviteAccepted', { organization: invitationQuery.data.organizationName }),
       );
-      router.replace(`/orgs/${invitationQuery.data.organizationId}` as Route);
+      const target = isRedeemerOnly(invitationQuery.data.role)
+        ? `/orgs/${invitationQuery.data.organizationId}/redeem`
+        : `/orgs/${invitationQuery.data.organizationId}`;
+      router.replace(target as Route);
       router.refresh();
     } finally {
       setSubmitting(false);
