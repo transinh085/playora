@@ -18,11 +18,14 @@ import {
 } from 'antd';
 import {
   AlignCenter,
+  AlignHorizontalJustifyCenter,
   AlignLeft,
   AlignRight,
+  AlignVerticalJustifyCenter,
   ArrowDownToLine,
   ArrowUpToLine,
   Copy,
+  Maximize2,
   Trash2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -35,20 +38,28 @@ import {
   selectedElement,
 } from '../lib/editor-state';
 import {
+  ARTBOARD_WIDTH,
+  type BadgeElement,
   type BrandColorKey,
   type BrandPalette,
   type ButtonAction,
+  type ButtonElement,
   type CanvasElement,
   type ColorValue,
+  type CountdownElement,
+  type DividerElement,
   type EnterAnimation,
   IMAGE_PRESETS,
   type ImageElement,
+  type LoopAnimation,
   MAX_ARTBOARD_HEIGHT,
+  type MarqueeElement,
   MIN_ARTBOARD_HEIGHT,
   type PrizeListElement,
   resolveColor,
   type ShapeElement,
   SINGLETON_TYPES,
+  type SocialElement,
   type TextElement,
 } from '../lib/model';
 
@@ -57,6 +68,12 @@ type ScreenPatch = Extract<EditorAction, { type: 'updateScreen' }>['patch'];
 const BRAND_KEYS: BrandColorKey[] = ['primary', 'accent', 'background', 'text', 'surface'];
 const ACTIONS: ButtonAction[] = ['start', 'rules', 'link', 'zalo', 'phone', 'next'];
 const ANIMATIONS: EnterAnimation[] = ['none', 'fade', 'slideUp', 'zoom', 'bounce'];
+const LOOP_ANIMATIONS: LoopAnimation[] = ['none', 'pulse', 'wiggle', 'float'];
+const BUTTON_ICONS = ['none', 'zap', 'gift', 'pointer', 'arrow', 'star'] as const;
+const BADGE_ICONS = ['none', 'flame', 'gift', 'sparkles', 'trophy', 'zap', 'star'] as const;
+const MARQUEE_ICONS = ['megaphone', 'trophy', 'sparkles', 'flame'] as const;
+const ORNAMENTS = ['none', 'star', 'diamond', 'flower'] as const;
+const SOCIAL_CHANNELS = ['zalo', 'phone', 'facebook', 'website'] as const;
 
 /** Groups rapid edits to the same field (slider drags, typing) into one undo step. */
 function useCoalescer() {
@@ -291,6 +308,52 @@ export function PropertiesPanel({
       {element.type === 'form' && <Alert type="info" showIcon title={t('props.formHint')} />}
 
       <Section title={t('props.layout')}>
+        <div className="flex items-center justify-between gap-1 p-1 bg-fill-quaternary rounded-md">
+          <Tooltip title={t('props.alignCenterH')}>
+            <Button
+              size="small"
+              type="text"
+              icon={<AlignHorizontalJustifyCenter className="size-3.5" />}
+              onClick={() =>
+                update({ x: Math.round((ARTBOARD_WIDTH - element.w) / 2) }, 'alignCenterX')
+              }
+            />
+          </Tooltip>
+          <Tooltip title={t('props.alignCenterV')}>
+            <Button
+              size="small"
+              type="text"
+              icon={<AlignVerticalJustifyCenter className="size-3.5" />}
+              onClick={() =>
+                update({ y: Math.round((screen.height - element.h) / 2) }, 'alignCenterY')
+              }
+            />
+          </Tooltip>
+          <Tooltip title={t('props.alignLeft')}>
+            <Button
+              size="small"
+              type="text"
+              icon={<AlignLeft className="size-3.5" />}
+              onClick={() => update({ x: 16 }, 'alignLeft')}
+            />
+          </Tooltip>
+          <Tooltip title={t('props.alignRight')}>
+            <Button
+              size="small"
+              type="text"
+              icon={<AlignRight className="size-3.5" />}
+              onClick={() => update({ x: ARTBOARD_WIDTH - element.w - 16 }, 'alignRight')}
+            />
+          </Tooltip>
+          <Tooltip title={t('props.fullWidth')}>
+            <Button
+              size="small"
+              type="text"
+              icon={<Maximize2 className="size-3.5" />}
+              onClick={() => update({ x: 0, w: ARTBOARD_WIDTH }, 'fullWidth')}
+            />
+          </Tooltip>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           {num('x')}
           {num('y')}
@@ -326,7 +389,19 @@ export function PropertiesPanel({
               value={element.content}
               onChange={(e) => update({ content: e.target.value }, 'content')}
             />
-            <Caption>{t('props.contentHint')}</Caption>
+            <Flex gap={4} wrap className="mt-1">
+              <Caption className="text-xs mr-1">{t('props.insertVariable')}:</Caption>
+              {(['{player.name}', '{prize.name}', '{event.name}'] as const).map((variable) => (
+                <button
+                  key={variable}
+                  type="button"
+                  onClick={() => update({ content: `${element.content} ${variable}` }, 'content')}
+                  className="text-xs font-mono px-1.5 py-0.5 rounded bg-fill-tertiary hover:bg-fill-secondary cursor-pointer border border-border"
+                >
+                  +{variable}
+                </button>
+              ))}
+            </Flex>
           </Field>
           <Field label={t('props.font')}>
             <Segmented
@@ -374,14 +449,57 @@ export function PropertiesPanel({
               ]}
             />
           </Field>
-          <Field label={t('props.align')}>
-            <Segmented
-              value={element.align}
-              onChange={(align) => update({ align: align as TextElement['align'] }, 'align')}
+          <div className="grid grid-cols-2 gap-2">
+            <Field label={t('props.align')}>
+              <Segmented
+                value={element.align}
+                onChange={(align) => update({ align: align as TextElement['align'] }, 'align')}
+                options={[
+                  { value: 'left', icon: <AlignLeft className="size-4" />, title: 'left' },
+                  { value: 'center', icon: <AlignCenter className="size-4" />, title: 'center' },
+                  { value: 'right', icon: <AlignRight className="size-4" />, title: 'right' },
+                ]}
+              />
+            </Field>
+            <Field label={t('props.letterSpacing')}>
+              <InputNumber
+                className="!w-full"
+                min={-2}
+                max={12}
+                step={0.5}
+                value={element.letterSpacing ?? 0}
+                onChange={(v) => update({ letterSpacing: v ?? 0 }, 'spacing')}
+                suffix="px"
+              />
+            </Field>
+          </div>
+          <Field label={t('props.textEffect')}>
+            <Select
+              value={element.textShadow ?? 'none'}
+              onChange={(textShadow) => update({ textShadow }, 'shadow')}
               options={[
-                { value: 'left', icon: <AlignLeft className="size-4" />, title: 'left' },
-                { value: 'center', icon: <AlignCenter className="size-4" />, title: 'center' },
-                { value: 'right', icon: <AlignRight className="size-4" />, title: 'right' },
+                { value: 'none', label: t('props.textEffects.none') },
+                { value: 'soft', label: t('props.textEffects.soft') },
+                { value: 'retro3d', label: t('props.textEffects.retro3d') },
+                { value: 'glow', label: t('props.textEffects.glow') },
+                { value: 'outline', label: t('props.textEffects.outline') },
+              ]}
+            />
+          </Field>
+          <Field label={t('props.textTransform')}>
+            <Segmented
+              block
+              value={element.textTransform ?? 'none'}
+              onChange={(textTransform) =>
+                update(
+                  { textTransform: textTransform as TextElement['textTransform'] },
+                  'transform',
+                )
+              }
+              options={[
+                { value: 'none', label: t('props.transforms.none') },
+                { value: 'uppercase', label: t('props.transforms.uppercase') },
+                { value: 'capitalize', label: t('props.transforms.capitalize') },
               ]}
             />
           </Field>
@@ -397,7 +515,15 @@ export function PropertiesPanel({
 
       {element.type === 'image' && (
         <Section title={t('props.image')}>
-          <div className="grid grid-cols-3 gap-2">
+          <Field bind label={t('props.imageUrl')}>
+            <Input
+              placeholder={t('props.imageUrlPlaceholder')}
+              value={element.src.startsWith('data:') ? '' : element.src}
+              onChange={(e) => update({ src: e.target.value }, 'src')}
+            />
+          </Field>
+          <Caption className="text-xs font-semibold mt-1">Stickers / Presets</Caption>
+          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 border rounded-md">
             {IMAGE_PRESETS.map((preset) => (
               <PresetTile
                 key={preset.key}
@@ -426,6 +552,39 @@ export function PropertiesPanel({
               onChange={(radius) => update({ radius }, 'radius')}
             />
           </Field>
+          <Field label={t('props.boxShadow')}>
+            <Select
+              value={element.shadow ?? 'none'}
+              onChange={(shadow) => update({ shadow }, 'shadow')}
+              options={[
+                { value: 'none', label: t('props.shadows.none') },
+                { value: 'soft', label: t('props.shadows.soft') },
+                { value: 'strong', label: t('props.shadows.strong') },
+                { value: 'glow', label: t('props.shadows.glow') },
+              ]}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label={t('props.border')}>
+              <InputNumber
+                className="!w-full"
+                min={0}
+                max={12}
+                value={element.borderWidth ?? 0}
+                onChange={(v) => update({ borderWidth: v ?? 0 }, 'borderWidth')}
+                suffix="px"
+              />
+            </Field>
+            {Boolean(element.borderWidth) && (
+              <Field label={t('props.borderColor')}>
+                <ColorField
+                  value={element.borderColor ?? 'brand.accent'}
+                  brand={brand}
+                  onChange={(borderColor) => update({ borderColor }, 'borderColor')}
+                />
+              </Field>
+            )}
+          </div>
         </Section>
       )}
 
@@ -442,6 +601,42 @@ export function PropertiesPanel({
               value={element.action}
               onChange={(action) => update({ action }, 'action')}
               options={ACTIONS.map((value) => ({ value, label: t(`props.actions.${value}`) }))}
+            />
+          </Field>
+          {(element.action === 'link' ||
+            element.action === 'zalo' ||
+            element.action === 'phone') && (
+            <Field bind label={t('props.actionTarget')}>
+              <Input
+                placeholder={t('props.actionTargetHint')}
+                value={element.actionTarget ?? ''}
+                onChange={(e) => update({ actionTarget: e.target.value }, 'actionTarget')}
+              />
+            </Field>
+          )}
+          <Field label={t('props.buttonStyle')}>
+            <Segmented
+              block
+              value={element.variant ?? 'game3d'}
+              onChange={(variant) =>
+                update({ variant: variant as ButtonElement['variant'] }, 'variant')
+              }
+              options={[
+                { value: 'game3d', label: t('props.buttonStyles.game3d') },
+                { value: 'flat', label: t('props.buttonStyles.flat') },
+                { value: 'glow', label: t('props.buttonStyles.glow') },
+                { value: 'gradient', label: t('props.buttonStyles.gradient') },
+              ]}
+            />
+          </Field>
+          <Field label={t('props.buttonIcon')}>
+            <Select
+              value={element.icon ?? 'none'}
+              onChange={(icon) => update({ icon }, 'icon')}
+              options={BUTTON_ICONS.map((value) => ({
+                value,
+                label: t(`props.buttonIcons.${value}`),
+              }))}
             />
           </Field>
           <Field label={t('props.fill')}>
@@ -478,6 +673,15 @@ export function PropertiesPanel({
               />
             </Field>
           </div>
+          <Field label={t('props.letterSpacing')}>
+            <Slider
+              min={-1}
+              max={6}
+              step={0.5}
+              value={element.letterSpacing ?? 0.5}
+              onChange={(v) => update({ letterSpacing: v }, 'spacing')}
+            />
+          </Field>
         </Section>
       )}
 
@@ -490,6 +694,8 @@ export function PropertiesPanel({
             options={[
               { value: 'rect', label: t('props.rect') },
               { value: 'ellipse', label: t('props.ellipse') },
+              { value: 'pill', label: t('props.shapeStyles.pill') },
+              { value: 'card', label: t('props.shapeStyles.card') },
             ]}
           />
           <Field label={t('props.fill')}>
@@ -498,6 +704,25 @@ export function PropertiesPanel({
               brand={brand}
               onChange={(fill) => update({ fill }, 'fill')}
             />
+          </Field>
+          <Field label={t('props.fillGradient')}>
+            <Flex align="center" gap={8}>
+              <Switch
+                checked={Boolean(element.fillGradientTo)}
+                onChange={(on) =>
+                  update({ fillGradientTo: on ? 'brand.primary' : undefined }, 'gradientToggle')
+                }
+              />
+              {element.fillGradientTo ? (
+                <ColorField
+                  value={element.fillGradientTo}
+                  brand={brand}
+                  onChange={(fillGradientTo) => update({ fillGradientTo }, 'gradTo')}
+                />
+              ) : (
+                <Caption>{t('props.noGradient')}</Caption>
+              )}
+            </Flex>
           </Field>
           {element.shape === 'rect' && (
             <Field label={`${t('props.radius')} (${element.radius})`}>
@@ -526,11 +751,303 @@ export function PropertiesPanel({
               />
             </Field>
           )}
+          <Field label={t('props.boxShadow')}>
+            <Select
+              value={element.shadow ?? 'none'}
+              onChange={(shadow) => update({ shadow }, 'shadow')}
+              options={[
+                { value: 'none', label: t('props.shadows.none') },
+                { value: 'soft', label: t('props.shadows.soft') },
+                { value: 'card', label: t('props.shadows.card') },
+                { value: 'glow', label: t('props.shadows.glow') },
+              ]}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {element.type === 'badge' && (
+        <Section title={t('types.badge')}>
+          <Field bind label={t('props.badgeText')}>
+            <Input
+              value={element.text}
+              onChange={(e) => update({ text: e.target.value }, 'badgeText')}
+            />
+          </Field>
+          <Field label={t('props.badgeVariant')}>
+            <Segmented
+              block
+              value={element.variant}
+              onChange={(variant) =>
+                update({ variant: variant as BadgeElement['variant'] }, 'badgeVariant')
+              }
+              options={[
+                { value: 'filled', label: t('props.badgeVariants.filled') },
+                { value: 'outline', label: t('props.badgeVariants.outline') },
+                { value: 'gradient', label: t('props.badgeVariants.gradient') },
+              ]}
+            />
+          </Field>
+          <Field label={t('props.badgeIcon')}>
+            <Select
+              value={element.icon}
+              onChange={(icon) => update({ icon }, 'badgeIcon')}
+              options={BADGE_ICONS.map((value) => ({
+                value,
+                label: t(`props.badgeIcons.${value}`),
+              }))}
+            />
+          </Field>
+          <Flex align="center" justify="space-between">
+            <Typography.Text>{t('props.pulseEffect')}</Typography.Text>
+            <Switch
+              checked={element.pulse ?? false}
+              onChange={(pulse) => update({ pulse }, 'pulse')}
+            />
+          </Flex>
+          <Field label={t('props.fill')}>
+            <ColorField
+              value={element.background}
+              brand={brand}
+              onChange={(background) => update({ background }, 'bg')}
+            />
+          </Field>
+          <Field label={t('props.textColor')}>
+            <ColorField
+              value={element.color}
+              brand={brand}
+              onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            <Field bind label={t('props.fontSize')}>
+              <InputNumber
+                className="!w-full"
+                min={9}
+                max={28}
+                value={element.fontSize}
+                onChange={(v) => v && update({ fontSize: v }, 'fontSize')}
+              />
+            </Field>
+            <Field label={t('props.radius')}>
+              <InputNumber
+                className="!w-full"
+                min={0}
+                max={100}
+                value={element.radius}
+                onChange={(v) => v !== null && update({ radius: v }, 'radius')}
+              />
+            </Field>
+          </div>
+        </Section>
+      )}
+
+      {element.type === 'marquee' && (
+        <Section title={t('types.marquee')}>
+          <Field bind label={t('props.marqueeText')}>
+            <Input.TextArea
+              autoSize={{ minRows: 2, maxRows: 4 }}
+              value={element.text}
+              onChange={(e) => update({ text: e.target.value }, 'marqueeText')}
+            />
+          </Field>
+          <Field label={t('props.marqueeSpeed')}>
+            <Segmented
+              block
+              value={element.speed}
+              onChange={(speed) =>
+                update({ speed: speed as MarqueeElement['speed'] }, 'marqueeSpeed')
+              }
+              options={[
+                { value: 'slow', label: t('props.speeds.slow') },
+                { value: 'normal', label: t('props.speeds.normal') },
+                { value: 'fast', label: t('props.speeds.fast') },
+              ]}
+            />
+          </Field>
+          <Field label={t('props.marqueeIcon')}>
+            <Select
+              value={element.icon}
+              onChange={(icon) => update({ icon }, 'marqueeIcon')}
+              options={MARQUEE_ICONS.map((value) => ({
+                value,
+                label: t(`props.marqueeIcons.${value}`),
+              }))}
+            />
+          </Field>
+          <Field label={t('props.fill')}>
+            <ColorField
+              value={element.background}
+              brand={brand}
+              onChange={(background) => update({ background }, 'bg')}
+            />
+          </Field>
+          <Field label={t('props.textColor')}>
+            <ColorField
+              value={element.color}
+              brand={brand}
+              onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {element.type === 'divider' && (
+        <Section title={t('types.divider')}>
+          <Field label={t('props.dividerStyle')}>
+            <Select
+              value={element.style}
+              onChange={(style) =>
+                update({ style: style as DividerElement['style'] }, 'dividerStyle')
+              }
+              options={[
+                { value: 'solid', label: t('props.dividerStyles.solid') },
+                { value: 'dashed', label: t('props.dividerStyles.dashed') },
+                { value: 'dotted', label: t('props.dividerStyles.dotted') },
+                { value: 'gradient', label: t('props.dividerStyles.gradient') },
+                { value: 'ornament', label: t('props.dividerStyles.ornament') },
+              ]}
+            />
+          </Field>
+          {element.style === 'ornament' && (
+            <Field label={t('props.ornament')}>
+              <Select
+                value={element.ornament}
+                onChange={(ornament) =>
+                  update({ ornament: ornament as DividerElement['ornament'] }, 'ornament')
+                }
+                options={ORNAMENTS.map((value) => ({
+                  value,
+                  label: t(`props.ornaments.${value}`),
+                }))}
+              />
+            </Field>
+          )}
+          <Field label={t('props.color')}>
+            <ColorField
+              value={element.color}
+              brand={brand}
+              onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
+          <Field label={t('props.thickness')}>
+            <Slider
+              min={1}
+              max={8}
+              value={element.thickness}
+              onChange={(thickness) => update({ thickness }, 'thickness')}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {element.type === 'audio' && (
+        <Section title={t('types.audio')}>
+          <Field bind label={t('props.audioLabel')}>
+            <Input
+              placeholder="VD: Bật âm thanh (hoặc để trống)"
+              value={element.label ?? ''}
+              onChange={(e) => update({ label: e.target.value }, 'audioLabel')}
+            />
+          </Field>
+          <Field label={t('props.fill')}>
+            <ColorField
+              value={element.background}
+              brand={brand}
+              onChange={(background) => update({ background }, 'bg')}
+            />
+          </Field>
+          <Field label={t('props.color')}>
+            <ColorField
+              value={element.color}
+              brand={brand}
+              onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {element.type === 'social' && (
+        <Section title={t('types.social')}>
+          <Field label={t('props.socialChannel')}>
+            <Select
+              value={element.channel}
+              onChange={(channel) =>
+                update({ channel: channel as SocialElement['channel'] }, 'socialChannel')
+              }
+              options={SOCIAL_CHANNELS.map((value) => ({
+                value,
+                label: t(`props.socialChannels.${value}`),
+              }))}
+            />
+          </Field>
+          <Field bind label={t('props.label')}>
+            <Input
+              value={element.label}
+              onChange={(e) => update({ label: e.target.value }, 'socialLabel')}
+            />
+          </Field>
+          <Field bind label={t('props.socialUrl')}>
+            <Input
+              placeholder="VD: https://zalo.me/... hoặc 19006868"
+              value={element.url ?? ''}
+              onChange={(e) => update({ url: e.target.value }, 'socialUrl')}
+            />
+          </Field>
+          <Field label={t('props.fill')}>
+            <ColorField
+              value={element.background}
+              brand={brand}
+              onChange={(background) => update({ background }, 'bg')}
+            />
+          </Field>
+          <Field label={t('props.textColor')}>
+            <ColorField
+              value={element.color}
+              brand={brand}
+              onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
         </Section>
       )}
 
       {element.type === 'countdown' && (
         <Section title={t('types.countdown')}>
+          <Field bind label={t('props.countdownTitle')}>
+            <Input
+              value={element.title ?? ''}
+              placeholder="VD: ƯU ĐÃI KẾT THÚC SAU"
+              onChange={(e) => update({ title: e.target.value }, 'title')}
+            />
+          </Field>
+          <Field label={t('props.countdownVariant')}>
+            <Segmented
+              block
+              value={element.variant ?? 'cards'}
+              onChange={(variant) =>
+                update({ variant: variant as CountdownElement['variant'] }, 'variant')
+              }
+              options={[
+                { value: 'cards', label: t('props.countdownVariants.cards') },
+                { value: 'pill', label: t('props.countdownVariants.pill') },
+                { value: 'minimal', label: t('props.countdownVariants.minimal') },
+              ]}
+            />
+          </Field>
+          <Flex align="center" justify="space-between">
+            <Typography.Text>{t('props.showDays')}</Typography.Text>
+            <Switch
+              checked={element.showDays ?? true}
+              onChange={(showDays) => update({ showDays }, 'showDays')}
+            />
+          </Flex>
+          <Flex align="center" justify="space-between">
+            <Typography.Text>{t('props.showSeconds')}</Typography.Text>
+            <Switch
+              checked={element.showSeconds ?? true}
+              onChange={(showSeconds) => update({ showSeconds }, 'showSeconds')}
+            />
+          </Flex>
           <Field label={t('props.textColor')}>
             <ColorField
               value={element.color}
@@ -550,6 +1067,13 @@ export function PropertiesPanel({
 
       {element.type === 'prizeList' && (
         <Section title={t('types.prizeList')}>
+          <Field bind label={t('props.prizeListTitle')}>
+            <Input
+              value={element.title ?? ''}
+              placeholder="VD: CƠ CẤU GIẢI THƯỞNG"
+              onChange={(e) => update({ title: e.target.value }, 'title')}
+            />
+          </Field>
           <Field label={t('props.prizeLayout')}>
             <Segmented
               block
@@ -570,11 +1094,25 @@ export function PropertiesPanel({
               onChange={(showRemaining) => update({ showRemaining }, 'showRemaining')}
             />
           </Flex>
+          <Flex align="center" justify="space-between">
+            <Typography.Text>{t('props.cardBorder')}</Typography.Text>
+            <Switch
+              checked={element.cardBorder ?? true}
+              onChange={(cardBorder) => update({ cardBorder }, 'cardBorder')}
+            />
+          </Flex>
           <Field label={t('props.textColor')}>
             <ColorField
               value={element.color}
               brand={brand}
               onChange={(color) => update({ color }, 'color')}
+            />
+          </Field>
+          <Field label={t('props.cardBackground')}>
+            <ColorField
+              value={element.cardBackground ?? 'brand.surface'}
+              brand={brand}
+              onChange={(cardBackground) => update({ cardBackground }, 'cardBackground')}
             />
           </Field>
         </Section>
@@ -591,24 +1129,39 @@ export function PropertiesPanel({
       )}
 
       <Section title={t('props.animation')}>
-        <div className="grid grid-cols-2 gap-2">
+        <Field label={t('props.animationEnter')}>
+          <div className="grid grid-cols-2 gap-2">
+            <Select
+              value={element.animation.enter}
+              onChange={(enter) => update({ animation: { ...element.animation, enter } }, 'anim')}
+              options={ANIMATIONS.map((value) => ({
+                value,
+                label: t(`props.animations.${value}`),
+              }))}
+            />
+            <InputNumber
+              className="!w-full"
+              min={0}
+              max={3000}
+              step={100}
+              value={element.animation.delayMs}
+              onChange={(v) =>
+                v !== null && update({ animation: { ...element.animation, delayMs: v } }, 'delay')
+              }
+              suffix={<Caption>ms</Caption>}
+            />
+          </div>
+        </Field>
+        <Field label={t('props.loopAnimation')}>
           <Select
-            value={element.animation.enter}
-            onChange={(enter) => update({ animation: { ...element.animation, enter } }, 'anim')}
-            options={ANIMATIONS.map((value) => ({ value, label: t(`props.animations.${value}`) }))}
+            value={element.animation.loop ?? 'none'}
+            onChange={(loop) => update({ animation: { ...element.animation, loop } }, 'loop')}
+            options={LOOP_ANIMATIONS.map((value) => ({
+              value,
+              label: t(`props.loopAnimations.${value}`),
+            }))}
           />
-          <InputNumber
-            className="!w-full"
-            min={0}
-            max={3000}
-            step={100}
-            value={element.animation.delayMs}
-            onChange={(v) =>
-              v !== null && update({ animation: { ...element.animation, delayMs: v } }, 'delay')
-            }
-            suffix={<Caption>ms</Caption>}
-          />
-        </div>
+        </Field>
       </Section>
     </Flex>
   );

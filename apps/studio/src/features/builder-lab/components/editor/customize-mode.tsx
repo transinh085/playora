@@ -30,7 +30,7 @@ export function CustomizeMode({
             brand={campaign.brand}
             renderStage={() => <CampaignStage campaign={campaign} />}
             prizes={toCanvasPrizes(campaign)}
-            toolbarHeight={48}
+            hideHeader={true}
           />
         </div>
       </div>

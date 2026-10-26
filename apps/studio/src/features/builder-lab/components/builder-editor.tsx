@@ -1,6 +1,18 @@
 'use client';
 
-import { Button, Divider, Flex, Grid, Input, Result, Segmented, Spin, Tooltip, theme } from 'antd';
+import {
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  Input,
+  Result,
+  Segmented,
+  Spin,
+  Tooltip,
+  Typography,
+  theme,
+} from 'antd';
 import {
   ArrowLeft,
   CloudAlert,
@@ -12,7 +24,6 @@ import {
   Rocket,
   Zap,
 } from 'lucide-react';
-import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -216,8 +227,27 @@ function EditorShell({
         )}
         {mode === 'customize' && <CustomizeMode campaign={draft} onChange={update} />}
         {mode === 'rules' && (
-          <div className="h-full overflow-y-auto p-4 lg:p-6">
-            <RulesPrizesPanel campaign={draft} onChange={(patch) => update(patch)} />
+          <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_390px] lg:overflow-hidden">
+            <div className="p-4 lg:p-6 lg:min-h-0 lg:overflow-y-auto">
+              <RulesPrizesPanel campaign={draft} onChange={(patch) => update(patch)} />
+            </div>
+            <aside
+              className="hidden lg:flex flex-col items-center justify-start p-6 overflow-y-auto"
+              style={{ background: token.colorBgContainer, borderLeft: wide ? border : undefined }}
+            >
+              <div className="mb-4 text-center">
+                <Typography.Text strong className="block text-sm" style={{ fontWeight: 600 }}>
+                  {t('liveGamePreview')}
+                </Typography.Text>
+                <Caption>{t('liveGamePreviewHint')}</Caption>
+              </div>
+              <PhonePreview
+                campaign={draft}
+                screen="game"
+                onScreenChange={setScreen}
+                hideScreenSwitcher
+              />
+            </aside>
           </div>
         )}
       </div>

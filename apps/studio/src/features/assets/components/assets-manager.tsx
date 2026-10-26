@@ -1,9 +1,11 @@
 'use client';
 
 import { assetsApi, type ErrorCode } from '@playora/contracts';
-import { App, Card, Empty, Skeleton, theme } from 'antd';
+import { App, Card, Skeleton, theme } from 'antd';
+import { ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { EmptyState } from '@/components/empty-state';
 import { QueryError } from '@/components/query-error';
 import { api } from '@/lib/api';
 import { useAssets, useInvalidateAssets, useRemoveAsset } from '../api';
@@ -93,9 +95,7 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       ) : query.isError ? (
         <QueryError onRetry={() => query.refetch()} />
       ) : query.data.items.length === 0 ? (
-        <Card variant="borderless" style={cardStyle}>
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('assets.empty')} />
-        </Card>
+        <EmptyState icon={ImageIcon} title={t('assets.empty')} description={t('assets.subtitle')} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {query.data.items.map((asset) => (

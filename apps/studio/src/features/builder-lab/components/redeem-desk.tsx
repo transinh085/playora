@@ -19,6 +19,7 @@ import {
 import { Gift, ScanLine } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState } from 'react';
+import { Caption } from '@/components/caption';
 import { LabApiError, lookupVoucher } from '../mock/api';
 import { useLabSync, useRedeemVoucher } from '../mock/hooks';
 import { normalizeCode } from './redeem/code';
@@ -118,156 +119,206 @@ export function RedeemDesk() {
   const data = code && !lookupError ? lookup.data : undefined;
 
   return (
-    <div className="flex flex-col">
-      <div>
-        <Flex vertical gap="large" className="w-full max-w-[560px]">
-          <Card>
-            <form onSubmit={submit}>
-              <Flex vertical gap="middle">
-                <label htmlFor="redeem-code">
-                  <Typography.Text strong>{t('codeLabel')}</Typography.Text>
-                </label>
-                <Space.Compact className="w-full">
-                  <Input
-                    id="redeem-code"
-                    value={input}
-                    onChange={(e) => setInput(normalizeCode(e.target.value))}
-                    placeholder={t('codePlaceholder')}
-                    prefix={<ScanLine size={16} color={token.colorTextTertiary} />}
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    spellCheck={false}
-                    autoFocus
-                    allowClear
-                    className="font-mono"
-                    style={{ letterSpacing: 3, fontSize: token.fontSizeLG }}
-                  />
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={lookup.isFetching}
-                    disabled={!input}
-                  >
-                    {t('check')}
-                  </Button>
-                </Space.Compact>
-              </Flex>
-            </form>
-          </Card>
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <Flex vertical gap="large" className="w-full">
+        <Card
+          variant="borderless"
+          style={{
+            border: `1px solid ${token.colorBorderSecondary}`,
+            borderRadius: token.borderRadiusLG,
+          }}
+        >
+          <form onSubmit={submit}>
+            <Flex vertical gap="middle">
+              <label htmlFor="redeem-code">
+                <Typography.Text strong style={{ fontSize: 15 }}>
+                  {t('codeLabel')}
+                </Typography.Text>
+              </label>
+              <Space.Compact className="w-full">
+                <Input
+                  id="redeem-code"
+                  value={input}
+                  onChange={(e) => setInput(normalizeCode(e.target.value))}
+                  placeholder={t('codePlaceholder')}
+                  prefix={<ScanLine size={18} color={token.colorTextTertiary} />}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  autoFocus
+                  allowClear
+                  size="large"
+                  className="font-mono"
+                  style={{ letterSpacing: 3, fontSize: token.fontSizeLG }}
+                />
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  loading={lookup.isFetching}
+                  disabled={!input}
+                >
+                  {t('check')}
+                </Button>
+              </Space.Compact>
+            </Flex>
+          </form>
+        </Card>
 
-          {justRedeemed ? (
-            <Card>
-              <Result
-                status="success"
-                title={t('successTitle')}
-                subTitle={t('successBody', { prize: justRedeemed.prizeName })}
-                extra={
-                  <Button type="primary" onClick={startOver}>
-                    {t('newCode')}
-                  </Button>
-                }
+        {justRedeemed ? (
+          <Card
+            variant="borderless"
+            style={{
+              border: `1px solid ${token.colorBorderSecondary}`,
+              borderRadius: token.borderRadiusLG,
+            }}
+          >
+            <Result
+              status="success"
+              title={t('successTitle')}
+              subTitle={t('successBody', { prize: justRedeemed.prizeName })}
+              extra={
+                <Button type="primary" size="large" onClick={startOver}>
+                  {t('newCode')}
+                </Button>
+              }
+            />
+          </Card>
+        ) : notFound ? (
+          <Alert type="error" showIcon title={t('notFound', { code })} />
+        ) : lookupError ? (
+          <Alert type="error" showIcon title={t('genericError')} />
+        ) : data ? (
+          <Card
+            variant="borderless"
+            style={{
+              border: `1px solid ${token.colorBorderSecondary}`,
+              borderRadius: token.borderRadiusLG,
+            }}
+          >
+            <Flex vertical gap="middle">
+              <Flex gap="middle" align="center">
+                {data.prize?.image ? (
+                  // biome-ignore lint/performance/noImgElement: data-URL prize images
+                  <img
+                    src={data.prize.image}
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="rounded-lg border object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex items-center justify-center rounded-lg"
+                    style={{ width: 64, height: 64, background: token.colorFillSecondary }}
+                  >
+                    <Gift size={36} color={token.colorPrimary} />
+                  </div>
+                )}
+                <Flex vertical className="min-w-0">
+                  <Typography.Title level={4} className="!m-0">
+                    {data.prize?.name ?? t('unknownPrize')}
+                  </Typography.Title>
+                  <Typography.Text className="font-mono text-base" type="secondary">
+                    {data.voucher.code}
+                  </Typography.Text>
+                </Flex>
+              </Flex>
+              {data.voucher.rehearsal && <Alert type="info" showIcon title={t('rehearsalNote')} />}
+              <Descriptions
+                column={1}
+                size="small"
+                bordered
+                items={[
+                  { key: 'campaign', label: t('campaign'), children: data.campaignName },
+                  { key: 'issued', label: t('issuedAt'), children: time(data.voucher.issuedAt) },
+                  {
+                    key: 'status',
+                    label: t('status'),
+                    children: (
+                      <Space size="small" wrap>
+                        {data.voucher.redeemedAt ? (
+                          <Tag>{t('redeemedAt', { time: time(data.voucher.redeemedAt) })}</Tag>
+                        ) : (
+                          <Tag color="success">{t('notRedeemed')}</Tag>
+                        )}
+                        {data.voucher.rehearsal && <Tag color="gold">{t('rehearsal')}</Tag>}
+                      </Space>
+                    ),
+                  },
+                ]}
               />
-            </Card>
-          ) : notFound ? (
-            <Alert type="error" showIcon title={t('notFound', { code })} />
-          ) : lookupError ? (
-            <Alert type="error" showIcon title={t('genericError')} />
-          ) : data ? (
-            <Card>
-              <Flex vertical gap="middle">
-                <Flex gap="middle" align="center">
-                  {data.prize?.image ? (
-                    // biome-ignore lint/performance/noImgElement: data-URL prize images
-                    <img src={data.prize.image} alt="" width={64} height={64} />
-                  ) : (
-                    <Gift size={48} color={token.colorTextTertiary} />
-                  )}
+              {data.voucher.redeemedAt ? (
+                <Alert
+                  type="warning"
+                  showIcon
+                  title={t('alreadyRedeemed', {
+                    code: data.voucher.code,
+                    time: time(data.voucher.redeemedAt),
+                  })}
+                />
+              ) : (
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  onClick={confirm}
+                  loading={redeem.isPending}
+                >
+                  {t('confirm')}
+                </Button>
+              )}
+            </Flex>
+          </Card>
+        ) : null}
+      </Flex>
+
+      <div>
+        <Card
+          variant="borderless"
+          title={t('sessionTitle')}
+          style={{
+            border: `1px solid ${token.colorBorderSecondary}`,
+            borderRadius: token.borderRadiusLG,
+          }}
+          extra={<Caption>{session.length}</Caption>}
+        >
+          {session.length === 0 ? (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('sessionEmpty')} />
+          ) : (
+            <Flex vertical>
+              {session.map((entry, i) => (
+                <Flex
+                  key={entry.code}
+                  justify="space-between"
+                  align="center"
+                  gap="middle"
+                  className="py-2.5"
+                  style={{
+                    borderTop: i ? `1px solid ${token.colorBorderSecondary}` : undefined,
+                  }}
+                >
                   <Flex vertical className="min-w-0">
-                    <Typography.Title level={4} className="m-0">
-                      {data.prize?.name ?? t('unknownPrize')}
-                    </Typography.Title>
-                    <Typography.Text className="font-mono" type="secondary">
-                      {data.voucher.code}
+                    <Typography.Text strong ellipsis>
+                      {entry.prizeName}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" ellipsis style={{ fontSize: 12 }}>
+                      {entry.campaignName}
+                    </Typography.Text>
+                  </Flex>
+                  <Flex vertical align="end">
+                    <Typography.Text className="font-mono text-xs font-semibold">
+                      {entry.code}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                      {time(entry.at)}
                     </Typography.Text>
                   </Flex>
                 </Flex>
-                {data.voucher.rehearsal && (
-                  <Alert type="info" showIcon title={t('rehearsalNote')} />
-                )}
-                <Descriptions
-                  column={1}
-                  size="small"
-                  items={[
-                    { key: 'campaign', label: t('campaign'), children: data.campaignName },
-                    { key: 'issued', label: t('issuedAt'), children: time(data.voucher.issuedAt) },
-                    {
-                      key: 'status',
-                      label: t('status'),
-                      children: (
-                        <Space size="small" wrap>
-                          {data.voucher.redeemedAt ? (
-                            <Tag>{t('redeemedAt', { time: time(data.voucher.redeemedAt) })}</Tag>
-                          ) : (
-                            <Tag color="success">{t('notRedeemed')}</Tag>
-                          )}
-                          {data.voucher.rehearsal && <Tag color="gold">{t('rehearsal')}</Tag>}
-                        </Space>
-                      ),
-                    },
-                  ]}
-                />
-                {data.voucher.redeemedAt ? (
-                  <Alert
-                    type="warning"
-                    showIcon
-                    title={t('alreadyRedeemed', {
-                      code: data.voucher.code,
-                      time: time(data.voucher.redeemedAt),
-                    })}
-                  />
-                ) : (
-                  <Button type="primary" block onClick={confirm} loading={redeem.isPending}>
-                    {t('confirm')}
-                  </Button>
-                )}
-              </Flex>
-            </Card>
-          ) : null}
-
-          <Card title={t('sessionTitle')} size="small">
-            {session.length === 0 ? (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('sessionEmpty')} />
-            ) : (
-              <Flex vertical>
-                {session.map((entry, i) => (
-                  <Flex
-                    key={entry.code}
-                    justify="space-between"
-                    align="center"
-                    gap="middle"
-                    className="py-2"
-                    style={{
-                      borderTop: i ? `1px solid ${token.colorBorderSecondary}` : undefined,
-                    }}
-                  >
-                    <Flex vertical className="min-w-0">
-                      <Typography.Text strong ellipsis>
-                        {entry.prizeName}
-                      </Typography.Text>
-                      <Typography.Text type="secondary" ellipsis>
-                        {entry.campaignName}
-                      </Typography.Text>
-                    </Flex>
-                    <Flex vertical align="end">
-                      <Typography.Text className="font-mono">{entry.code}</Typography.Text>
-                      <Typography.Text type="secondary">{time(entry.at)}</Typography.Text>
-                    </Flex>
-                  </Flex>
-                ))}
-              </Flex>
-            )}
-          </Card>
-        </Flex>
+              ))}
+            </Flex>
+          )}
+        </Card>
       </div>
     </div>
   );

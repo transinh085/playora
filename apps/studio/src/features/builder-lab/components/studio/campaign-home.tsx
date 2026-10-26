@@ -1,12 +1,13 @@
 'use client';
 
 import { Button, Card, Empty, Flex, Skeleton, Typography, theme } from 'antd';
-import { CircleAlert, Clock, Pause, PencilLine } from 'lucide-react';
+import { CircleAlert, Clock, Gift, Pause, PencilLine, Play, Radio, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
 import { Checklist } from '@/components/checklist';
+import { MetricGrid } from '@/components/metric-card';
 import { QueryError } from '@/components/query-error';
 import { useBrandKits } from '@/features/brand-kits/api';
 import { useOrgMembers } from '@/features/members/api';
@@ -46,6 +47,7 @@ type Attention = {
  */
 export function CampaignHome({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
+  const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
   useLabSync();
   const campaigns = useCampaigns(orgId);
@@ -179,22 +181,71 @@ export function CampaignHome({ orgId }: { orgId: string }) {
     return list;
   });
 
+  const liveCount = rows.filter((r) => r.phase === 'live').length;
+  const draftAndScheduledCount = rows.filter(
+    (r) => r.phase === 'draft' || r.phase === 'scheduled',
+  ).length;
+  const totalPlays = [...statsById.values()].reduce((sum, s) => sum + s.plays, 0);
+  const totalPrizesIssued = [...statsById.values()].reduce((sum, s) => sum + s.wins, 0);
+
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <Flex vertical gap={20} className="min-w-0">
-        {attention.length > 0 && <AttentionCard items={attention} />}
-        {steps.some((step) => !step.done) && (
-          <Checklist title={t('gettingStarted')} items={steps} testId="home-checklist" />
-        )}
-        <RecentCampaigns
-          orgId={orgId}
-          rows={rows.slice(0, RECENT_LIMIT)}
-          total={rows.length}
-          statsById={statsById}
-        />
-      </Flex>
-      <TemplateTeaser orgId={orgId} />
-    </div>
+    <Flex vertical gap={20}>
+      <MetricGrid
+        items={[
+          {
+            label: t('metrics.liveCampaigns'),
+            value: liveCount,
+            subtext: t('metrics.liveCampaignsSubtext', { count: draftAndScheduledCount }),
+            icon: <Radio className="size-5" />,
+            tone: 'primary',
+          },
+          {
+            label: t('metrics.totalPlays'),
+            value: format.number(totalPlays),
+            subtext: t('metrics.totalPlaysSubtext'),
+            icon: <Play className="size-5" />,
+            tone: 'info',
+          },
+          {
+            label: t('metrics.prizesIssued'),
+            value: format.number(totalPrizesIssued),
+            subtext: t('metrics.prizesIssuedSubtext'),
+            icon: <Gift className="size-5" />,
+            tone: 'success',
+          },
+          {
+            label: t('metrics.attentionNeeded'),
+            value: attention.length,
+            subtext:
+              attention.length > 0
+                ? t('metrics.attentionNeededSubtext', { count: attention.length })
+                : t('metrics.allGood'),
+            icon:
+              attention.length > 0 ? (
+                <CircleAlert className="size-5" />
+              ) : (
+                <Sparkles className="size-5" />
+              ),
+            tone: attention.length > 0 ? 'warning' : 'success',
+          },
+        ]}
+      />
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <Flex vertical gap={20} className="min-w-0">
+          {attention.length > 0 && <AttentionCard items={attention} />}
+          {steps.some((step) => !step.done) && (
+            <Checklist title={t('gettingStarted')} items={steps} testId="home-checklist" />
+          )}
+          <RecentCampaigns
+            orgId={orgId}
+            rows={rows.slice(0, RECENT_LIMIT)}
+            total={rows.length}
+            statsById={statsById}
+          />
+        </Flex>
+        <TemplateTeaser orgId={orgId} />
+      </div>
+    </Flex>
   );
 }
 

@@ -73,6 +73,7 @@ export function EditorCanvas({
   heightLabel,
   renderStage,
   prizes,
+  onContextMenu,
 }: {
   state: EditorState;
   dispatch: Dispatch<EditorAction>;
@@ -86,6 +87,7 @@ export function EditorCanvas({
   /** Draws the template's mechanism (idle) inside the game stage instead of the demo wheel. */
   renderStage?: (element: GameStageElement) => React.ReactNode;
   prizes?: CanvasPrize[];
+  onContextMenu?: (e: React.MouseEvent, id: string | null) => void;
 }) {
   const { token } = theme.useToken();
   const screen = currentScreen(state);
@@ -252,13 +254,16 @@ export function EditorCanvas({
 
       {!preview && (
         // Interaction layer: empty-space clicks deselect; each element gets a transparent hit box.
+        // biome-ignore lint/a11y/noStaticElementInteractions: interaction canvas surface with click-to-deselect and context menu
         <div
           className="absolute inset-0"
           onPointerDown={() => dispatch({ type: 'select', id: null })}
+          onContextMenu={(e) => onContextMenu?.(e, null)}
           role="presentation"
         >
           {screen.elements.map((el) =>
             el.hidden ? null : (
+              // biome-ignore lint/a11y/noStaticElementInteractions: canvas element hit-box with drag gesture and right-click
               <div
                 key={el.id}
                 data-testid={`canvas-element-${el.type}`}
@@ -272,7 +277,9 @@ export function EditorCanvas({
                 }}
                 onPointerEnter={() => setHoveredId(el.id)}
                 onPointerLeave={() => setHoveredId((h) => (h === el.id ? null : h))}
+                onContextMenu={(e) => onContextMenu?.(e, el.id)}
                 onPointerDown={(e) => {
+                  if (e.button === 2) return;
                   e.stopPropagation();
                   dispatch({ type: 'select', id: el.id });
                   if (el.locked) return;

@@ -1,9 +1,10 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Button, Card, Divider, Empty, Flex, Tag, Typography, theme } from 'antd';
+import { Button, Card, Divider, Flex, Tag, Typography, theme } from 'antd';
 import { Palette, Pencil, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { EmptyState } from '@/components/empty-state';
 import { IconTile } from '@/components/icon-tile';
 
 const COLOR_SLOTS = ['primary', 'secondary', 'background', 'text'] as const;
@@ -25,9 +26,7 @@ export function BrandKitList({
 
   if (items.length === 0) {
     return (
-      <Card variant="borderless" style={cardStyle}>
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('brandKits.empty')} />
-      </Card>
+      <EmptyState icon={Palette} title={t('brandKits.empty')} description={t('brandKits.title')} />
     );
   }
 

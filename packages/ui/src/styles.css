@@ -351,3 +351,8 @@
     }
   }
 }
+
+/* Ant Design Modal: expand from center instead of trigger element coordinates */
+.ant-modal {
+  transform-origin: center center !important;
+}

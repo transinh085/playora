@@ -421,6 +421,11 @@
     "add": "Add element",
     "addHint": "Drag onto the canvas or click to add it in the middle",
     "artboardHeight": "Drag to change the screen height",
+    "toolboxCategories": {
+      "content": "Content & Info",
+      "interactive": "Interactive & Prizes",
+      "decor": "Layout & Decor"
+    },
     "screenNames": {
       "cover": "Cover",
       "form": "Form",
@@ -432,9 +437,14 @@
       "text": "Text",
       "image": "Image",
       "button": "Button",
+      "badge": "Badge",
+      "marquee": "Marquee Ticker",
       "shape": "Shape",
+      "divider": "Divider",
       "countdown": "Countdown",
       "prizeList": "Prize list",
+      "audio": "Audio button",
+      "social": "Contact channel",
       "gameStage": "Game area",
       "form": "Form"
     },
@@ -444,6 +454,28 @@
     "show": "Show",
     "lock": "Lock",
     "unlock": "Unlock",
+    "context": {
+      "duplicate": "Duplicate",
+      "lock": "Lock position",
+      "unlock": "Unlock",
+      "hide": "Hide layer",
+      "show": "Show layer",
+      "layerOrder": "Layer order",
+      "bringFront": "Bring to front",
+      "bringForward": "Bring forward",
+      "sendBackward": "Send backward",
+      "sendBack": "Send to back",
+      "align": "Quick align",
+      "centerH": "Center horizontally",
+      "centerV": "Center vertically",
+      "alignLeft": "Align left",
+      "alignRight": "Align right",
+      "fullWidth": "Full screen width (375px)",
+      "resetRotation": "Reset rotation (0°)",
+      "delete": "Delete",
+      "addElement": "Add element here",
+      "deselect": "Deselect"
+    },
     "props": {
       "screen": "Screen properties",
       "screenHint": "Select an element on the canvas to edit it. Shortcuts: Delete removes, arrows nudge 1 px (Shift: 10 px), ⌘Z undo, ⌘D duplicate, Esc deselect.",
@@ -459,6 +491,12 @@
       "h": "Height",
       "rotation": "Rotation",
       "opacity": "Opacity",
+      "alignCenterH": "Center horizontally",
+      "alignCenterV": "Center vertically",
+      "alignLeft": "Align left",
+      "alignRight": "Align right",
+      "fullWidth": "Full screen width (375px)",
+      "insertVariable": "Insert variable",
       "content": "Content",
       "contentHint": "Variables: '{prize.name}', '{player.name}', '{event.name}'",
       "font": "Font",
@@ -472,11 +510,36 @@
       "color": "Colour",
       "align": "Alignment",
       "lineHeight": "Line height",
+      "letterSpacing": "Letter spacing",
+      "textEffect": "Text effect",
+      "textEffects": {
+        "none": "None",
+        "soft": "Soft shadow",
+        "retro3d": "3D Retro",
+        "glow": "Glow",
+        "outline": "Black outline"
+      },
+      "textTransform": "Text transform",
+      "transforms": {
+        "none": "Default",
+        "uppercase": "UPPERCASE",
+        "capitalize": "Capitalize"
+      },
       "image": "Image",
+      "imageUrl": "Image URL",
+      "imageUrlPlaceholder": "Paste image URL (https://...)",
       "fit": "Fit",
       "fitCover": "Cover",
       "fitContain": "Contain",
       "radius": "Corner radius",
+      "boxShadow": "Box shadow",
+      "shadows": {
+        "none": "None",
+        "soft": "Soft",
+        "strong": "Strong",
+        "glow": "Glow",
+        "card": "Card shadow"
+      },
       "label": "Label",
       "action": "Action",
       "actions": {
@@ -487,18 +550,118 @@
         "phone": "Call",
         "next": "Next screen"
       },
+      "actionTarget": "Action destination",
+      "actionTargetHint": "Enter link (https://...), phone number or Zalo link",
+      "buttonStyle": "Button style",
+      "buttonStyles": {
+        "game3d": "Game 3D",
+        "flat": "Flat",
+        "glow": "Glow",
+        "gradient": "Gradient"
+      },
+      "buttonIcon": "Button icon",
+      "buttonIcons": {
+        "none": "None",
+        "zap": "Lightning ⚡",
+        "gift": "Gift 🎁",
+        "pointer": "Hand pointer 👉",
+        "arrow": "Arrow ➔",
+        "star": "Star ⭐"
+      },
       "fill": "Fill",
       "textColor": "Text colour",
       "shape": "Shape",
       "rect": "Rectangle",
       "ellipse": "Ellipse",
+      "shapeStyles": {
+        "pill": "Pill",
+        "card": "Rounded card"
+      },
+      "fillGradient": "Fill gradient",
       "border": "Border width",
       "borderColor": "Border colour",
+      "badgeText": "Badge text",
+      "badgeVariant": "Badge style",
+      "badgeVariants": {
+        "filled": "Filled",
+        "outline": "Outline",
+        "gradient": "Gradient"
+      },
+      "badgeIcon": "Badge icon",
+      "badgeIcons": {
+        "none": "None",
+        "flame": "Flame 🔥",
+        "gift": "Gift 🎁",
+        "sparkles": "Sparkles ✨",
+        "trophy": "Trophy 🏆",
+        "zap": "Lightning ⚡",
+        "star": "Star ⭐"
+      },
+      "pulseEffect": "Pulse attention effect",
+      "marqueeText": "Ticker text",
+      "marqueeSpeed": "Ticker speed",
+      "marqueeIcon": "Ticker icon",
+      "marqueeIcons": {
+        "megaphone": "Megaphone",
+        "trophy": "Trophy",
+        "sparkles": "Sparkles",
+        "flame": "Flame"
+      },
+      "speeds": {
+        "slow": "Slow",
+        "normal": "Normal",
+        "fast": "Fast"
+      },
+      "dividerStyle": "Divider style",
+      "dividerStyles": {
+        "solid": "Solid",
+        "dashed": "Dashed",
+        "dotted": "Dotted",
+        "gradient": "Gradient",
+        "ornament": "With ornament"
+      },
+      "ornament": "Center ornament",
+      "ornaments": {
+        "none": "None",
+        "star": "Star ⭐",
+        "diamond": "Diamond 💎",
+        "flower": "Flower 🌸"
+      },
+      "thickness": "Thickness",
+      "audioLabel": "Audio button label",
+      "socialChannel": "Contact channel",
+      "socialChannels": {
+        "zalo": "Zalo OA",
+        "phone": "Hotline",
+        "facebook": "Facebook",
+        "website": "Website"
+      },
+      "socialUrl": "Target URL / Phone",
+      "countdownTitle": "Countdown title",
+      "countdownVariant": "Countdown style",
+      "countdownVariants": {
+        "cards": "Flip cards",
+        "pill": "Pill bar",
+        "minimal": "Minimal digits"
+      },
+      "showDays": "Show days",
+      "showSeconds": "Show seconds",
+      "prizeListTitle": "Prize list title",
+      "cardBorder": "Prize card border",
+      "cardBackground": "Prize card background",
       "prizeLayout": "Layout",
       "grid": "Grid",
       "list": "List",
       "showRemaining": "Show remaining stock",
-      "animation": "Enter animation",
+      "animation": "Animation",
+      "animationEnter": "Enter animation",
+      "loopAnimation": "Loop animation",
+      "loopAnimations": {
+        "none": "None",
+        "pulse": "Pulse",
+        "wiggle": "Wiggle",
+        "float": "Float"
+      },
       "delay": "Delay (ms)",
       "animations": {
         "none": "None",
@@ -843,6 +1006,14 @@
       "namePlaceholder": "Campaign name, e.g. Tết wheel – Moc Coffee",
       "pickFirst": "Pick a template above first",
       "createButton": "Create campaign",
+      "mechanicsLabel": "Mechanic",
+      "occasionsLabel": "Occasion",
+      "useTemplate": "Use template",
+      "modalTitle": "Create new campaign",
+      "modalSubtitle": "Set up basic information to start editing.",
+      "brandKitLabel": "Brand kit",
+      "defaultBrandKit": "Default brand kit",
+      "startDesigning": "Start designing",
       "list": {
         "title": "Your campaigns",
         "count": "{count, plural, one {# campaign} other {# campaigns}}",
@@ -867,6 +1038,8 @@
       "rehearse": "Rehearse",
       "publish": "Publish",
       "customizeNarrow": "Customize works best on a wide screen. On a phone, use Quick edit.",
+      "liveGamePreview": "Live game preview",
+      "liveGamePreviewHint": "Game mechanism updates in real-time as prizes change",
       "modes": {
         "quick": "Quick edit",
         "customize": "Customize",
@@ -995,6 +1168,16 @@
     "noMatch": "No campaigns match these filters.",
     "empty": "No campaigns yet.",
     "edit": "Edit design",
+    "viewGrid": "Grid view",
+    "viewTable": "Table view",
+    "openOps": "View operations",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "emptyTitle": "No campaigns yet",
+    "emptySubtitle": "Pick a minigame template from the gallery to launch your first campaign.",
+    "noMatchTitle": "No matching campaigns",
+    "noMatchSubtitle": "Try a different search keyword or change the status filter.",
+    "clearFilters": "Clear filters",
     "columns": {
       "name": "Campaign",
       "status": "Status",
@@ -1083,6 +1266,17 @@
     "home": {
       "title": "Home",
       "subtitle": "What needs you today and your campaigns.",
+      "metrics": {
+        "liveCampaigns": "Live campaigns",
+        "liveCampaignsSubtext": "{count} drafts & scheduled",
+        "totalPlays": "Total plays",
+        "totalPlaysSubtext": "Across all campaigns",
+        "prizesIssued": "Prizes awarded",
+        "prizesIssuedSubtext": "Vouchers won by players",
+        "attentionNeeded": "Attention needed",
+        "attentionNeededSubtext": "{count} items needing review",
+        "allGood": "All systems running smoothly"
+      },
       "gettingStarted": "Get started with Playora",
       "steps": {
         "brand": "Add your store's logo and colours",

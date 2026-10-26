@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { createEditorState, currentScreen, editorReducer } from './editor-state';
 import { moveWithSnap, resizeBox, rotationFromPointer, snapTargets } from './geometry';
-import { createDemoDoc, DEMO_BRAND, resolveColor } from './model';
+import { ADDABLE_TYPES, createDemoDoc, createElement, DEMO_BRAND, resolveColor } from './model';
 
 function must<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('missing fixture');
@@ -126,5 +126,36 @@ describe('editor state', () => {
   test('brand references resolve through the palette', () => {
     expect(resolveColor('brand.accent', DEMO_BRAND)).toBe(DEMO_BRAND.accent);
     expect(resolveColor('#123456', DEMO_BRAND)).toBe('#123456');
+  });
+
+  test('createElement creates every addable type with valid geometry and properties', () => {
+    for (const type of ADDABLE_TYPES) {
+      const el = createElement(type, 187, 300, `Demo ${type}`);
+      expect(el.type).toBe(type);
+      expect(el.w).toBeGreaterThan(0);
+      expect(el.h).toBeGreaterThan(0);
+      expect(el.id).toBeTruthy();
+    }
+  });
+
+  test('editor supports rich element customization and loop animation', () => {
+    const state = fresh();
+    const id = must(currentScreen(state).elements[0]).id;
+    const patched = editorReducer(state, {
+      type: 'update',
+      id,
+      patch: {
+        letterSpacing: 2,
+        textShadow: 'retro3d',
+        textTransform: 'uppercase',
+        animation: { enter: 'zoom', delayMs: 200, loop: 'pulse' },
+      },
+    });
+    const updated = must(currentScreen(patched).elements[0]);
+    expect(updated.animation.loop).toBe('pulse');
+    if (updated.type === 'text') {
+      expect(updated.letterSpacing).toBe(2);
+      expect(updated.textShadow).toBe('retro3d');
+    }
   });
 });
