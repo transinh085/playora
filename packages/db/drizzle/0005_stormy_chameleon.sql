@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "players_event_id_env_device_id_index" ON "players" USING btree ("event_id","env","device_id") WHERE "players"."device_id" is not null;

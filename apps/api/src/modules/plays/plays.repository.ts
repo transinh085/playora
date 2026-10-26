@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
-import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, ne, or, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
-import type { CampaignDocument } from '../campaigns/campaign-defaults';
+import { type CampaignDocument, readCampaignDocument } from '../campaigns/campaign-defaults';
 
 const { events, games, gameVersions, prizes, awards, plays, playCounters, players } = schema;
 
@@ -65,7 +65,7 @@ export class PlaysRepository {
       version: {
         id: row.version.id,
         version: row.version.version,
-        config: row.version.config as CampaignDocument,
+        config: readCampaignDocument(row.version.config),
       },
     };
   }
@@ -126,7 +126,7 @@ export class PlaysRepository {
 
   async findPlayer(organizationId: string, eventId: string, playerId: string, env: PlayEnv) {
     const [row] = await this.db
-      .select({ id: players.id })
+      .select({ id: players.id, sessionVer: players.sessionVer })
       .from(players)
       .where(
         and(
@@ -390,6 +390,33 @@ export class PlaysRepository {
       .onConflictDoNothing()
       .returning({ id: awards.id, code: awards.redeemCode, expiresAt: awards.expiresAt });
     return row;
+  }
+
+  /**
+   * Whether the player holds a voucher still to be used at the counter: not void, not redeemed and
+   * not expired ("Khách quay lại lần 2": redeem it before playing again).
+   */
+  async hasUnredeemedVoucher(
+    organizationId: string,
+    input: { eventId: string; playerId: string; env: PlayEnv },
+    tx: DbOrTx = this.db,
+  ): Promise<boolean> {
+    const [row] = await tx
+      .select({ id: awards.id })
+      .from(awards)
+      .where(
+        and(
+          eq(awards.organizationId, organizationId),
+          eq(awards.eventId, input.eventId),
+          eq(awards.playerId, input.playerId),
+          eq(awards.env, input.env),
+          ne(awards.status, 'void'),
+          isNull(awards.redeemedAt),
+          or(isNull(awards.expiresAt), gt(awards.expiresAt, sql`now()`)),
+        ),
+      )
+      .limit(1);
+    return row !== undefined;
   }
 
   /** The player's vouchers ("Quà của tôi"), newest first. */

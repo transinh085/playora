@@ -9,6 +9,7 @@ import {
   type Campaign,
   type CampaignListItem,
   type CampaignPlayRecord,
+  type CampaignReport,
   type CampaignStats,
   type CampaignVoucher,
   type campaignsApi,
@@ -16,7 +17,13 @@ import {
   type RouteArgs,
   type VoucherStatus,
 } from '@playora/contracts';
-import { campaignPhase, isRunningPhase, PrizeRules, toPrizeRules } from '@playora/core/prize';
+import {
+  campaignPhase,
+  isRunningPhase,
+  localDayKey,
+  PrizeRules,
+  toPrizeRules,
+} from '@playora/core/prize';
 import { canonicalJson } from '@playora/game-sdk';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
@@ -27,6 +34,7 @@ import {
   DEFAULT_CAMPAIGN_TIMEZONE,
   eventMirror,
   generateSlug,
+  readCampaignDocument,
   templateVersionFor,
 } from './campaign-defaults';
 import { type CampaignRow, CampaignsRepository } from './campaigns.repository';
@@ -38,6 +46,22 @@ type PlaysQuery = RouteArgs<typeof campaignsApi.plays>['query'];
 type VouchersQuery = RouteArgs<typeof campaignsApi.vouchers>['query'];
 
 const GENERATED_SLUG_ATTEMPTS = 5;
+/** The report's day series stops at the last 120 days (a campaign rarely runs longer). */
+export const REPORT_MAX_DAYS = 120;
+
+/** Local day keys (`YYYY-MM-DD`) from `from` to `to` inclusive, at most the last `max`. */
+export function dayRange(from: string, to: string, max = REPORT_MAX_DAYS): string[] {
+  const toUtc = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number) as [number, number, number];
+    return Date.UTC(y, m - 1, d);
+  };
+  const days: string[] = [];
+  const start = toUtc(from);
+  for (let at = toUtc(to); at >= start && days.length < max; at -= 86_400_000) {
+    days.push(new Date(at).toISOString().slice(0, 10));
+  }
+  return days.reverse();
+}
 
 export function computeConfigHash(config: unknown): string {
   return createHash('sha256').update(canonicalJson(config)).digest('hex');
@@ -78,7 +102,7 @@ export class CampaignsService {
 
   private toListItem(row: CampaignRow, now = Date.now()): CampaignListItem {
     const { event, game, version } = row;
-    const doc = game.draftConfig as CampaignDocument;
+    const doc = readCampaignDocument(game.draftConfig);
     const published = version !== null;
     // Once published, `events.startsAt/endsAt` are the live schedule (publish and end write them).
     const phase = campaignPhase(
@@ -97,6 +121,7 @@ export class CampaignsService {
       name: event.name,
       templateKey: game.templateKey as Campaign['templateKey'],
       skinKey: (game.skinKey ?? 'everyday') as Campaign['skinKey'],
+      playbook: doc.playbook,
       brand: doc.brand,
       prizes: doc.prizes,
       rules: doc.rules,
@@ -114,14 +139,15 @@ export class CampaignsService {
   }
 
   private toCampaign(row: CampaignRow): Campaign {
-    const doc = row.game.draftConfig as CampaignDocument;
+    const doc = readCampaignDocument(row.game.draftConfig);
     return { ...this.toListItem(row), screens: doc.screens };
   }
 
   /**
    * The schedule is live state: `end` moves `events.endsAt` and the draft `rules.endsAt` without
    * publishing a new version. So the content is compared with the published dates put back,
-   * and the draft dates are compared with the live dates on the event.
+   * and the draft dates are compared with the live dates on the event. The raw stored draft is
+   * hashed (not the defaults-filled read), because that is what publish hashed.
    */
   private hasUnpublishedChanges(row: CampaignRow): boolean {
     const { event, game, version } = row;
@@ -186,6 +212,7 @@ export class CampaignsService {
 
   async create(orgId: string, body: CreateBody): Promise<Campaign> {
     const doc: CampaignDocument = {
+      playbook: body.playbook ?? null,
       brand: body.brand,
       screens: body.screens,
       prizes: body.prizes,
@@ -249,8 +276,9 @@ export class CampaignsService {
       if (!(await this.repo.lockGame(orgId, campaignId, tx))) notFound();
       const row = await this.repo.findById(orgId, campaignId, tx);
       if (!row) notFound();
-      const current = row.game.draftConfig as CampaignDocument;
+      const current = readCampaignDocument(row.game.draftConfig);
       const doc: CampaignDocument = {
+        playbook: current.playbook,
         brand: body.brand ?? current.brand,
         screens: body.screens ?? current.screens,
         prizes: body.prizes ?? current.prizes,
@@ -310,7 +338,8 @@ export class CampaignsService {
       const row = await this.repo.findById(orgId, campaignId, tx);
       if (!row) notFound();
       const { event, game } = row;
-      const doc = game.draftConfig as CampaignDocument;
+      // Published configs always carry every rule field (older drafts get their defaults here).
+      const doc = readCampaignDocument(game.draftConfig);
 
       const parsed = PrizeRules.safeParse(
         toPrizeRules(doc.rules, doc.prizes, { rehearsal: false, timezone: event.timezone }),
@@ -388,7 +417,7 @@ export class CampaignsService {
       await this.repo.updateGame(
         orgId,
         game.id,
-        { status: 'published', currentVersionId: inserted.id, updatedAt: now },
+        { status: 'published', currentVersionId: inserted.id, draftConfig: doc, updatedAt: now },
         tx,
       );
       await this.repo.updateEvent(
@@ -430,7 +459,7 @@ export class CampaignsService {
          * republish does not silently reopen the campaign. Extending = editing endsAt + publish.
          * Issued vouchers keep their own `expiresAt`.
          */
-        const doc = row.game.draftConfig as CampaignDocument;
+        const doc = readCampaignDocument(row.game.draftConfig);
         const endsAt = now.toISOString();
         // Both dates in UTC `Z` form: the contract compares the ISO strings.
         const startsAt = new Date(
@@ -525,6 +554,75 @@ export class CampaignsService {
         }),
       ),
       nextCursor: page.nextCursor,
+    };
+  }
+
+  /**
+   * Outcome report (docs/product/specs/playbooks.md §3.2), live data only. The day series runs from
+   * the first day of the campaign to today (or its last day), zero days included.
+   */
+  async report(orgId: string, campaignId: string): Promise<CampaignReport> {
+    const row = await this.load(orgId, campaignId);
+    const { event, game, version } = row;
+    const doc = readCampaignDocument(game.draftConfig);
+    const timezone = event.timezone;
+    const startsAt = (version && event.startsAt) || new Date(doc.rules.startsAt);
+    const endsAt = (version && event.endsAt) || new Date(doc.rules.endsAt);
+    const now = new Date();
+    const to = endsAt.getTime() < now.getTime() ? endsAt : now;
+
+    const r = await this.repo.report(orgId, {
+      eventId: event.id,
+      gameId: game.id,
+      timezone,
+      from: startsAt,
+      to,
+    });
+    const budgetVnd = version
+      ? ((await this.repo.publishedBudget(orgId, game.id)) ?? null)
+      : doc.rules.budgetVnd;
+
+    const days =
+      to.getTime() < startsAt.getTime()
+        ? []
+        : dayRange(localDayKey(startsAt, timezone), localDayKey(to, timezone));
+    const playsByDay = new Map(r.playDays.map((d) => [d.day, d]));
+    const visitsByDay = new Map(r.visitDays.map((d) => [d.day, d.visits]));
+
+    return {
+      visits: r.visits,
+      uniqueVisitors: r.uniqueVisitors,
+      returningVisitors: r.returningVisitors,
+      prizeCostVnd: r.prizeCostVnd,
+      outstandingCostVnd: r.outstandingCostVnd,
+      budgetVnd,
+      costPerVisitVnd: r.visits > 0 ? Math.round(r.prizeCostVnd / r.visits) : null,
+      plays: r.plays,
+      players: r.players,
+      issued: r.issued,
+      redemptionRate: r.issued > 0 ? r.visits / r.issued : null,
+      timezone,
+      byDay: days.map((day) => ({
+        day,
+        plays: playsByDay.get(day)?.plays ?? 0,
+        wins: playsByDay.get(day)?.wins ?? 0,
+        visits: visitsByDay.get(day) ?? 0,
+      })),
+      byChannel: r.byChannel.map((c) => ({
+        channel: c.channel ?? null,
+        plays: c.plays,
+        wins: c.wins,
+        visits: c.visits,
+      })),
+      byPrize: r.byPrize.map((p) => ({
+        prizeId: p.key as string,
+        name: p.name,
+        valueVnd: p.valueVnd ?? 0,
+        quantity: p.quantity,
+        issued: p.issued,
+        redeemed: p.redeemed,
+        remaining: p.remaining,
+      })),
     };
   }
 

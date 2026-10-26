@@ -21,7 +21,7 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 
 - Idempotency: header `Idempotency-Key` cho các POST có side-effect tài chính hoặc giải thưởng (draw, award, payment). Lưu trong Valkey 24 h; lượt chơi còn có `client_request_id` unique trong DB.
 - Phân trang: cursor-based `?cursor=&limit=` (mặc định 50, tối đa 200).
-- Rate limit: hiện có `ThrottlerGuard` theo IP trên Valkey (`RedisThrottlerStorage`). Đích `[GĐ]`: người chơi 30 req/10 s/token, join 10 req/phút/IP (nới cho NAT quán/văn phòng bằng cách kết hợp deviceId), Studio 300 req/phút/user.
+- Rate limit: `ThrottlerGuard` theo IP trên Valkey (`RedisThrottlerStorage`): mặc định `RATE_LIMIT_PER_MIN`/IP, route public `PUBLIC_RATE_LIMIT_PER_MIN`/IP, join thêm 20/phút theo IP + deviceId. Trên đó, chương trình có thêm giới hạn theo mức chống gian lận (`AntiFraudService`, cửa sổ cố định 1 phút, đếm theo chương trình; số cụ thể ở `ANTI_FRAUD_LIMITS` và [security §1.3](security.md#13-đã-làm-ở-m1-mức-thấp-và-chuẩn)); vượt → 429 `RATE_LIMITED`. Studio 300 req/phút/user vẫn là đích.
 
 ---
 
@@ -58,6 +58,12 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 | POST | `/orgs/{orgId}/awards/redeem` | Staff đổi quà bằng `redeemCode` | operator |
 | GET | `/orgs/{orgId}/audit-logs` | Nhật ký | admin |
 
+**Đã có (M1, campaign, `campaignsApi` trong `packages/contracts/src/api/campaigns.ts`):** CRUD `/orgs/{orgId}/campaigns[/{campaignId}]` (draft lưu `playbook` và luật, kể cả `openDays`, `requireRedeemBeforeReplay`, `antiFraud`), `publish`/`pause`/`resume`/`end`, `plays`, `vouchers`, `stats`, `rehearsal-plays` và:
+
+| Method | Path | Mô tả | Quyền |
+|---|---|---|---|
+| GET | `/orgs/{orgId}/campaigns/{campaignId}/report` | Báo cáo kết quả (PLB-03, [playbooks §3.2](../product/specs/playbooks.md#32-định-nghĩa-chỉ-số)), chỉ dữ liệu live: `visits` (award đã đổi, không void), `uniqueVisitors`, `returningVisitors` (đổi quà ở ≥ 2 ngày địa phương khác nhau), `prizeCostVnd` (Σ giá vốn đã đổi), `outstandingCostVnd` (đã phát, chưa đổi, chưa hết hạn, không void), `costPerVisitVnd`, `redemptionRate` (đã đổi / đã phát không void); `byDay` (mọi ngày từ ngày bắt đầu tới min(hôm nay, ngày kết thúc), ngày trống = 0, tối đa 120 ngày gần nhất; plays/wins theo ngày chơi, visits theo ngày đổi), `byChannel` (`plays.channel_key`; wins/visits qua `awards.play_id`), `byPrize` | `campaign:read` |
+
 ### 2.2 Player (public)
 
 | Method | Path | Mô tả |
@@ -74,6 +80,8 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 | POST | `/p/{slug}/privacy/requests` | Yêu cầu xoá hoặc xuất dữ liệu (PDPL) |
 
 **Đã có (M1, campaign, `playsApi` trong `packages/contracts/src/api/plays.ts`):** `GET /p/{slug}/campaign` trả bản đã phát hành (không lộ xác suất, tồn kho, giá trị; `phase` tính từ `events.startsAt/endsAt/paused`), `POST /p/{slug}/plays` (body `{ requestId, channel?, captchaToken? }`; `requestId` là khoá idempotent theo người chơi thay cho header `Idempotency-Key`, chưa có `gameId` trong path vì M1 một game/chương trình) trả `PlayResult` `{ playId, outcome: win|lose|no_turns|closed, reason, prize, voucher, turnsLeftToday }`, và `GET /p/{slug}/me` (lượt còn lại hôm nay, `nextTurnAt`, voucher của người chơi) thay cho `/me` + `/prizes` ở bảng trên. Cả ba cần token phiên từ `join` (`Authorization: Bearer`); token của chương trình khác → 403. Join từ chối chương trình đã qua `endsAt` (`EVENT_NOT_LIVE`).
+
+P1: `PublicCampaign` có thêm `openDays`, `requireRedeemBeforeReplay` và `captchaSiteKey` (khác null khi mức `standard` và API cấu hình Turnstile). Ngày không mở → `closed`, không trừ lượt. Luật "đổi quà trước khi chơi tiếp": người chơi còn voucher chưa đổi (không void, chưa hết hạn) → `no_turns` + `reason: 'redeem_first'`, không trừ lượt; `GET /me` trả `blockedReason: 'redeem_first'`. Mức `standard` cần `captchaToken` (Turnstile) ở lượt chơi đầu của phiên: thiếu/sai → 403 `CAPTCHA_REQUIRED`; giải xong được nhớ 12 giờ theo người chơi. Token phiên ký `ver = players.session_ver`; tăng `session_ver` thu hồi mọi token cũ (401).
 
 ### 2.3 Webhook nhận vào
 

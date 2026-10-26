@@ -34,6 +34,24 @@ Tài liệu này chỉ gồm phần kỹ thuật. Phần pháp lý (dữ liệu 
 | **Đổi quà** | Mã đổi quà dùng một lần, đổi không hoàn tác; mở lại phải do owner, có lý do và audit |
 | **Audit** | Mọi thao tác trên giải, bốc thăm, đổi quà, export và impersonate đều ghi `audit_logs` |
 
+### 1.3 Đã làm ở M1 (mức Thấp và Chuẩn)
+
+Mức chống gian lận nằm trong luật chương trình (`rules.antiFraud`, mặc định `standard`), phát hành thì chép sang `events.antiFraud = { level }`. Event cũ không có mức được coi là `low`. Code: `apps/api/src/common/anti-fraud/`.
+
+| Biện pháp | Thấp (`low`) | Chuẩn (`standard`) |
+|---|---|---|
+| Server quyết định kết quả, `requestId` idempotent, transaction atomic | ✅ | ✅ |
+| Rate limit lượt chơi (cửa sổ cố định 1 phút trên Valkey, đếm theo chương trình) | 600/phút/IP | 20/phút/người chơi, 120/phút/IP |
+| Rate limit join | 600/phút/IP | 30/phút/IP, 5/phút/thiết bị |
+| Cloudflare Turnstile ở lượt chơi | ❌ | ✅ khi API có `TURNSTILE_SECRET_KEY`; giải một lần mỗi phiên người chơi (cờ `af:human:{event}:{player}` 12 giờ), kiểm phía server qua `siteverify`, lỗi mạng = từ chối |
+| Một thiết bị = một người chơi | ✅ | ✅ |
+| Thu hồi token phiên (`ver = players.session_ver`) | ✅ | ✅ |
+
+- Vượt giới hạn → 429 `RATE_LIMITED`; thiếu hoặc sai token Turnstile → 403 `CAPTCHA_REQUIRED`. Lượt bị từ chối không trừ lượt.
+- Giới hạn IP để lỏng vì khách một quán dùng chung một IP (NAT); giới hạn theo người chơi/thiết bị mới là lớp chính. Theo thiết bị ở lượt chơi chính là theo người chơi vì unique index `players (event_id, env, device_id)`. Join không còn khoá dòng event; `playerLimit` thành giới hạn mềm khi join đồng thời.
+- Route `POST /p/{slug}/plays` vẫn đi qua throttler mặc định (`RATE_LIMIT_PER_MIN`/IP, 300) vì contract chưa gắn `rateLimit: 'public'`; đó là trần IP thực tế cho mức Thấp tới khi contract đổi.
+- Chưa làm ở M1: Turnstile ở bước join (body join chưa có `captchaToken`), blacklist, gắn cờ tự động, chặn VPN/proxy, OTP (mức Cao, M2).
+
 ---
 
 ## 2. Bảo mật ứng dụng (tham chiếu OWASP ASVS L2)

@@ -31,8 +31,9 @@ import {
 import { parseRegistrationForm } from '@playora/core/registration';
 import type { PlayerSessionClaims } from '@playora/core/session';
 import type { Tx } from '@playora/db';
+import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
-import type { CampaignDocument } from '../campaigns/campaign-defaults';
+import { type CampaignDocument, readCampaignDocument } from '../campaigns/campaign-defaults';
 import { voucherStatus } from '../vouchers/vouchers.service';
 import { type PlayEnv, PlaysRepository, type PublishedCampaign } from './plays.repository';
 
@@ -51,6 +52,30 @@ export function voucherCode(): string {
   let code = '';
   for (let i = 0; i < CODE_LENGTH; i++) code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
   return code;
+}
+
+/** Weekday (0 = Sunday) of the local day `now` falls on in `timeZone`. */
+export function localWeekday(now: Date, timeZone: string): number {
+  const [y, m, d] = localDayKey(now, timeZone).split('-').map(Number) as [number, number, number];
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** Start of the next local day that is open (`openDays`, null = any), plus `minutes` into it. */
+export function nextOpenDayStart(
+  now: Date,
+  timeZone: string,
+  openDays: readonly number[] | null,
+  minutes = 0,
+): Date {
+  let day = nextLocalDayStart(now, timeZone);
+  for (
+    let i = 0;
+    i < 7 && openDays?.length && !openDays.includes(localWeekday(day, timeZone));
+    i++
+  ) {
+    day = nextLocalDayStart(day, timeZone);
+  }
+  return minutes ? nextLocalDayStart(new Date(day.getTime() - 1), timeZone, minutes) : day;
 }
 
 /** Start of the local day after `now` in `timeZone`, plus `minutes` into that day. */
@@ -100,7 +125,10 @@ class ClosedDuringPlay extends Error {}
  */
 @Injectable()
 export class PlaysService {
-  constructor(private readonly repo: PlaysRepository) {}
+  constructor(
+    private readonly repo: PlaysRepository,
+    private readonly antiFraud: AntiFraudService,
+  ) {}
 
   // ── Player side ──────────────────────────────────────────────────────────────
 
@@ -147,9 +175,9 @@ export class PlaysService {
         message: 'This player session belongs to another campaign',
       });
     }
-    // TODO(session_ver): compare `claims.ver` with `players.session_ver` once join signs it.
     const player = await this.repo.findPlayer(event.organizationId, event.id, claims.sub, 'live');
-    if (!player) {
+    // A bumped `players.session_ver` revokes every token issued before it.
+    if (!player || player.sessionVer !== claims.ver) {
       throw new UnauthorizedException({
         code: ErrorCode.UNAUTHORIZED,
         message: 'Player session is no longer valid',
@@ -158,15 +186,23 @@ export class PlaysService {
   }
 
   /**
-   * Anti-fraud gate before a live play (EVT-13, P1): rate buckets (IP, device, player, campaign)
-   * from the campaign's preset, Cloudflare Turnstile (`captchaToken`) and blacklist go here.
-   * Intentionally a no-op in M1.
+   * Anti-fraud gate before a live play (EVT-13): rate limits by player and IP, and Turnstile once
+   * per player session on the `standard` level. Blacklist and flagging arrive with level `high`.
    */
-  private async checkAntiFraud(
-    _campaign: PublishedCampaign,
-    _claims: PlayerSessionClaims,
-    _body: StartPlayBody,
-  ): Promise<void> {}
+  private checkAntiFraud(
+    doc: CampaignDocument,
+    claims: PlayerSessionClaims,
+    body: StartPlayBody,
+    ip: string,
+  ): Promise<void> {
+    return this.antiFraud.checkPlay({
+      level: doc.rules.antiFraud,
+      eventId: claims.eventId,
+      playerId: claims.sub,
+      ip,
+      captchaToken: body.captchaToken,
+    });
+  }
 
   async getCampaign(slug: string): Promise<PublicCampaign> {
     const campaign = await this.loadPublished(slug);
@@ -189,17 +225,25 @@ export class PlaysService {
       timezone: event.timezone,
       openingHours: doc.rules.openingHours,
       playsPerDay: doc.rules.playsPerDay,
+      openDays: doc.rules.openDays,
+      requireRedeemBeforeReplay: doc.rules.requireRedeemBeforeReplay,
       collectForm: doc.rules.collectForm,
+      captchaSiteKey: this.antiFraud.captchaSiteKey(doc.rules.antiFraud),
       registrationForm: parseRegistrationForm(event.registrationForm),
     };
   }
 
-  async play(slug: string, claims: PlayerSessionClaims, body: StartPlayBody): Promise<PlayResult> {
+  async play(
+    slug: string,
+    claims: PlayerSessionClaims,
+    body: StartPlayBody,
+    ip = '',
+  ): Promise<PlayResult> {
     const campaign = await this.loadPublished(slug);
     await this.authorize(campaign, claims);
-    await this.checkAntiFraud(campaign, claims, body);
     const { event, game, version } = campaign;
     const doc = this.liveDocument(campaign);
+    await this.checkAntiFraud(doc, claims, body, ip);
     const ctx: PlayContext = {
       orgId: event.organizationId,
       eventId: event.id,
@@ -243,7 +287,7 @@ export class PlaysService {
       const opensAt = doc.rules.openingHours
         ? parseTimeOfDayMinutes(doc.rules.openingHours.start)
         : 0;
-      const next = nextLocalDayStart(now, event.timezone, opensAt);
+      const next = nextOpenDayStart(now, event.timezone, doc.rules.openDays, opensAt);
       if (next.getTime() < new Date(doc.rules.endsAt).getTime()) nextTurnAt = next.toISOString();
     }
     const rows = await this.repo.listPlayerVouchers(event.organizationId, event.id, claims.sub);
@@ -262,7 +306,11 @@ export class PlaysService {
         redeemedAt: v.redeemedAt?.toISOString() ?? null,
       }),
     );
-    return { turnsLeftToday, nextTurnAt, vouchers };
+    const blockedReason =
+      doc.rules.requireRedeemBeforeReplay && vouchers.some((v) => v.status === 'issued')
+        ? ('redeem_first' as const)
+        : null;
+    return { turnsLeftToday, nextTurnAt, blockedReason, vouchers };
   }
 
   // ── Rehearsal (Studio) ───────────────────────────────────────────────────────
@@ -278,7 +326,7 @@ export class PlaysService {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Campaign not found' });
     }
     const { event, game } = row;
-    const doc = game.draftConfig as CampaignDocument;
+    const doc = readCampaignDocument(game.draftConfig);
     const parsed = PrizeRules.safeParse(
       toPrizeRules(doc.rules, doc.prizes, { rehearsal: true, timezone: event.timezone }),
     );
@@ -393,7 +441,36 @@ export class PlaysService {
       );
     }
 
-    // 1. Claim a turn.
+    // 1. "Redeem first": a live player holding an unused voucher must visit the counter before the
+    //    next turn. Checked under the player lock, before the claim, so no turn is spent.
+    if (
+      env === 'live' &&
+      doc.rules.requireRedeemBeforeReplay &&
+      (await this.repo.hasUnredeemedVoucher(
+        orgId,
+        { eventId: ctx.eventId, playerId: ctx.playerId, env },
+        tx,
+      ))
+    ) {
+      return {
+        playId: null,
+        outcome: 'no_turns',
+        reason: 'redeem_first',
+        prize: null,
+        voucher: null,
+        turnsLeftToday: Math.max(
+          0,
+          playsPerDay -
+            (await this.repo.turnsUsed(
+              orgId,
+              { playerId: ctx.playerId, gameId: ctx.gameId, day },
+              tx,
+            )),
+        ),
+      };
+    }
+
+    // 2. Claim a turn.
     const turn = await this.repo.claimTurn(
       orgId,
       { playerId: ctx.playerId, gameId: ctx.gameId, day, limit: playsPerDay },
@@ -410,7 +487,7 @@ export class PlaysService {
       };
     }
 
-    // 2. Snapshot.
+    // 3. Snapshot.
     const prizeRows = await this.repo.listPrizes(orgId, ctx.gameId, tx);
     const rowByKey = new Map(prizeRows.filter((p) => p.key).map((p) => [p.key as string, p]));
     const remainingByPrize: Record<string, number> = {};
@@ -447,7 +524,7 @@ export class PlaysService {
       },
     };
 
-    // 3. Decide.
+    // 4. Decide.
     const draws: number[] = [];
     const rng = () => {
       const u = randomInt(RNG_STEPS) / RNG_STEPS;
@@ -464,7 +541,7 @@ export class PlaysService {
     // Outside opening hours (or the window closed meanwhile): undo the turn claim.
     if (decision.reason === 'closed') throw new ClosedDuringPlay();
 
-    // 4. Issue stock and budget atomically; a lost race is a loss, never a re-pick.
+    // 5. Issue stock and budget atomically; a lost race is a loss, never a re-pick.
     let reason: string = decision.reason;
     let won: { prize: CampaignPrize; rowId: string } | null = null;
     const prize = decision.prizeId ? doc.prizes.find((p) => p.id === decision.prizeId) : undefined;
@@ -489,7 +566,7 @@ export class PlaysService {
       }
     }
 
-    // 5. Record the play and the voucher.
+    // 6. Record the play and the voucher.
     const play = await this.repo.insertPlay(
       orgId,
       {

@@ -101,7 +101,7 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 |---|---|---|---|
 | PLB-01 | Luồng tạo bắt đầu bằng **mục tiêu**; ≥ 3 playbook F&B (Tết kéo khách, khách quay lại lần 2, ngày vắng) | M1 | ⬜ |
 | PLB-02 | Playbook điền sẵn mẫu, skin, luật, gợi ý cơ cấu quà theo **ngân sách** và **giá vốn** quà | M1 | ⬜ |
-| PLB-03 | Báo cáo kết quả: khách tới quầy (lượt đổi quà), khách quay lại, chi phí quà so ngân sách, theo ngày/kênh | M1 | 🧪 (số liệu phát/đổi) |
+| PLB-03 | Báo cáo kết quả: khách tới quầy (lượt đổi quà), khách quay lại, chi phí quà so ngân sách, theo ngày/kênh | M1 | ✅ API (`GET …/campaigns/{id}/report`, 4 số chính khớp `awards` trong test tích hợp) · ⬜ UI |
 | PLB-04 | Báo cáo một trang cuối chương trình (xem/in/tải) | M1 | ⬜ |
 | PLB-05 | Benchmark ẩn danh theo ngành ("quán trà sữa trung bình đạt X% đổi quà") | M3 | ⬜ |
 | PLB-06 | Playbook cho ngành khác (spa, gym, bán lẻ) | M2–M3 | ⬜ |
@@ -144,8 +144,8 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 | EVT-02 | Danh tính: ẩn danh (thiết bị), form (tên, SĐT), danh sách khách mời | M1 | ✅ (join cũ) |
 | EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ API · 🧪 Play |
 | EVT-10 | QR tham gia (PNG/SVG/PDF), mẫu standee | M1 | 🧪 |
-| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ⬜ |
-| EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ⬜ |
+| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ✅ API (`plays.channel_key`, `byChannel` trong báo cáo) · ⬜ UI |
+| EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ✅ API Thấp/Chuẩn (rate limit, Turnstile, một thiết bị một người chơi, thu hồi token) · ⬜ Play (Turnstile widget) · ⬜ Cao |
 | EVT-14 | Lượt chơi theo ngày/tổng/khung giờ; thêm lượt khi chia sẻ (giới hạn) | M1/M2 | 🧪 |
 | EVT-09 | Chạy thử bằng bot N lượt, không trừ kho thật | M1 | ⬜ |
 | EVT-03 | OTP SĐT (ZNS ưu tiên, SMS dự phòng) | M2 | ⬜ |

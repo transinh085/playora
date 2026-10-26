@@ -8,14 +8,17 @@ import {
   desc,
   eq,
   gt,
+  gte,
   isNotNull,
   isNull,
   lt,
+  lte,
   ne,
   or,
   type SQL,
   sql,
 } from 'drizzle-orm';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { DB } from '../../infra/tokens';
 
 const { events, games, gameVersions, prizes, awards, plays, players } = schema;
@@ -38,6 +41,7 @@ export type EventPatch = Partial<
     | 'registrationForm'
     | 'schedule'
     | 'participation'
+    | 'antiFraud'
     | 'updatedAt'
   >
 >;
@@ -474,6 +478,177 @@ export class CampaignsRepository {
       redeemed: awardRow?.redeemed ?? 0,
       redeemedValueVnd: awardRow?.redeemedValueVnd ?? 0,
       prizes: prizeRows,
+    };
+  }
+
+  /** `rules.budgetVnd` of the published version (the live budget); undefined when unpublished. */
+  async publishedBudget(organizationId: string, gameId: string) {
+    const [row] = await this.db
+      .select({ budget: sql<string | null>`${gameVersions.config} -> 'rules' ->> 'budgetVnd'` })
+      .from(games)
+      .innerJoin(
+        gameVersions,
+        and(
+          eq(gameVersions.organizationId, organizationId),
+          eq(gameVersions.id, games.currentVersionId),
+        ),
+      )
+      .where(and(eq(games.organizationId, organizationId), eq(games.id, gameId)));
+    if (!row) return undefined;
+    return row.budget === null ? null : Number(row.budget);
+  }
+
+  /**
+   * Live numbers behind the outcome report (docs/product/specs/playbooks.md §3.2), aggregated in
+   * SQL. Days are local days in `timezone`: plays and wins by the day of the play, visits by the
+   * day of the redemption. A visit is a non-void award redeemed at the counter.
+   */
+  async report(
+    organizationId: string,
+    input: { eventId: string; gameId: string; timezone: string; from: Date; to: Date },
+  ) {
+    const { eventId, gameId, timezone } = input;
+    const redeemed = and(isNotNull(awards.redeemedAt), ne(awards.status, 'void'));
+    const outstanding = and(
+      ne(awards.status, 'void'),
+      isNull(awards.redeemedAt),
+      or(isNull(awards.expiresAt), gt(awards.expiresAt, sql`now()`)),
+    );
+    const liveAwards = and(
+      eq(awards.organizationId, organizationId),
+      eq(awards.eventId, eventId),
+      eq(awards.env, 'live'),
+    );
+    const livePlays = and(
+      eq(plays.organizationId, organizationId),
+      eq(plays.eventId, eventId),
+      eq(plays.env, 'live'),
+    );
+    const localDay = (col: AnyPgColumn) =>
+      sql<string>`to_char(${col} at time zone ${timezone}, 'YYYY-MM-DD')`;
+    const value = sql`coalesce(${prizes.valueVnd}, 0)::bigint`;
+
+    const [summary] = await this.db
+      .select({
+        visits: sql<number>`count(*) filter (where ${redeemed})`.mapWith(Number),
+        uniqueVisitors:
+          sql<number>`count(distinct ${awards.playerId}) filter (where ${redeemed})`.mapWith(
+            Number,
+          ),
+        prizeCostVnd: sql<number>`coalesce(sum(${value}) filter (where ${redeemed}), 0)`.mapWith(
+          Number,
+        ),
+        outstandingCostVnd:
+          sql<number>`coalesce(sum(${value}) filter (where ${outstanding}), 0)`.mapWith(Number),
+        issued: sql<number>`count(*) filter (where ${ne(awards.status, 'void')})`.mapWith(Number),
+      })
+      .from(awards)
+      .innerJoin(
+        prizes,
+        and(eq(prizes.organizationId, organizationId), eq(prizes.id, awards.prizeId)),
+      )
+      .where(liveAwards);
+
+    // Players who redeemed on at least two different local days.
+    const visitDays = this.db
+      .select({ playerId: awards.playerId })
+      .from(awards)
+      .where(and(liveAwards, redeemed))
+      .groupBy(awards.playerId)
+      .having(sql`count(distinct ${localDay(awards.redeemedAt)}) >= 2`)
+      .as('visit_days');
+    const [returning] = await this.db.select({ n: count() }).from(visitDays);
+
+    const [playTotals] = await this.db
+      .select({ plays: count(), players: countDistinct(plays.playerId) })
+      .from(plays)
+      .where(livePlays);
+
+    const inRange = (col: AnyPgColumn) => and(gte(col, input.from), lte(col, input.to));
+    const playDays = await this.db
+      .select({
+        day: localDay(plays.createdAt),
+        plays: count(),
+        wins: sql<number>`count(*) filter (where ${eq(plays.outcome, 'win')})`.mapWith(Number),
+      })
+      .from(plays)
+      .where(and(livePlays, inRange(plays.createdAt)))
+      .groupBy(sql`1`);
+    const visitDayRows = await this.db
+      .select({ day: localDay(awards.redeemedAt), visits: count() })
+      .from(awards)
+      .where(and(liveAwards, redeemed, inRange(awards.redeemedAt)))
+      .groupBy(sql`1`);
+
+    // `awards.play_id` is unique, so the left join never duplicates a play.
+    const byChannel = await this.db
+      .select({
+        channel: plays.channelKey,
+        plays: count(),
+        wins: sql<number>`count(*) filter (where ${eq(plays.outcome, 'win')})`.mapWith(Number),
+        visits: sql<number>`count(${awards.id}) filter (where ${redeemed})`.mapWith(Number),
+      })
+      .from(plays)
+      .leftJoin(
+        awards,
+        and(
+          eq(awards.organizationId, organizationId),
+          eq(awards.playId, plays.id),
+          eq(awards.env, 'live'),
+        ),
+      )
+      .where(livePlays)
+      .groupBy(plays.channelKey)
+      .orderBy(desc(count()), plays.channelKey);
+
+    const awardByPrize = this.db
+      .select({
+        prizeId: awards.prizeId,
+        issued: sql<number>`count(*) filter (where ${ne(awards.status, 'void')})`.as(
+          'award_issued',
+        ),
+        redeemed: sql<number>`count(*) filter (where ${redeemed})`.as('award_redeemed'),
+      })
+      .from(awards)
+      .where(liveAwards)
+      .groupBy(awards.prizeId)
+      .as('award_by_prize');
+    const byPrize = await this.db
+      .select({
+        key: prizes.key,
+        name: prizes.name,
+        valueVnd: prizes.valueVnd,
+        quantity: prizes.quantity,
+        remaining: prizes.remaining,
+        issued: sql<number>`coalesce(${awardByPrize.issued}, 0)`.mapWith(Number),
+        redeemed: sql<number>`coalesce(${awardByPrize.redeemed}, 0)`.mapWith(Number),
+      })
+      .from(prizes)
+      .leftJoin(awardByPrize, eq(awardByPrize.prizeId, prizes.id))
+      .where(
+        and(
+          eq(prizes.organizationId, organizationId),
+          eq(prizes.gameId, gameId),
+          isNotNull(prizes.key),
+          // Rehearsal-only rows (never published, nothing issued) are not live prizes.
+          or(gt(prizes.quantity, 0), gt(prizes.issued, 0)),
+        ),
+      )
+      .orderBy(prizes.sortOrder, prizes.key);
+
+    return {
+      visits: summary?.visits ?? 0,
+      uniqueVisitors: summary?.uniqueVisitors ?? 0,
+      returningVisitors: returning?.n ?? 0,
+      prizeCostVnd: summary?.prizeCostVnd ?? 0,
+      outstandingCostVnd: summary?.outstandingCostVnd ?? 0,
+      issued: summary?.issued ?? 0,
+      plays: playTotals?.plays ?? 0,
+      players: playTotals?.players ?? 0,
+      playDays,
+      visitDays: visitDayRows,
+      byChannel,
+      byPrize,
     };
   }
 

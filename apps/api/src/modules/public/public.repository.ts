@@ -29,21 +29,6 @@ export class PublicRepository {
     return row;
   }
 
-  async lockEvent(organizationId: string, eventId: string, tx: Tx) {
-    const [row] = await tx
-      .select({ id: events.id })
-      .from(events)
-      .where(
-        and(
-          eq(events.organizationId, organizationId),
-          eq(events.id, eventId),
-          isNull(events.deletedAt),
-        ),
-      )
-      .for('update');
-    return row;
-  }
-
   async findBrandKit(organizationId: string, brandKitId: string) {
     const [row] = await this.db
       .select()

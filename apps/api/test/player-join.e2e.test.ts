@@ -187,7 +187,7 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       eventId: event.id,
       sub: first.player.id,
       displayName: 'Minh Anh',
-      ver: 1,
+      ver: 0, // players.session_ver
     });
     expect(claims?.exp).toBeGreaterThanOrEqual(beforeS + PLAYER_SESSION_TTL_S - 5);
 
@@ -273,7 +273,7 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       eventId: event.id,
       sub: joined.player.id,
       displayName: 'Nguyễn Văn A',
-      ver: 1,
+      ver: 0, // players.session_ver
     });
 
     // Idempotent re-join with same guest code + same deviceId returns same player and preserves original checkedInAt

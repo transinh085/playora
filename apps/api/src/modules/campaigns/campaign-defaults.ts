@@ -1,21 +1,55 @@
-import type {
-  Campaign,
-  CampaignBrand,
-  CampaignPrize,
+import {
+  type Campaign,
+  type CampaignBrand,
+  type CampaignPrize,
   CampaignRules,
-  CampaignScreens,
-  EventRegistrationForm,
+  type CampaignRulesInput,
+  type CampaignScreens,
+  type EventRegistrationForm,
+  type PlaybookKey,
 } from '@playora/contracts';
+import { toOpeningHours } from '@playora/core/prize';
 import { normalizeRegistrationForm } from '@playora/core/registration';
 import { getTemplate } from '@playora/templates/server';
 import type { EventPatch } from './campaigns.repository';
 
 /** What `games.draftConfig` and `game_versions.config` hold for a campaign (ADR-015). */
 export interface CampaignDocument {
+  /** Playbook the campaign was created from (docs/product/specs/playbooks.md); null = blank. */
+  playbook: PlaybookKey | null;
   brand: CampaignBrand;
   screens: CampaignScreens;
   prizes: CampaignPrize[];
   rules: CampaignRules;
+}
+
+/** Rule fields added after the first drafts were saved, with the contract defaults. */
+const LATER_RULE_DEFAULTS = {
+  openDays: null,
+  requireRedeemBeforeReplay: false,
+  antiFraud: 'standard',
+} as const satisfies Partial<CampaignRules>;
+
+/**
+ * Reads a stored draft or published config. Older documents miss `playbook` and the rule fields
+ * added in P1, so the rules go through the contract to get their defaults.
+ */
+export function readCampaignDocument(raw: unknown): CampaignDocument {
+  const stored = raw as Omit<CampaignDocument, 'playbook' | 'rules'> & {
+    playbook?: PlaybookKey | null;
+    rules: CampaignRulesInput;
+  };
+  const parsed = CampaignRules.safeParse(stored.rules);
+  return {
+    playbook: stored.playbook ?? null,
+    brand: stored.brand,
+    screens: stored.screens,
+    prizes: stored.prizes,
+    // A stored draft is always valid; the fallback only guards against hand-edited rows.
+    rules: parsed.success
+      ? parsed.data
+      : ({ ...LATER_RULE_DEFAULTS, ...stored.rules } as CampaignRules),
+  };
 }
 
 export const DEFAULT_CAMPAIGN_TIMEZONE = 'Asia/Ho_Chi_Minh';
@@ -76,13 +110,14 @@ export function eventMirror(doc: CampaignDocument): EventPatch {
     registrationForm: rules.collectForm
       ? normalizeRegistrationForm(CAMPAIGN_REGISTRATION_FORM)
       : null,
-    schedule: rules.openingHours
-      ? [{ start: rules.openingHours.start, end: rules.openingHours.end }]
-      : null,
+    // Same windows the prize engine uses: open weekdays × daily hours (null = always open).
+    schedule: toOpeningHours(rules) ?? null,
     participation: {
       playsPerDay: rules.playsPerDay,
       maxWinsPerPlayer: rules.maxWinsPerPlayer,
+      requireRedeemBeforeReplay: rules.requireRedeemBeforeReplay,
     },
+    antiFraud: { level: rules.antiFraud },
   };
 }
 
