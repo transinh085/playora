@@ -1,0 +1,242 @@
+# Production stack for a single VM (docs/operations/environments-deploy.md §2).
+# Validate config:
+#   docker compose -f infra/compose/docker-compose.prod.yml --env-file infra/env/prod.env.example config
+# Deploy a specific commit SHA:
+#   infra/scripts/deploy.sh <commit-sha>
+name: playora-prod
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:-ops@playora.vn}
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      studio:
+        condition: service_healthy
+      play:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "caddy", "version"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command:
+      - valkey-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --save
+      - "900"
+      - "1"
+      - --save
+      - "300"
+      - "10"
+      - --maxmemory-policy
+      - noeviction
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot database migration; must complete before `api` or `worker` starts.
+  migrate:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-api:${TAG}
+    working_dir: /app
+    command: ["bun", "run", "db:migrate"]
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-api:${TAG}
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: ${API_PORT:-4000}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-https://api.playora.vn}
+      PLAY_URL: ${PLAY_URL:-https://play.playora.vn}
+      STUDIO_ORIGINS: ${STUDIO_ORIGINS:-https://studio.playora.vn,https://play.playora.vn}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.playora.vn}
+      TRUST_PROXY: ${TRUST_PROXY:-2}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-300}
+      PUBLIC_RATE_LIMIT_PER_MIN: ${PUBLIC_RATE_LIMIT_PER_MIN:-6000}
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
+      REDIS_URL: ${REDIS_URL:-redis://valkey:6379}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      PLAYER_SESSION_SECRET: ${PLAYER_SESSION_SECRET}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_FROM: ${SMTP_FROM:-Playora <noreply@playora.vn>}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    healthcheck:
+      test:
+        - CMD
+        - bun
+        - -e
+        - "fetch('http://127.0.0.1:${API_PORT:-4000}/v1/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  worker:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-worker:${TAG}
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      WORKER_HEALTH_PORT: ${WORKER_HEALTH_PORT:-4002}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://valkey:6379}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+    healthcheck:
+      test:
+        - CMD
+        - bun
+        - -e
+        - "fetch('http://127.0.0.1:${WORKER_HEALTH_PORT:-4002}/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  studio:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-studio:${TAG}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.playora.vn}
+      NEXT_PUBLIC_PLAY_URL: ${NEXT_PUBLIC_PLAY_URL:-https://play.playora.vn}
+      NEXT_PUBLIC_STUDIO_LABS: ${NEXT_PUBLIC_STUDIO_LABS:-0}
+      PLAY_URL: ${PLAY_URL:-https://play.playora.vn}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  play:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-play:${TAG}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.playora.vn}
+      NEXT_PUBLIC_STUDIO_ORIGINS: ${NEXT_PUBLIC_STUDIO_ORIGINS:-https://studio.playora.vn}
+      API_URL: ${NEXT_PUBLIC_API_URL:-https://api.playora.vn}
+      STUDIO_ORIGINS: ${STUDIO_ORIGINS:-https://studio.playora.vn,https://play.playora.vn}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:-playora}/playora-web:${TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Optional self-hosted PostgreSQL fallback (prefer managed Postgres with PITR
+  # in production; uncomment only if managed Postgres is unavailable, and point
+  # DATABASE_URL to postgres://playora:${POSTGRES_PASSWORD}@postgres:5432/playora).
+  # Pair with daily cron `infra/scripts/backup.sh`.
+  # ---------------------------------------------------------------------------
+  # postgres:
+  #   image: postgres:17-alpine
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER:-playora}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB:-playora}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-playora} -d ${POSTGRES_DB:-playora}"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 10
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
+  valkey_data: {}
+  # postgres_data: {}

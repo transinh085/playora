@@ -19,7 +19,11 @@ COPY --from=prune /repo/out/full/ .
 ARG APP_DIR
 # NEXT_PUBLIC_* are inlined into the client bundle at build time.
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_PLAY_URL=http://localhost:3002
+ARG NEXT_PUBLIC_STUDIO_ORIGINS=http://localhost:3001
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_PLAY_URL=${NEXT_PUBLIC_PLAY_URL} \
+    NEXT_PUBLIC_STUDIO_ORIGINS=${NEXT_PUBLIC_STUDIO_ORIGINS} \
     NEXT_TELEMETRY_DISABLED=1 \
     NEXT_OUTPUT=standalone
 RUN cd ${APP_DIR} && bun run build

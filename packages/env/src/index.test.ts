@@ -72,11 +72,13 @@ describe('apiEnvSchema', () => {
     const prodParsed = apiEnvSchema.safeParse({
       ...validBaseApiEnv,
       NODE_ENV: 'production',
+      COOKIE_DOMAIN: '.playora.vn',
       S3_ACCESS_KEY: 'prod-access-key',
       S3_SECRET_KEY: 'prod-secret-key-complex-12345',
     });
     expect(prodParsed.success).toBe(true);
     if (prodParsed.success) {
+      expect(prodParsed.data.COOKIE_DOMAIN).toBe('.playora.vn');
       expect(prodParsed.data.S3_ACCESS_KEY).toBe('prod-access-key');
       expect(prodParsed.data.S3_SECRET_KEY).toBe('prod-secret-key-complex-12345');
     }

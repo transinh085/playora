@@ -1,0 +1,72 @@
+# Playora production reverse proxy (Caddy v2).
+# Sits behind Cloudflare (Full Strict TLS) on a single VM and routes traffic to
+# the Docker Compose services in `infra/compose/docker-compose.prod.yml`.
+{
+	email {$ACME_EMAIL:ops@playora.vn}
+
+	servers {
+		# Trust Cloudflare IPv4 + IPv6 ranges (https://www.cloudflare.com/ips/)
+		# so `X-Forwarded-For` / `Cf-Connecting-Ip` preserve the real client IP
+		# for NestJS rate limiting (`TRUST_PROXY=2` in apps/api).
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
+		client_ip_headers Cf-Connecting-Ip X-Forwarded-For
+	}
+}
+
+(common_security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Allow camera on same-origin for QR scanning at the counter (Studio redeem).
+		Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+		-Server
+	}
+	encode zstd gzip
+}
+
+# 1. API (`apps/api` — REST `/v1/*` + Better Auth `/auth/*`)
+api.playora.vn {
+	import common_security_headers
+	header X-Frame-Options "DENY"
+
+	request_body {
+		# Guest list import allows up to 15 MB (`apps/api/src/bootstrap/configure-app.ts`).
+		max_size 20MB
+	}
+
+	reverse_proxy api:4000 {
+		health_uri /v1/health/ready
+		health_interval 10s
+		health_timeout 5s
+	}
+}
+
+# 2. Studio (`apps/studio` — organizer builder, campaign ops, counter redeem)
+studio.playora.vn {
+	import common_security_headers
+	header X-Frame-Options "SAMEORIGIN"
+
+	reverse_proxy studio:3000
+}
+
+# 3. Player (`apps/play` — mobile player shell `/[slug]` + Studio editor `/preview` iframe)
+play.playora.vn {
+	import common_security_headers
+	# Allow Studio to embed `/preview` in an iframe (docs/engineering/security.md §2).
+	header Content-Security-Policy "frame-ancestors 'self' https://studio.playora.vn"
+
+	reverse_proxy play:3000
+}
+
+# 4. Marketing & public template gallery (`apps/web`)
+playora.vn {
+	import common_security_headers
+	header X-Frame-Options "SAMEORIGIN"
+
+	reverse_proxy web:3000
+}
+
+www.playora.vn {
+	redir https://playora.vn{uri} permanent
+}
