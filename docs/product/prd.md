@@ -213,8 +213,8 @@ Giá: [business-model §3](../business/business-model.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| BIL-01 | Kích hoạt gói thủ công, hoá đơn thủ công | M1 | ⬜ |
-| BIL-02 | Quota theo gói (lượt đổi quà/tháng, số chương trình chạy) + watermark gói Free | M1 | ⬜ |
+| BIL-01 | Kích hoạt gói thủ công, hoá đơn thủ công | M1 | ✅ API (`/admin/orgs…` cho nhân viên Playora trong `PLATFORM_ADMIN_EMAILS`, có audit log) · ⬜ UI back-office |
+| BIL-02 | Quota theo gói (lượt đổi quà/tháng, số chương trình chạy) + watermark gói Free | M1 | ✅ API + Play (chặn phát hành/tiếp tục `PLAN_CAMPAIGN_LIMIT`, chặn đổi quà quá 110% `PLAN_REDEMPTION_LIMIT` theo [D-21](./decisions.md), badge "Tạo bằng Playora"; `GET …/billing` trả usage) · ⬜ UI cảnh báo 80%/100% trong Studio |
 | BIL-03 | Tự thanh toán thuê bao qua PayOS (VietQR) | M2 | ⬜ |
 | BIL-04 | Credit OTP/ZNS | M3 | ⬜ |
 | BIL-05 | Hoá đơn điện tử tự động | M4 | ⬜ |
@@ -223,7 +223,7 @@ Giá: [business-model §3](../business/business-model.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| ADM-01 | Danh sách tổ chức, gói, usage; impersonate có log | M1 | ⬜ |
+| ADM-01 | Danh sách tổ chức, gói, usage; impersonate có log | M1 | ✅ API danh sách/tìm tổ chức kèm gói + usage (`GET /admin/orgs`) · ⬜ impersonate, UI |
 | ADM-02 | Lịch chương trình sắp chạy (để chuẩn bị tải, hỗ trợ) | M1 | ⬜ |
 | ADM-03 | Quản lý mẫu/skin (bật/tắt, gán gói) | M2 | ⬜ |
 

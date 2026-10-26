@@ -231,6 +231,8 @@
     "VOUCHER_ALREADY_REDEEMED": "Mã này đã được đổi quà",
     "VOUCHER_EXPIRED": "Mã này đã hết hạn đổi quà",
     "VOUCHER_VOID": "Mã này đã bị huỷ",
+    "PLAN_CAMPAIGN_LIMIT": "Gói hiện tại đã đủ số chương trình đang chạy. Hãy kết thúc một chương trình hoặc nâng cấp gói",
+    "PLAN_REDEMPTION_LIMIT": "Gói hiện tại đã hết lượt đổi quà tháng này. Nâng cấp gói để tiếp tục đổi quà",
     "INTERNAL": "Đã có lỗi hệ thống, vui lòng thử lại",
     "PAYLOAD_TOO_LARGE": "Dữ liệu tải lên vượt quá dung lượng cho phép"
   },
@@ -383,6 +385,7 @@
     "scanQrHint": "Quét mã QR tại cửa hàng để tham gia.",
     "networkError": "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.",
     "myPrizes": "Quà của tôi",
+    "watermark": "Tạo bằng Playora",
     "turnsLeft": "Còn {count} lượt",
     "backToGame": "Về trang chơi",
     "playNow": "Chơi ngay",

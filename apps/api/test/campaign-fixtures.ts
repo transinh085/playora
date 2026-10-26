@@ -161,3 +161,72 @@ export async function issueVoucher(
     .where(eq(schema.prizes.id, prize.id));
   return { code, playerId: player.id, playId: play.id, prizeRowId: prize.id };
 }
+
+/**
+ * Bulk-inserts `count` awards of a published campaign (one player, no plays), e.g. to fill a
+ * month of counter redemptions for plan quotas. `redeemedAt: null` leaves them issued.
+ */
+export async function insertAwards(
+  db: Database,
+  input: {
+    orgId: string;
+    campaignId: string;
+    count: number;
+    redeemedAt: Date | null;
+    env?: 'live' | 'rehearsal';
+  },
+) {
+  const [prize] = await db
+    .select()
+    .from(schema.prizes)
+    .where(
+      and(
+        eq(schema.prizes.organizationId, input.orgId),
+        eq(schema.prizes.eventId, input.campaignId),
+      ),
+    )
+    .limit(1);
+  if (!prize) throw new Error('prize not found (publish first)');
+  const [player] = await db
+    .insert(schema.players)
+    .values({ organizationId: input.orgId, eventId: input.campaignId, displayName: 'Khách' })
+    .returning();
+  if (!player) throw new Error('player insert failed');
+  const codes = Array.from({ length: input.count }, () => randomCode(10));
+  if (codes.length === 0) return codes;
+  await db.insert(schema.awards).values(
+    codes.map((code) => ({
+      organizationId: input.orgId,
+      eventId: input.campaignId,
+      prizeId: prize.id,
+      playerId: player.id,
+      env: input.env ?? 'live',
+      redeemCode: code,
+      status: input.redeemedAt ? ('redeemed' as const) : ('issued' as const),
+      redeemedAt: input.redeemedAt,
+      expiresAt: new Date(Date.now() + 7 * DAY),
+    })),
+  );
+  return codes;
+}
+
+/**
+ * Puts an organization on a plan (BIL-01) the way the back-office would. Suites that run several
+ * campaigns in one org at once use `chain` (no campaign limit) instead of weakening the rule.
+ */
+export async function setPlan(
+  db: Database,
+  orgId: string,
+  plan: 'free' | 'shop' | 'chain',
+  opts: { status?: 'active' | 'expired'; currentPeriodEnd?: Date | null } = {},
+) {
+  const values = {
+    plan,
+    status: opts.status ?? 'active',
+    currentPeriodEnd: opts.currentPeriodEnd ?? null,
+  };
+  await db
+    .insert(schema.orgSubscriptions)
+    .values({ organizationId: orgId, ...values })
+    .onConflictDoUpdate({ target: schema.orgSubscriptions.organizationId, set: values });
+}

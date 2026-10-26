@@ -4,7 +4,15 @@ import { campaignsApi, ErrorCode } from '@playora/contracts';
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
 import { DB } from '../src/infra/tokens';
-import { addMember, campaignBody, issueVoucher, P1, P2, sessionUserId } from './campaign-fixtures';
+import {
+  addMember,
+  campaignBody,
+  issueVoucher,
+  P1,
+  P2,
+  sessionUserId,
+  setPlan,
+} from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp, uniqueSlug } from './create-test-app';
 
 let t: TestApp;
@@ -20,7 +28,9 @@ beforeAll(async () => {
   alice = await signUp(t.baseUrl, 'Alice');
   bob = await signUp(t.baseUrl, 'Bob');
   aliceOrg = await createOrg(t.baseUrl, alice);
+  await setPlan(db, aliceOrg, 'chain');
   bobOrg = await createOrg(t.baseUrl, bob);
+  await setPlan(db, bobOrg, 'chain');
 });
 
 afterAll(() => t?.close());

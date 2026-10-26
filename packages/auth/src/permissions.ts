@@ -16,6 +16,8 @@ export const statements = {
   voucher: ['read', 'redeem', 'reopen'],
   export: ['create'],
   audit: ['read'],
+  /** Plan, limits and usage (BIL-01/02); changing the plan is back-office only. */
+  billing: ['read'],
 } as const;
 
 export const ac = createAccessControl(statements);
@@ -28,6 +30,7 @@ const content = {
   brandKit: ['create', 'read', 'update', 'delete'],
   campaign: ['create', 'read', 'update', 'delete', 'publish'],
   voucher: ['read', 'redeem'],
+  billing: ['read'],
 } as const;
 
 export const roles = {
@@ -49,6 +52,7 @@ export const roles = {
     prize: ['read'],
     asset: ['read'],
     brandKit: ['read'],
+    billing: ['read'],
   }),
   viewer: ac.newRole({
     campaign: ['read'],
@@ -58,6 +62,7 @@ export const roles = {
     prize: ['read'],
     asset: ['read'],
     brandKit: ['read'],
+    billing: ['read'],
   }),
   /** Counter staff ("chỉ đổi quà"): look up and redeem codes, nothing else. */
   redeemer: ac.newRole({ voucher: ['read', 'redeem'] }),

@@ -50,6 +50,8 @@ export type TestApp = Awaited<ReturnType<typeof createTestApp>>;
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
+export const uniqueEmail = () => `${unique()}@test.playora.local`;
+
 async function authPost(baseUrl: string, path: string, body: unknown, cookie?: string) {
   const res = await fetch(`${baseUrl}/auth${path}`, {
     method: 'POST',
@@ -61,9 +63,9 @@ async function authPost(baseUrl: string, path: string, body: unknown, cookie?: s
 }
 
 /** Signs up a fresh user and returns its session cookie. */
-export async function signUp(baseUrl: string, name = 'Tester') {
+export async function signUp(baseUrl: string, name = 'Tester', email = uniqueEmail()) {
   const res = await authPost(baseUrl, '/sign-up/email', {
-    email: `${unique()}@test.playora.local`,
+    email,
     password: 'test-password-123',
     name,
   });

@@ -6,6 +6,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
+    "./billing": "./src/billing/index.ts",
     "./draw": "./src/draw/index.ts",
     "./prize": "./src/prize/index.ts",
     "./registration": "./src/registration/index.ts",

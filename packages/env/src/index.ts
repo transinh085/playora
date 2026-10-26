@@ -86,6 +86,19 @@ export const apiEnvSchema = z
      */
     TURNSTILE_SITE_KEY: optionalString,
     TURNSTILE_SECRET_KEY: optionalString,
+    /**
+     * Comma-separated emails of Playora staff allowed on the back-office routes (`/admin/*`):
+     * manual plan activation and invoices (BIL-01). Empty = nobody.
+     */
+    PLATFORM_ADMIN_EMAILS: z
+      .string()
+      .optional()
+      .transform((v) =>
+        (v ?? '')
+          .split(',')
+          .map((e) => e.trim().toLowerCase())
+          .filter((e) => e.length > 0),
+      ),
     ...s3Env,
     ...playerSessionEnv,
   })

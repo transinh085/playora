@@ -21,6 +21,16 @@ describe('route contracts', () => {
     }
   });
 
+  test('platform admin routes need a session and never mix with org permissions', () => {
+    const admin = allRoutes.filter((r) => r.platformAdmin);
+    expect(admin.length).toBeGreaterThan(0);
+    for (const route of admin) {
+      expect(route.auth).toBe('session');
+      expect(route.permission).toBeUndefined();
+      expect(route.path.startsWith('/admin/')).toBe(true);
+    }
+  });
+
   test('OpenAPI document covers every route', () => {
     const doc = buildOpenApiDocument(allRoutes, { title: 't', version: '0', serverUrl: '/v1' });
     const operations = Object.values(doc.paths).flatMap((p) => Object.keys(p));

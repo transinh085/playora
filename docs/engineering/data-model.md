@@ -1,6 +1,6 @@
 # Mô hình dữ liệu (PostgreSQL + Drizzle)
 
-Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [ADR-003](../adr/003-drizzle-postgres.md), [ADR-012 §5](../adr/012-campaign-architecture.md), [product/specs/builder.md](../product/specs/builder.md)
+Cập nhật: 27/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [ADR-003](../adr/003-drizzle-postgres.md), [ADR-012 §5](../adr/012-campaign-architecture.md), [product/specs/builder.md](../product/specs/builder.md)
 
 Nguồn chân lý là code ở `packages/db/src/schema/*` và migration đã commit ở `packages/db/drizzle/`. Tài liệu này mô tả **mô hình đích**; bảng nào chưa có trong code được đánh dấu "(đích)" ở bảng dưới.
 
@@ -11,7 +11,7 @@ Nguồn chân lý là code ở `packages/db/src/schema/*` và migration đã com
 | Chương trình | `events`, `games`, `game_versions` | cột `schedule`, `participation`, `anti_fraud` trên `events` |
 | Người chơi | `guest_list_entries`, `players`, `consents` | `players.session_ver`, `form_submissions` |
 | Giải | `prizes`, `draw_spins`, `awards` | `voucher_codes`, `plays`, `play_counters`, `prize_counters`, `prizes.rules` |
-| Vận hành | `audit_logs` | billing (`subscriptions`, `payments`), `analytics_events`, webhook, api key |
+| Vận hành | `audit_logs`, `org_subscriptions`, `billing_invoices` (BIL-01/02, migration `0006_little_sabra`) | `payments` (PayOS, M2), `analytics_events`, webhook, api key |
 | Builder mở rộng | | `skins`, `participation_codes`, `channels`, `redeem_points`, `prize_moments`, `org_templates`, `logic_webhooks` (xem [product/specs/builder.md](../product/specs/builder.md)) |
 
 Builder Lab hiện lưu chương trình ở backend giả (localStorage); khi làm API thật, cách ánh xạ Campaign vào các bảng trên sẽ được chốt bằng ADR.
@@ -35,7 +35,7 @@ organization ─┬─< member >── user                      (Better Auth)
               ├─< client
               ├─< brand_kit
               ├─< asset
-              ├─< subscription / event_pass / payment
+              ├── org_subscription (0..1) ─ billing_invoice*
               └─< event ─┬─< guest_list_entry
                          ├─< player ─┬─< consent
                          │           ├─< form_submission
@@ -314,7 +314,38 @@ export const drawSpins = pgTable('draw_spins', {
 ```
 
 ```ts
-// (đích) packages/db/src/schema/billing.ts (rút gọn). Gói và giới hạn theo business/business-model.md;
+// packages/db/src/schema/billing.ts (đã có, M1: kích hoạt gói và hoá đơn thủ công, BIL-01/02).
+// Hạn mức KHÔNG lưu ở DB: nằm trong @playora/core/billing (PLANS), đổi giá = deploy.
+export const billingPlan = pgEnum('billing_plan', ['free', 'shop', 'chain']);   // Free / Quán / Chuỗi
+export const subscriptionStatus = pgEnum('subscription_status', ['active', 'expired']);
+
+export const orgSubscriptions = pgTable('org_subscriptions', {
+  organizationId: orgId().primaryKey(),           // tối đa một dòng mỗi tổ chức; không có dòng = Free
+  plan: billingPlan().notNull().default('free'),
+  status: subscriptionStatus().notNull().default('active'),
+  currentPeriodEnd: timestamp({ withTimezone: true }), // null = không hạn; đã qua → Free
+  note: text(),
+  updatedBy: text().references(() => user.id, { onDelete: 'set null' }),
+  ...timestamps,
+});
+
+export const billingInvoices = pgTable('billing_invoices', {   // ghi tay, chỉ thêm
+  id: id(), organizationId: orgId(),
+  plan: billingPlan().notNull(),
+  amountVnd: integer().notNull(),
+  periodStart: timestamp({ withTimezone: true }).notNull(),
+  periodEnd: timestamp({ withTimezone: true }).notNull(),
+  paidAt: timestamp({ withTimezone: true }).notNull(),
+  reference: text(),                              // mã chuyển khoản, số biên nhận
+  createdBy: text().references(() => user.id, { onDelete: 'set null' }),
+  createdAt: createdAt(),
+}, (t) => [index().on(t.organizationId, t.paidAt)]);
+```
+
+Usage không lưu riêng: số chương trình chạy đếm từ `events` + `games` (đã phát hành, không tạm dừng, `ends_at` > now), lượt đổi quà tháng đếm `awards` live, không void, `redeemed_at` trong tháng dương lịch `Asia/Ho_Chi_Minh` (index `awards(organization_id, redeem_code)` lọc theo tổ chức; thêm `awards(organization_id, redeemed_at)` khi bảng lớn).
+
+```ts
+// (đích, M2 PayOS) packages/db/src/schema/billing.ts (rút gọn). Gói và giới hạn theo business/business-model.md;
 // event_passes chỉ cần nếu giữ cách bán theo từng chương trình.
 export const subscriptions = pgTable('subscriptions', {
   id: id(), organizationId: orgId(),

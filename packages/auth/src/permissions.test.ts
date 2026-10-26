@@ -54,4 +54,11 @@ describe('org permissions', () => {
     expect(hasPermission('editor', { campaign: ['publish'] })).toBe(true);
     expect(hasPermission('viewer', { campaign: ['update'] })).toBe(false);
   });
+
+  test('every member but counter staff can read the plan and usage', () => {
+    for (const role of ['owner', 'admin', 'editor', 'operator', 'viewer'] as const) {
+      expect(hasPermission(role, { billing: ['read'] })).toBe(true);
+    }
+    expect(hasPermission('redeemer', { billing: ['read'] })).toBe(false);
+  });
 });

@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { ErrorCode, type VoucherLookup, type VoucherStatus } from '@playora/contracts';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
+import { BillingService } from '../billing/billing.service';
 import { VouchersRepository } from './vouchers.repository';
 
 type VoucherRow = NonNullable<Awaited<ReturnType<VouchersRepository['findByCode']>>>;
@@ -45,6 +46,7 @@ export class VouchersService {
   constructor(
     private readonly repo: VouchersRepository,
     private readonly audit: AuditService,
+    private readonly billing: BillingService,
   ) {}
 
   private async find(orgId: string, code: string) {
@@ -59,6 +61,12 @@ export class VouchersService {
 
   /** Final and one time only; the conditional UPDATE decides under concurrency. */
   async redeem(orgId: string, code: string, actor: Actor): Promise<VoucherLookup> {
+    // Plan quota (BIL-02, D-21): only a live code that would be handed over now counts; a code
+    // that is void, used or expired keeps its own error, and rehearsal is never limited.
+    const current = await this.find(orgId, code);
+    if (current.env === 'live' && voucherStatus(current) === 'issued') {
+      await this.billing.assertCanRedeem(orgId);
+    }
     const updated = await this.repo.redeem(orgId, code, actor.userId);
     const row = await this.find(orgId, code);
     if (updated) return toLookup(row);

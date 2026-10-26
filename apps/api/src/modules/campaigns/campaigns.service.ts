@@ -28,6 +28,7 @@ import { canonicalJson } from '@playora/game-sdk';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
+import { BillingService } from '../billing/billing.service';
 import {
   CAMPAIGN_PLAYER_LIMIT,
   type CampaignDocument,
@@ -96,6 +97,7 @@ export class CampaignsService {
   constructor(
     private readonly repo: CampaignsRepository,
     private readonly audit: AuditService,
+    private readonly billing: BillingService,
   ) {}
 
   // ── Mapping ──────────────────────────────────────────────────────────────────
@@ -357,6 +359,15 @@ export class CampaignsService {
         });
       }
 
+      // Plan quota (BIL-02): only when this publish starts a campaign running. Republishing one
+      // that already runs adds nothing, so a shop over its limit after a downgrade can still fix it.
+      const nowMs = Date.now();
+      const alreadyRunning =
+        row.version !== null && (event.endsAt?.getTime() ?? 0) > nowMs && !event.paused;
+      if (!alreadyRunning && !event.paused && new Date(doc.rules.endsAt).getTime() > nowMs) {
+        await this.billing.assertCanRunCampaign(orgId, campaignId, tx);
+      }
+
       // Prize stock: upsert by key, keep what was already issued.
       const existing = await this.repo.listPrizes(orgId, game.id, tx);
       const byKey = new Map(existing.map((p) => [p.key, p]));
@@ -484,6 +495,14 @@ export class CampaignsService {
           tx,
         );
       } else {
+        // Resuming makes the campaign count against the plan again (BIL-02).
+        if (
+          action === 'resume' &&
+          row.event.paused &&
+          (row.event.endsAt?.getTime() ?? 0) > now.getTime()
+        ) {
+          await this.billing.assertCanRunCampaign(orgId, campaignId, tx, now);
+        }
         await this.repo.updateGame(orgId, row.game.id, { updatedAt: now }, tx);
         await this.repo.updateEvent(
           orgId,
