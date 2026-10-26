@@ -4,6 +4,7 @@ import type { CampaignPrize, CampaignRules, PlayResult, VoucherStatus } from '@p
 import {
   Badge,
   Button,
+  Collapse,
   Drawer,
   Empty,
   Flex,
@@ -305,11 +306,13 @@ export function RulesSheet({
   rehearsal,
   labels,
   openDaysFormatted,
+  terms,
 }: {
   open: boolean;
   onClose: () => void;
   rules: CampaignPlayerRules;
   prizes: readonly PlayerPrize[];
+  terms?: string;
   rehearsal: boolean;
   labels: CampaignPlayerLabels;
   openDaysFormatted?: string | null;
@@ -351,6 +354,22 @@ export function RulesSheet({
               ))}
             </ul>
           </div>
+        )}
+        {terms && (
+          <Collapse
+            size="small"
+            items={[
+              {
+                key: 'terms',
+                label: l.fullTerms,
+                children: (
+                  <Typography.Paragraph className="m-0 whitespace-pre-wrap">
+                    {terms}
+                  </Typography.Paragraph>
+                ),
+              },
+            ]}
+          />
         )}
         <Button type="primary" block onClick={onClose}>
           {l.ok}

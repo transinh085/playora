@@ -25,6 +25,7 @@ function campaign(): Campaign {
     publishedAt: null,
     hasUnpublishedChanges: false,
     playbook: null,
+    compliance: { promotionType: null, termsText: null, checklistAcknowledgedAt: null },
     updatedAt: now,
     createdAt: now,
   };

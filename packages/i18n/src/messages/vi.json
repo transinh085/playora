@@ -1212,7 +1212,8 @@
       "fairness": "Kết quả do hệ thống quyết định ngẫu nhiên lúc bạn chơi; không ai chọn trước người trúng.",
       "redeem": "Mang mã đổi quà đến quầy. Mỗi mã chỉ đổi được một lần.",
       "rehearsalNote": "Đang chơi thử: bỏ qua lịch và giờ chơi, quà thử không tính vào số liệu thật.",
-      "ok": "Đã hiểu"
+      "ok": "Đã hiểu",
+      "fullTerms": "Thể lệ đầy đủ"
     },
     "redeemFirstMessage": "Đổi quà ở quầy trước để chơi lượt tiếp theo"
   },

@@ -82,6 +82,7 @@ export interface CampaignPlayerLabels {
     fairness: string;
     redeem: string;
     rehearsalNote: string;
+    fullTerms: string;
     ok: string;
   };
   redeemFirstMessage?: string;
@@ -152,6 +153,7 @@ export type CampaignMessageKey =
   | 'rules.fairness'
   | 'rules.redeem'
   | 'rules.rehearsalNote'
+  | 'rules.fullTerms'
   | 'rules.ok'
   | 'redeemFirstMessage';
 
@@ -256,6 +258,7 @@ export function createCampaignPlayerLabels(
       fairness: t('rules.fairness'),
       redeem: t('rules.redeem'),
       rehearsalNote: t('rules.rehearsalNote'),
+      fullTerms: t('rules.fullTerms'),
       ok: t('rules.ok'),
     },
     redeemFirstMessage: t('redeemFirstMessage'),

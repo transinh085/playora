@@ -1212,7 +1212,8 @@
       "fairness": "The system draws each result at random when you play; nobody picks winners in advance.",
       "redeem": "Bring your redemption code to the counter. Each code can be redeemed once.",
       "rehearsalNote": "Rehearsal: schedule and opening hours are ignored, and test prizes don't count in real numbers.",
-      "ok": "Got it"
+      "ok": "Got it",
+      "fullTerms": "Full terms"
     },
     "redeemFirstMessage": "Redeem your prize at the counter before playing the next turn"
   },

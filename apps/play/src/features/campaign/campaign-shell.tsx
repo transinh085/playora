@@ -47,6 +47,7 @@ export function toPlayerDocument(campaign: PublicCampaign): CampaignPlayerDocume
       openDays: campaign.openDays,
       collectForm: campaign.collectForm,
     },
+    terms: campaign.terms,
   };
 }
 

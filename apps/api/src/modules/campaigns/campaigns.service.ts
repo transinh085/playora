@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   type Campaign,
+  CampaignCompliance,
   type CampaignListItem,
   type CampaignPlayRecord,
   type CampaignReport,
@@ -124,6 +125,7 @@ export class CampaignsService {
       templateKey: game.templateKey as Campaign['templateKey'],
       skinKey: (game.skinKey ?? 'everyday') as Campaign['skinKey'],
       playbook: doc.playbook,
+      compliance: doc.compliance,
       brand: doc.brand,
       prizes: doc.prizes,
       rules: doc.rules,
@@ -215,6 +217,7 @@ export class CampaignsService {
   async create(orgId: string, body: CreateBody): Promise<Campaign> {
     const doc: CampaignDocument = {
       playbook: body.playbook ?? null,
+      compliance: body.compliance ?? CampaignCompliance.parse({}),
       brand: body.brand,
       screens: body.screens,
       prizes: body.prizes,
@@ -281,6 +284,7 @@ export class CampaignsService {
       const current = readCampaignDocument(row.game.draftConfig);
       const doc: CampaignDocument = {
         playbook: current.playbook,
+        compliance: body.compliance ?? current.compliance,
         brand: body.brand ?? current.brand,
         screens: body.screens ?? current.screens,
         prizes: body.prizes ?? current.prizes,
