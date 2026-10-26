@@ -99,8 +99,8 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| PLB-01 | Luồng tạo bắt đầu bằng **mục tiêu**; ≥ 3 playbook F&B (Tết kéo khách, khách quay lại lần 2, ngày vắng) | M1 | 🧪 Studio: "Bạn muốn gì?" → thiết lập + đề xuất → editor (3 màn), "Tự chọn mẫu" mở kho mẫu; tag playbook ở trang chương trình · e2e `playbook-create.spec.ts` |
-| PLB-02 | Playbook điền sẵn mẫu, skin, luật, gợi ý cơ cấu quà theo **ngân sách** và **giá vốn** quà | M1 | 🧪 `lib/playbooks.ts` + `lib/suggest.ts` (q_i = ⌊B·w_i/c_i⌋, Σ q_i·c_i ≤ B có test; tỷ lệ trúng chọn bằng `simulate()` để rủi ro hết quà trước 90% ≤ 10%) |
+| PLB-01 | Luồng tạo bắt đầu bằng **mục tiêu**; ≥ 3 playbook F&B (Tết kéo khách, khách quay lại lần 2, ngày vắng) | M1 | ✅ Studio: "Bạn muốn gì?" → thiết lập + đề xuất → editor (3 màn), "Tự chọn mẫu" mở kho mẫu; tag playbook ở trang chương trình · e2e `playbook-create.spec.ts` |
+| PLB-02 | Playbook điền sẵn mẫu, skin, luật, gợi ý cơ cấu quà theo **ngân sách** và **giá vốn** quà | M1 | ✅ `lib/playbooks.ts` + `lib/suggest.ts` (q_i = ⌊B·w_i/c_i⌋, Σ q_i·c_i ≤ B có test; tỷ lệ trúng chọn bằng `simulate()` để rủi ro hết quà trước 90% ≤ 10%) |
 | PLB-03 | Báo cáo kết quả: khách tới quầy (lượt đổi quà), khách quay lại, chi phí quà so ngân sách, theo ngày/kênh | M1 | ✅ API (`GET …/campaigns/{id}/report`, 4 số chính khớp `awards` trong test tích hợp) · ✅ UI (Tổng quan theo kết quả, e2e `campaign-report.spec.ts`) |
 | PLB-04 | Báo cáo một trang cuối chương trình (xem/in/tải) | M1 | ✅ trang `/report` in A4, 3 nhận xét tự sinh |
 | PLB-05 | Benchmark ẩn danh theo ngành ("quán trà sữa trung bình đạt X% đổi quà") | M3 | ⬜ |
@@ -171,7 +171,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
 | GAM-01 | Instant-win: token lượt chơi dùng một lần; server quyết định kết quả và giải trước khi client animate | M1 | ✅ |
-| GAM-02 | Skill: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M1 | ⬜ |
+| GAM-02 | Skill: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M1 | ⬜ (dời M2 cùng hứng quà, roadmap §1.4) |
 | GAM-03 | Cùng phiên bản chạy trên Player và Kiosk | M1/M3 | ⬜ |
 | GAM-04 | Renderer M1: vòng quay, cào thẻ, mở hộp (instant); hứng quà (skill) | M1 | ✅ vòng quay, cào thẻ, mở hộp (API thật, e2e `play-mechanisms`) · ⬜ hứng quà (dời M2 theo roadmap §1.4) |
 
@@ -183,7 +183,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 |---|---|---|---|
 | PRZ-01 | Giải: tên, ảnh, loại, số lượng, **giá vốn** | M1 | ✅ |
 | PRZ-05 | Cách phát: `per_prize_probability`, `overall_win_rate`, `guaranteed`; trừ kho nguyên tử | M1 | ✅ |
-| PRZ-06 | `score_threshold` (skill) M1; `scheduled_moments`, `rank_based` M2 | M1/M2 | ⬜ |
+| PRZ-06 | `score_threshold` (skill) M1; `scheduled_moments`, `rank_based` M2 | M1/M2 | ⬜ (dời M2 cùng hứng quà, roadmap §1.4) |
 | PRZ-07 | Rải quà: `time_uniform`, `opening_hours` (M1); `batch_release`, `end_flush` (M2) | M1/M2 | ✅ (`time_uniform`, `opening_hours`) |
 | PRZ-08 | Mô phỏng phát giải trước khi phát hành | M1 | ✅ (có chi phí quà dự kiến so ngân sách, ngày mở trong tuần) |
 | PRZ-09 | Kho mã voucher (import/sinh), giải an ủi, **ngân sách tổng**, giới hạn giải/người | M1 | ✅ (sinh mã, ngân sách, giới hạn) |
