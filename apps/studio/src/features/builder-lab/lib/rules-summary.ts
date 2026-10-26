@@ -17,6 +17,9 @@ export type SummaryKey =
   | 'window'
   | 'hours'
   | 'hoursAllDay'
+  | 'openDays'
+  | 'redeemFirst'
+  | 'antiFraudLow'
   | 'pacingOn'
   | 'pacingOff'
   | 'budget'
@@ -57,6 +60,8 @@ export function prizeTotals(prizes: readonly CampaignPrize[]): PrizeTotals {
 export interface SummaryFormatters {
   dateTime: (iso: string) => string;
   vnd: (value: number) => string;
+  /** Weekday list (0 = Sunday … 6 = Saturday) as text, e.g. "T3, T4, T5". */
+  weekdays: (days: readonly number[]) => string;
 }
 
 const defaultFormatters: SummaryFormatters = {
@@ -67,7 +72,23 @@ const defaultFormatters: SummaryFormatters = {
       timeZone: 'Asia/Ho_Chi_Minh',
     }).format(new Date(iso)),
   vnd: (value) => formatVnd(value),
+  weekdays: (days) =>
+    sortWeekdays(days)
+      .map((d) => (d === 0 ? 'CN' : `T${d + 1}`))
+      .join(', '),
 };
+
+/** Weekdays Monday first (0 = Sunday), the way Vietnamese calendars list the week. */
+export const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0] as const;
+
+export type WeekdayKey = '0' | '1' | '2' | '3' | '4' | '5' | '6';
+/** i18n key under `builderLab.weekdays` for a weekday number. */
+export const weekdayKey = (day: number) => String(day) as WeekdayKey;
+
+/** Monday-first order, the way Vietnamese calendars list the week. */
+export function sortWeekdays(days: readonly number[]): number[] {
+  return [...days].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+}
 
 export function summarizeRules(
   rules: CampaignRules,
@@ -112,6 +133,9 @@ export function summarizeRules(
       ? { key: 'hours', values: { start: rules.openingHours.start, end: rules.openingHours.end } }
       : { key: 'hoursAllDay' },
   );
+  if (rules.openDays?.length && rules.openDays.length < 7) {
+    lines.push({ key: 'openDays', values: { days: fmt.weekdays(rules.openDays) } });
+  }
   lines.push({ key: rules.pacing ? 'pacingOn' : 'pacingOff' });
   lines.push(
     rules.budgetVnd !== null
@@ -119,6 +143,8 @@ export function summarizeRules(
       : { key: 'budgetOff' },
   );
   lines.push({ key: rules.collectForm ? 'formOn' : 'formOff' });
+  if (rules.requireRedeemBeforeReplay) lines.push({ key: 'redeemFirst' });
+  if (rules.antiFraud === 'low') lines.push({ key: 'antiFraudLow' });
   return lines;
 }
 

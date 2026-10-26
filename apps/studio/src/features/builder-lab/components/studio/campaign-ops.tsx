@@ -53,6 +53,7 @@ import { isoToLocalInput, localInputToIso } from '../../lib/rules-format';
 import { CampaignMetrics, ShareLinks } from '../editor/publish-dialog';
 import { campaignPeriod } from './campaign-period';
 import { PhaseTag } from './phase-tag';
+import { PlaybookTag } from './playbook-tag';
 
 const TABS = ['overview', 'share', 'prizes', 'players', 'settings'] as const;
 type TabKey = (typeof TABS)[number];
@@ -97,7 +98,12 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
     <Flex vertical gap={20}>
       <PageHeader
         title={campaign.name}
-        tags={<PhaseTag phase={phase} />}
+        tags={
+          <>
+            <PhaseTag phase={phase} />
+            <PlaybookTag playbook={campaign.playbook} />
+          </>
+        }
         description={`${tl(`templates.${campaign.templateKey}`)} · ${tl(`skins.${campaign.skinKey}`)} · ${campaignPeriod(format, campaign)}${campaign.version ? ` · v${campaign.version}` : ''}`}
         backHref={routes.list}
         backLabel={t('backToList')}

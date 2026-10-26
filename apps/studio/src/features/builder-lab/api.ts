@@ -17,6 +17,7 @@ import {
   type CampaignVoucher,
   type Campaign as ContractCampaign,
   campaignsApi,
+  type PlaybookKey,
   type PlayResult,
   type RouteArgs,
   type VoucherLookup,
@@ -59,6 +60,7 @@ export type {
   Industry,
   MechanismKey,
   Occasion,
+  PlaybookKey,
   PlayResult,
   SkinInfo,
   SkinKey,
@@ -160,6 +162,10 @@ export interface CreateCampaignStarterInput {
   templateKey: CampaignTemplateKey;
   skinKey: CampaignSkinKey;
   brand?: Partial<CampaignBrand>;
+  /** Goal-led start (docs/product/specs/playbooks.md): prizes and rules come from the suggestion. */
+  playbook?: PlaybookKey | null;
+  prizes?: CampaignPrize[];
+  rules?: CampaignRules;
 }
 
 export function useCreateCampaign(orgId: string) {
@@ -177,8 +183,9 @@ export function useCreateCampaign(orgId: string) {
             input.templateKey,
             input.skinKey,
           ) as unknown as ContractCampaign['screens'],
-          prizes: defaultPrizes(),
-          rules: defaultRules(),
+          playbook: input.playbook ?? null,
+          prizes: input.prizes ?? defaultPrizes(),
+          rules: input.rules ?? defaultRules(),
         },
       });
       return toStudioCampaign(created);

@@ -24,7 +24,11 @@ const prizes: CampaignPrize[] = [
   { id: 'b', name: 'B', quantity: 10, valueVnd: 250_000, probability: 0.1 },
 ];
 
-const fmt = { dateTime: (iso: string) => iso.slice(0, 10), vnd: (n: number) => `${n}đ` };
+const fmt = {
+  dateTime: (iso: string) => iso.slice(0, 10),
+  vnd: (n: number) => `${n}đ`,
+  weekdays: (days: readonly number[]) => days.join('|'),
+};
 const byKey = (lines: ReturnType<typeof summarizeRules>) =>
   Object.fromEntries(lines.map((l) => [l.key, l.values ?? {}]));
 
@@ -93,6 +97,32 @@ describe('summarizeRules', () => {
   test('default formatters produce readable VND', () => {
     const v = byKey(summarizeRules(rules, prizes));
     expect(String(v.prizes?.value)).toContain('5.500.000');
+  });
+
+  test('open weekdays, redeem before replay and low anti-fraud each add a line', () => {
+    const lines = summarizeRules(
+      { ...rules, openDays: [4, 2, 3], requireRedeemBeforeReplay: true, antiFraud: 'low' },
+      prizes,
+      fmt,
+    );
+    const keys = lines.map((l) => l.key);
+    expect(keys.slice(keys.indexOf('hours'))).toEqual([
+      'hours',
+      'openDays',
+      'pacingOn',
+      'budgetOff',
+      'formOn',
+      'redeemFirst',
+      'antiFraudLow',
+    ]);
+    expect(byKey(lines).openDays).toEqual({ days: '4|2|3' });
+    expect(byKey(summarizeRules({ ...rules, openDays: [0, 2, 3] }, prizes)).openDays).toEqual({
+      days: 'T3, T4, CN',
+    });
+    // All seven days is "every day": no line.
+    expect(
+      summarizeRules({ ...rules, openDays: [0, 1, 2, 3, 4, 5, 6] }, prizes, fmt).map((l) => l.key),
+    ).not.toContain('openDays');
   });
 });
 

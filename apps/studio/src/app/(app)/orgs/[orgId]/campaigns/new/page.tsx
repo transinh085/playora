@@ -1,7 +1,8 @@
 import type { Metadata, Route } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { TemplateGallery } from '@/features/builder-lab/components/home/template-gallery';
+import { CreateCampaignFlow } from '@/features/builder-lab/components/home/create-campaign-flow';
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations('campaigns'))('create') };
@@ -18,7 +19,9 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ or
         backHref={`/orgs/${orgId}/campaigns` as Route}
         backLabel={t('backToList')}
       />
-      <TemplateGallery orgId={orgId} />
+      <Suspense>
+        <CreateCampaignFlow orgId={orgId} />
+      </Suspense>
     </div>
   );
 }
