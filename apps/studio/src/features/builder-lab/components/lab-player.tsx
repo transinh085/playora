@@ -1,5 +1,12 @@
 'use client';
 
+import type { PlayResult } from '@playora/contracts';
+import {
+  type ButtonElement,
+  CampaignPlayer,
+  type CampaignPlayerHandle,
+  type PlayerVoucher,
+} from '@playora/ui/campaign';
 import {
   App,
   Button,
@@ -15,34 +22,24 @@ import {
 import { ArrowLeft, Gift, RotateCcw, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import {
-  type CanvasRuntime,
-  CanvasScreen,
-} from '@/features/canvas-editor/components/canvas-screen';
-import { useCanvasLabels } from '@/features/canvas-editor/components/use-canvas-labels';
-import { ARTBOARD_WIDTH, resolveColor, type ScreenKey } from '@/features/canvas-editor/lib/model';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
+import { useCampaignPlayerLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { campaignRoutes } from '../lib/routes';
-import { Mechanism } from '../mechanisms/mechanism';
-import { useReducedMotion } from '../mechanisms/use-play-round';
 import { LabApiError } from '../mock/api';
-import { useCampaign, useCampaignStats, useLabSync, useStartPlay } from '../mock/hooks';
-import type { Campaign, PlayResult } from '../mock/types';
-import { toCanvasPrizes } from './editor/to-canvas-prizes';
 import {
-  EMPTY_FORM,
-  type PlayerFormErrors,
-  type PlayerFormValues,
-  validatePlayerForm,
-} from './player/form-validation';
-import { PlayerForm } from './player/player-form';
-import { MyPrizesSheet, NoticeSheet, RulesSheet, VoucherCard } from './player/player-sheets';
+  useCampaign,
+  useCampaignStats,
+  useLabSync,
+  useMyVouchers,
+  useStartPlay,
+} from '../mock/hooks';
+import type { Campaign, PlayResult as LabPlayResult } from '../mock/types';
 import { usePlayerId } from './player/use-player-id';
 
 /**
- * The playable campaign (docs/product/specs/builder.md §3.1): Cover → Form? → Game → Result → award detail, drawn from
- * the campaign's canvas screens. On desktop it sits in a phone frame with a lab toolbar; on a
- * phone it fills the screen. Every outcome comes from `startPlay` (the server); the mechanism
+ * The playable campaign (docs/product/specs/builder.md §3.1), rendered by the shared
+ * `CampaignPlayer` from `@playora/ui/campaign`. On desktop it sits in a phone frame with a lab
+ * toolbar; on a phone it fills the screen. Every outcome comes from `startPlay` (the server); the mechanism
  * only animates towards it.
  */
 export function LabPlayer({
@@ -129,8 +126,24 @@ function Backdrop({ children }: { children: ReactNode }) {
   );
 }
 
-type Sheet = 'noTurns' | 'closed' | 'vouchers' | 'rules' | null;
+/** Mock play result in the contract shape the shared player renders. */
+function toPlayResult(played: LabPlayResult): PlayResult {
+  return {
+    playId: null,
+    outcome: played.outcome,
+    reason: played.reason,
+    prize: played.prize
+      ? { id: played.prize.id, name: played.prize.name, image: played.prize.image }
+      : null,
+    voucher: played.voucherCode ? { code: played.voucherCode, expiresAt: null } : null,
+    turnsLeftToday: played.turnsLeftToday,
+  };
+}
 
+/**
+ * Lab adapter around the shared `CampaignPlayer`: feeds it from the mock backend and adds the lab
+ * toolbar (back, live/rehearsal, restart, new player) and the desktop phone frame.
+ */
 function PlayerSession({
   orgId,
   campaign,
@@ -141,168 +154,54 @@ function PlayerSession({
   rehearsal: boolean;
 }) {
   const t = useTranslations('builderLab.player');
-  const labels = useCanvasLabels();
+  const labels = useCampaignPlayerLabels();
   const { message } = App.useApp();
   const { token } = theme.useToken();
-  const reduced = useReducedMotion();
   const startPlay = useStartPlay();
   // Live stock for prize-list elements (rehearsal plays never change it).
   const stats = useCampaignStats(campaign.id).data;
   const [playerId, resetPlayer] = usePlayerId(campaign.id);
+  const myVouchers = useMyVouchers(campaign.id, playerId);
+  const player = useRef<CampaignPlayerHandle>(null);
+  const routes = campaignRoutes(orgId);
 
-  const [screen, setScreen] = useState<ScreenKey>('cover');
-  const [visit, setVisit] = useState(0);
-  const [round, setRound] = useState(0);
-  const [result, setResult] = useState<PlayResult | null>(null);
-  const [form, setForm] = useState<PlayerFormValues>(EMPTY_FORM);
-  const [errors, setErrors] = useState<PlayerFormErrors>({});
-  const [formDone, setFormDone] = useState(false);
-  const [sheet, setSheet] = useState<Sheet>(null);
-  const [voucherExpanded, setVoucherExpanded] = useState(true);
+  const vouchers: PlayerVoucher[] = (myVouchers.data ?? [])
+    .filter((v) => v.rehearsal === rehearsal)
+    .map((v) => ({
+      code: v.code,
+      prizeName: v.prize?.name ?? null,
+      prizeImage: v.prize?.image,
+      issuedAt: v.issuedAt,
+      redeemedAt: v.redeemedAt,
+    }));
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
+  const onPlay = () =>
+    startPlay
+      .mutateAsync({ campaignId: campaign.id, playerId, rehearsal })
+      .then(toPlayResult)
+      .catch((error) => {
+        message.error(
+          error instanceof LabApiError && error.code === 'NOT_PUBLISHED'
+            ? t('errors.notPublishedBody')
+            : t('errors.playFailed'),
+        );
+        throw error;
+      });
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const measure = () => setWidth(el.clientWidth);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const doc = campaign.screens[screen];
-  const scale = width / ARTBOARD_WIDTH;
-  const fillColor = resolveColor(doc.background.gradientTo ?? doc.background.color, campaign.brand);
-
-  const go = (next: ScreenKey) => {
-    setScreen(next);
-    setVisit((v) => v + 1);
-    scrollRef.current?.scrollTo({ top: 0 });
-  };
-
-  const restart = () => {
-    setResult(null);
-    setSheet(null);
-    setRound((r) => r + 1);
-    go('cover');
+  const onAction = (element: ButtonElement) => {
+    if (element.action === 'zalo' || element.action === 'phone' || element.action === 'link') {
+      message.info(t(`actions.${element.action}`));
+    }
   };
 
   const newPlayer = () => {
     resetPlayer();
-    setForm(EMPTY_FORM);
-    setErrors({});
-    setFormDone(false);
-    restart();
+    player.current?.reset();
     message.success(t('newPlayerDone'));
   };
 
-  const start = () => go(campaign.rules.collectForm && !formDone ? 'form' : 'game');
-
-  const submitForm = () => {
-    const found = validatePlayerForm(form);
-    setErrors(found);
-    if (Object.keys(found).length === 0) {
-      setFormDone(true);
-      go('game');
-    }
-  };
-
-  const changeForm = (patch: Partial<PlayerFormValues>) => {
-    const next = { ...form, ...patch };
-    setForm(next);
-    // Once errors are showing, re-check as the player fixes them.
-    if (Object.keys(errors).length) setErrors(validatePlayerForm(next));
-  };
-
-  const onPlay = () =>
-    startPlay.mutateAsync({ campaignId: campaign.id, playerId, rehearsal }).catch((error) => {
-      message.error(
-        error instanceof LabApiError && error.code === 'NOT_PUBLISHED'
-          ? t('errors.notPublishedBody')
-          : t('errors.playFailed'),
-      );
-      throw error;
-    });
-
-  const onDone = (played: PlayResult) => {
-    switch (played.outcome) {
-      case 'win':
-        setResult(played);
-        setVoucherExpanded(true);
-        go('resultWin');
-        break;
-      case 'lose':
-        // Out of stock, paced, limit and budget all read as "not this time" to the player.
-        setResult(played);
-        go('resultLose');
-        break;
-      case 'no_turns':
-        setSheet('noTurns');
-        setRound((r) => r + 1);
-        break;
-      case 'closed':
-        setSheet('closed');
-        setRound((r) => r + 1);
-        break;
-    }
-  };
-
-  const runtime: CanvasRuntime = {
-    prizes: toCanvasPrizes(campaign, stats?.remainingByPrize),
-    variables: {
-      'player.name': form.name.trim() || t('defaultName'),
-      'event.name': campaign.name,
-      ...(result?.prize ? { 'prize.name': result.prize.name } : {}),
-    },
-    renderStage: () => (
-      <Mechanism
-        key={round}
-        mechanism={campaign.templateKey}
-        brand={campaign.brand}
-        prizes={campaign.prizes}
-        play={{ onPlay, onDone, disabled: !playerId }}
-      />
-    ),
-    renderForm: (element) => (
-      <PlayerForm
-        element={element}
-        brand={campaign.brand}
-        labels={labels}
-        values={form}
-        errors={errors}
-        onChange={changeForm}
-      />
-    ),
-    onButton: (element) => {
-      switch (element.action) {
-        case 'start':
-          start();
-          break;
-        case 'next':
-          if (screen === 'cover') start();
-          else if (screen === 'form') submitForm();
-          else if (screen === 'resultWin') setSheet('vouchers');
-          else if (screen === 'resultLose') go('cover');
-          break;
-        case 'rules':
-          setSheet('rules');
-          break;
-        case 'zalo':
-        case 'phone':
-        case 'link':
-          message.info(t(`actions.${element.action}`));
-          break;
-      }
-    },
-  };
-
-  const redeemUrl =
-    result?.voucherCode && typeof window !== 'undefined'
-      ? `${window.location.origin}${campaignRoutes(orgId).redeem}?code=${result.voucherCode}`
-      : '';
+  const redeemUrl = (code: string) =>
+    typeof window === 'undefined' ? '' : `${window.location.origin}${routes.redeem}?code=${code}`;
 
   return (
     <>
@@ -313,7 +212,7 @@ function PlayerSession({
         style={{ borderBottom: `1px solid ${token.colorBorderSecondary}` }}
       >
         <Tooltip title={t('backToEditor')}>
-          <Link href={campaignRoutes(orgId).edit(campaign.id)}>
+          <Link href={routes.edit(campaign.id)}>
             <Button type="text" icon={<ArrowLeft size={16} />} aria-label={t('backToEditor')} />
           </Link>
         </Tooltip>
@@ -331,10 +230,10 @@ function PlayerSession({
             {t('playerId', { id: playerId.slice(0, 6) })}
           </Typography.Text>
         )}
-        <Button icon={<Gift size={16} />} onClick={() => setSheet('vouchers')}>
+        <Button icon={<Gift size={16} />} onClick={() => player.current?.openVouchers()}>
           {t('myPrizes')}
         </Button>
-        <Button icon={<RotateCcw size={16} />} onClick={restart}>
+        <Button icon={<RotateCcw size={16} />} onClick={() => player.current?.restart()}>
           {t('restart')}
         </Button>
         <Button icon={<UserPlus size={16} />} onClick={newPlayer}>
@@ -349,56 +248,28 @@ function PlayerSession({
             style={
               {
                 '--bezel': `0 0 0 10px ${token.colorBgContainer}, 0 0 0 11px ${token.colorBorder}, 0 30px 80px rgba(0,0,0,.55)`,
-                background: fillColor,
               } as CSSProperties
             }
           >
-            <div ref={scrollRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
-              {width > 0 && (
-                <CanvasScreen
-                  screen={doc}
-                  brand={campaign.brand}
-                  scale={scale}
-                  labels={labels}
-                  animate={reduced ? undefined : visit}
-                  runtime={runtime}
-                />
-              )}
-            </div>
+            <CampaignPlayer
+              ref={player}
+              campaign={campaign}
+              labels={labels}
+              onPlay={onPlay}
+              onAction={onAction}
+              vouchers={vouchers}
+              vouchersLoading={myVouchers.isLoading}
+              remainingByPrize={stats?.remainingByPrize}
+              playDisabled={!playerId}
+              rehearsal={rehearsal}
+              redeemUrl={redeemUrl}
+            />
 
             {rehearsal && (
               <Tag color="gold" className="absolute top-2 left-2 z-10 min-[480px]:hidden">
                 {t('rehearsal')}
               </Tag>
             )}
-
-            {screen === 'resultWin' && result && (
-              <VoucherCard
-                result={result}
-                redeemUrl={redeemUrl}
-                expanded={voucherExpanded}
-                onToggle={() => setVoucherExpanded((v) => !v)}
-                onOpenPrizes={() => setSheet('vouchers')}
-              />
-            )}
-
-            <NoticeSheet
-              kind={sheet === 'noTurns' || sheet === 'closed' ? sheet : null}
-              onClose={() => setSheet(null)}
-            />
-            <RulesSheet
-              open={sheet === 'rules'}
-              onClose={() => setSheet(null)}
-              campaign={campaign}
-              rehearsal={rehearsal}
-            />
-            <MyPrizesSheet
-              open={sheet === 'vouchers'}
-              onClose={() => setSheet(null)}
-              campaignId={campaign.id}
-              playerId={playerId}
-              rehearsal={rehearsal}
-            />
           </div>
         </ConfigProvider>
       </div>

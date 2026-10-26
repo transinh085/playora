@@ -1,7 +1,7 @@
 'use client';
 
+import { type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
 import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
-import { type CanvasPrize, CanvasScreen } from '@/features/canvas-editor/components/canvas-screen';
 import { useCanvasLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import {
   ARTBOARD_WIDTH,

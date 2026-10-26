@@ -1,11 +1,13 @@
 'use client';
 
-import type { BrandPalette } from '@/features/canvas-editor/lib/model';
-import type { LabPrize, MechanismKey, PlayResult } from '../mock/types';
+import type { CampaignTemplateKey, PlayResult } from '@playora/contracts';
 import { GiftBox } from './gift-box';
 import { MECH_KEYFRAMES } from './keyframes';
+import type { MechanismLabels } from './labels';
+import type { BrandPalette } from './model';
 import { ScratchCard } from './scratch-card';
 import { SpinWheel } from './spin-wheel';
+import type { WheelPrize } from './wheel-math';
 
 /**
  * The template's mechanism, drawn inside the canvas `gameStage` (ADR-014 §1). It never decides
@@ -13,9 +15,10 @@ import { SpinWheel } from './spin-wheel';
  * result, then calls `play.onDone(result)`. Without `play` it renders an idle preview (editor).
  */
 export interface MechanismProps {
-  mechanism: MechanismKey;
+  mechanism: CampaignTemplateKey;
   brand: BrandPalette;
-  prizes: LabPrize[];
+  prizes: readonly WheelPrize[];
+  labels: MechanismLabels;
   play?: {
     onPlay: () => Promise<PlayResult>;
     onDone: (result: PlayResult) => void;

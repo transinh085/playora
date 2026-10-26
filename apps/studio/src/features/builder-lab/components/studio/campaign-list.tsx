@@ -1,5 +1,6 @@
 'use client';
 
+import { toCanvasPrizes } from '@playora/ui/campaign';
 import {
   App,
   Button,
@@ -41,7 +42,6 @@ import { campaignRoutes } from '../../lib/routes';
 import { useCampaignStats, useCampaigns, useLabSync } from '../../mock/hooks';
 import type { Campaign } from '../../mock/types';
 import { FitScreen } from '../editor/fit-screen';
-import { toCanvasPrizes } from '../editor/to-canvas-prizes';
 import { campaignPeriod } from './campaign-period';
 import { PhaseTag } from './phase-tag';
 

@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import type { PlayResult } from '@playora/contracts';
 import { type PointerEvent, useEffect, useRef, useState } from 'react';
-import type { BrandPalette } from '@/features/canvas-editor/lib/model';
-import type { PlayResult } from '../mock/types';
+import type { MechanismLabels } from './labels';
 import type { MechanismProps } from './mechanism';
+import type { BrandPalette } from './model';
 import { clearedRatio, REVEAL_THRESHOLD } from './scratch-math';
 import { usePlayRound, useReducedMotion } from './use-play-round';
 
@@ -39,8 +39,7 @@ function drawFoil(canvas: HTMLCanvasElement, brand: BrandPalette, label: string)
 }
 
 /** Scratch-off card: the hidden layer shows the server's result under a canvas foil. */
-export function ScratchCard({ brand, play }: Omit<MechanismProps, 'mechanism'>) {
-  const t = useTranslations('builderLab.mechanisms');
+export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mechanism'>) {
   const reduced = useReducedMotion();
   const round = usePlayRound(play);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,7 +49,7 @@ export function ScratchCard({ brand, play }: Omit<MechanismProps, 'mechanism'>) 
   const [cleared, setCleared] = useState(false);
   const finished = useRef(false);
   const canScratch = Boolean(play && !play.disabled) && round.phase !== 'done' && !cleared;
-  const label = t('scratchHere');
+  const label = labels.scratchHere;
 
   // Draw (and redraw on resize) until the first scratch.
   useEffect(() => {
@@ -159,13 +158,13 @@ export function ScratchCard({ brand, play }: Omit<MechanismProps, 'mechanism'>) 
           boxSizing: 'border-box',
         }}
       >
-        <ResultFace result={round.result} brand={brand} reduced={reduced} />
+        <ResultFace result={round.result} brand={brand} reduced={reduced} labels={labels} />
         {/* biome-ignore lint/a11y/useSemanticElements: the scratch surface has to be a canvas */}
         <canvas
           ref={canvasRef}
           role="button"
           tabIndex={canScratch ? 0 : -1}
-          aria-label={t('scratchLabel')}
+          aria-label={labels.scratchLabel}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
@@ -200,12 +199,13 @@ function ResultFace({
   result,
   brand,
   reduced,
+  labels,
 }: {
   result: PlayResult | null;
   brand: BrandPalette;
   reduced: boolean;
+  labels: MechanismLabels;
 }) {
-  const t = useTranslations('builderLab.mechanisms');
   if (!result) return null;
   const win = result.outcome === 'win' && result.prize;
   return (
@@ -227,7 +227,6 @@ function ResultFace({
       }}
     >
       {win && result.prize?.image ? (
-        // biome-ignore lint/performance/noImgElement: data-URL prize images
         <img
           src={result.prize.image}
           alt=""
@@ -235,10 +234,10 @@ function ResultFace({
         />
       ) : null}
       {win && (
-        <div style={{ fontSize: '7cqmin', fontWeight: 600, opacity: 0.8 }}>{t('winTitle')}</div>
+        <div style={{ fontSize: '7cqmin', fontWeight: 600, opacity: 0.8 }}>{labels.winTitle}</div>
       )}
       <div style={{ fontSize: win ? '11cqmin' : '9cqmin', fontWeight: 800, lineHeight: 1.15 }}>
-        {win ? result.prize?.name : t('loseTitle')}
+        {win ? result.prize?.name : labels.loseTitle}
       </div>
     </div>
   );

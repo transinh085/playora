@@ -1,13 +1,13 @@
 'use client';
 
+import { Mechanism, toCanvasPrizes } from '@playora/ui/campaign';
 import { Flex, Segmented, theme } from 'antd';
 import { useTranslations } from 'next-intl';
+import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { SCREEN_KEYS, type ScreenKey } from '@/features/canvas-editor/lib/model';
-import { Mechanism } from '../../mechanisms/mechanism';
 import { getTemplate } from '../../mock/templates';
 import type { Campaign } from '../../mock/types';
 import { FitScreen } from './fit-screen';
-import { toCanvasPrizes } from './to-canvas-prizes';
 
 /** The idle mechanism for a campaign, drawn inside its game stage. */
 export function CampaignStage({
@@ -15,11 +15,13 @@ export function CampaignStage({
 }: {
   campaign: Pick<Campaign, 'templateKey' | 'brand' | 'prizes'>;
 }) {
+  const labels = useMechanismLabels();
   return (
     <Mechanism
       mechanism={getTemplate(campaign.templateKey).mechanism}
       brand={campaign.brand}
       prizes={campaign.prizes}
+      labels={labels}
     />
   );
 }

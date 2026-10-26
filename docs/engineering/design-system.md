@@ -160,6 +160,7 @@ Sử dụng trực tiếp component từ `antd` (`Button`, `Table`, `Form`, `Inp
 | `Leaderboard` | Kết quả game skill (đích) | Top 3 huy chương; `highlightId` cho dòng của chính người chơi |
 | `Countdown` | Player | Đổi sang `--game-urgent` và nảy mỗi giây ở 5 giây cuối |
 | `JoinPanel` | Player / Kiosk lobby | QR (truyền vào), URL ngắn, mã tham gia |
+| `CampaignPlayer`, `CanvasScreen`, `Mechanism` (`@playora/ui/campaign`) | Play, Studio (Builder Lab, editor) | Renderer chiến dịch canvas ([ADR-014](../adr/014-free-canvas-screen-editor.md)): màu lấy từ brand/tài liệu canvas; không gọi API, kết quả đến từ `onPlay`; nhãn truyền vào bằng `createCampaignPlayerLabels` (namespace `campaignPlayer`) |
 
 Kích thước component game theo `font-size` của cha (đơn vị `em`). Trên `apps/play`, chỉ dùng các component antd nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Result`, `Modal`…), **không** dùng `DatePicker`, `Table`, `ColorPicker`.
 

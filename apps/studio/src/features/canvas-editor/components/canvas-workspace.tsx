@@ -1,5 +1,6 @@
 'use client';
 
+import type { CanvasPrize } from '@playora/ui/campaign';
 import { Button, Flex, Menu, type MenuProps, Segmented, Tooltip, Typography, theme } from 'antd';
 import {
   AlignCenter,
@@ -65,7 +66,6 @@ import {
   type GameStageElement,
   SINGLETON_TYPES,
 } from '../lib/model';
-import type { CanvasPrize } from './canvas-screen';
 import { EditorCanvas } from './editor-canvas';
 import { PropertiesPanel } from './properties-panel';
 import { LayersPanel, ScreensPanel, Toolbox } from './side-panels';

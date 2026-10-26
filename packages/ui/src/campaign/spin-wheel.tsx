@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { MechanismProps } from './mechanism';
 import { usePlayRound, useReducedMotion } from './use-play-round';
@@ -18,8 +17,7 @@ const truncate = (text: string, max: number) =>
   text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
 
 /** SVG prize wheel: slices = prizes interleaved with "good luck"; lands on the server's result. */
-export function SpinWheel({ brand, prizes, play }: Omit<MechanismProps, 'mechanism'>) {
-  const t = useTranslations('builderLab.mechanisms');
+export function SpinWheel({ brand, prizes, play, labels }: Omit<MechanismProps, 'mechanism'>) {
   const reduced = useReducedMotion();
   const slices = useMemo(() => buildSlices(prizes), [prizes]);
   const count = slices.length;
@@ -61,7 +59,7 @@ export function SpinWheel({ brand, prizes, play }: Omit<MechanismProps, 'mechani
         type="button"
         onClick={spin}
         disabled={!round.interactive}
-        aria-label={t('wheelLabel')}
+        aria-label={labels.wheelLabel}
         style={{
           all: 'unset',
           width: '100%',
@@ -72,7 +70,7 @@ export function SpinWheel({ brand, prizes, play }: Omit<MechanismProps, 'mechani
         }}
       >
         <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
-          <title>{t('wheelLabel')}</title>
+          <title>{labels.wheelLabel}</title>
           <circle cx="50" cy="51.5" r="49" fill="rgba(0,0,0,.25)" />
           <circle
             cx="50"
@@ -134,7 +132,7 @@ export function SpinWheel({ brand, prizes, play }: Omit<MechanismProps, 'mechani
                         fontSize,
                       }}
                     >
-                      {truncate(isPrize ? slice.prize.name : t('luck'), maxChars)}
+                      {truncate(isPrize ? slice.prize.name : labels.luck, maxChars)}
                     </text>
                   </g>
                 </g>
@@ -185,7 +183,7 @@ export function SpinWheel({ brand, prizes, play }: Omit<MechanismProps, 'mechani
             fill={brand.primary}
             style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 4.6 }}
           >
-            {t('spin')}
+            {labels.spin}
           </text>
           <path
             d="M50 13 L44.5 1.5 Q50 -0.5 55.5 1.5 Z"

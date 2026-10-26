@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { memo, type ReactNode, useEffect, useState } from 'react';
+import type { CanvasLabels } from './labels';
 import {
   ARTBOARD_WIDTH,
   type BrandPalette,
@@ -27,32 +28,22 @@ import {
   presetSrc,
   resolveColor,
   type ScreenDoc,
-} from '../lib/model';
+} from './model';
+
+export type { CanvasLabels };
 
 /**
- * Renders one canvas screen (ADR-014 §5). Pure presentation: Play will render the same component,
- * and the Studio editor draws its selection layer on top. Colours here are game content (brand
+ * Renders one canvas screen (ADR-014 §5). Pure presentation: Play renders it through
+ * `CampaignPlayer`, and the Studio editor draws its selection layer on top. Colours here are game content (brand
  * kit), not Studio chrome, so they are resolved from the brand palette rather than antd tokens.
  */
-export interface CanvasLabels {
-  days: string;
-  hours: string;
-  minutes: string;
-  seconds: string;
-  remaining: (count: number) => string;
-  fullName: string;
-  phone: string;
-  consent: string;
-  sampleName: string;
-  samplePrize: string;
-  sampleEvent: string;
-}
-
 export interface CanvasPrize {
   name: string;
   image?: string;
   remaining: number;
 }
+
+export type CanvasVariable = 'prize.name' | 'player.name' | 'event.name' | 'turns.left';
 
 export interface CanvasRuntime {
   /** Draws the template's mechanism inside the game stage (player); a demo wheel otherwise. */
@@ -63,8 +54,11 @@ export interface CanvasRuntime {
   onButton?: (element: ButtonElement) => void;
   /** The campaign's prizes for `prizeList` elements; demo prizes otherwise. */
   prizes?: CanvasPrize[];
-  /** Real values for `{prize.name}`, `{player.name}`, `{event.name}`; samples from labels otherwise. */
-  variables?: Partial<Record<'prize.name' | 'player.name' | 'event.name', string>>;
+  /**
+   * Real values for `{prize.name}`, `{player.name}`, `{event.name}`; samples from labels otherwise.
+   * `{turns.left}` is only replaced when the player knows it.
+   */
+  variables?: Partial<Record<CanvasVariable, string>>;
 }
 
 export const CanvasScreen = memo(function CanvasScreen({
@@ -197,7 +191,8 @@ const KEYFRAMES = `
 
 function fillVariables(text: string, labels: CanvasLabels, runtime?: CanvasRuntime) {
   const v = runtime?.variables ?? {};
-  return text
+  const turns = v['turns.left'];
+  return (turns === undefined ? text : text.replaceAll('{turns.left}', turns))
     .replaceAll('{prize.name}', v['prize.name'] ?? labels.samplePrize)
     .replaceAll('{player.name}', v['player.name'] ?? labels.sampleName)
     .replaceAll('{event.name}', v['event.name'] ?? labels.sampleEvent);
@@ -271,7 +266,6 @@ function ElementView({
       else if (element.shadow === 'glow') shadowCss = '0 0 16px rgba(255,215,0,0.6)';
 
       return (
-        // biome-ignore lint/performance/noImgElement: data-URL stickers and user assets, not Next images
         <img
           src={element.src || presetSrc()}
           alt={element.name}
@@ -647,7 +641,6 @@ function ElementView({
                   minHeight: 0,
                 }}
               >
-                {/* biome-ignore lint/performance/noImgElement: built-in sticker */}
                 <img
                   src={prize.image || presetSrc(['coin', 'envelope', 'logo'][i])}
                   alt=""
