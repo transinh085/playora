@@ -53,7 +53,10 @@ export type RegistrationValidationResult =
       ok: true;
       error: null;
       consentsMap: Map<string, boolean>;
+      /** Non-sensitive answers only: `phone` fields are never put here (PDPL, security.md §3). */
       formData: Record<string, string | boolean>;
+      /** The first non-empty `phone` field, as typed (trimmed); the API encrypts and hashes it. */
+      phone: string | null;
     }
   | {
       ok: false;
@@ -111,6 +114,7 @@ export function validateRegistration(
 ): RegistrationValidationResult {
   const consentsMap = normalizeConsentsInput(input.consents);
   const formData: Record<string, string | boolean> = {};
+  let phone: string | null = null;
 
   for (const consent of form.consents ?? []) {
     const granted = consentsMap.get(consent.purpose) === true;
@@ -158,13 +162,20 @@ export function validateRegistration(
       if (field.type === 'email' && !EMAIL_SCHEMA.safeParse(strVal).success) {
         return fail(`fields.${field.key}`, 'Email không hợp lệ', consentsMap, formData);
       }
-      if (field.type === 'phone' && !PHONE_REGEX.test(strVal)) {
+      if (
+        field.type === 'phone' &&
+        (!PHONE_REGEX.test(strVal) || strVal.replace(/\D/g, '').length < 7)
+      ) {
         return fail(`fields.${field.key}`, 'Số điện thoại không hợp lệ', consentsMap, formData);
       }
       if (field.type === 'select' && field.options?.length && !field.options.includes(strVal)) {
         return fail(`fields.${field.key}`, 'Lựa chọn không hợp lệ', consentsMap, formData);
       }
-      // TODO(PDPL): move phone to phoneEnc/phoneHash once the crypto helper lands
+      if (field.type === 'phone') {
+        // Kept out of formData (stored as players.phone_enc / phone_hash by the API).
+        phone ??= strVal;
+        continue;
+      }
       formData[field.key] = strVal;
     }
   }
@@ -174,6 +185,7 @@ export function validateRegistration(
     error: null,
     consentsMap,
     formData,
+    phone,
   };
 }
 

@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import {
   apiEnvSchema,
+  DEV_DEFAULT_PII_ENCRYPTION_KEY,
+  DEV_DEFAULT_PII_HMAC_KEY,
   DEV_DEFAULT_S3_ACCESS_KEY,
   DEV_DEFAULT_S3_SECRET_KEY,
   parseEnv,
@@ -12,6 +14,11 @@ const validBaseApiEnv = {
   REDIS_URL: 'redis://localhost:63799',
   BETTER_AUTH_SECRET: '01234567890123456789012345678901',
   PLAYER_SESSION_SECRET: '01234567890123456789012345678901',
+};
+
+const prodPiiKeys = {
+  PII_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+  PII_HMAC_KEY: Buffer.alloc(32, 9).toString('base64'),
 };
 
 const validBaseWorkerEnv = {
@@ -75,6 +82,7 @@ describe('apiEnvSchema', () => {
       COOKIE_DOMAIN: '.playora.vn',
       S3_ACCESS_KEY: 'prod-access-key',
       S3_SECRET_KEY: 'prod-secret-key-complex-12345',
+      ...prodPiiKeys,
     });
     expect(prodParsed.success).toBe(true);
     if (prodParsed.success) {
@@ -82,6 +90,54 @@ describe('apiEnvSchema', () => {
       expect(prodParsed.data.S3_ACCESS_KEY).toBe('prod-access-key');
       expect(prodParsed.data.S3_SECRET_KEY).toBe('prod-secret-key-complex-12345');
     }
+  });
+});
+
+describe('apiEnvSchema PII keys', () => {
+  const prodS3 = { S3_ACCESS_KEY: 'prod-access-key', S3_SECRET_KEY: 'prod-secret-key' };
+
+  test('uses dev defaults outside production', () => {
+    const parsed = apiEnvSchema.parse({ ...validBaseApiEnv, NODE_ENV: 'test' });
+    expect(parsed.PII_ENCRYPTION_KEY).toBe(DEV_DEFAULT_PII_ENCRYPTION_KEY);
+    expect(parsed.PII_HMAC_KEY).toBe(DEV_DEFAULT_PII_HMAC_KEY);
+    expect(parsed.PII_ENCRYPTION_KEY_ID).toBe('v1');
+    expect(Buffer.from(parsed.PII_ENCRYPTION_KEY, 'base64')).toHaveLength(32);
+  });
+
+  test('rejects missing or dev-default PII keys in production', () => {
+    const res = apiEnvSchema.safeParse({ ...validBaseApiEnv, NODE_ENV: 'production', ...prodS3 });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const paths = res.error.issues.map((i) => i.path.join('.'));
+      expect(paths).toContain('PII_ENCRYPTION_KEY');
+      expect(paths).toContain('PII_HMAC_KEY');
+    }
+  });
+
+  test('rejects keys of the wrong size', () => {
+    const res = apiEnvSchema.safeParse({
+      ...validBaseApiEnv,
+      NODE_ENV: 'production',
+      ...prodS3,
+      PII_ENCRYPTION_KEY: Buffer.alloc(16, 7).toString('base64'),
+      PII_HMAC_KEY: 'CHANGE_ME',
+    });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      const paths = res.error.issues.map((i) => i.path.join('.'));
+      expect(paths).toContain('PII_ENCRYPTION_KEY');
+      expect(paths).toContain('PII_HMAC_KEY');
+    }
+  });
+
+  test('accepts generated keys in production', () => {
+    const res = apiEnvSchema.safeParse({
+      ...validBaseApiEnv,
+      NODE_ENV: 'production',
+      ...prodS3,
+      ...prodPiiKeys,
+    });
+    expect(res.success).toBe(true);
   });
 });
 

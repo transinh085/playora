@@ -224,7 +224,7 @@ describe('core/registration', () => {
     });
 
     test('validates phone format (length and allowed characters)', () => {
-      for (const invalidPhone of ['12345', '090123abc', '1'.repeat(21)]) {
+      for (const invalidPhone of ['12345', '090123abc', '1'.repeat(21), '((--))--']) {
         const res = validateRegistration(form, {
           fields: { ...validFields, phone: invalidPhone },
           consents: { participation: true },
@@ -293,7 +293,6 @@ describe('core/registration', () => {
       if (res.ok) {
         expect(res.formData).toEqual({
           full_name: 'Nguyễn Văn A',
-          phone: '+84 (90) 123-4567',
           email: 'a.nguyen@example.com',
           dept: 'Kỹ thuật',
           vip: true,
@@ -301,6 +300,9 @@ describe('core/registration', () => {
           note: 'X'.repeat(MAX_FORM_FIELD_VALUE_LENGTH),
         });
         expect(res.formData.injected_field).toBeUndefined();
+        // The phone never lands in formData; it is returned separately for encryption.
+        expect(res.formData.phone).toBeUndefined();
+        expect(res.phone).toBe('+84 (90) 123-4567');
         expect(res.consentsMap.get('participation')).toBe(true);
       }
     });
