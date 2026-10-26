@@ -122,7 +122,7 @@ export function PlaybookGoalBanner({
     <Card
       variant="borderless"
       data-testid="playbook-highlight"
-      data-playbook={playbookKey}
+      data-playbook-goal={playbookKey}
       data-print-card
       style={{
         border: `1px solid ${token.colorPrimaryBorder}`,
