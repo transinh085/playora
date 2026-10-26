@@ -26,11 +26,11 @@ Ghi mọi quyết định **sản phẩm và kinh doanh** (phạm vi, khách hà
 | D-13 | 25/10/2026 | Studio theo giao diện admin games-vt (sidebar nhóm, PageHeader, MetricGrid, TableCard) | Bản chỉ chỉnh token Atlassian bị đánh giá "chán" | Đã chốt | [design-system §3.4](../engineering/design-system.md) |
 | D-14 | 25/10/2026 | Có editor canvas tự do cho các màn (chế độ Tuỳ biến) | SME muốn màn chơi như poster của quán | Đã chốt 26/10 | [ADR-014](../adr/014-free-canvas-screen-editor.md) |
 | D-15 | 26/10/2026 | **Builder vẫn là lõi, nhưng sản phẩm định vị và đo theo kết quả của quán** (playbook theo mục tiêu, báo cáo kết quả) | Chủ quán mua "khách tới quán", không mua "game builder" | Đã chốt | strategy §1.1, §5 |
-| D-16 | 26/10/2026 | North Star = **lượt đổi quà tại quầy mỗi tháng** (thay "SME có chương trình chạy") | Đo đúng giá trị cho quán, không bơm được bằng bot | Thử nghiệm: xem lại sau pilot Tết | strategy §8 |
-| D-17 | 26/10/2026 | Beachhead: **quán đồ uống và ăn nhẹ** (cà phê, trà sữa, tiệm bánh) | Ghé thường xuyên, quà rẻ, có quầy để đổi; một người chỉ làm sâu được một ngành | Thử nghiệm: xem lại sau 15 phỏng vấn M0 | strategy §4 |
+| D-16 | 26/10/2026 | North Star = **lượt đổi quà tại quầy mỗi tháng** (thay "SME có chương trình chạy") | Đo đúng giá trị cho quán, không bơm được bằng bot | Đã chốt 26/10 cho M1; xem lại sau pilot Tết | strategy §8 |
+| D-17 | 26/10/2026 | Beachhead: **quán đồ uống và ăn nhẹ** (cà phê, trà sữa, tiệm bánh) | Ghé thường xuyên, quà rẻ, có quầy để đổi; một người chỉ làm sâu được một ngành | Đã chốt 26/10 cho M1; xem lại sau 15 phỏng vấn M0 | strategy §4 |
 | D-18 | 26/10/2026 | Thứ tự: **vòng lõi thật (API lượt chơi, giải, đổi quà, báo cáo) trước** mọi cải tiến canvas, theme hay refactor | Chưa người chơi nào chơi được với backend thật; không có gì để pilot | Đã chốt | roadmap P0 |
 | D-19 | 26/10/2026 | Pilot Tết theo kiểu **dựng hộ miễn phí** 5–10 quán, đổi lại số liệu và case study | Chưa có khách; cần bằng chứng kết quả | Đã chốt | roadmap, [business-model](../business/business-model.md) |
-| D-20 | 26/10/2026 | Giá: thuê bao tháng/năm cho quán; Free soạn đầy đủ, khoá theo số lượt đổi quà/tháng và watermark | Gắn giá với giá trị (khách tới quán), khác WOAY bán quota lượt | Thử nghiệm: đo ở M2 | [business-model §3](../business/business-model.md) |
+| D-20 | 26/10/2026 | Giá: thuê bao tháng/năm cho quán; Free soạn đầy đủ, khoá theo số lượt đổi quà/tháng và watermark | Gắn giá với giá trị (khách tới quán), khác WOAY bán quota lượt | Đã chốt 26/10 cho M1; đo ở M2 | [business-model §3](../business/business-model.md) |
 
 ## Câu hỏi đang mở
 
@@ -40,4 +40,3 @@ Ghi mọi quyết định **sản phẩm và kinh doanh** (phạm vi, khách hà
 | Q-2 | Đăng ký Zalo OA cho ZNS ngay từ M1 để kịp M2–M3? | Nhắc quay lại | 30/11/2026 |
 | Q-3 | AI dựng nháp: nhà cung cấp nào, trần chi phí mỗi chương trình, có trong gói Free không? | Builder M2 | 01/2027 |
 | Q-4 | Xoá nền ảnh sản phẩm: dịch vụ trả theo lượt hay tự host model (kiểm license)? | Builder M1–M2 | 12/2026 |
-| Q-5 | Lưu Campaign trên `events` + `games` + `game_versions` hay bảng mới? | API P0 | [ADR-015](../adr/015-campaign-persistence.md) |
