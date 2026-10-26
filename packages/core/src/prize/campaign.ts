@@ -38,7 +38,12 @@ export function toPrizeRules(
     overallWinRate: rules.mode === 'overall_win_rate' ? rules.overallWinRate : undefined,
     limits: { perPlayerTotal: Math.max(1, rules.maxWinsPerPlayer) },
     budgetVnd: rules.budgetVnd ?? undefined,
-    pacing: { strategy: rules.pacing && !opts.rehearsal ? 'time_uniform' : 'none' },
+    // `time_uniform` smooths itself: quiet hours roll their stock into later ones
+    // (docs/product/specs/prizes-redemption.md §3).
+    pacing:
+      rules.pacing && !opts.rehearsal
+        ? { strategy: 'time_uniform', smoothing: true }
+        : { strategy: 'none' },
     openingHours:
       rules.openingHours && !opts.rehearsal
         ? [{ start: rules.openingHours.start, end: rules.openingHours.end }]
