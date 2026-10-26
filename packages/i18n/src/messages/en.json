@@ -580,7 +580,24 @@
         "prizes": "Prize list",
         "prizesHint": "One card per prize. Move them up or down to set the display order.",
         "rules": "Game rules",
-        "rulesHint": "Each rule is one sentence. Click a number or a switch to change it."
+        "rulesHint": "Each rule is one sentence. Click a number or a switch to change it.",
+        "compliance": "Terms & compliance",
+        "complianceHint": "Choose promotion type and review terms shown to players."
+      },
+      "compliance": {
+        "title": "Terms & compliance",
+        "question": "Do customers need to make a purchase to play?",
+        "purchaseLinked": "Yes — purchase required",
+        "purchaseLinkedHint": "Lucky draws tied to purchases must be notified to the Department of Industry and Trade before running (consult a lawyer or local authority).",
+        "notLinked": "No — free to play",
+        "notLinkedHint": "Free-to-play programs not tied to purchases generally do not require lucky draw notification (consult a lawyer to be certain).",
+        "termsTitle": "Campaign terms",
+        "termsHint": "Terms are generated automatically from rules and prizes. You can edit them if needed.",
+        "editTerms": "Edit terms",
+        "resetTerms": "Use generated terms",
+        "customBadge": "Custom terms in use",
+        "generatedBadge": "Generated terms",
+        "termsPlaceholder": "Enter campaign terms..."
       },
       "mode": {
         "label": "How prizes are given",
@@ -912,8 +929,21 @@
         "smallButton": "Button “{name}” is {size}px tall, hard to tap (44px or more).",
         "offCanvas": "“{name}” is outside the screen, so players can't see it.",
         "lowContrast": "“{name}” has {ratio}:1 contrast with the background, hard to read (3:1 or more).",
-        "emptyTitle": "The title is empty."
+        "emptyTitle": "The title is empty.",
+        "unselectedPromotionType": "Promotion type not selected."
       },
+      "checklistTitle": "Pre-publish confirmation",
+      "checklistHint": "Please confirm the legal items below to publish your campaign.",
+      "promotionTypeQuestion": "Do customers need to make a purchase to play?",
+      "promotionTypeQuestionHint": "Promotion type determines notification requirements with authorities.",
+      "purchaseLinkedOption": "Yes (purchase-linked)",
+      "notLinkedOption": "No (free to play)",
+      "ackOrganizer": "I am the campaign organizer and responsible for awarding prizes",
+      "ackDepartment": "I have notified / will notify the provincial Department of Industry and Trade before the start date",
+      "ackTerms": "I have reviewed the campaign terms",
+      "legalHelpTitle": "Department of Industry and Trade notification",
+      "legalHelpContent": "Under Vietnamese Decrees 81/2018/ND-CP and 128/2024/ND-CP, lucky draws tied to purchases must be notified to the Department of Industry and Trade before running. Please consult a lawyer or local authority for guidance.",
+      "legalHelpLink": "Legal guide",
       "liveLink": "Game link",
       "liveHint": "Print the QR code on a standee or table, or share the link on Zalo or your fanpage.",
       "rehearsalLink": "Rehearsal link",

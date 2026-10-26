@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouteQuery } from '@playora/api-client/react';
+import { meApi } from '@playora/contracts';
 import {
   Button,
   Divider,
@@ -30,6 +32,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
+import { api } from '@/lib/api';
 import { type Campaign, useCampaign } from '../api';
 import { campaignRoutes } from '../lib/routes';
 import { CampaignStatusTag } from './editor/campaign-status-tag';
@@ -117,6 +120,8 @@ function EditorShell({
   const [publishing, setPublishing] = useState(false);
   const links = labLinks(orgId, draft.id);
   const border = `1px solid ${token.colorBorderSecondary}`;
+  const myOrgs = useRouteQuery(api, meApi.orgs, {});
+  const organizerName = myOrgs.data?.items.find((o) => o.id === orgId)?.name;
 
   const modeSwitch = (
     <Segmented
@@ -227,7 +232,11 @@ function EditorShell({
         {mode === 'rules' && (
           <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_390px] lg:overflow-hidden">
             <div className="p-4 lg:p-6 lg:min-h-0 lg:overflow-y-auto">
-              <RulesPrizesPanel campaign={draft} onChange={(patch) => update(patch)} />
+              <RulesPrizesPanel
+                campaign={draft}
+                organizerName={organizerName}
+                onChange={(patch) => update(patch)}
+              />
             </div>
             <aside
               className="hidden lg:flex flex-col items-center justify-start p-6 overflow-y-auto"

@@ -24,6 +24,9 @@ async function createAndOpenPublish(page: Page, org: string, name: string) {
 
   await page.getByRole('button', { name: 'Publish' }).first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('radio', { name: /Không/ }).click();
+  await dialog.getByRole('checkbox', { name: /đơn vị tổ chức/ }).check();
+  await dialog.getByRole('checkbox', { name: /kiểm tra thể lệ/ }).check();
   await dialog.getByRole('button', { name: 'Publish' }).click();
   return dialog;
 }

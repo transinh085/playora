@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
 import type { Campaign, CampaignPrize, CampaignRules } from '../api';
 import { prizeTotals, ruleIssues } from '../lib/rules-summary';
+import { ComplianceStep } from './rules/compliance-step';
 import { ModeStep } from './rules/mode-step';
 import { PrizeListStep } from './rules/prize-list-step';
 import { RulesSentencesStep } from './rules/rules-sentences-step';
@@ -13,14 +14,16 @@ import { SimulatorCard } from './rules/simulator-card';
 
 /**
  * "Rules & prizes" mode (docs/product/specs/builder.md §4.2): how prizes are given → prize list → rules as sentences →
- * simulation. The server engine decides every outcome; nothing here picks or targets a winner.
+ * terms & compliance → simulation. The server engine decides every outcome; nothing here picks or targets a winner.
  */
 export function RulesPrizesPanel({
   campaign,
+  organizerName,
   onChange,
 }: {
   campaign: Campaign;
-  onChange: (patch: Partial<Pick<Campaign, 'prizes' | 'rules'>>) => void;
+  organizerName?: string;
+  onChange: (patch: Partial<Pick<Campaign, 'prizes' | 'rules' | 'compliance'>>) => void;
 }) {
   const t = useTranslations('builderLab.rules');
   const { rules, prizes } = campaign;
@@ -70,6 +73,16 @@ export function RulesPrizesPanel({
           prizes={prizes}
           totalValueVnd={totals.valueVnd}
           onChange={setRules}
+        />
+      </StepCard>
+
+      <StepCard step={4} title={t('steps.compliance')} hint={t('steps.complianceHint')}>
+        <ComplianceStep
+          campaign={campaign}
+          organizerName={organizerName}
+          onChange={(compliancePatch) =>
+            onChange({ compliance: { ...campaign.compliance, ...compliancePatch } })
+          }
         />
       </StepCard>
 

@@ -580,7 +580,24 @@
         "prizes": "Danh sách quà",
         "prizesHint": "Mỗi món quà một thẻ. Kéo lên/xuống để sắp thứ tự hiển thị.",
         "rules": "Luật chơi",
-        "rulesHint": "Mỗi luật là một câu. Bấm vào ô số hoặc công tắc để đổi."
+        "rulesHint": "Mỗi luật là một câu. Bấm vào ô số hoặc công tắc để đổi.",
+        "compliance": "Thể lệ & pháp lý",
+        "complianceHint": "Xác định loại chương trình và kiểm tra thể lệ hiển thị cho người chơi."
+      },
+      "compliance": {
+        "title": "Thể lệ & pháp lý",
+        "question": "Khách có phải mua hàng mới được chơi không?",
+        "purchaseLinked": "Có — gắn với mua hàng",
+        "purchaseLinkedHint": "Chương trình may rủi gắn với mua hàng cần thông báo Sở Công Thương trước khi triển khai (nên tham khảo ý kiến luật sư hoặc cơ quan quản lý).",
+        "notLinked": "Không — chơi tự do",
+        "notLinkedHint": "Chương trình chơi tự do không gắn điều kiện mua hàng thường không thuộc diện phải thông báo khuyến mại may rủi (nên tham khảo ý kiến luật sư để đảm bảo).",
+        "termsTitle": "Thể lệ chương trình",
+        "termsHint": "Thể lệ tự động sinh từ cấu hình giải thưởng và luật chơi. Bạn có thể sửa theo ý muốn.",
+        "editTerms": "Sửa thể lệ",
+        "resetTerms": "Dùng lại thể lệ tự sinh",
+        "customBadge": "Đang dùng thể lệ tuỳ chỉnh",
+        "generatedBadge": "Thể lệ tự sinh",
+        "termsPlaceholder": "Nhập thể lệ chương trình..."
       },
       "mode": {
         "label": "Cách phát giải",
@@ -912,8 +929,21 @@
         "smallButton": "Nút “{name}” cao {size}px, khó bấm (nên từ 44px).",
         "offCanvas": "“{name}” nằm ngoài màn hình nên khách không thấy.",
         "lowContrast": "“{name}” có độ tương phản {ratio}:1 với nền, khó đọc (nên từ 3:1).",
-        "emptyTitle": "Tiêu đề đang để trống."
+        "emptyTitle": "Tiêu đề đang để trống.",
+        "unselectedPromotionType": "Chưa chọn loại chương trình."
       },
+      "checklistTitle": "Xác nhận trước khi phát hành",
+      "checklistHint": "Vui lòng hoàn thành các mục bên dưới để đủ điều kiện phát hành chương trình.",
+      "promotionTypeQuestion": "Khách có phải mua hàng mới được chơi không?",
+      "promotionTypeQuestionHint": "Loại chương trình quyết định nghĩa vụ thông báo khuyến mại với cơ quan nhà nước.",
+      "purchaseLinkedOption": "Có (gắn với đơn hàng / mua hàng)",
+      "notLinkedOption": "Không (chơi tự do / không gắn đơn)",
+      "ackOrganizer": "Tôi là đơn vị tổ chức chương trình và chịu trách nhiệm trao quà",
+      "ackDepartment": "Tôi đã/ sẽ thông báo Sở Công Thương nơi tổ chức trước ngày bắt đầu",
+      "ackTerms": "Đã kiểm tra thể lệ",
+      "legalHelpTitle": "Thông báo Sở Công Thương",
+      "legalHelpContent": "Theo quy định tại Nghị định 81/2018/NĐ-CP và Nghị định 128/2024/NĐ-CP, chương trình may rủi gắn với mua hàng cần thông báo Sở Công Thương nơi tổ chức trước ngày bắt đầu. Hãy tham khảo ý kiến luật sư hoặc cơ quan quản lý để thực hiện đúng quy định.",
+      "legalHelpLink": "Hướng dẫn pháp lý",
       "liveLink": "Link chơi",
       "liveHint": "In mã QR lên standee, bàn hoặc gửi link qua Zalo, fanpage.",
       "rehearsalLink": "Link chơi thử",

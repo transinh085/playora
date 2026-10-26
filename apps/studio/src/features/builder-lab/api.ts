@@ -4,6 +4,7 @@ import { type ApiError, routeKey } from '@playora/api-client';
 import { routePrefix, useRouteMutation, useRouteQuery } from '@playora/api-client/react';
 import {
   type CampaignBrand,
+  type CampaignCompliance,
   type CampaignListItem,
   type CampaignPhase,
   type CampaignPlayRecord,
@@ -47,6 +48,7 @@ export type CampaignRuleOpeningHours = NonNullable<CampaignRules['openingHours']
 
 export type {
   CampaignBrand,
+  CampaignCompliance,
   CampaignListItem,
   CampaignPhase,
   CampaignPlayRecord,

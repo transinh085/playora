@@ -1,12 +1,26 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
-import { Alert, App, Button, Divider, Flex, Modal, QRCode, Typography, theme } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Checkbox,
+  Divider,
+  Flex,
+  Modal,
+  Popover,
+  QRCode,
+  Radio,
+  Typography,
+  theme,
+} from 'antd';
 import {
   CircleX,
   ExternalLink,
   Gauge,
   Gift,
+  Info,
   Play,
   QrCode,
   Rocket,
@@ -29,6 +43,7 @@ import {
 } from '@/features/billing/components/plan-limit';
 import { type Campaign, useCampaignStats, usePublishCampaign } from '../../api';
 import { hasBlockingIssues, type PreflightIssue, preflight } from '../../lib/preflight';
+import { canPublishCampaign } from '../../lib/publish-compliance';
 import { campaignRoutes } from '../../lib/routes';
 import type { DraftPatch } from './use-campaign-draft';
 
@@ -70,6 +85,7 @@ export function PublishDialog({
   const t = useTranslations('builderLab.publish');
   const tErrors = useTranslations('errors');
   const { message } = App.useApp();
+  const { token } = theme.useToken();
   const publish = usePublishCampaign(orgId, campaign.id);
   const [published, setPublished] = useState<Campaign | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -79,13 +95,32 @@ export function PublishDialog({
   const blocking = hasBlockingIssues(issues);
   const fixable = issues.filter((i) => i.fix);
 
+  const alreadyAcknowledged = Boolean(campaign.compliance?.checklistAcknowledgedAt);
+  const [ackOrganizer, setAckOrganizer] = useState(alreadyAcknowledged);
+  const [ackDepartment, setAckDepartment] = useState(alreadyAcknowledged);
+  const [ackTerms, setAckTerms] = useState(alreadyAcknowledged);
+
   useEffect(() => {
     if (open) {
       setPublished(null);
       setPublishError(null);
       setPlanLimited(false);
+      const acked = Boolean(campaign.compliance?.checklistAcknowledgedAt);
+      setAckOrganizer(acked);
+      setAckDepartment(acked);
+      setAckTerms(acked);
     }
-  }, [open]);
+  }, [open, campaign.compliance?.checklistAcknowledgedAt]);
+
+  const canPublish = canPublishCampaign({
+    blocking,
+    checklist: {
+      promotionType: campaign.compliance?.promotionType ?? null,
+      ackOrganizer,
+      ackDepartment,
+      ackTerms,
+    },
+  });
 
   const applyFix = (issue: PreflightIssue) => {
     if (issue.fix) onFix(issue.fix(campaign) as DraftPatch);
@@ -106,6 +141,13 @@ export function PublishDialog({
   const doPublish = async () => {
     setPublishError(null);
     setPlanLimited(false);
+    const now = new Date().toISOString();
+    onFix({
+      compliance: {
+        ...campaign.compliance,
+        checklistAcknowledgedAt: campaign.compliance?.checklistAcknowledgedAt ?? now,
+      },
+    });
     const saved = await flush();
     if (!saved) return;
     try {
@@ -155,7 +197,7 @@ export function PublishDialog({
             <Button
               type="primary"
               icon={<Rocket className="size-4" />}
-              disabled={blocking}
+              disabled={!canPublish}
               loading={publish.isPending}
               onClick={doPublish}
             >
@@ -210,6 +252,90 @@ export function PublishDialog({
               ))}
             </Flex>
           )}
+
+          {/* Legal / Compliance Checklist (CMP-03, docs/business/compliance.md §4) */}
+          <Divider className="!my-0" />
+
+          {campaign.compliance?.promotionType === null && (
+            <Flex
+              vertical
+              gap={8}
+              className="rounded-lg p-3"
+              style={{
+                background: token.colorWarningBg,
+                border: `1px solid ${token.colorWarningBorder}`,
+              }}
+            >
+              <Typography.Text strong className="text-xs">
+                {t('promotionTypeQuestion')}
+              </Typography.Text>
+              <Typography.Text type="secondary" className="text-xs">
+                {t('promotionTypeQuestionHint')}
+              </Typography.Text>
+              <Radio.Group
+                value={campaign.compliance?.promotionType}
+                onChange={(e) =>
+                  onFix({
+                    compliance: { ...campaign.compliance, promotionType: e.target.value },
+                  })
+                }
+              >
+                <Radio value="purchase_linked">
+                  <span className="text-xs">{t('purchaseLinkedOption')}</span>
+                </Radio>
+                <Radio value="not_linked">
+                  <span className="text-xs">{t('notLinkedOption')}</span>
+                </Radio>
+              </Radio.Group>
+            </Flex>
+          )}
+
+          <Flex
+            vertical
+            gap={10}
+            className="rounded-lg p-3"
+            style={{
+              background: token.colorBgLayout,
+              border: `1px solid ${token.colorBorderSecondary}`,
+            }}
+          >
+            <div>
+              <Typography.Text strong className="text-xs uppercase tracking-wide" type="secondary">
+                {t('checklistTitle')}
+              </Typography.Text>
+            </div>
+
+            <Checkbox checked={ackOrganizer} onChange={(e) => setAckOrganizer(e.target.checked)}>
+              <span className="text-xs">{t('ackOrganizer')}</span>
+            </Checkbox>
+
+            {campaign.compliance?.promotionType === 'purchase_linked' && (
+              <Checkbox
+                checked={ackDepartment}
+                onChange={(e) => setAckDepartment(e.target.checked)}
+              >
+                <span className="text-xs">{t('ackDepartment')}</span>{' '}
+                <Popover
+                  title={t('legalHelpTitle')}
+                  content={
+                    <div className="max-w-xs text-xs leading-relaxed">{t('legalHelpContent')}</div>
+                  }
+                >
+                  <Typography.Link
+                    className="inline-flex items-center gap-0.5 text-xs"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Info className="inline size-3.5" />
+                    {t('legalHelpLink')}
+                  </Typography.Link>
+                </Popover>
+              </Checkbox>
+            )}
+
+            <Checkbox checked={ackTerms} onChange={(e) => setAckTerms(e.target.checked)}>
+              <span className="text-xs">{t('ackTerms')}</span>
+            </Checkbox>
+          </Flex>
         </Flex>
       )}
     </Modal>

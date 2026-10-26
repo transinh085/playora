@@ -83,4 +83,29 @@ describe('RulesPrizesPanel', () => {
     expect(html).toContain('Fix the problems above');
     expect(html).not.toContain('Prizes given');
   });
+
+  test('renders step 4 with compliance question and generated terms preview (CMP-03, CMP-04)', () => {
+    const html = render(campaign());
+    expect(html).toContain('Thể lệ &amp; pháp lý');
+    expect(html).toContain('Khách có phải mua hàng mới được chơi không?');
+    expect(html).toContain('Có — gắn với mua hàng');
+    expect(html).toContain('Không — chơi tự do');
+    expect(html).toContain('Sở Công Thương');
+    expect(html).toContain('THỂ LỆ CHƯƠNG TRÌNH &quot;TEST&quot;');
+    expect(html).toContain('Sửa thể lệ');
+    expect(html).not.toContain('Dùng lại thể lệ tự sinh');
+  });
+
+  test('renders editable textarea and reset button when custom terms are set', () => {
+    const c = campaign();
+    c.compliance = {
+      promotionType: 'purchase_linked',
+      termsText: 'Điều khoản tuỳ chỉnh riêng của quán.',
+      checklistAcknowledgedAt: null,
+    };
+    const html = render(c);
+    expect(html).toContain('Điều khoản tuỳ chỉnh riêng của quán.');
+    expect(html).toContain('Dùng lại thể lệ tự sinh');
+    expect(html).toContain('Đang dùng thể lệ tuỳ chỉnh');
+  });
 });

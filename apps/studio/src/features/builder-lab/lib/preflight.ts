@@ -30,7 +30,8 @@ export type IssueCode =
   | 'smallButton'
   | 'offCanvas'
   | 'lowContrast'
-  | 'emptyTitle';
+  | 'emptyTitle'
+  | 'unselectedPromotionType';
 
 export interface PreflightIssue {
   /** Stable per problem, e.g. `smallText:cover:el_1`. */
@@ -358,11 +359,25 @@ function elementIssues(c: Campaign, key: ScreenKey): PreflightIssue[] {
   return issues;
 }
 
+function complianceIssues(c: Campaign): PreflightIssue[] {
+  const issues: PreflightIssue[] = [];
+  if (!c.compliance?.promotionType) {
+    issues.push({
+      id: 'compliance:promotionType',
+      level: 'warning',
+      code: 'unselectedPromotionType',
+      where: { area: 'rules' },
+    });
+  }
+  return issues;
+}
+
 /** All pre-flight issues, errors first. `now` is injectable for tests. */
 export function preflight(campaign: Campaign, now = new Date()): PreflightIssue[] {
   const issues = [
     ...prizeIssues(campaign),
     ...scheduleIssues(campaign, now),
+    ...complianceIssues(campaign),
     ...SCREEN_KEYS.flatMap((key) =>
       key === 'form' && !campaign.rules.collectForm ? [] : elementIssues(campaign, key),
     ),
