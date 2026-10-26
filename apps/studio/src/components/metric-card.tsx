@@ -11,6 +11,8 @@ export interface MetricCardItem {
   icon: React.ReactNode;
   tone?: Tone;
   tooltip?: React.ReactNode;
+  highlighted?: boolean;
+  testId?: string;
 }
 
 /** One headline number with its label and a tinted icon tile. After games-vt's MetricCard. */
@@ -21,6 +23,8 @@ export function MetricCard({
   icon,
   tone = 'primary',
   tooltip,
+  highlighted,
+  testId,
   loading,
 }: MetricCardItem & { loading?: boolean }) {
   const { token } = theme.useToken();
@@ -29,7 +33,13 @@ export function MetricCard({
     <Card
       variant="borderless"
       loading={loading}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
+      data-testid={testId}
+      data-highlighted={highlighted ? 'true' : undefined}
+      style={{
+        border: highlighted
+          ? `1.5px solid ${token.colorPrimary}`
+          : `1px solid ${token.colorBorderSecondary}`,
+      }}
       styles={{ body: { padding: '16px 20px' } }}
     >
       <Flex align="center" justify="space-between" gap={8}>

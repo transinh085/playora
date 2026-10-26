@@ -9,6 +9,7 @@ import {
   type CampaignPlayRecord,
   type CampaignPrize,
   type CampaignPrizeMode,
+  type CampaignReport,
   type CampaignRules,
   type CampaignSkinKey,
   type CampaignStats,
@@ -17,6 +18,7 @@ import {
   type CampaignVoucher,
   type Campaign as ContractCampaign,
   campaignsApi,
+  type PlaybookKey,
   type PlayResult,
   type RouteArgs,
   type VoucherLookup,
@@ -50,6 +52,7 @@ export type {
   CampaignPlayRecord,
   CampaignPrize,
   CampaignPrizeMode,
+  CampaignReport,
   CampaignRules,
   CampaignSkinKey,
   CampaignStats,
@@ -59,6 +62,7 @@ export type {
   Industry,
   MechanismKey,
   Occasion,
+  PlaybookKey,
   PlayResult,
   SkinInfo,
   SkinKey,
@@ -116,6 +120,22 @@ export function useCampaignStats(
   );
 }
 
+export function useCampaignReport(
+  orgId: string,
+  campaignId: string,
+  options?: { enabled?: boolean; refetchInterval?: number },
+) {
+  return useRouteQuery(
+    api,
+    campaignsApi.report,
+    { params: { orgId, campaignId } },
+    {
+      enabled: Boolean(orgId && campaignId) && (options?.enabled ?? true),
+      refetchInterval: options?.refetchInterval,
+    },
+  );
+}
+
 /** Stats for a list of campaigns, keyed by campaign id. */
 export function useCampaignsStats(orgId: string, campaignIds: readonly string[]) {
   const results = useQueries({
@@ -133,12 +153,19 @@ export function useCampaignsStats(orgId: string, campaignIds: readonly string[])
   return { data: byId, isPending: results.some((r) => r.isPending) };
 }
 
-export function useCampaignPlays(orgId: string, campaignId: string) {
+export function useCampaignPlays(
+  orgId: string,
+  campaignId: string,
+  options?: { enabled?: boolean; refetchInterval?: number },
+) {
   const query = useRouteQuery(
     api,
     campaignsApi.plays,
     { params: { orgId, campaignId }, query: { limit: 100 } },
-    { enabled: Boolean(orgId && campaignId) },
+    {
+      enabled: Boolean(orgId && campaignId) && (options?.enabled ?? true),
+      refetchInterval: options?.refetchInterval,
+    },
   );
   return { ...query, data: query.data?.items };
 }
@@ -235,6 +262,9 @@ export function useUpdateCampaign(orgId: string, campaignId: string) {
       void qc.invalidateQueries({
         queryKey: routeKey(campaignsApi.stats, { params: { orgId, campaignId } }),
       });
+      void qc.invalidateQueries({
+        queryKey: routeKey(campaignsApi.report, { params: { orgId, campaignId } }),
+      });
     },
   });
 }
@@ -255,6 +285,9 @@ export function usePublishCampaign(orgId: string, campaignId: string) {
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.list) });
       void qc.invalidateQueries({
         queryKey: routeKey(campaignsApi.stats, { params: { orgId, campaignId } }),
+      });
+      void qc.invalidateQueries({
+        queryKey: routeKey(campaignsApi.report, { params: { orgId, campaignId } }),
       });
     },
   });
@@ -364,6 +397,7 @@ export function useRedeemVoucher(orgId: string) {
         updated,
       );
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.stats) });
+      void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.report) });
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.vouchers) });
     },
   });
@@ -378,6 +412,7 @@ export function useReopenVoucher(orgId: string) {
         updated,
       );
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.stats) });
+      void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.report) });
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.vouchers) });
     },
   });

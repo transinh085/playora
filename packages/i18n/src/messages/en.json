@@ -1375,6 +1375,101 @@
       "templates": "Suggested templates",
       "allTemplates": "All templates"
     },
-    "openPlay": "Open player page"
+    "openPlay": "Open player page",
+    "viewReport": "View report",
+    "report": {
+      "title": "Outcome report",
+      "pageTitle": "Report: {name}",
+      "backToCampaign": "Back to campaign",
+      "printPdf": "Print / Save PDF",
+      "autoRefreshHint": "Auto-refreshes every 30s while live",
+      "goalLabel": "Campaign goal",
+      "periodLabel": "Run period",
+      "keyMetricLabel": "Key metric",
+      "playbooks": {
+        "tet_traffic": {
+          "title": "Lunar New Year traffic",
+          "goal": "Bring more customers in over Lunar New Year",
+          "highlight": "{visitsPerDay} visits/day ({visits} visits across {days} days)"
+        },
+        "second_visit": {
+          "title": "Second visit retention",
+          "goal": "Turn first-time guests into repeat customers",
+          "highlight": "{rate}% returning visitors ({returning}/{unique} visitors)"
+        },
+        "slow_days": {
+          "title": "Fill slow weekdays",
+          "goal": "Boost traffic on quieter weekdays",
+          "highlight": "{visits} visits across {days} open weekdays"
+        },
+        "custom": {
+          "title": "Custom campaign",
+          "goal": "Engage customers with a prize minigame redeemed at the counter"
+        }
+      },
+      "metrics": {
+        "visits": "Counter visits",
+        "visitsSub": "{unique} visitors · {rate}% redeemed ({visits}/{issued})",
+        "visitsEmpty": "No counter redemptions yet",
+        "returning": "Returning visitors (%)",
+        "returningSub": "{returning}/{unique} visitors redeemed on 2+ days",
+        "returningEmpty": "No returning visitors yet",
+        "prizeCost": "Prize cost / budget",
+        "prizeCostSub": "Total cost of prizes redeemed at the counter",
+        "prizeCostOutstanding": "Issued, not yet redeemed: {amount}",
+        "costPerVisit": "Cost per counter visit",
+        "costPerVisitSub": "{plays} plays · {players} players",
+        "costPerVisitEmpty": "Calculated after the first redemption"
+      },
+      "daily": {
+        "title": "Daily activity",
+        "ariaLabel": "Daily chart: plays, wins and counter visits",
+        "empty": "No activity yet. Share the link or place the QR code so guests can start playing.",
+        "plays": "Plays",
+        "wins": "Wins",
+        "visits": "Counter visits"
+      },
+      "channels": {
+        "title": "By channel",
+        "empty": "No channel activity yet.",
+        "channel": "Channel",
+        "plays": "Plays",
+        "wins": "Wins",
+        "visits": "Counter visits",
+        "known": {
+          "direct": "Direct",
+          "table-qr": "Table QR",
+          "counter-qr": "Counter QR",
+          "standee": "Standee",
+          "fanpage": "Fanpage",
+          "facebook": "Facebook",
+          "zalo": "Zalo"
+        }
+      },
+      "prizes": {
+        "title": "Prizes by type",
+        "empty": "No prizes configured in this campaign.",
+        "name": "Prize",
+        "unitCost": "Unit cost",
+        "issued": "Issued",
+        "redeemed": "Redeemed",
+        "remaining": "Remaining",
+        "redeemedCost": "Redeemed cost"
+      },
+      "insights": {
+        "title": "Key insights",
+        "busiestDayVisits": "Busiest day: {day} with {visits} counter visits ({plays} plays).",
+        "busiestDayPlays": "Most active day: {day} with {plays} plays ({wins} wins).",
+        "noActivityYet": "No plays or redemptions recorded yet. Place the QR code at your counter or tables so guests can join.",
+        "topChannelVisits": "Top channel driving counter visits: {channel} ({visits} redemptions from {plays} plays).",
+        "topChannelPlays": "Most active channel: {channel} ({plays} plays, {wins} wins).",
+        "unattributedChannel": "{visits} redemptions ({plays} plays) came from the main link; add ?ch= per channel to compare performance.",
+        "noChannelYet": "No channel data yet. Share separate links for Table QR, Fanpage and Zalo to see which brings the most visitors.",
+        "redemptionAndCostWithBudget": "Redemption rate is {rate}% ({visits}/{issued} issued); {costPerVisit} per visit, using {budgetPercent}% of budget ({prizeCost} / {budget}).",
+        "redemptionAndCost": "Redemption rate is {rate}% ({visits}/{issued} issued); total redeemed prize cost is {prizeCost} ({costPerVisit} per visit).",
+        "issuedPendingRedemption": "{issued} prize codes issued (worth {outstandingCost}), waiting for guests to redeem at the counter.",
+        "noPrizesIssuedYet": "No prize codes issued yet. Prize cost is only counted when guests redeem their code at the counter."
+      }
+    }
   }
 }
