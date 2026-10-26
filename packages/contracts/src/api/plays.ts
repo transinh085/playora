@@ -98,6 +98,7 @@ export const playsApi = {
     summary: 'Play one turn: the server checks turns, decides the prize and issues the voucher',
     tags: ['player'],
     auth: 'player',
+    rateLimit: 'campaign',
     params: SlugParams,
     body: StartPlayBody,
     response: PlayResult,
