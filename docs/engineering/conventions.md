@@ -1,6 +1,6 @@
-# 10 — Kiến trúc code, convention và quy trình phát triển
+# Kiến trúc code, convention và quy trình phát triển
 
-Cập nhật: 24/10/2026 (v2.1: bỏ realtime, [ADR-011](./adr/011-remove-live-engine.md)) · Áp dụng cho mọi code trong repo · Quyết định nền tảng: [docs/adr/](./adr/README.md)
+Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Áp dụng cho mọi code trong repo · Liên quan: [architecture.md](./architecture.md), [adr/](../adr/README.md), [AGENTS.md](../../AGENTS.md)
 
 ---
 
@@ -11,7 +11,7 @@ apps/
   api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json, play engine + prize engine
   worker/       NestJS standalone + BullMQ — xử lý job từ @playora/jobs
   studio/       Next.js 16 — builder cho organizer (đăng nhập, org, events…)
-  play/         Next.js 16 — player shell /[slug] (kiosk ?mode=kiosk ở M3), preview /preview
+  play/         Next.js 16 — player shell /[slug] (kiosk ?mode=kiosk là đích), preview /preview
   web/          Next.js 16 — landing
 packages/
   contracts/    zod: route contracts (REST), ErrorCode — NGUỒN CHÂN LÝ
@@ -35,7 +35,7 @@ infra/
   docker/       Dockerfile.nest, Dockerfile.next (turbo prune)
 ```
 
-> **Còn phải gỡ (v2.1):** `apps/realtime`, `packages/realtime-client`, module `live` + `screens` trong `apps/api`, contract `live`/`screens`/`ws.ts`, schema live (`live_rounds`, `round_scores`, `event_screens`), Play `/screen`, Studio `events/[eventId]/screens`, template `tap-race`, `tooling/loadtest/shake-race.ts`, env `REALTIME_*`. Việc này do chore `remove live engine` ([09](./09-roadmap-plan.md) story 1.0) làm; code lưu ở tag `archive/live-engine`. Đừng thêm code mới phụ thuộc vào các phần này.
+> Live engine (realtime, LED, Host/Screen) đã gỡ khỏi `main` và lưu ở tag `archive/live-engine` ([ADR-011](../adr/011-remove-live-engine.md)). Không thêm lại WebSocket hay surface `screen`/`host`.
 
 **Luật phụ thuộc:**
 
@@ -99,7 +99,7 @@ Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng th�
 6. **Studio** — `apps/studio/src/features/games/` + route mỏng ở `apps/studio/src/app/(app)/orgs/[orgId]/events/[eventId]/games/`
    - `features/games/api.ts`: gom hook đọc (`useRouteQuery(api, gamesApi.list, …)`) và ghi (`useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`).
    - `features/games/components/*`: UI của feature; `page.tsx` trong `app/**` chỉ đọc `params`, khai báo `metadata` và render component từ `@/features/*` (≤ 30 dòng).
-   - Form: `useForm({ resolver: zodResolver(CreateGameBody) })` dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`.
+   - Form: antd `Form` + `useZodForm(CreateGameBody)` (`@playora/ui/form`) dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`; toast/confirm qua `App.useApp()`.
    - Text qua `useTranslations`; thêm key vào **cả** `vi.json` và `en.json` (test i18n sẽ bắt thiếu).
 7. **E2E** cho luồng chính — `tooling/e2e/tests/*.spec.ts`.
 
@@ -142,10 +142,10 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 
 ## 5. Play engine và prize engine (trên API)
 
-- Không có dịch vụ realtime (bỏ ở v2.1). Play engine (`instant` + `skill`) và prize engine chạy trong `apps/api`, theo đúng mẫu module như `events` (contract → repository có `organizationId` → service → controller) ([05 §6–7](./05-architecture.md#6-play-engine-trên-appsapi)).
+- Không có dịch vụ realtime. Play engine (`instant` + `skill`) và prize engine chạy trong `apps/api`, theo đúng mẫu module như `events` (contract → repository có `organizationId` → service → controller) ([architecture.md §6–7](./architecture.md#6-play-engine-trên-appsapi)).
 - Logic chọn giải, pacing, giới hạn và provably-fair nằm trong `packages/core` (thuần, không I/O, test unit bắt buộc); module API chỉ lo transaction, khoá tồn kho và ghi `plays`/`awards`.
 - Server module của template lấy từ `@playora/templates/server`: `instant` map kết quả → hiển thị, `skill` validate điểm. Client chỉ animate kết quả server trả về.
-- Bốc thăm cuối chương trình (M2) là REST từ Studio + trang công bố công khai; commit ràng buộc `poolHash` và `spinNo` ([07 §2](./07-api-realtime.md#2-endpoint-chính)).
+- Bốc thăm cuối chương trình (đích) là REST từ Studio + trang công bố công khai; commit ràng buộc `poolHash` và `spinNo` ([api.md §2](./api.md#2-endpoint-chính)).
 
 ---
 
@@ -158,16 +158,16 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 | Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
 | Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
 | Form | antd `Form` + `useZodForm(<schema từ contracts>)` (`@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
-| UI | Dùng component từ `antd`, provider/theme từ `@playora/ui/{providers,theme}`; Tailwind chỉ cho layout/spacing; không hard-code màu. Xem [13-design-system.md](./13-design-system.md) và [ADR-013](./adr/013-antd-ui.md) |
+| UI | Dùng component từ `antd`, provider/theme từ `@playora/ui/{providers,theme}`; Tailwind chỉ cho layout/spacing; không hard-code màu. Xem [design-system.md](./design-system.md) và [ADR-013](../adr/013-antd-ui.md) |
 | i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
 | Thông báo | `const { message, notification, modal } = App.useApp()` từ `antd` (không dùng static `message.*`) |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
 
 ### 6.2 Play (Player / Kiosk)
 
-- Ưu tiên nhẹ: shell người chơi chưa dùng TanStack Query hay next-intl cho tới M1, để giữ bundle nhỏ.
-- Game surface được lazy-load theo template (M1).
-- Bề mặt người chơi (và kiosk ở M3) bọc trong `GameRoot` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([13-design-system.md](./13-design-system.md)).
+- Ưu tiên nhẹ: shell người chơi giữ First Load JS trong ngân sách ở [ADR-013](../adr/013-antd-ui.md) (mục tiêu ≤ 260 KB gzip cho `/[slug]`); text qua next-intl.
+- Game surface được lazy-load theo template (`React.lazy` + `Suspense`).
+- Bề mặt người chơi (và kiosk về sau) bọc trong `GameRoot` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([design-system.md](./design-system.md)).
 
 ### 6.3 Thêm component antd
 
@@ -179,14 +179,15 @@ import { applyApiError, useZodForm } from '@playora/ui/form';
 ```
 
 - Không tự bọc lại `ConfigProvider` ở từng màn hình; dùng `StudioProvider` (Studio) hoặc `PlayProvider` / `GameRoot` (Play) kết hợp `AntdRegistry` ở root `layout.tsx`.
-- Ở `apps/play`, chỉ dùng các component nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Radio`, `Select`, `Result`, `Modal`, `Skeleton`, `Alert`, `Tag`, `Empty`); **không** import `DatePicker`, `Table`, `ColorPicker`, `Upload` để giữ ngân sách First Load JS ([ADR-013](./adr/013-antd-ui.md)).
+- Ở `apps/play`, chỉ dùng các component nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Radio`, `Select`, `Result`, `Modal`, `Skeleton`, `Alert`, `Tag`, `Empty`); **không** import `DatePicker`, `Table`, `ColorPicker`, `Upload` để giữ ngân sách First Load JS ([ADR-013](../adr/013-antd-ui.md)).
 
 ### 6.4 Cấu trúc thư mục frontend
 
 ```
 apps/studio/src/
   app/                       # CHỈ routing: page/layout mỏng (≤ 30 dòng), metadata, đọc params
-  features/<feature>/        # events, guests, games, brand-kits, assets, members, auth
+  features/<feature>/        # builder-lab (luồng Campaign chính, backend giả ở mock/), canvas-editor,
+                             # events, guests, games, brand-kits, assets, members, auth
     api.ts                   # hook dữ liệu: useEvent(), useUpdateEvent()… (useRouteQuery/useRouteMutation + invalidateQueries)
     components/              # UI của feature
     lib/                     # helper thuần + *.test.ts (nếu có)
@@ -208,7 +209,7 @@ apps/studio/src/
 | Integration API | `bun test` + `createTestApp()` + DB `playora_test` | `apps/api/test/*.e2e.test.ts` | Mọi module API: happy path, validate 400, 401, **cross-tenant 403/404**, conflict |
 | Contract | `ResponseContractInterceptor` (tự bật trong test) | — | Luôn bật ngoài production |
 | E2E | Playwright (desktop + Pixel 7) | `tooling/e2e/tests` | Luồng chính của người dùng; fixture fail khi trình duyệt có lỗi console |
-| Tải | k6 Play API (`tooling/loadtest`; script `loadtest:shake` cũ sẽ gỡ cùng live engine) | `tooling/loadtest` | Trước mỗi pilot lớn; Gate G1a |
+| Tải | k6 Play API (chưa viết; `tooling/loadtest` mới có README) | `tooling/loadtest` | Trước khi chạy chương trình thật đầu tiên và trước mỗi mùa cao điểm |
 
 DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ liệu test dùng email và slug ngẫu nhiên, nên chạy lại không cần dọn.
 
@@ -216,14 +217,10 @@ DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ li
 
 ## 8. Git, review, CI/CD
 
-- **Nhánh:** `feat/…`, `fix/…`, `chore/…` tách từ `main`; squash merge.
+- **Nhánh:** `feat/…`, `fix/…`, `chore/…`, `docs/…` tách từ `main`; squash merge.
 - **Commit message:** theo Conventional Commits, lefthook kiểm tra tự động. Ví dụ: `feat(api): add games module`.
-- **pre-commit:** Biome tự format các file đã stage.
-- **CI** (`.github/workflows/ci.yml`):
-  1. `check`: lint, migrate, typecheck, test, build.
-  2. `e2e`: Playwright trên stack thật.
-  3. `docker`: build image cả 5 app (api, worker, studio, play, web).
-- **Docker:** `turbo prune` → cài deps → build → runtime. Service NestJS chạy `bun dist/main.js`; app Next.js chạy standalone trên Node 24. Biến `NEXT_PUBLIC_*` truyền vào bằng build-arg.
+- **pre-commit:** Biome tự format các file đã stage. Không bỏ qua hook bằng `--no-verify`.
+- **CI** (`.github/workflows/ci.yml`): `check` (lint, migrate, typecheck, test, build) → `e2e` (Playwright) và `docker` (build image 5 app) song song. Chi tiết pipeline, image Docker và triển khai ở [operations/environments-deploy.md](../operations/environments-deploy.md).
 
 ---
 

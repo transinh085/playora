@@ -1,16 +1,15 @@
-# 13 — Design system
+# Design system
 
-> **v2.1:** không còn surface Screen/LED ([ADR-011](./adr/011-remove-live-engine.md)). Các mục `Stage`, `text-stage-*`, token `--stage-*` và skin `classic` (sân khấu) chỉ còn giá trị tham khảo; chore gỡ live sẽ dọn component không còn dùng. Surface chính là **Player** trên điện thoại (và Kiosk ở M3).
+Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Trạng thái: v1.3 (Studio theo admin games-vt, brand teal) · Code: `packages/ui` · Trang sống: `apps/web` → `/design-system` (noindex) · Liên quan: [ADR-013](../adr/013-antd-ui.md), [product/specs/studio-ux.md](../product/specs/studio-ux.md), [product/specs/builder.md](../product/specs/builder.md)
 
-**Trạng thái:** v1.2 · 25/10/2026 (Studio theo admin games-vt, brand teal) · Code: `packages/ui` · Trang sống: `apps/web` → `/design-system` (noindex)
+> **Di sản sân khấu:** surface Screen/LED đã gỡ ([ADR-011](../adr/011-remove-live-engine.md)). Token `violet`, `spotlight`, `stage`, `team`, `medal`, skin `classic`/`yep` và component `TeamBar`, `Leaderboard`, `JoinPanel` vẫn còn trong `packages/ui` nhưng chỉ là di sản; không dùng cho tính năng mới, sẽ dọn khi có skin thay thế. Surface chính là **Player** trên điện thoại (Kiosk về sau).
 
-Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design system không phải một "theme" mà là **một bộ token chung và hai họ component**:
+Playora có hai bề mặt với nhu cầu khác hẳn nhau, nên design system không phải một "theme" mà là **một bộ token chung và hai họ component**:
 
 | Bề mặt | Người dùng | Nhu cầu | Họ component |
 |---|---|---|---|
 | **Studio** (`apps/studio`) | Chủ SME, nhân viên quầy (Đổi quà) | Desktop-first: dựng nhanh, ít lỗi, đọc trạng thái trong một cái liếc. Riêng màn Đổi quà phải dùng tốt trên điện thoại | `antd` trong `StudioProvider` (`@playora/ui/providers`) |
-| **Player / Host / Kiosk** (`apps/play`) | Khách mời cầm điện thoại, MC | Bấm được bằng một ngón khi đang đứng, không cần đọc hướng dẫn | `@playora/ui/game/*` (dựng trên `antd` + `PlayProvider`) |
-| **Screen** (LED, máy chiếu) | Cả hội trường, xem từ 25–30 m | Chữ to, tương phản cao, trình diễn | *(Đã gỡ ở v2.1 — ADR-011)* |
+| **Player / Kiosk** (`apps/play`; Play giả lập trong Studio Builder Lab) | Khách của quán cầm điện thoại | Bấm được bằng một ngón khi đang đứng, không cần đọc hướng dẫn | `@playora/ui/game/*` (dựng trên `antd` + `PlayProvider`) |
 
 ## 1. Tham chiếu và bài học
 
@@ -27,9 +26,9 @@ Playora có ba bề mặt với ba nhu cầu khác hẳn nhau, nên design syste
 
 ## 2. Nguyên tắc
 
-1. **Studio yên tĩnh, sân khấu rực rỡ.** Studio nền trung tính; teal cho hành động chính, các tone nhạt chỉ trong ô icon và tag trạng thái. Sự rực rỡ dành cho bề mặt người chơi thấy.
-2. **Đọc được từ cuối hội trường.** Trên Screen, chữ nội dung ≥ `text-stage-sm` (~32 px ở 1080p); điểm và đồng hồ dùng font display, `tabular-nums`.
-3. **Màu không bao giờ là tín hiệu duy nhất.** Đội và đáp án luôn có hình hoặc nhãn kèm theo; trạng thái "live" có chấm nhấp nháy và chữ.
+1. **Studio yên tĩnh, game rực rỡ.** Studio nền trung tính; teal cho hành động chính, các tone nhạt chỉ trong ô icon và tag trạng thái. Sự rực rỡ dành cho bề mặt người chơi thấy.
+2. **Đọc được trên điện thoại khi đang đứng.** Điểm và đồng hồ dùng font display, `tabular-nums`; chữ trên canvas ≥ 12 px (pre-flight cảnh báo).
+3. **Màu không bao giờ là tín hiệu duy nhất.** Trạng thái luôn có icon hoặc nhãn kèm theo; "Đang chạy" có chấm và chữ.
 4. **Khách hàng đổi màu được, nhưng không phá được khả năng đọc.** Brand kit đi qua `brandKitVars()`, chữ tự chọn sáng/tối theo tương phản WCAG.
 5. **Một khoảnh khắc chuyển động.** Chuyển động dành cho thay đổi có ý nghĩa: điểm nảy, 5 giây cuối, bảng xếp hạng hiện ra. Tôn trọng `prefers-reduced-motion`.
 
@@ -57,8 +56,8 @@ Primitive  tokens.ts (teal, violet, ink, spotlight, stage, team, medal) + styles
 | `ink` | Neutral xám lạnh (hue 255, chroma ≤ 0.017), gánh gần hết giao diện Studio |
 | `violet` (hue 293) | Legacy, chỉ còn cho skin `classic`. Không dùng ở Studio |
 | `spotlight` (vàng ánh đèn) | Màu "ồn" duy nhất: nút chơi, điểm, top 1, mã tham gia |
-| `stage` | Nền hội trường tối phía sau LED |
-| `team-1…8` | Màu đội/đáp án, cách đều nhau trên vòng màu; chữ trên ô luôn là ink đậm |
+| `stage` | (di sản) nền sân khấu tối |
+| `team-1…8` | (di sản) màu đội; có thể dùng làm màu ô vòng quay mặc định |
 | `success / warning / info / live / destructive` | Ngữ nghĩa ở Studio. `live` = "on air", chỉ dùng cho thứ đang diễn ra thật |
 
 Tailwind: `bg-primary`, `text-muted-foreground`, `bg-success/12`, `bg-game-primary`, `text-game-muted`, `bg-team-3`, `bg-medal-gold`…
@@ -68,12 +67,11 @@ Tailwind: `bg-primary`, `text-muted-foreground`, `bg-success/12`, `bg-game-prima
 | Vai trò | Font | Dùng cho |
 |---|---|---|
 | Display | **Unbounded** (`font-display`, `font-game`) | Wordmark, tên game, điểm, đồng hồ, nút game, tiêu đề lớn trên web |
-| Text | **Be Vietnam Pro** (`font-sans`) | Mọi nội dung và UI. Do người Việt thiết kế, dấu chuẩn |
+| Text | **Be Vietnam Pro** (`font-sans`) ở Play và Web; **Google Sans** ở Studio | Mọi nội dung và UI; cả hai có dấu tiếng Việt chuẩn |
 
 Cả hai nạp bằng `next/font/google` với subset `vietnamese` trong `layout.tsx` của mỗi app (biến `--font-sans`, `--font-display`).
 
-- **Studio:** chỉ dùng Be Vietnam Pro, thang chữ mặc định của antd (14/22). Tiêu đề trang: `PageHeader` (`Title level={4}`, weight 700) + mô tả 13px; số liệu 26/700 trong `MetricCard`; tiêu đề khối `Title level={5}` hoặc `Card title`.
-- **Screen:** thang `text-stage-sm | base | lg | xl | 2xl | hero` tính bằng `cqh` của `<Stage>`, nên tự co giãn theo màn LED bất kỳ.
+- **Studio:** dùng Google Sans (`next/font/google`, từ 25/10/2026) cho UI, thang chữ mặc định của antd (14/22). Tiêu đề trang: `PageHeader` (`Title level={4}`, weight 700) + mô tả 13px; số liệu 26/700 trong `MetricCard`; tiêu đề khối `Title level={5}` hoặc `Card title`.
 - **Player:** `text-lg` trở lên cho mọi thứ người chơi cần bấm.
 
 Không dùng chữ in hoa toàn bộ cho nhãn; không thêm "eyebrow" trên tiêu đề.
@@ -103,7 +101,7 @@ Cấu hình ở `packages/ui/src/theme/studio-theme.ts` + `StudioProvider` (`var
 
 ## 4. Skin và brand kit
 
-Thứ tự áp dụng (khớp [12-builder-spec §5](./12-builder-spec.md#5-skin-theme-và-brand-kit)):
+Thứ tự áp dụng (khớp [product/specs/builder.md](../product/specs/builder.md)):
 
 ```
 template default → skin ([data-skin]) → brand kit (brandKitVars) → override từng asset slot
@@ -111,12 +109,12 @@ template default → skin ([data-skin]) → brand kit (brandKitVars) → overrid
 
 | Skin | Không khí | Nền | Primary |
 |---|---|---|---|
-| `classic` | Sân khấu Playora | stage tím đêm, đèn spotlight từ trên | vàng spotlight |
-| `yep` | Gala cuối năm | navy nửa đêm | champagne |
+| `classic` | (di sản) Sân khấu Playora | stage tím đêm | vàng spotlight |
+| `yep` | (di sản) Gala cuối năm | navy nửa đêm | champagne |
 | `tet` | Tết | đỏ lì xì | vàng lá vàng, phụ hồng hoa đào |
 | `day` | Booth, kiosk, H5 ngoài trời | sáng | teal |
 
-Thêm skin mới: thêm một khối `[data-skin="…"]` định nghĩa **đủ** các `--game-*`, thêm key vào `skins` trong `lib/game-theme.ts`, kiểm tra trên `/design-system` (cả màn LED và điện thoại).
+Thêm skin mới: thêm một khối `[data-skin="…"]` định nghĩa **đủ** các `--game-*`, thêm key vào `skins` trong `lib/game-theme.ts`, kiểm tra trên `/design-system` ở khung điện thoại.
 
 Brand kit:
 
@@ -130,7 +128,7 @@ Brand kit:
 
 ### Studio (`antd` + `@playora/ui/{providers,form,theme}`)
 
-Sử dụng trực tiếp component từ `antd` (`Button`, `Table`, `Form`, `Input`, `Select`, `Modal`, `Tabs`, `Collapse`, `Tag`, `Alert`, `Upload`, `ColorPicker`, `Popconfirm`…) bên trong `AntdRegistry` + `StudioProvider` ([ADR-013](./adr/013-antd-ui.md)):
+Sử dụng trực tiếp component từ `antd` (`Button`, `Table`, `Form`, `Input`, `Select`, `Modal`, `Tabs`, `Collapse`, `Tag`, `Alert`, `Upload`, `ColorPicker`, `Popconfirm`…) bên trong `AntdRegistry` + `StudioProvider` ([ADR-013](../adr/013-antd-ui.md)):
 
 | Thành phần | Quy ước |
 |---|---|
@@ -157,8 +155,9 @@ Sử dụng trực tiếp component từ `antd` (`Button`, `Table`, `Form`, `Inp
 |---|---|---|
 | `GameRoot` | Player, Kiosk | Bọc `PlayProvider` + gắn skin & brand kit (`resolveGameTheme`), nền `game-backdrop` |
 | `GameButton` | Player | `primary \| accent \| surface`; `md \| lg \| tap` (cảm giác nút 3D qua token/styles, không hard-code màu) |
-| `TeamBar` | Player | Thanh tiến độ đội, đội dẫn đầu phát sáng |
-| `Leaderboard` | Kết quả trên Player | Top 3 huy chương; `highlightId` cho dòng của chính người chơi |
+| `GameResult` | Player | Màn kết quả chuẩn (thắng / không trúng / hết quà) |
+| `TeamBar` | (di sản) | Thanh tiến độ đội |
+| `Leaderboard` | Kết quả game skill (đích) | Top 3 huy chương; `highlightId` cho dòng của chính người chơi |
 | `Countdown` | Player | Đổi sang `--game-urgent` và nảy mỗi giây ở 5 giây cuối |
 | `JoinPanel` | Player / Kiosk lobby | QR (truyền vào), URL ngắn, mã tham gia |
 
@@ -171,4 +170,4 @@ Kích thước component game theo `font-size` của cha (đơn vị `em`). Trê
 - Thêm class theme mới (cỡ chữ, radius, font) thì khai báo luôn trong `extendTailwindMerge` ở `lib/utils.ts`, nếu không `cn()` sẽ âm thầm xoá class.
 - Nút cho người chơi cao ≥ 56 px (`GameButton md` / `controlHeightLG: 56`); vùng chạm chính đặt ở nửa dưới màn hình.
 - Copy: động từ rõ ("Tham gia", "Chơi thử", "Publish" → toast "Đã publish"); lỗi nói rõ chuyện gì xảy ra và cách sửa.
-- Kiểm tra mọi thay đổi token ở `/design-system` với cả 4 skin và bật brand kit mẫu.
+- Kiểm tra mọi thay đổi token ở `/design-system` với các skin đang dùng (`tet`, `day`) và bật brand kit mẫu.

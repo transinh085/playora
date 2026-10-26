@@ -1,10 +1,15 @@
-# ADR-012: Kiến trúc v2 — nền tảng minigame campaign
+# ADR-012: Kiến trúc v2: nền tảng minigame campaign
 
-**Trạng thái:** Accepted · 24/10/2026 · Nối tiếp [011](./011-remove-live-engine.md) · Theo [00 v2.1](../00-product-strategy.md)
+| | |
+|---|---|
+| **Trạng thái** | Accepted · đang thực hiện |
+| **Ngày** | 24/10/2026 |
+| **Người quyết định** | Founder (Tech Lead) |
+| **Thay thế / Liên quan** | Nối tiếp [ADR-011](./011-remove-live-engine.md) · câu hỏi lưu trữ Campaign: [ADR-015](./015-campaign-persistence.md) · [../engineering/architecture.md](../engineering/architecture.md), [../product/specs/prizes-redemption.md](../product/specs/prizes-redemption.md) |
 
 ## Bối cảnh
 
-Sản phẩm chỉ còn minigame có thưởng (`instant`, `skill`) chạy trên điện thoại, sau này trên kiosk. Không còn sân khấu, realtime hay màn hình lớn. Đường nóng mới là **một lượt chơi**: kiểm tra điều kiện, quyết định kết quả và giải, trừ kho, rồi trả về cho client animate. Đường này phải đúng tuyệt đối (0 vượt kho, ngân sách hoặc giới hạn) và chịu được đỉnh ≥ 500 lượt/giây mỗi campaign.
+Sản phẩm chỉ còn minigame có thưởng (`instant`, `skill`) chạy trên điện thoại, sau này trên kiosk. Không còn sân khấu, realtime hay màn hình lớn. Đường nóng mới là **một lượt chơi**: kiểm tra điều kiện, quyết định kết quả và giải, trừ kho, rồi trả về cho client animate. Đường này phải đúng tuyệt đối (0 vượt kho, ngân sách hoặc giới hạn) và chịu được đỉnh ≥ 500 lượt/giây mỗi chương trình.
 
 ## Quyết định
 
@@ -18,19 +23,18 @@ apps/web    (Next, landing) │      │                 └── (M2) thông b
                             │      └── Valkey    (rate limit, cache config đã publish, BullMQ)
 ```
 
-- **Bỏ:** `apps/realtime`, `packages/realtime-client`, `contracts/ws.ts`, `contracts/api/live.ts`, `contracts/api/screens.ts`, module API `live`/`screens`, Play `/screen`, Studio "Màn hình".
-- Không có service mới. Play engine và prize engine chạy **trong `apps/api`**, logic thuần nằm ở `packages/core`. Đây là monolith có module, scale ngang bằng cách nhân bản API (stateless).
+Không có service mới. Play engine và prize engine chạy **trong `apps/api`**, logic thuần nằm ở `packages/core`. Đây là monolith có module, scale ngang bằng cách nhân bản API (stateless).
 
 ### 2. Package
 
-| Package | Vai trò sau v2 |
+| Package | Vai trò |
 |---|---|
-| `contracts` | REST contracts. Thêm `prizes`, `vouchers`, `plays`, `participation`; (M1 muộn) `channels`, `analytics`; (M2) `draws`. Bỏ `ws`, `live`, `screens` |
-| `core` | Logic thuần, không I/O: `prize/` (quyết định kết quả, pacing, giới hạn, ngân sách), `participation/` (`isOpen(schedule, now, tz)`, quota), `session/` (token phiên người chơi, có `ver` để thu hồi; thay `live/token`), `draw/` (sửa commit ràng buộc `poolHash` + `spinNo`), `fraud/` (heuristic gắn cờ) |
+| `contracts` | REST contracts. Thêm `prizes`, `vouchers`, `plays`, `participation`; sau đó `channels`, `analytics`; (M2) `draws`. Đã bỏ `ws`, `live`, `screens` |
+| `core` | Logic thuần, không I/O: `prize/` (quyết định kết quả, pacing, giới hạn, ngân sách), `participation/` (`isOpen(schedule, now, tz)`, quota), `session/` (token phiên người chơi có `ver` để thu hồi), `draw/` (commit ràng buộc `poolHash` + `spinNo`), `fraud/` (heuristic gắn cờ) |
 | `game-sdk` v2 | Chỉ kind `instant` và `skill` (§3). Bỏ `LiveServerModule`, `RoomContext`, `createTestRoom`, `transitionRound`, `Screen`/`HostPanel`, `clock` sync |
 | `templates` | Mỗi template một thư mục `src/<id>/` gồm `definition.ts` (server-safe: schema, slots, skins, server module) và `player.tsx` (client). `registry.ts` (server-safe) và `surfaces.ts` (client) |
 | `db` | Bỏ `event_screens`, `live_rounds`, `round_scores`. Thêm `voucher_codes`, `plays`, `play_counters`, `prize_counters`; mở rộng `prizes`, `awards`, `events`, `players`, `guest_list_entries` (§5) |
-| `ui`, `api-client`, `i18n`, `auth`, `env`, `jobs` | Giữ. `env` bỏ `REALTIME_*`; `LIVE_TOKEN_SECRET` đổi tên thành `PLAYER_SESSION_SECRET` |
+| `ui`, `api-client`, `i18n`, `auth`, `env`, `jobs` | Giữ. `env` bỏ `REALTIME_*`; `LIVE_TOKEN_SECRET` đổi thành `PLAYER_SESSION_SECRET` |
 
 ### 3. Game SDK v2
 
@@ -77,9 +81,9 @@ interface PlayerProps<C, D, Sub = never> {
 }
 ```
 
-- `defineTemplate` là discriminated union theo `kind`: `instant` bắt buộc `server: InstantServerModule`, còn `skill` bắt buộc `server: SkillServerModule`. Giữ `configSchema` + `field.*` + auto-form + skins + `hotEditable` như hiện tại.
-- **Preview harness:** `createPreviewSession({ template, config, outcome })` chạy `present` tại chỗ với outcome giả lập (organizer chọn "trúng giải X / không trúng / hết quà" trong builder). Không gọi prize engine.
-- Màn **Cover / Form / Kết quả / Quà của tôi** thuộc **shell của Play** (flow chuẩn BLD-07), không thuộc template. Template chỉ vẽ phần chơi.
+- `defineTemplate` là discriminated union theo `kind`: `instant` bắt buộc `server: InstantServerModule`, `skill` bắt buộc `server: SkillServerModule`. Giữ `configSchema` + `field.*` + auto-form + skins + `hotEditable`.
+- **Preview harness:** `createPreviewSession({ template, config, outcome })` chạy `present` tại chỗ với outcome giả lập (organizer chọn "trúng giải X / không trúng / hết quà"). Không gọi prize engine.
+- Màn **Cover / Form / Kết quả / Quà của tôi** thuộc **shell của Play** (flow chuẩn BLD-07), không thuộc template. Template chỉ vẽ phần chơi. Bố cục các màn này do canvas soạn ([ADR-014](./014-free-canvas-screen-editor.md)).
 
 ### 4. Đường nóng một lượt chơi
 
@@ -88,7 +92,7 @@ interface PlayerProps<C, D, Sub = never> {
 
 Trình tự trong API (module `plays`):
 
-1. **Guard ngoài transaction:** session token hợp lệ (`ver` khớp), campaign mở (`core/participation.isOpen`), game đã publish, rate bucket Valkey (IP, device, player, campaign) theo preset chống gian lận, Turnstile (preset Chuẩn+), blacklist.
+1. **Guard ngoài transaction:** session token hợp lệ (`ver` khớp), chương trình mở (`core/participation.isOpen`), game đã publish, rate bucket Valkey (IP, device, player, campaign) theo preset chống gian lận, Turnstile (preset Chuẩn trở lên), blacklist.
 2. **Một transaction, không khoá dòng event:**
    1. Giành lượt: `INSERT INTO play_counters (player_id, game_id, day, n) … ON CONFLICT DO UPDATE SET n = n + 1 WHERE play_counters.n < $limit RETURNING n`. Không trả dòng nào nghĩa là hết lượt.
    2. Đọc snapshot giải của game: tồn kho, đã phát hôm nay/khung giờ (`prize_counters`), ngân sách, số giải người này đã nhận.
@@ -98,64 +102,50 @@ Trình tự trong API (module `plays`):
    6. Ghi `plays` (kèm `rng_proof`, `channel_key`, `client_request_id` unique để idempotent) và `awards`.
 3. `present()` của template tạo `display`, trả về client.
 
-Ghi chú:
-- Tranh chấp chỉ nằm trên dòng `prizes` khi có người trúng (tỷ lệ trúng ~20% ở 500 lượt/s thì khoảng 100 update/s/campaign). Nếu G1a cho thấy nghẽn, chia kho thành N bucket.
-- RNG dùng `crypto.randomInt` trên server; mọi kết quả có log.
+Tranh chấp chỉ nằm trên dòng `prizes` khi có người trúng (tỷ lệ trúng ~20% ở 500 lượt/s thì khoảng 100 update/s/chương trình). Nếu Gate G1a cho thấy nghẽn, chia kho thành N bucket. RNG dùng `crypto.randomInt` trên server; mọi kết quả có log.
 
-### 5. Dữ liệu (thay đổi chính)
+### 5. Dữ liệu
 
-- `events`:
-  - Giữ tên `events` trong DB, API path và code. UI gọi là **"Chiến dịch"**: PRD coi Event và Campaign là một khái niệm; đổi tên toàn bộ tốn công mà không có giá trị.
-  - Bỏ `mode` (chỉ còn campaign). Thêm `schedule` jsonb (khung giờ theo thứ, ngày nghỉ), `participation` jsonb (lượt/ngày, tổng, theo game), `antiFraud` jsonb (preset + tuỳ chỉnh).
-  - `playerLimit` lấy từ gói của org (server clamp), không nhận từ client.
-- `players`:
-  - Unique partial `(event_id, device_id)` cho danh tính ẩn danh, và `(event_id, phone_hash)` khi form có SĐT. Bỏ kiểu khoá `FOR UPDATE` dòng event khi join.
-  - Thêm `session_ver` để thu hồi token.
+- `events`: giữ tên `events` trong DB, API path và code (UI gọi là **"Chương trình"**). Bỏ `mode`. Thêm `schedule` jsonb (khung giờ theo thứ, ngày nghỉ), `participation` jsonb (lượt/ngày, tổng, theo game), `antiFraud` jsonb (preset + tuỳ chỉnh). `playerLimit` lấy từ gói của org (server clamp), không nhận từ client.
+- `players`: unique partial `(event_id, device_id)` cho danh tính ẩn danh, và `(event_id, phone_hash)` khi form có SĐT. Bỏ khoá `FOR UPDATE` dòng event khi join. Thêm `session_ver` để thu hồi token.
 - `guest_list_entries`: thêm `code_norm` (`lower(btrim)`) và unique `(event_id, code_norm)`.
 - `prizes`: thêm `rules` jsonb (chế độ, trọng số/xác suất, giới hạn/người/ngày, pacing) và `weight`. `game_id` bắt buộc cho giải của minigame.
-- Bảng mới:
-  - `voucher_codes(prize_id, code, award_id)`
-  - `plays(event_id, game_id, game_version_id, player_id, channel_key, status, score, outcome, rng_proof, client_request_id, started_at, ended_at)`
-  - `play_counters(player_id, game_id, day, n)`
-  - `prize_counters(prize_id, bucket_start, issued)`
+- Bảng mới: `voucher_codes(prize_id, code, award_id)` · `plays(event_id, game_id, game_version_id, player_id, channel_key, status, score, outcome, rng_proof, client_request_id, started_at, ended_at)` · `play_counters(player_id, game_id, day, n)` · `prize_counters(prize_id, bucket_start, issued)`.
 - `awards`: thêm `play_id`, `voucher_code_id`. `draw_spin_id` giữ cho bốc thăm cuối chương trình (M2).
 
 ### 6. Bề mặt
 
-- **Play:**
-  - `/[slug]`: Cover + thể lệ → Form/consent → danh sách game.
-  - `/[slug]/g/[gameId]`: chơi → màn kết quả chuẩn.
-  - `/[slug]/prizes`: Quà của tôi.
-  - `/preview`: builder.
-  - (M3) `?mode=kiosk`.
-  - next-intl cho Play.
-- **Studio**, theo campaign:
-  - **Tổng quan** (dashboard)
-  - **Trò chơi** (builder)
-  - **Giải thưởng** (giải, voucher, quy tắc)
-  - **Người chơi** (guest list, form, export)
-  - **Kênh** (M1 muộn)
-  - **Cài đặt** (danh tính, lịch, lượt chơi, chống gian lận, brand kit)
-  - Bỏ "Màn hình".
+- **Play:** `/[slug]` Cover + thể lệ → Form/consent → game; `/[slug]/g/[gameId]` chơi → kết quả chuẩn; `/[slug]/prizes` Quà của tôi; `/preview` cho builder; (M3) `?mode=kiosk`. next-intl cho Play.
+- **Studio:** theo chương trình (chi tiết UX ở [../product/specs/studio-ux.md](../product/specs/studio-ux.md)): Tổng quan · Builder · Giải & đổi quà · Người chơi · Chia sẻ & QR · Cài đặt. Bỏ "Màn hình".
 
 ### 7. Thứ tự thực hiện
 
-1. **Chore gỡ live + SDK v2** (một nhánh, không chạy song song với story khác đụng cùng file):
-   - Gắn tag `archive/live-engine`.
-   - Xoá thành phần live (§1).
-   - Migration bỏ 3 bảng live.
-   - SDK v2.
-   - Thay `tap-race` bằng `spin-wheel` v0 để builder, preview và E2E vẫn chạy.
-2. **Đợt 3 song song:**
-   - Prize engine core (`core/prize`, thuần, có thể chạy song song ngay với bước 1).
-   - Nền dữ liệu campaign: story **duy nhất** thêm migration (§5).
-   - `scratch-card` + skin Tết cho `spin-wheel`.
-   - Gia cố API.
-3. **Đợt 4:** API lượt chơi (§4), UI giải + voucher, flow Play (§6), `gift-box` + `catch-items`.
+1. **Chore gỡ live + SDK v2** (một nhánh): tag `archive/live-engine`, xoá thành phần live, migration bỏ 3 bảng live, SDK v2, thay `tap-race` bằng `spin-wheel` v0 để builder, preview và E2E vẫn chạy.
+2. **Song song:** prize engine core (`core/prize`, thuần); nền dữ liệu campaign (story **duy nhất** thêm migration §5); `scratch-card` + skin Tết cho `spin-wheel`; gia cố API.
+3. **Sau đó:** API lượt chơi (§4), UI giải + voucher, flow Play (§6), `gift-box` + `catch-items`.
+
+## Phương án đã cân nhắc
+
+| Phương án | Vì sao không chọn |
+|---|---|
+| Service play engine riêng | Thêm deploy và vận hành cho một người; API stateless scale ngang là đủ ở 500 lượt/s |
+| Trừ kho bằng Valkey (DECR + outbox) | Nhanh hơn nhưng Postgres không còn là nguồn chân lý duy nhất; để dành cho tối ưu M4 |
+| Đổi tên `events` → `campaigns` trong DB/API | Tốn công, không có giá trị; UI tự gọi là "Chương trình" |
 
 ## Hệ quả
 
-- Ít service hơn (bỏ realtime): deploy và vận hành đơn giản; không còn rủi ro split brain hay reconnect.
-- Load test M1 chuyển sang play API (k6, đỉnh 500 lượt/s). Gate G1a đo tính đúng của kho dưới tải.
-- Tính đúng dựa vào Postgres (update có điều kiện + unique), không dựa vào khoá phân tán. Valkey chỉ dùng cho rate limit/cache: mất Valkey thì giảm khả năng chống gian lận, nhưng không phát sai giải.
-- Template viết đơn giản hơn: không có state machine hay tick; logic giải nằm ở nền tảng, không nằm trong template.
+- **Tốt:** ít service hơn; không còn rủi ro split brain hay reconnect. Template viết đơn giản hơn: không state machine hay tick; logic giải nằm ở nền tảng.
+- **Chi phí:** tính đúng dựa vào Postgres (update có điều kiện + unique), cần test tải.
+- **Rủi ro:** mất Valkey thì giảm khả năng chống gian lận, nhưng không phát sai giải.
+
+## Kiểm chứng
+
+- Mô phỏng 1 triệu lượt trên `core/prize`: 0 vượt kho/ngân sách/giới hạn ([ADR-010](./010-testing-strategy.md)).
+- Load test k6 Play API đỉnh 500 lượt/giây, p95 < 200 ms (Gate G1a).
+- Trạng thái code 26/10/2026: bước 1 **xong** (live đã gỡ, `PLAYER_SESSION_SECRET`); `packages/core/src/prize` có `decide`, `simulate`, `schedule` và test nhưng **chưa có app nào gọi qua API**; §5 **chưa làm** (chưa có `plays`, `play_counters`, `voucher_codes`, `prize_counters`, `prizes.rules`, `events.schedule/participation/antiFraud`); §4 chưa có endpoint.
+
+## Lịch sử
+
+- 24/10/2026: Accepted.
+- 25/10/2026: Builder Lab (`apps/studio/src/features/builder-lab`, backend giả trong `mock/`) dựng toàn bộ luồng Campaign (mẫu, skin, màu, màn canvas, giải, luật, lịch, chơi, đổi quà) và gọi thật `decide()`/`simulate()` của `@playora/core/prize`. Đây là prototype hiện hành của mô hình Campaign; UI gọi đối tượng là **"Chương trình"** (en: *Campaign*). Cách lưu Campaign thật trên `events` + `games` + `game_versions` hay bảng mới được tách sang [ADR-015](./015-campaign-persistence.md).
+- 26/10/2026: chuẩn hoá theo [mẫu ADR](./000-template.md); ghi trạng thái thực hiện.
