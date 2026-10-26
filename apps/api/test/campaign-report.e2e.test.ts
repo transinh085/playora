@@ -5,7 +5,7 @@ import { localDayKey } from '@playora/core/prize';
 import { type Database, schema } from '@playora/db';
 import { eq } from 'drizzle-orm';
 import { DB } from '../src/infra/tokens';
-import { campaignBody, P1, P2, randomCode } from './campaign-fixtures';
+import { campaignBody, P1, P2, randomCode, setPlan } from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
 let t: TestApp;
@@ -21,7 +21,9 @@ beforeAll(async () => {
   alice = await signUp(t.baseUrl, 'Alice');
   bob = await signUp(t.baseUrl, 'Bob');
   aliceOrg = await createOrg(t.baseUrl, alice);
+  await setPlan(db, aliceOrg, 'chain');
   bobOrg = await createOrg(t.baseUrl, bob);
+  await setPlan(db, bobOrg, 'chain');
 });
 
 afterAll(() => t?.close());

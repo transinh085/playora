@@ -231,6 +231,8 @@
     "VOUCHER_ALREADY_REDEEMED": "This code has already been redeemed",
     "VOUCHER_EXPIRED": "This code has expired",
     "VOUCHER_VOID": "This code has been voided",
+    "PLAN_CAMPAIGN_LIMIT": "Your plan has reached its number of running campaigns. End one or upgrade your plan",
+    "PLAN_REDEMPTION_LIMIT": "Your plan has reached its prize redemptions for this month. Upgrade your plan to keep redeeming",
     "INTERNAL": "Something went wrong on our side, please retry",
     "PAYLOAD_TOO_LARGE": "The uploaded file or request is too large"
   },
@@ -383,6 +385,7 @@
     "scanQrHint": "Scan the QR code at the store to join.",
     "networkError": "Could not connect to the server. Please check your connection and try again.",
     "myPrizes": "My prizes",
+    "watermark": "Made with Playora",
     "turnsLeft": "{count} plays left",
     "backToGame": "Back to the game",
     "playNow": "Play now",

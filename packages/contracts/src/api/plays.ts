@@ -41,6 +41,8 @@ export const PublicCampaign = z.object({
   /** Cloudflare Turnstile site key when the anti-fraud level asks for a challenge. */
   captchaSiteKey: z.string().nullable(),
   registrationForm: PublicRegistrationForm,
+  /** Free plan: the shell shows a small "Tạo bằng Playora" badge (BIL-02). */
+  watermark: z.boolean(),
 });
 export type PublicCampaign = z.infer<typeof PublicCampaign>;
 

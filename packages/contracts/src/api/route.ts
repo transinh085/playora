@@ -28,6 +28,11 @@ export interface RouteDef {
   auth: RouteAuth;
   /** Required org permission; implies `:orgId` in the path. */
   permission?: RoutePermission;
+  /**
+   * Platform back-office route (internal staff listed in `PLATFORM_ADMIN_EMAILS`); needs
+   * `auth: 'session'` and is enforced by the API guard pipeline, never in controllers.
+   */
+  platformAdmin?: boolean;
   params?: z.ZodType;
   query?: z.ZodType;
   body?: z.ZodType;

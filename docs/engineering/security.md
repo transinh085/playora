@@ -60,6 +60,7 @@ Mức chống gian lận nằm trong luật chương trình (`rules.antiFraud`, 
 |---|---|
 | Xác thực | Better Auth; mật khẩu băm (scrypt/argon2); magic link hết hạn 15 phút; 2FA (TOTP) cho owner/admin (đích) |
 | Phân quyền | RBAC theo org; mọi repository bắt buộc nhận `orgId`; test tự động "cross-tenant access" cho từng endpoint |
+| Back-office nội bộ | Route `platformAdmin: true` (`/admin/*`, BIL-01): email phiên phải nằm trong env `PLATFORM_ADMIN_EMAILS` **và** đã xác minh (`PlatformAdminGuard`), mọi thay đổi ghi audit `actorType: 'admin'` |
 | Session | Cookie `HttpOnly`, `Secure`, `SameSite=Lax`; CSRF token cho mutation (Better Auth hỗ trợ) |
 | Input | zod validate mọi input (REST, config) qua contract; giới hạn kích thước payload REST 1 MB `[GĐ]` |
 | Upload | Presigned URL với giới hạn content-type và size; xử lý ảnh trong worker (sharp, strip EXIF); không phục vụ SVG do người dùng upload (XSS) |

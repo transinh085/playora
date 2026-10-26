@@ -8,9 +8,11 @@ import {
   playsApi,
   publicApi,
 } from '@playora/contracts';
+import { type Database } from '@playora/db';
 import { ANTI_FRAUD_LIMITS } from '../src/common/anti-fraud/anti-fraud.service';
 import { TURNSTILE_VERIFIER, type TurnstileVerifier } from '../src/common/anti-fraud/turnstile';
-import { campaignBody } from './campaign-fixtures';
+import { DB } from '../src/infra/tokens';
+import { campaignBody, setPlan } from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
 let t: TestApp;
@@ -28,6 +30,7 @@ beforeAll(async () => {
   verify = spyOn(verifier, 'verify').mockImplementation(async (token) => token === 'pass');
   alice = await signUp(t.baseUrl, 'Alice');
   aliceOrg = await createOrg(t.baseUrl, alice);
+  await setPlan(t.app.get<Database>(DB), aliceOrg, 'chain');
 });
 
 afterAll(() => t?.close());

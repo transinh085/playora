@@ -22,6 +22,7 @@ import { getOrCreateDeviceId, type PlayerSession, usePlayerSession } from './ses
 import { useCampaignPlayerLabels } from './use-labels';
 import { usePlayerState, usePolling } from './use-player-state';
 import { toPlayerVouchers, VOUCHER_POLL_MS } from './vouchers';
+import { PlayoraWatermark } from './watermark';
 
 /** The token expired and the campaign needs the form again (the form values are not stored). */
 class SessionExpiredError extends Error {}
@@ -194,6 +195,11 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
           </Button>
         </Badge>
       </Flex>
+      {campaign.watermark && (
+        <div className="absolute top-3 left-3 z-10">
+          <PlayoraWatermark />
+        </div>
+      )}
     </>
   );
 }

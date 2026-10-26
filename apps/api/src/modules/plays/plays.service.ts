@@ -33,6 +33,7 @@ import type { PlayerSessionClaims } from '@playora/core/session';
 import type { Tx } from '@playora/db';
 import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
+import { BillingService } from '../billing/billing.service';
 import { type CampaignDocument, readCampaignDocument } from '../campaigns/campaign-defaults';
 import { voucherStatus } from '../vouchers/vouchers.service';
 import { type PlayEnv, PlaysRepository, type PublishedCampaign } from './plays.repository';
@@ -128,6 +129,7 @@ export class PlaysService {
   constructor(
     private readonly repo: PlaysRepository,
     private readonly antiFraud: AntiFraudService,
+    private readonly billing: BillingService,
   ) {}
 
   // ── Player side ──────────────────────────────────────────────────────────────
@@ -230,6 +232,7 @@ export class PlaysService {
       collectForm: doc.rules.collectForm,
       captchaSiteKey: this.antiFraud.captchaSiteKey(doc.rules.antiFraud),
       registrationForm: parseRegistrationForm(event.registrationForm),
+      watermark: await this.billing.watermark(event.organizationId),
     };
   }
 

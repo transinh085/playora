@@ -12,6 +12,7 @@ import { toJoinBody } from './join-body';
 import { PlayRequester } from './play-request';
 import { useCampaignPlayerLabels } from './use-labels';
 import { toPlayerVouchers } from './vouchers';
+import { PlayoraWatermark, WATERMARK_HREF } from './watermark';
 
 const networkError = () => new TypeError('Failed to fetch');
 const noWait = () => Promise.resolve();
@@ -253,5 +254,27 @@ describe('voucher status display', () => {
     expect(voucherStatusOf({ redeemedAt: '2026-10-26T04:00:00.000Z' })).toBe('redeemed');
     expect(voucherStatusOf({ redeemedAt: null })).toBe('issued');
     expect(voucherStatusOf({ status: 'expired', redeemedAt: null })).toBe('expired');
+  });
+});
+
+describe('PlayoraWatermark', () => {
+  test('links to playora.vn with the watermark ref, in the player locale', () => {
+    for (const [locale, text] of [
+      ['vi', 'Tạo bằng Playora'],
+      ['en', 'Made with Playora'],
+    ] as const) {
+      const html = renderToStaticMarkup(
+        <NextIntlClientProvider
+          locale={locale}
+          messages={getMessages(locale)}
+          timeZone="Asia/Ho_Chi_Minh"
+        >
+          <PlayoraWatermark />
+        </NextIntlClientProvider>,
+      );
+      expect(html).toContain(text);
+      expect(html).toContain(`href="${WATERMARK_HREF}"`);
+    }
+    expect(WATERMARK_HREF).toBe('https://playora.vn/?ref=watermark');
   });
 });

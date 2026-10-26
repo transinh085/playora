@@ -1,6 +1,6 @@
 # API
 
-Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [conventions.md §3–4](./conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games), [ADR-008](../adr/008-contract-first-api.md), [ADR-012](../adr/012-campaign-architecture.md)
+Cập nhật: 27/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [conventions.md §3–4](./conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games), [ADR-008](../adr/008-contract-first-api.md), [ADR-012](../adr/012-campaign-architecture.md)
 
 Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sinh lúc chạy tại `/v1/openapi.json`). Tài liệu này mô tả quy ước và **API đích**; route chưa có trong code được đánh dấu "(đích)". Không còn WebSocket/realtime ([ADR-011](../adr/011-remove-live-engine.md)).
 
@@ -64,6 +64,19 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 |---|---|---|---|
 | GET | `/orgs/{orgId}/campaigns/{campaignId}/report` | Báo cáo kết quả (PLB-03, [playbooks §3.2](../product/specs/playbooks.md#32-định-nghĩa-chỉ-số)), chỉ dữ liệu live: `visits` (award đã đổi, không void), `uniqueVisitors`, `returningVisitors` (đổi quà ở ≥ 2 ngày địa phương khác nhau), `prizeCostVnd` (Σ giá vốn đã đổi), `outstandingCostVnd` (đã phát, chưa đổi, chưa hết hạn, không void), `costPerVisitVnd`, `redemptionRate` (đã đổi / đã phát không void); `byDay` (mọi ngày từ ngày bắt đầu tới min(hôm nay, ngày kết thúc), ngày trống = 0, tối đa 120 ngày gần nhất; plays/wins theo ngày chơi, visits theo ngày đổi), `byChannel` (`plays.channel_key`; wins/visits qua `awards.play_id`), `byPrize` | `campaign:read` |
 
+**Gói và quota (BIL-01/02, `billingApi` + `adminApi` trong `packages/contracts/src/api/billing.ts`):** hạn mức nằm trong code (`@playora/core/billing`: Free 1 chương trình chạy / 100 lượt đổi quà mỗi tháng / watermark; Quán 3 / 2.000; Chuỗi không giới hạn / 10.000). Tháng = tháng dương lịch theo `Asia/Ho_Chi_Minh`. Không có `org_subscriptions`, `status = expired` hoặc đã qua `currentPeriodEnd` → Free.
+
+| Method | Path | Mô tả | Quyền |
+|---|---|---|---|
+| GET | `/orgs/{orgId}/billing` | `{ plan, subscription, limits: { maxRunningCampaigns, redemptionsPerMonth, redemptionsHardLimit, watermark }, usage: { runningCampaigns, redemptionsThisMonth, monthStart }, invoices }`; Studio cảnh báo ở 80% và 100% `redemptionsPerMonth` | `billing:read` (mọi vai trò trừ `redeemer`) |
+| GET | `/admin/orgs?query=&limit=` | Back-office: tìm tổ chức theo tên, slug, email owner; kèm gói và usage | nhân viên Playora |
+| PUT | `/admin/orgs/{orgId}/subscription` | Kích hoạt / đổi gói thủ công `{ plan, status, currentPeriodEnd, note }`; audit `billing.subscription.set` | nhân viên Playora |
+| POST | `/admin/orgs/{orgId}/invoices` | Ghi nhận thanh toán thủ công `{ plan, amountVnd, periodStart, periodEnd, paidAt, reference }` → 201; kích hoạt gói tới `periodEnd` (không rút ngắn kỳ dài hơn của cùng gói); audit `billing.invoice.record` | nhân viên Playora |
+
+- **Nhân viên Playora:** route có cờ `platformAdmin: true` trong contract; `PlatformAdminGuard` (sau `SessionGuard`) cho qua khi email của phiên nằm trong env `PLATFORM_ADMIN_EMAILS` (danh sách phân tách bằng dấu phẩy, không phân biệt hoa thường) **và** đã xác minh (`emailVerified`; đăng nhập một lần bằng magic link hoặc Google là xác minh), để không ai đăng ký trước email nhân viên mà hưởng quyền. Khác → 403 `FORBIDDEN`. Audit ghi `actorType: 'admin'`.
+- **Chặn số chương trình chạy:** `publish` (khi chương trình sẽ live/scheduled: chưa tạm dừng, `endsAt` trong tương lai) và `resume` → 409 `PLAN_CAMPAIGN_LIMIT` nếu tổ chức đã có đủ `maxRunningCampaigns` chương trình đã phát hành, không tạm dừng, chưa kết thúc (không tính chính nó). Kiểm tra trong transaction phát hành, có advisory lock theo tổ chức.
+- **Chặn lượt đổi quà:** `POST …/vouchers/{code}/redeem` cho mã live đang `issued` → 409 `PLAN_REDEMPTION_LIMIT` khi số lượt đổi live trong tháng ≥ `redemptionsHardLimit` = hạn mức + 10% ân hạn ([D-21](../product/decisions.md), chờ founder duyệt). Mã bị chặn giữ nguyên, đổi được ngay khi nâng gói hoặc sang tháng; mã đã đổi / void / hết hạn vẫn trả lỗi của chính nó. Không khoá: hai quầy bấm cùng lúc có thể vượt 1–2 lượt, ân hạn đã bao. Lượt chơi và rehearsal không bao giờ bị giới hạn.
+
 ### 2.2 Player (public)
 
 | Method | Path | Mô tả |
@@ -80,6 +93,8 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 | POST | `/p/{slug}/privacy/requests` | Yêu cầu xoá hoặc xuất dữ liệu (PDPL) |
 
 **Đã có (M1, campaign, `playsApi` trong `packages/contracts/src/api/plays.ts`):** `GET /p/{slug}/campaign` trả bản đã phát hành (không lộ xác suất, tồn kho, giá trị; `phase` tính từ `events.startsAt/endsAt/paused`), `POST /p/{slug}/plays` (body `{ requestId, channel?, captchaToken? }`; `requestId` là khoá idempotent theo người chơi thay cho header `Idempotency-Key`, chưa có `gameId` trong path vì M1 một game/chương trình) trả `PlayResult` `{ playId, outcome: win|lose|no_turns|closed, reason, prize, voucher, turnsLeftToday }`, và `GET /p/{slug}/me` (lượt còn lại hôm nay, `nextTurnAt`, voucher của người chơi) thay cho `/me` + `/prizes` ở bảng trên. Cả ba cần token phiên từ `join` (`Authorization: Bearer`); token của chương trình khác → 403. Join từ chối chương trình đã qua `endsAt` (`EVENT_NOT_LIVE`).
+
+BIL-02: `PublicCampaign.watermark` (true ở gói Free) → Play hiện badge "Tạo bằng Playora" dẫn tới `https://playora.vn/?ref=watermark`.
 
 P1: `PublicCampaign` có thêm `openDays`, `requireRedeemBeforeReplay` và `captchaSiteKey` (khác null khi mức `standard` và API cấu hình Turnstile). Ngày không mở → `closed`, không trừ lượt. Luật "đổi quà trước khi chơi tiếp": người chơi còn voucher chưa đổi (không void, chưa hết hạn) → `no_turns` + `reason: 'redeem_first'`, không trừ lượt; `GET /me` trả `blockedReason: 'redeem_first'`. Mức `standard` cần `captchaToken` (Turnstile) ở lượt chơi đầu của phiên: thiếu/sai → 403 `CAPTCHA_REQUIRED`; giải xong được nhớ 12 giờ theo người chơi. Token phiên ký `ver = players.session_ver`; tăng `session_ver` thu hồi mọi token cũ (401).
 

@@ -1,4 +1,5 @@
 import { assetsApi } from './assets';
+import { adminApi, billingApi } from './billing';
 import { brandKitsApi } from './brand-kits';
 import { campaignsApi } from './campaigns';
 import { eventsApi } from './events';
@@ -12,6 +13,7 @@ import { templatesApi } from './templates';
 import { vouchersApi } from './vouchers';
 
 export * from './assets';
+export * from './billing';
 export * from './brand-kits';
 export * from './campaigns';
 export * from './common';
@@ -39,4 +41,6 @@ export const allRoutes: RouteDef[] = [
   ...Object.values(campaignsApi),
   ...Object.values(playsApi),
   ...Object.values(vouchersApi),
+  ...Object.values(billingApi),
+  ...Object.values(adminApi),
 ];

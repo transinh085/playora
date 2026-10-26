@@ -4,7 +4,7 @@ import { campaignsApi, ErrorCode, vouchersApi } from '@playora/contracts';
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
 import { DB } from '../src/infra/tokens';
-import { addMember, campaignBody, issueVoucher, sessionUserId } from './campaign-fixtures';
+import { addMember, campaignBody, issueVoucher, sessionUserId, setPlan } from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
 let t: TestApp;
@@ -23,7 +23,9 @@ beforeAll(async () => {
   staff = await signUp(t.baseUrl, 'Thu ngân');
   stranger = await signUp(t.baseUrl, 'Stranger');
   orgId = await createOrg(t.baseUrl, owner);
+  await setPlan(db, orgId, 'chain');
   otherOrg = await createOrg(t.baseUrl, stranger);
+  await setPlan(db, otherOrg, 'chain');
   await addMember(db, orgId, await sessionUserId(t.baseUrl, staff), 'redeemer');
 
   const api = t.client(owner);

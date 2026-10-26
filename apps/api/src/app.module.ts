@@ -6,6 +6,7 @@ import type { Redis } from 'ioredis';
 import { LoggerModule } from 'nestjs-pino';
 import { uuidv7 } from 'uuidv7';
 import { OrgAccessGuard } from './common/auth/org-access.guard';
+import { PlatformAdminGuard } from './common/auth/platform-admin.guard';
 import { SessionGuard } from './common/auth/session.guard';
 import { CommonModule } from './common/common.module';
 import { ResponseContractInterceptor } from './common/contract/response-contract.interceptor';
@@ -14,6 +15,7 @@ import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage
 import { InfraModule } from './infra/infra.module';
 import { REDIS } from './infra/tokens';
 import { AssetsModule } from './modules/assets/assets.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { BrandKitsModule } from './modules/brand-kits/brand-kits.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { EventsModule } from './modules/events/events.module';
@@ -105,12 +107,14 @@ export class AppModule {
         CampaignsModule,
         VouchersModule,
         PlaysModule,
+        BillingModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [
-        // Order matters: rate limit → session → org permission.
+        // Order matters: rate limit → session → platform admin → org permission.
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: SessionGuard },
+        { provide: APP_GUARD, useClass: PlatformAdminGuard },
         { provide: APP_GUARD, useClass: OrgAccessGuard },
         ...(env.NODE_ENV === 'production'
           ? []
