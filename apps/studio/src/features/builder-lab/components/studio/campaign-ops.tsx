@@ -33,23 +33,22 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
-import { campaignPhase, isRunning } from '../../lib/phase';
-import { preflight } from '../../lib/preflight';
-import { campaignRoutes } from '../../lib/routes';
-import { isoToLocalInput, localInputToIso } from '../../lib/rules-format';
 import {
+  type Campaign,
   useCampaign,
   useCampaignPlays,
   useCampaignStats,
   useCampaignVouchers,
   useDeleteCampaign,
   useEndCampaign,
-  useLabSync,
   usePauseCampaign,
   useResumeCampaign,
   useUpdateCampaign,
-} from '../../mock/hooks';
-import type { Campaign } from '../../mock/types';
+} from '../../api';
+import { campaignPhase, isRunning } from '../../lib/phase';
+import { preflight } from '../../lib/preflight';
+import { campaignRoutes } from '../../lib/routes';
+import { isoToLocalInput, localInputToIso } from '../../lib/rules-format';
 import { CampaignMetrics, ShareLinks } from '../editor/publish-dialog';
 import { campaignPeriod } from './campaign-period';
 import { PhaseTag } from './phase-tag';
@@ -69,12 +68,11 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  useLabSync();
-  const query = useCampaign(campaignId);
+  const query = useCampaign(orgId, campaignId);
   const routes = campaignRoutes(orgId);
 
   if (query.isPending) return <Skeleton active paragraph={{ rows: 8 }} />;
-  if (query.isError) {
+  if (query.isError || !query.data) {
     return (
       <Result
         status="404"
@@ -113,7 +111,7 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
       {tab === 'overview' && <OverviewTab orgId={orgId} campaign={campaign} />}
       {tab === 'share' && <ShareTab orgId={orgId} campaign={campaign} />}
       {tab === 'prizes' && <PrizesTab orgId={orgId} campaign={campaign} />}
-      {tab === 'players' && <PlayersTab campaign={campaign} />}
+      {tab === 'players' && <PlayersTab orgId={orgId} campaign={campaign} />}
       {tab === 'settings' && <SettingsTab orgId={orgId} campaign={campaign} />}
     </Flex>
   );
@@ -123,7 +121,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
   const t = useTranslations('campaigns');
   const phase = campaignPhase(campaign);
   const routes = campaignRoutes(orgId);
-  const resume = useResumeCampaign();
+  const resume = useResumeCampaign(orgId);
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
@@ -167,10 +165,10 @@ function OverviewTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   if (campaign.status === 'draft') return <DraftChecklist orgId={orgId} campaign={campaign} />;
   return (
     <Flex vertical gap={20}>
-      <CampaignMetrics campaignId={campaign.id} />
+      <CampaignMetrics orgId={orgId} campaignId={campaign.id} />
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <PrizeStock orgId={orgId} campaign={campaign} />
-        <RecentPlays campaign={campaign} />
+        <RecentPlays orgId={orgId} campaign={campaign} />
       </div>
     </Flex>
   );
@@ -226,8 +224,8 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
 function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const { token } = theme.useToken();
-  const stats = useCampaignStats(campaign.id);
-  const vouchers = useCampaignVouchers(campaign.id).data ?? [];
+  const stats = useCampaignStats(orgId, campaign.id);
+  const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
 
   return (
     <Card
@@ -270,10 +268,10 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   );
 }
 
-function RecentPlays({ campaign }: { campaign: Campaign }) {
+function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const { token } = theme.useToken();
-  const plays = useCampaignPlays(campaign.id);
+  const plays = useCampaignPlays(orgId, campaign.id);
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (
@@ -380,7 +378,7 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const format = useFormatter();
   const { token } = theme.useToken();
-  const vouchers = useCampaignVouchers(campaign.id);
+  const vouchers = useCampaignVouchers(orgId, campaign.id);
   const prizeName = (id: string) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
 
   return (
@@ -435,10 +433,10 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   );
 }
 
-function PlayersTab({ campaign }: { campaign: Campaign }) {
+function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const { token } = theme.useToken();
-  const plays = useCampaignPlays(campaign.id);
+  const plays = useCampaignPlays(orgId, campaign.id);
   return (
     <Card
       variant="borderless"
@@ -467,11 +465,11 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const { message } = App.useApp();
   const router = useRouter();
   const phase = campaignPhase(campaign);
-  const update = useUpdateCampaign(campaign.id);
-  const pause = usePauseCampaign();
-  const resume = useResumeCampaign();
-  const end = useEndCampaign();
-  const remove = useDeleteCampaign();
+  const update = useUpdateCampaign(orgId, campaign.id);
+  const pause = usePauseCampaign(orgId);
+  const resume = useResumeCampaign(orgId);
+  const end = useEndCampaign(orgId);
+  const remove = useDeleteCampaign(orgId);
   const border = { border: `1px solid ${token.colorBorderSecondary}` };
 
   const extend = (value: string) => {

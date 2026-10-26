@@ -4,14 +4,16 @@ import { getMessages } from '@playora/i18n';
 import { App } from 'antd';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
-import { buildScreens, defaultPrizes, defaultRules, getSkin } from '../../mock/templates';
-import type { Campaign, LabRules } from '../../mock/types';
+import type { Campaign, CampaignRules } from '../../api';
+import { buildScreens, defaultPrizes, defaultRules, getSkin } from '../../lib/starter';
 import { RulesPrizesPanel } from '../rules-prizes-panel';
 
-function campaign(rules: Partial<LabRules> = {}): Campaign {
+function campaign(rules: Partial<CampaignRules> = {}): Campaign {
   const now = '2027-01-20T00:00:00.000Z';
   return {
     id: 'c1',
+    organizationId: 'org1',
+    slug: 'test',
     name: 'Test',
     templateKey: 'spin-wheel',
     skinKey: 'tet',
@@ -20,8 +22,11 @@ function campaign(rules: Partial<LabRules> = {}): Campaign {
     prizes: defaultPrizes(),
     rules: { ...defaultRules(new Date(now)), ...rules },
     status: 'draft',
+    phase: 'draft',
+    paused: false,
     version: 0,
     publishedAt: null,
+    hasUnpublishedChanges: false,
     updatedAt: now,
     createdAt: now,
   };

@@ -2,6 +2,7 @@
 
 import {
   Alert,
+  App,
   Button,
   ColorPicker,
   Divider,
@@ -15,6 +16,7 @@ import {
   Tooltip,
   Typography,
   theme,
+  Upload,
 } from 'antd';
 import {
   AlignCenter,
@@ -25,11 +27,12 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   Copy,
+  ImageUp,
   Maximize2,
   Trash2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type Dispatch, memo, type ReactNode, useRef } from 'react';
+import { type Dispatch, memo, type ReactNode, useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
 import {
   currentScreen,
@@ -165,12 +168,17 @@ function PropertiesPanelView({
   state,
   dispatch,
   brand,
+  onUploadImage,
 }: {
   state: EditorState;
   dispatch: Dispatch<EditorAction>;
   brand: BrandPalette;
+  onUploadImage?: (file: File) => Promise<string>;
 }) {
   const t = useTranslations('canvasLab');
+  const tQuickEdit = useTranslations('builderLab.quickEdit');
+  const { message } = App.useApp();
+  const [uploadingImage, setUploadingImage] = useState(false);
   const coalescer = useCoalescer();
   const element = selectedElement(state);
   const screen = currentScreen(state);
@@ -515,11 +523,40 @@ function PropertiesPanelView({
 
       {element.type === 'image' && (
         <Section title={t('props.image')}>
+          {onUploadImage && (
+            <Upload
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+              showUploadList={false}
+              beforeUpload={async (file) => {
+                if (file.size > 5 * 1024 * 1024) {
+                  message.error(tQuickEdit('tooLarge'));
+                  return Upload.LIST_IGNORE;
+                }
+                setUploadingImage(true);
+                try {
+                  const url = await onUploadImage(file);
+                  update({ src: url }, 'src');
+                } catch {
+                  message.error(tQuickEdit('uploadFailed'));
+                } finally {
+                  setUploadingImage(false);
+                }
+                return Upload.LIST_IGNORE;
+              }}
+            >
+              <Button block loading={uploadingImage} icon={<ImageUp className="size-4" />}>
+                {tQuickEdit('upload')}
+              </Button>
+            </Upload>
+          )}
           <Field bind label={t('props.imageUrl')}>
             <Input
               placeholder={t('props.imageUrlPlaceholder')}
               value={element.src.startsWith('data:') ? '' : element.src}
-              onChange={(e) => update({ src: e.target.value }, 'src')}
+              onChange={(e) => {
+                const next = e.target.value;
+                if (!next.startsWith('data:')) update({ src: next }, 'src');
+              }}
             />
           </Field>
           <Caption className="text-xs font-semibold mt-1">Stickers / Presets</Caption>

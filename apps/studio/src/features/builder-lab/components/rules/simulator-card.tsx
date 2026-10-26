@@ -6,10 +6,14 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
+import type { Campaign, CampaignRules } from '../../api';
 import { campaignDays, formatVnd } from '../../lib/rules-format';
-import { type SimSummary, type SimWarning, summarizeSimulation } from '../../lib/rules-sim';
-import { simulateCampaign } from '../../mock/api';
-import type { Campaign, LabRules } from '../../mock/types';
+import {
+  type SimSummary,
+  type SimWarning,
+  simulateCampaign,
+  summarizeSimulation,
+} from '../../lib/rules-sim';
 
 const MAX_PLAYERS_PER_DAY = 5_000;
 const DEBOUNCE_MS = 300;
@@ -32,7 +36,7 @@ export function SimulatorCard({
   campaign: Campaign;
   /** Rules have blocking errors: the engine would reject them, so don't run. */
   blocked: boolean;
-  onRulesChange: (patch: Partial<LabRules>) => void;
+  onRulesChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const [playersPerDay, setPlayersPerDay] = useState(200);
@@ -108,8 +112,8 @@ function SimResult({
   onRulesChange,
 }: {
   summary: SimSummary;
-  rules: LabRules;
-  onRulesChange: (patch: Partial<LabRules>) => void;
+  rules: CampaignRules;
+  onRulesChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const format = useFormatter();
@@ -206,8 +210,8 @@ function WarningAlert({
   onRulesChange,
 }: {
   warning: SimWarning;
-  rules: LabRules;
-  onRulesChange: (patch: Partial<LabRules>) => void;
+  rules: CampaignRules;
+  onRulesChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const canPace = warning.suggestions.includes('turnOnPacing') && !rules.pacing;

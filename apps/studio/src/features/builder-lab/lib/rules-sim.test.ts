@@ -1,11 +1,11 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
+import type { CampaignPrize, CampaignRules } from '@playora/contracts';
 import type { SimulationResult } from '@playora/core/prize';
 import { simulate } from '@playora/core/prize';
-import type { LabPrize, LabRules } from '../mock/types';
 import { issuedByDay, stockOutAt, summarizeSimulation } from './rules-sim';
 
-const rules: LabRules = {
+const rules: CampaignRules = {
   mode: 'overall_win_rate',
   overallWinRate: 0.35,
   playsPerDay: 1,
@@ -17,7 +17,7 @@ const rules: LabRules = {
   budgetVnd: null,
   collectForm: true,
 };
-const prizes: LabPrize[] = [
+const prizes: CampaignPrize[] = [
   { id: 'a', name: 'A', quantity: 30, valueVnd: 10_000 },
   { id: 'b', name: 'B', quantity: 10, valueVnd: 50_000 },
 ];

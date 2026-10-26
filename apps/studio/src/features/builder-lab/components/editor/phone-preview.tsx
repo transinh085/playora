@@ -5,8 +5,8 @@ import { Flex, Segmented, theme } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { SCREEN_KEYS, type ScreenKey } from '@/features/canvas-editor/lib/model';
-import { getTemplate } from '../../mock/templates';
-import type { Campaign } from '../../mock/types';
+import type { Campaign } from '../../api';
+import { getTemplate } from '../../lib/starter';
 import { FitScreen } from './fit-screen';
 
 /** The idle mechanism for a campaign, drawn inside its game stage. */

@@ -11,8 +11,8 @@ import {
   type ScreenKey,
   type SlotKey,
 } from '@/features/canvas-editor/lib/model';
-import { buildScreens, getTemplate } from '../../mock/templates';
-import type { Campaign, SkinKey } from '../../mock/types';
+import type { Campaign, SkinKey } from '../../api';
+import { buildScreens, getTemplate } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 import type { DraftPatch } from '../editor/use-campaign-draft';
 import { SlotCard } from './slot-card';
@@ -43,6 +43,7 @@ export function QuickEditPanel({
   const renderSlot = (slot: SlotKey) => (
     <SlotCard
       key={slot}
+      orgId={campaign.organizationId}
       slot={slot}
       value={readSlot(campaign.screens, slot) ?? ''}
       usage={slotUsage(campaign.screens, slot)}

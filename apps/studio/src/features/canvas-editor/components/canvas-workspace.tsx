@@ -95,6 +95,7 @@ export function CanvasWorkspace({
   brand,
   renderStage,
   prizes,
+  onUploadImage,
   toolbarStart,
   toolbarEnd,
   toolbarHeight = 56,
@@ -106,6 +107,7 @@ export function CanvasWorkspace({
   renderStage?: (element: GameStageElement) => ReactNode;
   /** Real prizes for prize-list elements. */
   prizes?: CanvasPrize[];
+  onUploadImage?: (file: File) => Promise<string>;
   /** Rendered before undo/redo (e.g. back link and title). */
   toolbarStart?: ReactNode;
   /** Rendered before the edit/preview switch (e.g. page-specific actions). */
@@ -752,7 +754,12 @@ export function CanvasWorkspace({
         </div>
 
         <aside className="min-h-0 overflow-y-auto p-4" style={{ ...panel, borderLeft: border }}>
-          <PropertiesPanel state={state} dispatch={dispatch} brand={brand} />
+          <PropertiesPanel
+            state={state}
+            dispatch={dispatch}
+            brand={brand}
+            onUploadImage={onUploadImage}
+          />
         </aside>
       </div>
 

@@ -6,8 +6,8 @@ import { Gift, ListOrdered, Percent } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { IconTile, type Tone } from '@/components/icon-tile';
+import type { CampaignRules } from '../../api';
 import { fromPercent, toPercent } from '../../lib/rules-format';
-import type { LabRules } from '../../mock/types';
 
 const MODES: {
   key: PrizeMode;
@@ -36,10 +36,10 @@ export function ModeStep({
   probabilityPercent,
   onChange,
 }: {
-  rules: LabRules;
+  rules: CampaignRules;
   /** Running total of per-prize probabilities, in percent. */
   probabilityPercent: number;
-  onChange: (patch: Partial<LabRules>) => void;
+  onChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.mode');
   const { token } = theme.useToken();

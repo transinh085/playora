@@ -37,10 +37,10 @@ import { Caption } from '@/components/caption';
 import { EmptyState } from '@/components/empty-state';
 import { QueryError } from '@/components/query-error';
 import { TableCard } from '@/components/table-card';
+import { type CampaignListItem, useCampaignStats, useCampaigns } from '../../api';
 import { type CampaignPhase, campaignPhase } from '../../lib/phase';
 import { campaignRoutes } from '../../lib/routes';
-import { useCampaignStats, useCampaigns, useLabSync } from '../../mock/hooks';
-import type { Campaign } from '../../mock/types';
+import { buildScreens } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 import { campaignPeriod } from './campaign-period';
 import { PhaseTag } from './phase-tag';
@@ -59,7 +59,6 @@ export function CampaignList({ orgId }: { orgId: string }) {
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
   const { message } = App.useApp();
-  useLabSync();
   const query = useCampaigns(orgId);
   const routes = campaignRoutes(orgId);
   const [phase, setPhase] = useState<CampaignPhase | 'all'>('all');
@@ -69,7 +68,10 @@ export function CampaignList({ orgId }: { orgId: string }) {
   if (query.isPending) return <Skeleton active paragraph={{ rows: 5 }} />;
   if (query.isError) return <QueryError onRetry={() => query.refetch()} />;
 
-  const rows = query.data.map((campaign) => ({ campaign, phase: campaignPhase(campaign, now) }));
+  const rows = (query.data ?? []).map((campaign) => ({
+    campaign,
+    phase: campaignPhase(campaign, now),
+  }));
   const count = (value: CampaignPhase) => rows.filter((row) => row.phase === value).length;
   const needle = search.trim().toLowerCase();
   const visible = rows.filter(
@@ -100,7 +102,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
             aria-hidden
           >
             <FitScreen
-              screen={campaign.screens.cover}
+              screen={buildScreens(campaign.templateKey, campaign.skinKey).cover}
               brand={campaign.brand}
               prizes={toCanvasPrizes(campaign)}
             />
@@ -291,7 +293,7 @@ function CampaignGridCard({
   format,
   onCopyLink,
 }: {
-  campaign: Campaign;
+  campaign: CampaignListItem;
   phase: CampaignPhase;
   routes: ReturnType<typeof campaignRoutes>;
   format: ReturnType<typeof useFormatter>;
@@ -300,7 +302,9 @@ function CampaignGridCard({
   const t = useTranslations('campaigns');
   const tl = useTranslations('builderLab.home');
   const { token } = theme.useToken();
-  const stats = useCampaignStats(campaign.id);
+  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
+    enabled: phase !== 'draft',
+  });
   const total = campaign.prizes.reduce((sum, prize) => sum + prize.quantity, 0);
   const left = Object.values(stats.data?.remainingByPrize ?? {}).reduce((a, b) => a + b, 0);
   const percent = total ? Math.round((left / total) * 100) : 0;
@@ -317,7 +321,7 @@ function CampaignGridCard({
       cover={
         <div className="relative overflow-hidden" style={{ height: 180 }}>
           <FitScreen
-            screen={campaign.screens.cover}
+            screen={buildScreens(campaign.templateKey, campaign.skinKey).cover}
             brand={campaign.brand}
             prizes={toCanvasPrizes(campaign)}
           />
@@ -390,15 +394,19 @@ function CampaignGridCard({
   );
 }
 
-function PlaysCell({ campaign, phase }: { campaign: Campaign; phase: CampaignPhase }) {
-  const stats = useCampaignStats(campaign.id);
+function PlaysCell({ campaign, phase }: { campaign: CampaignListItem; phase: CampaignPhase }) {
+  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
+    enabled: phase !== 'draft',
+  });
   if (phase === 'draft') return <Caption>—</Caption>;
   return <span className="tabular-nums">{stats.data?.plays ?? '…'}</span>;
 }
 
 /** Prizes left over prizes stocked; amber under 20 % so running low is visible at a glance. */
-function StockCell({ campaign, phase }: { campaign: Campaign; phase: CampaignPhase }) {
-  const stats = useCampaignStats(campaign.id);
+function StockCell({ campaign, phase }: { campaign: CampaignListItem; phase: CampaignPhase }) {
+  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
+    enabled: phase !== 'draft',
+  });
   if (phase === 'draft') return <Caption>—</Caption>;
   const total = campaign.prizes.reduce((sum, prize) => sum + prize.quantity, 0);
   const left = Object.values(stats.data?.remainingByPrize ?? {}).reduce((a, b) => a + b, 0);

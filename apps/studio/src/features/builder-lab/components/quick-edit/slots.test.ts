@@ -1,14 +1,16 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import { presetSrc, SCREEN_KEYS } from '@/features/canvas-editor/lib/model';
-import { buildScreens, defaultPrizes, defaultRules, skinBrand } from '../../mock/templates';
-import type { Campaign } from '../../mock/types';
+import type { Campaign } from '../../api';
+import { buildScreens, defaultPrizes, defaultRules, skinBrand } from '../../lib/starter';
 import { presentSlots, readSlot, slotUsage, switchSkin, writeSlot } from './slots';
 
 function campaign(): Campaign {
   const now = new Date().toISOString();
   return {
     id: 'c1',
+    organizationId: 'org1',
+    slug: 'test',
     name: 'Test',
     templateKey: 'spin-wheel',
     skinKey: 'tet',
@@ -17,8 +19,11 @@ function campaign(): Campaign {
     prizes: defaultPrizes(),
     rules: defaultRules(),
     status: 'draft',
+    phase: 'draft',
+    paused: false,
     version: 0,
     publishedAt: null,
+    hasUnpublishedChanges: false,
     updatedAt: now,
     createdAt: now,
   };

@@ -1,4 +1,4 @@
-import type { LabPrize, LabRules } from '../mock/types';
+import type { CampaignPrize, CampaignRules } from '@playora/contracts';
 import { campaignDays, formatVnd, toPercent } from './rules-format';
 
 /**
@@ -37,7 +37,7 @@ export interface PrizeTotals {
   probabilityPercent: number;
 }
 
-export function prizeTotals(prizes: readonly LabPrize[]): PrizeTotals {
+export function prizeTotals(prizes: readonly CampaignPrize[]): PrizeTotals {
   let stock = 0;
   let valueVnd = 0;
   let probability = 0;
@@ -70,8 +70,8 @@ const defaultFormatters: SummaryFormatters = {
 };
 
 export function summarizeRules(
-  rules: LabRules,
-  prizes: readonly LabPrize[],
+  rules: CampaignRules,
+  prizes: readonly CampaignPrize[],
   fmt: SummaryFormatters = defaultFormatters,
 ): SummaryLine[] {
   const totals = prizeTotals(prizes);
@@ -136,7 +136,7 @@ export interface RuleIssue {
 }
 
 /** Problems that block publishing or make the simulation meaningless. */
-export function ruleIssues(rules: LabRules, prizes: readonly LabPrize[]): RuleIssue[] {
+export function ruleIssues(rules: CampaignRules, prizes: readonly CampaignPrize[]): RuleIssue[] {
   const totals = prizeTotals(prizes);
   const issues: RuleIssue[] = [];
   if (totals.count === 0) issues.push({ key: 'noPrizes' });

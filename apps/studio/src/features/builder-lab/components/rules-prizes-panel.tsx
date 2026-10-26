@@ -4,8 +4,8 @@ import { Alert, Card, Flex, Typography } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
+import type { Campaign, CampaignPrize, CampaignRules } from '../api';
 import { prizeTotals, ruleIssues } from '../lib/rules-summary';
-import type { Campaign, LabPrize, LabRules } from '../mock/types';
 import { ModeStep } from './rules/mode-step';
 import { PrizeListStep } from './rules/prize-list-step';
 import { RulesSentencesStep } from './rules/rules-sentences-step';
@@ -27,10 +27,10 @@ export function RulesPrizesPanel({
   const totals = useMemo(() => prizeTotals(prizes), [prizes]);
   const issues = useMemo(() => ruleIssues(rules, prizes), [rules, prizes]);
 
-  const setRules = (patch: Partial<LabRules>) => onChange({ rules: { ...rules, ...patch } });
-  const setPrizes = (next: LabPrize[]) => onChange({ prizes: next });
+  const setRules = (patch: Partial<CampaignRules>) => onChange({ rules: { ...rules, ...patch } });
+  const setPrizes = (next: CampaignPrize[]) => onChange({ prizes: next });
   // Per-prize mode needs a probability on every prize; fill missing ones with 0% when entering it.
-  const setMode = (patch: Partial<LabRules>) => {
+  const setMode = (patch: Partial<CampaignRules>) => {
     if (patch.mode === 'per_prize_probability' && prizes.some((p) => p.probability === undefined)) {
       onChange({
         rules: { ...rules, ...patch },
@@ -55,7 +55,13 @@ export function RulesPrizesPanel({
       </StepCard>
 
       <StepCard step={2} title={t('steps.prizes')} hint={t('steps.prizesHint')}>
-        <PrizeListStep prizes={prizes} mode={rules.mode} totals={totals} onChange={setPrizes} />
+        <PrizeListStep
+          orgId={campaign.organizationId}
+          prizes={prizes}
+          mode={rules.mode}
+          totals={totals}
+          onChange={setPrizes}
+        />
       </StepCard>
 
       <StepCard step={3} title={t('steps.rules')} hint={t('steps.rulesHint')}>

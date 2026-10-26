@@ -3,9 +3,11 @@
 import { App, Button, Card, Flex, Input, Tooltip, Typography, theme, Upload } from 'antd';
 import { ImageUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { IMAGE_PRESETS, type SlotKey } from '@/features/canvas-editor/lib/model';
-import { readImageFile, SLOT_KIND } from './slots';
+import { uploadCampaignImage } from '../../lib/upload-image';
+import { SLOT_KIND } from './slots';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -27,12 +29,14 @@ type PresetKey =
 
 /** One replaceable slot: change it here and every screen that shows it follows. */
 export function SlotCard({
+  orgId,
   slot,
   value,
   usage,
   onChange,
   onFocus,
 }: {
+  orgId: string;
   slot: SlotKey;
   value: string;
   usage: number;
@@ -43,6 +47,7 @@ export function SlotCard({
   const t = useTranslations('builderLab.quickEdit');
   const { token } = theme.useToken();
   const { message } = App.useApp();
+  const [uploading, setUploading] = useState(false);
   const kind = SLOT_KIND[slot];
 
   return (
@@ -76,22 +81,27 @@ export function SlotCard({
             </div>
             <Flex vertical gap={8} className="min-w-0">
               <Upload
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
                 showUploadList={false}
                 beforeUpload={async (file) => {
                   if (file.size > MAX_UPLOAD_BYTES) {
                     message.error(t('tooLarge'));
                     return Upload.LIST_IGNORE;
                   }
+                  setUploading(true);
                   try {
-                    onChange(await readImageFile(file));
+                    onChange(await uploadCampaignImage(orgId, file));
                   } catch {
                     message.error(t('uploadFailed'));
+                  } finally {
+                    setUploading(false);
                   }
                   return Upload.LIST_IGNORE;
                 }}
               >
-                <Button icon={<ImageUp className="size-4" />}>{t('upload')}</Button>
+                <Button loading={uploading} icon={<ImageUp className="size-4" />}>
+                  {t('upload')}
+                </Button>
               </Upload>
               <Caption>{t('uploadHint')}</Caption>
             </Flex>
