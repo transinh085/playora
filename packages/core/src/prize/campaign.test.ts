@@ -24,7 +24,7 @@ const prizes: CampaignPrize[] = [
 describe('toPrizeRules', () => {
   test('maps a live campaign to valid engine rules with schedule and pacing', () => {
     const parsed = PrizeRules.parse(toPrizeRules(rules, prizes, { rehearsal: false }));
-    expect(parsed.pacing.strategy).toBe('time_uniform');
+    expect(parsed.pacing).toMatchObject({ strategy: 'time_uniform', smoothing: true });
     expect(parsed.openingHours).toHaveLength(1);
     expect(parsed.prizes.map((p) => p.probability)).toEqual([0.5, 0.1]);
     expect(parsed.limits.perPlayerTotal).toBe(1);
