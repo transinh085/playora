@@ -1,5 +1,6 @@
 'use client';
 
+import { ApiError } from '@playora/api-client';
 import { Alert, App, Button, Divider, Flex, Modal, QRCode, Typography, theme } from 'antd';
 import {
   CircleX,
@@ -20,10 +21,9 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
+import { type Campaign, useCampaignStats, usePublishCampaign } from '../../api';
 import { hasBlockingIssues, type PreflightIssue, preflight } from '../../lib/preflight';
 import { campaignRoutes } from '../../lib/routes';
-import { useCampaignStats, usePublishCampaign } from '../../mock/hooks';
-import type { Campaign } from '../../mock/types';
 import type { DraftPatch } from './use-campaign-draft';
 
 export type EditorMode = 'quick' | 'customize' | 'rules';
@@ -59,18 +59,23 @@ export function PublishDialog({
   /** Close and open the mode where an issue can be fixed by hand. */
   onGoTo: (mode: EditorMode) => void;
   /** Saves pending draft changes before publishing. */
-  flush: () => Promise<void>;
+  flush: () => Promise<boolean>;
 }) {
   const t = useTranslations('builderLab.publish');
+  const tErrors = useTranslations('errors');
   const { message } = App.useApp();
-  const publish = usePublishCampaign(campaign.id);
+  const publish = usePublishCampaign(orgId, campaign.id);
   const [published, setPublished] = useState<Campaign | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
   const issues = useMemo(() => preflight(campaign), [campaign]);
   const blocking = hasBlockingIssues(issues);
   const fixable = issues.filter((i) => i.fix);
 
   useEffect(() => {
-    if (open) setPublished(null);
+    if (open) {
+      setPublished(null);
+      setPublishError(null);
+    }
   }, [open]);
 
   const applyFix = (issue: PreflightIssue) => {
@@ -90,13 +95,18 @@ export function PublishDialog({
   };
 
   const doPublish = async () => {
+    setPublishError(null);
+    const saved = await flush();
+    if (!saved) return;
     try {
-      await flush();
       const result = await publish.mutateAsync();
       setPublished(result);
       message.success(t('published', { version: result.version }));
-    } catch {
-      message.error(t('failed'));
+    } catch (err) {
+      const text =
+        err instanceof ApiError && tErrors.has(err.code) ? tErrors(err.code) : t('failed');
+      setPublishError(text);
+      message.error(text);
     }
   };
 
@@ -145,6 +155,7 @@ export function PublishDialog({
         <PublishSuccess orgId={orgId} campaign={published} />
       ) : (
         <Flex vertical gap={16}>
+          {publishError && <Alert showIcon type="error" title={publishError} />}
           <Alert
             showIcon
             type={blocking ? 'error' : issues.length ? 'warning' : 'success'}
@@ -246,16 +257,16 @@ function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign
   return (
     <Flex vertical gap={20} data-testid="publish-success">
       <ShareLinks orgId={orgId} campaign={campaign} />
-      <CampaignMetrics campaignId={campaign.id} />
+      <CampaignMetrics orgId={orgId} campaignId={campaign.id} />
     </Flex>
   );
 }
 
 /** Live numbers of a campaign; rehearsal plays are never counted. */
-export function CampaignMetrics({ campaignId }: { campaignId: string }) {
+export function CampaignMetrics({ orgId, campaignId }: { orgId: string; campaignId: string }) {
   const t = useTranslations('builderLab.publish');
   const format = useFormatter();
-  const stats = useCampaignStats(campaignId);
+  const stats = useCampaignStats(orgId, campaignId);
   const s = stats.data;
 
   const metrics = [

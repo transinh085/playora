@@ -30,9 +30,8 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
+import { type Campaign, useCampaign } from '../api';
 import { campaignRoutes } from '../lib/routes';
-import { useCampaign, useLabSync } from '../mock/hooks';
-import type { Campaign } from '../mock/types';
 import { CampaignStatusTag } from './editor/campaign-status-tag';
 import { CustomizeMode } from './editor/customize-mode';
 import { PhonePreview } from './editor/phone-preview';
@@ -53,9 +52,8 @@ export function BuilderEditor({
 }) {
   const t = useTranslations('builderLab.editor');
   const router = useRouter();
-  useLabSync();
-  const query = useCampaign(campaignId);
-  const { draft, update, flush, saveState } = useCampaignDraft(query.data);
+  const query = useCampaign(orgId, campaignId);
+  const { draft, update, flush, saveState } = useCampaignDraft(orgId, query.data);
   const home = campaignRoutes(orgId).list;
 
   if (query.isError) {
@@ -108,7 +106,7 @@ function EditorShell({
   server: Campaign;
   draft: Campaign;
   update: (patch: DraftPatch) => void;
-  flush: () => Promise<void>;
+  flush: () => Promise<boolean>;
   saveState: SaveState;
 }) {
   const t = useTranslations('builderLab.editor');

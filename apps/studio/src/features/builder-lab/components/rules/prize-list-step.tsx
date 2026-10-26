@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { presetSrc } from '@/features/canvas-editor/lib/model';
+import type { CampaignPrize, CampaignRules } from '../../api';
 import {
   formatVnd,
   fromPercent,
@@ -13,27 +14,28 @@ import {
   toPercent,
 } from '../../lib/rules-format';
 import type { PrizeTotals } from '../../lib/rules-summary';
-import type { LabPrize, LabRules } from '../../mock/types';
 import { PrizeImagePicker } from './prize-image-picker';
 
 /** Step 2: the prize list, one card per prize. */
 export function PrizeListStep({
+  orgId,
   prizes,
   mode,
   totals,
   onChange,
 }: {
-  prizes: LabPrize[];
-  mode: LabRules['mode'];
+  orgId: string;
+  prizes: CampaignPrize[];
+  mode: CampaignRules['mode'];
   totals: PrizeTotals;
-  onChange: (prizes: LabPrize[]) => void;
+  onChange: (prizes: CampaignPrize[]) => void;
 }) {
   const t = useTranslations('builderLab.rules.prizes');
   const locale = useLocale();
   const { token } = theme.useToken();
   const perPrize = mode === 'per_prize_probability';
 
-  const update = (index: number, patch: Partial<LabPrize>) =>
+  const update = (index: number, patch: Partial<CampaignPrize>) =>
     onChange(prizes.map((p, i) => (i === index ? { ...p, ...patch } : p)));
   const move = (index: number, delta: -1 | 1) => {
     const next = [...prizes];
@@ -70,6 +72,7 @@ export function PrizeListStep({
           >
             <Flex gap={12} align="flex-start">
               <PrizeImagePicker
+                orgId={orgId}
                 value={prize.image}
                 name={prize.name}
                 onChange={(image) => update(index, { image })}

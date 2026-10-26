@@ -11,11 +11,15 @@ import { MetricGrid } from '@/components/metric-card';
 import { QueryError } from '@/components/query-error';
 import { useBrandKits } from '@/features/brand-kits/api';
 import { useOrgMembers } from '@/features/members/api';
+import {
+  type CampaignListItem,
+  type CampaignStats,
+  useCampaigns,
+  useCampaignsStats,
+} from '../../api';
 import { type CampaignPhase, campaignPhase } from '../../lib/phase';
 import { campaignRoutes } from '../../lib/routes';
-import { useCampaigns, useCampaignsStats, useLabSync } from '../../mock/hooks';
-import { buildScreens, skinBrand } from '../../mock/templates';
-import type { Campaign, CampaignStats } from '../../mock/types';
+import { buildScreens, skinBrand } from '../../lib/starter';
 import { hasUnpublishedChanges } from '../editor/campaign-status-tag';
 import { FitScreen } from '../editor/fit-screen';
 import { campaignPeriod } from './campaign-period';
@@ -49,22 +53,15 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
-  useLabSync();
   const campaigns = useCampaigns(orgId);
   const brandKits = useBrandKits(orgId);
   const members = useOrgMembers(orgId);
   const items = campaigns.data ?? [];
-  const stats = useCampaignsStats(items.map((c) => c.id));
+  const { data: statsById } = useCampaignsStats(
+    orgId,
+    items.map((c) => c.id),
+  );
   const routes = campaignRoutes(orgId);
-
-  const statsById = useMemo(() => {
-    const map = new Map<string, CampaignStats>();
-    items.forEach((c, i) => {
-      const data = stats[i]?.data;
-      if (data) map.set(c.id, data);
-    });
-    return map;
-  }, [items, stats]);
 
   if (campaigns.isPending || brandKits.isPending || members.isPending) {
     return <Skeleton active paragraph={{ rows: 8 }} />;
@@ -285,7 +282,7 @@ function RecentCampaigns({
   statsById,
 }: {
   orgId: string;
-  rows: { campaign: Campaign; phase: CampaignPhase }[];
+  rows: { campaign: CampaignListItem; phase: CampaignPhase }[];
   total: number;
   statsById: Map<string, CampaignStats>;
 }) {

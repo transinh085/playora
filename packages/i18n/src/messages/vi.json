@@ -773,7 +773,21 @@
       "genericError": "Có lỗi xảy ra, thử lại nhé.",
       "newCode": "Nhập mã khác",
       "sessionTitle": "Đã đổi trong phiên này",
-      "sessionEmpty": "Chưa đổi quà nào."
+      "sessionEmpty": "Chưa đổi quà nào.",
+      "player": "Khách chơi",
+      "expiresAt": "Hạn đổi",
+      "redeemedBy": "Người đổi",
+      "expired": "Hết hạn",
+      "expiredAlert": "Mã {code} đã hết hạn đổi quà.",
+      "void": "Đã huỷ",
+      "voidAlert": "Mã {code} đã bị huỷ và không thể đổi quà.",
+      "reopen": "Mở lại mã",
+      "reopenTitle": "Mở lại mã {code}?",
+      "reopenDescription": "Chỉ chủ quán mới mở lại được mã bấm nhầm. Lý do sẽ được ghi vào nhật ký kiểm toán.",
+      "reopenReasonLabel": "Lý do mở lại",
+      "reopenReasonPlaceholder": "VD: Nhân viên bấm nhầm mã khi kiểm tra",
+      "reopenSubmit": "Mở lại mã",
+      "reopenedSuccess": "Đã mở lại mã {code}"
     },
     "rules": {
       "title": "Luật & giải",

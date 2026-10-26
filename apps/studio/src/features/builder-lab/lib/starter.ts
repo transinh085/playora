@@ -1,3 +1,9 @@
+import type {
+  CampaignPrize,
+  CampaignRules,
+  CampaignSkinKey,
+  CampaignTemplateKey,
+} from '@playora/contracts';
 import {
   type BrandPalette,
   type CanvasDoc,
@@ -7,15 +13,25 @@ import {
   presetSrc,
   type SlotKey,
 } from '@/features/canvas-editor/lib/model';
-import type {
-  Industry,
-  LabPrize,
-  LabRules,
-  SkinInfo,
-  SkinKey,
-  TemplateInfo,
-  TemplateKey,
-} from './types';
+
+export type TemplateKey = CampaignTemplateKey;
+export type MechanismKey = TemplateKey;
+export type SkinKey = CampaignSkinKey;
+export type Industry = 'fnb' | 'beauty' | 'retail' | 'fitness';
+export type Occasion = 'tet' | 'opening' | 'everyday';
+
+export interface SkinInfo {
+  key: SkinKey;
+  occasion: Occasion;
+  brand: BrandPalette;
+}
+
+export interface TemplateInfo {
+  key: TemplateKey;
+  mechanism: MechanismKey;
+  industries: Industry[];
+  skins: SkinInfo[];
+}
 
 const SKINS: Record<SkinKey, SkinInfo> = {
   tet: { key: 'tet', occasion: 'tet', brand: DEMO_BRAND },
@@ -168,7 +184,7 @@ export function buildScreens(templateKey: TemplateKey, skinKey: SkinKey): Canvas
 }
 
 /** Starter prizes for a café; owners rename and restock them in "Rules & prizes". */
-export function defaultPrizes(): LabPrize[] {
+export function defaultPrizes(): CampaignPrize[] {
   return [
     {
       id: 'p1',
@@ -197,7 +213,7 @@ export function defaultPrizes(): LabPrize[] {
   ];
 }
 
-export function defaultRules(now = new Date()): LabRules {
+export function defaultRules(now = new Date()): CampaignRules {
   const ends = new Date(now.getTime() + 14 * 86_400_000);
   return {
     mode: 'overall_win_rate',
@@ -210,6 +226,9 @@ export function defaultRules(now = new Date()): LabRules {
     pacing: true,
     budgetVnd: null,
     collectForm: true,
+    openDays: null,
+    requireRedeemBeforeReplay: false,
+    antiFraud: 'standard',
   };
 }
 

@@ -773,7 +773,21 @@
       "genericError": "Something went wrong, please try again.",
       "newCode": "Enter another code",
       "sessionTitle": "Redeemed this session",
-      "sessionEmpty": "Nothing redeemed yet."
+      "sessionEmpty": "Nothing redeemed yet.",
+      "player": "Player",
+      "expiresAt": "Expires at",
+      "redeemedBy": "Redeemed by",
+      "expired": "Expired",
+      "expiredAlert": "Code {code} has expired.",
+      "void": "Voided",
+      "voidAlert": "Code {code} was voided and cannot be redeemed.",
+      "reopen": "Reopen code",
+      "reopenTitle": "Reopen code {code}?",
+      "reopenDescription": "Only the shop owner can reopen a code redeemed by mistake. The reason is recorded in the audit log.",
+      "reopenReasonLabel": "Reason for reopening",
+      "reopenReasonPlaceholder": "e.g. Staff tapped redeem by mistake while checking",
+      "reopenSubmit": "Reopen code",
+      "reopenedSuccess": "Reopened code {code}"
     },
     "rules": {
       "title": "Rules & prizes",

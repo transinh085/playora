@@ -1,5 +1,38 @@
-import type { SimulationResult } from '@playora/core/prize';
-import type { LabPrize, LabRules } from '../mock/types';
+import type { CampaignPrize, CampaignRules } from '@playora/contracts';
+import { type SimulationResult, simulate, toPrizeRules } from '@playora/core/prize';
+
+/** A café's day: quiet morning, lunch and late-afternoon peaks (share of daily visits per hour). */
+export const CAFE_TRAFFIC_SHAPE = [
+  0, 0, 0, 0, 0, 0, 0.02, 0.06, 0.08, 0.07, 0.06, 0.08, 0.1, 0.08, 0.06, 0.07, 0.08, 0.07, 0.05,
+  0.04, 0.03, 0.02, 0.01, 0,
+];
+
+/** "If N customers play each day, what happens to my prizes?" (docs/product/specs/prizes-redemption.md §5). */
+export function simulateCampaign(
+  campaign: { id: string; rules: CampaignRules; prizes: readonly CampaignPrize[] },
+  input: { playersPerDay: number; days?: number },
+): SimulationResult {
+  const rules = toPrizeRules(campaign.rules, campaign.prizes, { rehearsal: false });
+  const days =
+    input.days ??
+    Math.max(
+      1,
+      Math.round(
+        (Date.parse(campaign.rules.endsAt) - Date.parse(campaign.rules.startsAt)) / 86_400_000,
+      ),
+    );
+  const playsPerDay = input.playersPerDay * campaign.rules.playsPerDay;
+  return simulate({
+    rules: {
+      ...rules,
+      window: { startsAt: campaign.rules.startsAt, endsAt: campaign.rules.endsAt },
+    },
+    traffic: CAFE_TRAFFIC_SHAPE.map((share) => share * playsPerDay),
+    players: Math.max(1, input.playersPerDay * Math.min(days, 7)),
+    days,
+    seed: campaign.id,
+  });
+}
 
 /**
  * Turns a `SimulationResult` (docs/product/specs/prizes-redemption.md §5) into what a shop owner reads: totals, per-day bars,
@@ -91,7 +124,7 @@ export interface SimSummary {
 
 export function summarizeSimulation(
   result: SimulationResult,
-  input: { rules: LabRules; prizes: readonly LabPrize[]; days: number },
+  input: { rules: CampaignRules; prizes: readonly CampaignPrize[]; days: number },
 ): SimSummary {
   const { rules, prizes, days } = input;
   const closedPlays = result.reasons.closed ?? 0;

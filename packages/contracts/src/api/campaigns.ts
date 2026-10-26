@@ -42,7 +42,9 @@ export const CampaignImageRef = z
   .trim()
   .min(1)
   .max(2048)
-  .refine((v) => !v.startsWith('data:'), { message: 'Ảnh phải được tải lên trước khi lưu' });
+  .refine((v) => !v.startsWith('data:') || v.startsWith('data:image/svg+xml;utf8,'), {
+    message: 'Ảnh phải được tải lên trước khi lưu',
+  });
 
 /** Prize ids are short stable keys chosen by the client (`p1`, a nanoid…), unique per campaign. */
 export const CampaignPrizeKey = z

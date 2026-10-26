@@ -19,11 +19,16 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { useBrandKits } from '@/features/brand-kits/api';
+import {
+  type Occasion,
+  type SkinInfo,
+  type SkinKey,
+  type TemplateKey,
+  useCreateCampaign,
+} from '../../api';
 import { brandFromKit } from '../../lib/brand';
 import { campaignRoutes } from '../../lib/routes';
-import { useCreateCampaign } from '../../mock/hooks';
-import { buildScreens, TEMPLATES } from '../../mock/templates';
-import type { Occasion, SkinInfo, SkinKey, TemplateKey } from '../../mock/types';
+import { buildScreens, TEMPLATES } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 
 const OCCASIONS: Occasion[] = ['tet', 'opening', 'everyday'];
@@ -40,7 +45,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
   const { token } = theme.useToken();
   const { message } = App.useApp();
   const router = useRouter();
-  const create = useCreateCampaign();
+  const create = useCreateCampaign(orgId);
   const brandKits = useBrandKits(orgId);
   const [occasion, setOccasion] = useState<Occasion | 'all'>('all');
   const [mechanic, setMechanic] = useState<TemplateKey | 'all'>('all');
@@ -93,7 +98,6 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
         brandKits.data?.items.find((k) => k.id === selectedBrandKitId) ?? brandKits.data?.items[0];
       const campaign = await create.mutateAsync({
         ...picked,
-        orgId,
         name: name.trim(),
         brand: brandFromKit(chosenKit),
       });

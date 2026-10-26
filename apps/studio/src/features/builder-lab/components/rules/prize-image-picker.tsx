@@ -6,25 +6,18 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { IMAGE_PRESETS } from '@/features/canvas-editor/lib/model';
+import { uploadCampaignImage } from '../../lib/upload-image';
 
-/** Uploads land in localStorage in the lab, so keep them small. */
-const MAX_UPLOAD_BYTES = 512 * 1024;
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-/** Square prize thumbnail; click to pick a preset sticker or upload a photo (→ data URL). */
+/** Square prize thumbnail; click to pick a preset sticker or upload a photo through the assets API. */
 export function PrizeImagePicker({
+  orgId,
   value,
   name,
   onChange,
 }: {
+  orgId: string;
   value?: string;
   name: string;
   onChange: (src: string) => void;
@@ -33,6 +26,7 @@ export function PrizeImagePicker({
   const { token } = theme.useToken();
   const { message } = App.useApp();
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const content = (
     <Flex vertical gap={8} style={{ width: 232 }}>
@@ -61,23 +55,26 @@ export function PrizeImagePicker({
         ))}
       </div>
       <Upload
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
         showUploadList={false}
         beforeUpload={async (file) => {
           if (file.size > MAX_UPLOAD_BYTES) {
             message.error(t('uploadTooLarge'));
             return Upload.LIST_IGNORE;
           }
+          setUploading(true);
           try {
-            onChange(await readAsDataUrl(file));
+            onChange(await uploadCampaignImage(orgId, file));
             setOpen(false);
           } catch {
             message.error(t('uploadFailed'));
+          } finally {
+            setUploading(false);
           }
           return Upload.LIST_IGNORE;
         }}
       >
-        <Button block icon={<UploadIcon className="size-4" />}>
+        <Button block loading={uploading} icon={<UploadIcon className="size-4" />}>
           {t('upload')}
         </Button>
       </Upload>

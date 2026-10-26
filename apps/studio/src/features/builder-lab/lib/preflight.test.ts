@@ -1,8 +1,7 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import type { CanvasElement, ScreenKey } from '@/features/canvas-editor/lib/model';
-import { buildScreens, defaultPrizes, defaultRules, skinBrand } from '../mock/templates';
-import type { Campaign } from '../mock/types';
+import type { Campaign } from '../api';
 import {
   contrastRatio,
   FIXED_FONT_PX,
@@ -12,12 +11,15 @@ import {
   parseHex,
   preflight,
 } from './preflight';
+import { buildScreens, defaultPrizes, defaultRules, skinBrand } from './starter';
 
 const NOW = new Date('2026-10-25T03:00:00.000Z');
 
 function campaign(overrides: Partial<Campaign> = {}): Campaign {
   return {
     id: 'c1',
+    organizationId: 'org1',
+    slug: 'ca-phe-moc',
     name: 'Cà phê Mộc',
     templateKey: 'spin-wheel',
     skinKey: 'tet',
@@ -26,8 +28,12 @@ function campaign(overrides: Partial<Campaign> = {}): Campaign {
     prizes: defaultPrizes(),
     rules: defaultRules(NOW),
     status: 'draft',
+    phase: 'draft',
+    paused: false,
     version: 0,
     publishedAt: null,
+    hasUnpublishedChanges: false,
+    playbook: null,
     updatedAt: NOW.toISOString(),
     createdAt: NOW.toISOString(),
     ...overrides,

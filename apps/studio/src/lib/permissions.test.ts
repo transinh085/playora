@@ -6,6 +6,7 @@ import {
   canManageMembers,
   isOrgRole,
   isOwnerRole,
+  isRedeemerOnly,
   ORG_ROLES,
   parseMemberRoles,
 } from './permissions';
@@ -38,6 +39,10 @@ describe('studio permissions', () => {
       expect(can('viewer', { member: ['create'] })).toBe(false);
       expect(can('viewer', { event: ['read'] })).toBe(true);
       expect(can('viewer', { export: ['create'] })).toBe(false);
+
+      expect(can('redeemer', { voucher: ['read', 'redeem'] })).toBe(true);
+      expect(can('redeemer', { campaign: ['read'] })).toBe(false);
+      expect(can('redeemer', { voucher: ['reopen'] })).toBe(false);
     });
 
     test('handles multi-role strings', () => {
@@ -98,6 +103,17 @@ describe('studio permissions', () => {
     });
   });
 
+  describe('isRedeemerOnly', () => {
+    test('returns true only when every role is redeemer', () => {
+      expect(isRedeemerOnly('redeemer')).toBe(true);
+      expect(isRedeemerOnly('redeemer, viewer')).toBe(false);
+      expect(isRedeemerOnly('owner')).toBe(false);
+      expect(isRedeemerOnly('')).toBe(false);
+      expect(isRedeemerOnly(null)).toBe(false);
+      expect(isRedeemerOnly(undefined)).toBe(false);
+    });
+  });
+
   describe('assignableRolesFor', () => {
     test('owner can assign all org roles including owner', () => {
       expect(assignableRolesFor('owner')).toEqual(ORG_ROLES);
@@ -106,7 +122,7 @@ describe('studio permissions', () => {
 
     test('admin can assign all org roles except owner', () => {
       const adminAssignable = assignableRolesFor('admin');
-      expect(adminAssignable).toEqual(['admin', 'editor', 'operator', 'viewer']);
+      expect(adminAssignable).toEqual(['admin', 'editor', 'operator', 'viewer', 'redeemer']);
       expect(adminAssignable).not.toContain('owner');
     });
 

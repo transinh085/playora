@@ -41,6 +41,7 @@ import { useTheme } from 'next-themes';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { LABS_ENABLED } from '@/lib/env';
+import { can, isRedeemerOnly, type PermissionRequest } from '@/lib/permissions';
 import { Caption } from './caption';
 import { LogoMark } from './logo';
 
@@ -59,6 +60,7 @@ interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
   path: string;
+  permission?: PermissionRequest;
 }
 type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
 
@@ -67,20 +69,38 @@ type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
  * exist are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
  */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
-  { key: 'start', items: [{ key: 'home', icon: House, path: '' }] },
+  {
+    key: 'start',
+    items: [{ key: 'home', icon: House, path: '', permission: { campaign: ['read'] } }],
+  },
   {
     key: 'campaigns',
     items: [
-      { key: 'campaigns', icon: CalendarDays, path: 'campaigns' },
-      { key: 'templates', icon: LayoutTemplate, path: 'campaigns/new' },
-      { key: 'redeem', icon: TicketCheck, path: 'redeem' },
+      {
+        key: 'campaigns',
+        icon: CalendarDays,
+        path: 'campaigns',
+        permission: { campaign: ['read'] },
+      },
+      {
+        key: 'templates',
+        icon: LayoutTemplate,
+        path: 'campaigns/new',
+        permission: { campaign: ['read'] },
+      },
+      { key: 'redeem', icon: TicketCheck, path: 'redeem', permission: { voucher: ['read'] } },
     ],
   },
   {
     key: 'brand',
     items: [
-      { key: 'brandKits', icon: Palette, path: 'brand-kits' },
-      { key: 'assets', icon: ImageIcon, path: 'assets' },
+      {
+        key: 'brandKits',
+        icon: Palette,
+        path: 'brand-kits',
+        permission: { brandKit: ['read'] },
+      },
+      { key: 'assets', icon: ImageIcon, path: 'assets', permission: { asset: ['read'] } },
     ],
   },
   { key: 'organization', items: [{ key: 'settings', icon: Settings, path: 'settings' }] },
@@ -88,7 +108,14 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     ? [
         {
           key: 'labs' as const,
-          items: [{ key: 'canvasLab' as const, icon: Shapes, path: 'labs/canvas' }],
+          items: [
+            {
+              key: 'canvasLab',
+              icon: Shapes,
+              path: 'labs/canvas',
+              permission: { campaign: ['read'] },
+            } satisfies NavItem,
+          ],
         },
       ]
     : []),
@@ -120,6 +147,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   }
 
   const orgHome = current ? `/orgs/${current.id}` : '/';
+  const orgLanding = current && isRedeemerOnly(current.role) ? `${orgHome}/redeem` : orgHome;
   const activeNav = current
     ? NAV.find(({ path }) =>
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
@@ -129,7 +157,11 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
 
   const navMenuItems: MenuProps['items'] = current
     ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {
-        const children = group.items.map(({ key, icon: Icon, path }) => ({
+        const visibleItems = group.items.filter(
+          (item) => !item.permission || can(current.role, item.permission),
+        );
+        if (visibleItems.length === 0) return [];
+        const children = visibleItems.map(({ key, icon: Icon, path }) => ({
           key,
           icon: <Icon className="size-4" />,
           label: (
@@ -156,7 +188,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     : [];
 
   const breadcrumbs = [
-    { title: <Link href={orgHome as Route}>{t('shell.home')}</Link> },
+    { title: <Link href={orgLanding as Route}>{t('shell.home')}</Link> },
     // Plain text, not links: the sidebar already links each section (and e2e finds those by name).
     ...(activeNav && activeNav.key !== 'home' ? [{ title: t(`nav.${activeNav.key}`) }] : []),
     ...(inEvent ? [{ title: t('shell.eventDetail') }] : []),
@@ -199,7 +231,10 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
               items: orgs.map((org) => ({
                 key: org.id,
                 label: org.name,
-                onClick: () => router.push(`/orgs/${org.id}`),
+                onClick: () =>
+                  router.push(
+                    isRedeemerOnly(org.role) ? `/orgs/${org.id}/redeem` : `/orgs/${org.id}`,
+                  ),
               })),
               selectedKeys: [current.id],
             }}

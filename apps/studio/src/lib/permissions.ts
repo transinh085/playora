@@ -13,6 +13,7 @@ export const ORG_ROLES = [
   'editor',
   'operator',
   'viewer',
+  'redeemer',
 ] as const satisfies readonly OrgRole[];
 
 /**
@@ -36,6 +37,12 @@ export function parseMemberRoles(role: string | null | undefined): OrgRole[] {
 /** Returns true if the member holds the owner role. */
 export function isOwnerRole(role: string | null | undefined): boolean {
   return parseMemberRoles(role).includes('owner');
+}
+
+/** Returns true when the member's only role is redeemer (counter-only access). */
+export function isRedeemerOnly(role: string | null | undefined): boolean {
+  const roles = parseMemberRoles(role);
+  return roles.length > 0 && roles.every((r) => r === 'redeemer');
 }
 
 /**

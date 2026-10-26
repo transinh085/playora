@@ -1,23 +1,25 @@
 'use client';
 
+import type { CampaignListItem } from '@playora/contracts';
 import { Tag } from 'antd';
 import { CircleAlert, CircleCheck, PencilLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { Campaign } from '../../mock/types';
 
 /** Published campaigns keep serving their last version while the draft changes (docs/product/specs/builder.md §4.3). */
-export function hasUnpublishedChanges(campaign: Campaign) {
-  return (
-    campaign.status === 'published' &&
-    campaign.publishedAt !== null &&
-    campaign.updatedAt > campaign.publishedAt
-  );
+export function hasUnpublishedChanges(
+  campaign: Pick<CampaignListItem, 'status' | 'hasUnpublishedChanges'>,
+) {
+  return campaign.status === 'published' && campaign.hasUnpublishedChanges;
 }
 
 const icon = 'mr-1 inline size-3 align-[-2px]';
 
 /** Status tag with an icon (docs/engineering/design-system.md §3.4): draft · published vN · published with pending changes. */
-export function CampaignStatusTag({ campaign }: { campaign: Campaign }) {
+export function CampaignStatusTag({
+  campaign,
+}: {
+  campaign: Pick<CampaignListItem, 'status' | 'version' | 'hasUnpublishedChanges'>;
+}) {
   const t = useTranslations('builderLab.editor.status');
   if (campaign.status === 'draft') {
     return (

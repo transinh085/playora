@@ -3,6 +3,7 @@
 import { Flex, Input, InputNumber, Switch, Typography, theme } from 'antd';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import type { CampaignPrize, CampaignRules } from '../../api';
 import {
   formatVnd,
   groupDigits,
@@ -11,7 +12,6 @@ import {
   parseDigits,
 } from '../../lib/rules-format';
 import { summarizeRules } from '../../lib/rules-summary';
-import type { LabPrize, LabRules } from '../../mock/types';
 
 const DEFAULT_HOURS = { start: '07:00', end: '22:00' };
 
@@ -25,10 +25,10 @@ export function RulesSentencesStep({
   totalValueVnd,
   onChange,
 }: {
-  rules: LabRules;
-  prizes: LabPrize[];
+  rules: CampaignRules;
+  prizes: CampaignPrize[];
   totalValueVnd: number;
-  onChange: (patch: Partial<LabRules>) => void;
+  onChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.sentences');
   const { token } = theme.useToken();
@@ -201,7 +201,7 @@ export function RulesSentencesStep({
 }
 
 /** Auto-generated plain-language recap of every rule. */
-function RulesSummary({ rules, prizes }: { rules: LabRules; prizes: LabPrize[] }) {
+function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: CampaignPrize[] }) {
   const t = useTranslations('builderLab.rules.summary');
   const format = useFormatter();
   const locale = useLocale();

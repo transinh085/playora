@@ -16,6 +16,7 @@ export {
   canManageMembers,
   isOrgRole,
   isOwnerRole,
+  isRedeemerOnly,
   ORG_ROLES,
   type OrgRole,
   type PermissionRequest,

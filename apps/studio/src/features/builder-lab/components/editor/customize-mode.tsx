@@ -5,7 +5,8 @@ import { Alert, Grid } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
-import type { Campaign } from '../../mock/types';
+import type { Campaign } from '../../api';
+import { uploadCampaignImage } from '../../lib/upload-image';
 import { CampaignStage } from './phone-preview';
 import type { DraftPatch } from './use-campaign-draft';
 
@@ -20,10 +21,14 @@ export function CustomizeMode({
   const t = useTranslations('builderLab.editor');
   const wide = Grid.useBreakpoint().lg ?? true;
   // Stable between autosaves that only touch the screens, so the canvas does not redraw the stage.
-  const { templateKey, brand, prizes } = campaign;
+  const { organizationId, templateKey, brand, prizes } = campaign;
   const renderStage = useCallback(
     () => <CampaignStage campaign={{ templateKey, brand, prizes }} />,
     [templateKey, brand, prizes],
+  );
+  const uploadImage = useCallback(
+    (file: File) => uploadCampaignImage(organizationId, file),
+    [organizationId],
   );
   const canvasPrizes = useMemo(() => toCanvasPrizes({ prizes }), [prizes]);
 
@@ -38,6 +43,7 @@ export function CustomizeMode({
             brand={brand}
             renderStage={renderStage}
             prizes={canvasPrizes}
+            onUploadImage={uploadImage}
             hideHeader={true}
           />
         </div>

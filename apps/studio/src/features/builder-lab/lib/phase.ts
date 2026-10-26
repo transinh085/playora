@@ -1,21 +1,30 @@
-import type { Campaign } from '../mock/types';
+import type { CampaignPhase } from '@playora/contracts';
+import { campaignPhase as coreCampaignPhase, isRunningPhase } from '@playora/core/prize';
 
-/**
- * Where a campaign is in its life (docs/product/specs/builder.md §6), derived from publish state, pause and the
- * schedule in its rules instead of being picked by hand.
- */
-export type CampaignPhase = 'draft' | 'scheduled' | 'live' | 'paused' | 'ended';
+export type { CampaignPhase };
 
-export function campaignPhase(
-  campaign: Pick<Campaign, 'status' | 'paused' | 'rules'>,
-  now = Date.now(),
-): CampaignPhase {
-  if (campaign.status === 'draft') return 'draft';
-  if (Date.parse(campaign.rules.endsAt) <= now) return 'ended';
-  if (campaign.paused) return 'paused';
-  if (Date.parse(campaign.rules.startsAt) > now) return 'scheduled';
-  return 'live';
+export interface PhaseInput {
+  status: 'draft' | 'published';
+  paused: boolean;
+  rules: { startsAt: string; endsAt: string };
+  phase?: CampaignPhase;
 }
 
-/** Campaigns that may still hand out prizes: deleting them is blocked. */
-export const isRunning = (phase: CampaignPhase) => phase === 'live' || phase === 'scheduled';
+/**
+ * Resolves a campaign's lifecycle phase using the server's `phase` when no custom timestamp is
+ * given, or `@playora/core/prize`'s `campaignPhase` when evaluating at a specific `now`.
+ */
+export function campaignPhase(campaign: PhaseInput, now?: number): CampaignPhase {
+  if (now === undefined && campaign.phase) return campaign.phase;
+  return coreCampaignPhase(
+    {
+      published: campaign.status === 'published',
+      paused: campaign.paused,
+      startsAt: campaign.rules.startsAt,
+      endsAt: campaign.rules.endsAt,
+    },
+    now,
+  );
+}
+
+export const isRunning = isRunningPhase;

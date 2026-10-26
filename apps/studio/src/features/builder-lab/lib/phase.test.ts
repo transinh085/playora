@@ -24,4 +24,7 @@ describe('campaignPhase', () => {
       'ended',
     );
   });
+  test('uses server phase when now is omitted', () => {
+    expect(campaignPhase({ ...base, status: 'draft', phase: 'paused' })).toBe('paused');
+  });
 });

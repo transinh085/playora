@@ -2,10 +2,11 @@ import { expect, test } from './fixtures';
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-test('builder lab: create from template → set rules → publish → play on a phone → redeem at the counter (docs/plans/2026-10-25-game-builder-plan.md prototype)', async ({
+test('builder lab: create from template → set rules → publish → play on a phone → redeem at the counter (docs/product/specs/builder.md)', async ({
   page,
   context,
 }) => {
+  test.setTimeout(90_000);
   const id = unique();
   await page.goto('/login');
   await page.getByRole('button', { name: 'Chưa có tài khoản? Đăng ký' }).click();
@@ -76,8 +77,10 @@ test('builder lab: create from template → set rules → publish → play on a 
   await phone.getByRole('button', { name: 'TIẾP TỤC' }).click();
   await phone.getByRole('button', { name: /chạm để quay/i }).click();
   await expect(phone.getByText('CHÚC MỪNG!')).toBeVisible({ timeout: 15_000 });
-  const code = (await phone.locator('body').innerText()).match(/\b[A-HJ-NP-Z2-9]{6}\b/)?.[0];
-  expect(code).toBeTruthy();
+  const codeEl = phone.getByTestId('voucher-code');
+  await expect(codeEl).toBeVisible();
+  const code = ((await codeEl.textContent()) ?? '').trim();
+  expect(code).toMatch(/^[A-HJ-NP-Z2-9]{6}$/);
 
   // Staff redeems it once.
   const desk = await context.newPage();

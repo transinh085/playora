@@ -9,8 +9,8 @@ import {
   type ScreenDoc,
   type ScreenKey,
 } from '@/features/canvas-editor/lib/model';
-import { buildScreens, defaultPrizes } from '../mock/templates';
-import type { Campaign } from '../mock/types';
+import type { Campaign } from '../api';
+import { buildScreens, defaultPrizes } from './starter';
 
 /**
  * Pre-flight before publish (docs/product/specs/builder.md §4.5): checks a campaign the way a careful reviewer

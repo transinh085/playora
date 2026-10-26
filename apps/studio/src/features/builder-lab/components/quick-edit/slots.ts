@@ -5,8 +5,8 @@ import {
   SLOT_KEYS,
   type SlotKey,
 } from '@/features/canvas-editor/lib/model';
-import { buildScreens, skinBrand } from '../../mock/templates';
-import type { Campaign, SkinKey } from '../../mock/types';
+import type { Campaign, SkinKey } from '../../api';
+import { buildScreens, skinBrand } from '../../lib/starter';
 
 /**
  * Quick edit (docs/product/specs/builder.md §4.2): a slot is one piece of content shared by every element that carries
@@ -89,35 +89,4 @@ export function switchSkin(
     }
   }
   return { skinKey, screens, brand: skinBrand(skinKey) };
-}
-
-/** Reads an uploaded image as a data URL, downscaled so the lab's localStorage db stays small. */
-export function readImageFile(file: File, maxSize = 640): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => {
-      const dataUrl = String(reader.result);
-      if (file.type === 'image/svg+xml') {
-        resolve(dataUrl);
-        return;
-      }
-      const img = new Image();
-      img.onerror = () => resolve(dataUrl);
-      img.onload = () => {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-        if (scale === 1 && file.size < 200_000) {
-          resolve(dataUrl);
-          return;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/webp', 0.85));
-      };
-      img.src = dataUrl;
-    };
-    reader.readAsDataURL(file);
-  });
 }
