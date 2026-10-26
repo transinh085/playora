@@ -17,6 +17,7 @@ import {
   type playsApi,
   type RouteArgs,
 } from '@playora/contracts';
+import { generateTerms } from '@playora/core/compliance';
 import {
   campaignPhase,
   decide,
@@ -233,6 +234,16 @@ export class PlaysService {
       captchaSiteKey: this.antiFraud.captchaSiteKey(doc.rules.antiFraud),
       registrationForm: parseRegistrationForm(event.registrationForm),
       watermark: await this.billing.watermark(event.organizationId),
+      terms:
+        doc.compliance.termsText ??
+        generateTerms({
+          campaignName: event.name,
+          organizerName: campaign.organizationName,
+          rules: doc.rules,
+          prizes: doc.prizes,
+          timezone: event.timezone,
+          redeemGraceDays: VOUCHER_GRACE_MS / 86_400_000,
+        }),
     };
   }
 

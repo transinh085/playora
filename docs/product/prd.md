@@ -233,8 +233,8 @@ Pháp lý: [compliance](../business/compliance.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| CMP-03 | Hỏi "loại chương trình" khi tạo (gắn mua hàng hay không); checklist pháp lý và nhắc thông báo Sở Công Thương trước phát hành | M1 | ⬜ |
-| CMP-04 | Sinh thể lệ từ cấu hình (thời gian, giải, số lượng, giá trị, cách xác định trúng); chủ quán sửa được | M1 | ⬜ |
+| CMP-03 | Hỏi "loại chương trình" khi tạo (gắn mua hàng hay không); checklist pháp lý và nhắc thông báo Sở Công Thương trước phát hành | M1 | ✅ API (`compliance.promotionType`, `checklistAcknowledgedAt`) · ⬜ UI Studio |
+| CMP-04 | Sinh thể lệ từ cấu hình (thời gian, giải, số lượng, giá trị, cách xác định trúng); chủ quán sửa được | M1 | ✅ API + Play (`generateTerms`, "Thể lệ đầy đủ" trên Play, `compliance.termsText` ghi đè) · ⬜ UI sửa trong Studio |
 | CMP-01 | Người chơi yêu cầu xem/xoá/rút consent; chủ quán xử lý trong Studio | M2 | ⬜ |
 | CMP-02 | Hạn lưu dữ liệu mặc định 12 tháng, tự ẩn danh hoá | M2 | ⬜ |
 | CMP-05 | Báo cáo giá trị giải không có người trúng | M2 | ⬜ |

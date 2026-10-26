@@ -43,6 +43,8 @@ export const PublicCampaign = z.object({
   registrationForm: PublicRegistrationForm,
   /** Free plan: the shell shows a small "Tạo bằng Playora" badge (BIL-02). */
   watermark: z.boolean(),
+  /** Full terms ("thể lệ"): the shop's own text or the one generated from the settings. */
+  terms: z.string(),
 });
 export type PublicCampaign = z.infer<typeof PublicCampaign>;
 

@@ -42,6 +42,8 @@ export interface CampaignPlayerDocument {
   /** Full prizes in the Studio; the public player only knows id, name and image. */
   prizes: readonly PlayerPrize[];
   rules: CampaignPlayerRules;
+  /** Full terms ("thể lệ", CMP-04) shown under the short rules; omitted in previews without them. */
+  terms?: string;
 }
 
 /** Imperative controls for host chrome (the Studio lab toolbar). */
@@ -373,6 +375,7 @@ export function CampaignPlayer({
         onClose={() => setSheet(null)}
         rules={campaign.rules}
         prizes={campaign.prizes}
+        terms={campaign.terms}
         rehearsal={rehearsal}
         labels={labels}
         openDaysFormatted={openDaysFormatted}

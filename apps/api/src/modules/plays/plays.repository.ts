@@ -4,7 +4,8 @@ import { and, desc, eq, gt, isNull, ne, or, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 import { type CampaignDocument, readCampaignDocument } from '../campaigns/campaign-defaults';
 
-const { events, games, gameVersions, prizes, awards, plays, playCounters, players } = schema;
+const { events, games, gameVersions, prizes, awards, plays, playCounters, players, organization } =
+  schema;
 
 export type PlayEnv = 'live' | 'rehearsal';
 export type EventRow = typeof events.$inferSelect;
@@ -18,6 +19,8 @@ export interface PublishedCampaign {
   event: EventRow;
   game: GameRow;
   version: { id: string; version: number; config: CampaignDocument };
+  /** The shop's name: the organizer in the generated terms. */
+  organizationName: string;
 }
 
 /**
@@ -33,8 +36,14 @@ export class PlaysRepository {
   /** The current published version of a campaign by slug; nothing when never published or deleted. */
   async findPublishedBySlug(slug: string): Promise<PublishedCampaign | undefined> {
     const [row] = await this.db
-      .select({ event: events, game: games, version: gameVersions })
+      .select({
+        event: events,
+        game: games,
+        version: gameVersions,
+        organizationName: organization.name,
+      })
       .from(events)
+      .innerJoin(organization, eq(organization.id, events.organizationId))
       .innerJoin(
         games,
         and(
@@ -67,6 +76,7 @@ export class PlaysRepository {
         version: row.version.version,
         config: readCampaignDocument(row.version.config),
       },
+      organizationName: row.organizationName,
     };
   }
 

@@ -181,6 +181,40 @@ describe('player campaign', () => {
   });
 });
 
+describe('campaign terms (CMP-04)', () => {
+  test('generated from the settings until the shop writes its own, which ships on publish', async () => {
+    const c = await createCampaign();
+    const generated = await playerClient().call(playsApi.campaign, { params: { slug: c.slug } });
+    expect(generated.terms).toContain('THỂ LỆ CHƯƠNG TRÌNH');
+    expect(generated.terms).toContain('Cơ cấu giải thưởng');
+    expect(generated.terms).toContain(P1.name);
+    expect(c.compliance).toEqual({
+      promotionType: null,
+      termsText: null,
+      checklistAcknowledgedAt: null,
+    });
+
+    const api = t.client(alice);
+    const updated = await api.call(campaignsApi.update, {
+      params: ids(c),
+      body: {
+        compliance: {
+          promotionType: 'purchase_linked',
+          termsText: 'Thể lệ riêng của quán',
+          checklistAcknowledgedAt: new Date().toISOString(),
+        },
+      },
+    });
+    expect(updated.hasUnpublishedChanges).toBe(true);
+    // The live version keeps its terms until the shop republishes.
+    const before = await playerClient().call(playsApi.campaign, { params: { slug: c.slug } });
+    expect(before.terms).toBe(generated.terms);
+    await api.call(campaignsApi.publish, { params: ids(c) });
+    const after = await playerClient().call(playsApi.campaign, { params: { slug: c.slug } });
+    expect(after.terms).toBe('Thể lệ riêng của quán');
+  });
+});
+
 describe('plays', () => {
   test('join → win issues a voucher that the counter can redeem', async () => {
     const c = await createCampaign({ prizes: [{ ...P1, quantity: 3 }] });

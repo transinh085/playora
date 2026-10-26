@@ -1,6 +1,7 @@
 import {
   type Campaign,
   type CampaignBrand,
+  CampaignCompliance,
   type CampaignPrize,
   CampaignRules,
   type CampaignRulesInput,
@@ -17,6 +18,8 @@ import type { EventPatch } from './campaigns.repository';
 export interface CampaignDocument {
   /** Playbook the campaign was created from (docs/product/specs/playbooks.md); null = blank. */
   playbook: PlaybookKey | null;
+  /** Promotion type, own terms and the pre-publish checklist (CMP-03, CMP-04). */
+  compliance: CampaignCompliance;
   brand: CampaignBrand;
   screens: CampaignScreens;
   prizes: CampaignPrize[];
@@ -35,13 +38,15 @@ const LATER_RULE_DEFAULTS = {
  * added in P1, so the rules go through the contract to get their defaults.
  */
 export function readCampaignDocument(raw: unknown): CampaignDocument {
-  const stored = raw as Omit<CampaignDocument, 'playbook' | 'rules'> & {
+  const stored = raw as Omit<CampaignDocument, 'playbook' | 'rules' | 'compliance'> & {
     playbook?: PlaybookKey | null;
+    compliance?: unknown;
     rules: CampaignRulesInput;
   };
   const parsed = CampaignRules.safeParse(stored.rules);
   return {
     playbook: stored.playbook ?? null,
+    compliance: CampaignCompliance.parse(stored.compliance ?? {}),
     brand: stored.brand,
     screens: stored.screens,
     prizes: stored.prizes,

@@ -140,6 +140,22 @@ export type CampaignScreens = z.infer<typeof CampaignScreens>;
 export const CampaignStatus = z.enum(['draft', 'published']);
 export type CampaignStatus = z.infer<typeof CampaignStatus>;
 
+/**
+ * Promotion law (docs/business/compliance.md §2): a lucky draw tied to a purchase must be notified
+ * to the provincial Department of Industry and Trade before it runs.
+ */
+export const PromotionType = z.enum(['purchase_linked', 'not_linked']);
+export type PromotionType = z.infer<typeof PromotionType>;
+
+export const CampaignCompliance = z.object({
+  promotionType: PromotionType.nullable().default(null),
+  /** The shop's own terms; null = generated from the settings (CMP-04). */
+  termsText: z.string().trim().min(1).max(20_000).nullable().default(null),
+  /** When the shop confirmed the pre-publish legal checklist (CMP-03). */
+  checklistAcknowledgedAt: IsoDateTime.nullable().default(null),
+});
+export type CampaignCompliance = z.infer<typeof CampaignCompliance>;
+
 /** Goal-led starting points (docs/product/specs/playbooks.md §2); only seed the draft. */
 export const PlaybookKey = z.enum(['tet_traffic', 'second_visit', 'slow_days']);
 export type PlaybookKey = z.infer<typeof PlaybookKey>;
@@ -156,6 +172,7 @@ export const Campaign = z.object({
   skinKey: CampaignSkinKey,
   /** Playbook the campaign was created from; drives which outcome the report leads with. */
   playbook: PlaybookKey.nullable(),
+  compliance: CampaignCompliance,
   brand: CampaignBrand,
   screens: CampaignScreens,
   prizes: z.array(CampaignPrize),
@@ -184,6 +201,7 @@ export const CreateCampaignBody = z.object({
   /** Slug for the player link; generated from the name when omitted. */
   slug: Slug.optional(),
   playbook: PlaybookKey.nullable().optional(),
+  compliance: CampaignCompliance.optional(),
   /** The Studio builds the starter screens, prizes and rules from the template × skin (or a playbook). */
   brand: CampaignBrand,
   screens: CampaignScreens,
@@ -201,6 +219,7 @@ export const UpdateCampaignBody = z
     screens: CampaignScreens,
     prizes: z.array(CampaignPrize).max(20),
     rules: CampaignRules,
+    compliance: CampaignCompliance,
   })
   .partial();
 export type UpdateCampaignBody = z.input<typeof UpdateCampaignBody>;
