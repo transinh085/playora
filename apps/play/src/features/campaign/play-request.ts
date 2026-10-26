@@ -10,6 +10,14 @@ export function isTransientPlayError(error: unknown): boolean {
   return error.status >= 500 || error.status === 408;
 }
 
+export function isRateLimitedError(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 429 || error.code === 'RATE_LIMITED');
+}
+
+export function isCaptchaRequiredError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403 && error.code === 'CAPTCHA_REQUIRED';
+}
+
 export interface PlayRequesterOptions<T> {
   /** Sends one play with this idempotency key. */
   send: (requestId: string) => Promise<T>;
@@ -52,6 +60,10 @@ export class PlayRequester<T> {
         this.pending = null;
         return result;
       } catch (error) {
+        if (isRateLimitedError(error) || isCaptchaRequiredError(error)) {
+          // Keep the request ID for the next tap or challenge retry; do not auto-retry immediately in the loop
+          throw error;
+        }
         if (!isTransientPlayError(error)) {
           this.pending = null;
           throw error;

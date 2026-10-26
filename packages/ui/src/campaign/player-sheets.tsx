@@ -25,7 +25,10 @@ import type { CampaignPlayerLabels } from './labels';
 export type CampaignPlayerRules = Pick<
   CampaignRules,
   'startsAt' | 'endsAt' | 'openingHours' | 'playsPerDay' | 'collectForm'
-> & { maxWinsPerPlayer?: number };
+> & {
+  maxWinsPerPlayer?: number;
+  openDays?: readonly number[] | null;
+};
 
 /** A prize as the player sees it; `quantity` is unknown on the public player (stock stays private). */
 export type PlayerPrize = Pick<CampaignPrize, 'id' | 'name' | 'image'> & { quantity?: number };
@@ -210,29 +213,83 @@ export function PhoneSheet({
   );
 }
 
+/** Content rendered inside NoticeSheet, exported for direct testing without portal requirements. */
+export function NoticeContent({
+  kind,
+  onClose,
+  labels,
+  nextTurnAtFormatted,
+  openDaysFormatted,
+}: {
+  kind: 'noTurns' | 'closed';
+  onClose: () => void;
+  labels: CampaignPlayerLabels;
+  nextTurnAtFormatted?: string | null;
+  openDaysFormatted?: string | null;
+}) {
+  const notice = labels.notice[kind];
+  const extraText =
+    kind === 'noTurns' && nextTurnAtFormatted
+      ? notice?.nextTurn
+        ? notice.nextTurn(nextTurnAtFormatted)
+        : `Lượt tiếp theo: ${nextTurnAtFormatted}`
+      : kind === 'closed' && openDaysFormatted
+        ? notice?.openDays
+          ? notice.openDays(openDaysFormatted)
+          : `Ngày mở: ${openDaysFormatted}`
+        : null;
+
+  return (
+    <Result
+      status={kind === 'noTurns' ? 'info' : 'warning'}
+      title={notice.title}
+      subTitle={
+        extraText ? (
+          <Flex vertical gap={4} align="center">
+            <span>{notice.body}</span>
+            <Typography.Text
+              type="secondary"
+              data-testid={kind === 'noTurns' ? 'next-turn-notice' : 'open-days-notice'}
+            >
+              {extraText}
+            </Typography.Text>
+          </Flex>
+        ) : (
+          notice.body
+        )
+      }
+      extra={
+        <Button type="primary" onClick={onClose}>
+          {notice.ok}
+        </Button>
+      }
+    />
+  );
+}
+
 /** "Out of turns" / "closed" notice (docs/product/specs/builder.md §3.1 result branches). */
 export function NoticeSheet({
   kind,
   onClose,
   labels,
+  nextTurnAtFormatted,
+  openDaysFormatted,
 }: {
   kind: 'noTurns' | 'closed' | null;
   onClose: () => void;
   labels: CampaignPlayerLabels;
+  nextTurnAtFormatted?: string | null;
+  openDaysFormatted?: string | null;
 }) {
-  const notice = kind ? labels.notice[kind] : null;
   return (
     <PhoneSheet open={kind !== null} onClose={onClose}>
-      {notice && (
-        <Result
-          status={kind === 'noTurns' ? 'info' : 'warning'}
-          title={notice.title}
-          subTitle={notice.body}
-          extra={
-            <Button type="primary" onClick={onClose}>
-              {notice.ok}
-            </Button>
-          }
+      {kind && (
+        <NoticeContent
+          kind={kind}
+          onClose={onClose}
+          labels={labels}
+          nextTurnAtFormatted={nextTurnAtFormatted}
+          openDaysFormatted={openDaysFormatted}
         />
       )}
     </PhoneSheet>
@@ -247,6 +304,7 @@ export function RulesSheet({
   prizes,
   rehearsal,
   labels,
+  openDaysFormatted,
 }: {
   open: boolean;
   onClose: () => void;
@@ -254,11 +312,13 @@ export function RulesSheet({
   prizes: readonly PlayerPrize[];
   rehearsal: boolean;
   labels: CampaignPlayerLabels;
+  openDaysFormatted?: string | null;
 }) {
   const l = labels.rules;
   const lines = [
     l.window(rules.startsAt, rules.endsAt),
     rules.openingHours ? l.hours(rules.openingHours.start, rules.openingHours.end) : l.allDay,
+    ...(openDaysFormatted && l.openDays ? [l.openDays(openDaysFormatted)] : []),
     l.playsPerDay(rules.playsPerDay),
     ...(rules.maxWinsPerPlayer === undefined ? [] : [l.maxWins(rules.maxWinsPerPlayer)]),
     ...(rules.collectForm ? [l.form] : []),
