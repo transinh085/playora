@@ -56,9 +56,12 @@ test('builder lab: create from template → set rules → publish → play on a 
   await page.getByRole('switch', { name: 'Rải đều quà' }).click();
   await page.getByRole('switch', { name: 'Chỉ phát quà trong khung giờ' }).click();
 
-  // Pre-flight passes; publish shows the share panel.
+  // Pre-flight passes; answer promotion question and confirm legal checklist before publish.
   await page.getByRole('button', { name: 'Publish' }).first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('radio', { name: /Không/ }).click();
+  await dialog.getByRole('checkbox', { name: /đơn vị tổ chức/ }).check();
+  await dialog.getByRole('checkbox', { name: /kiểm tra thể lệ/ }).check();
   await dialog.getByRole('button', { name: 'Publish' }).click();
   await expect(dialog.getByText('Đã publish v1')).toBeVisible();
   const live = await dialog

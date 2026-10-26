@@ -91,8 +91,36 @@ describe('preflight', () => {
           brand: skinBrand(skinKey),
           screens: buildScreens(templateKey, skinKey),
         });
-        expect(preflight(c, NOW)).toEqual([]);
+        expect(hasBlockingIssues(preflight(c, NOW))).toBe(false);
       }
+    }
+  });
+
+  test('unselected promotion type is a warning, not blocking', () => {
+    const issues = preflight(
+      campaign({
+        compliance: { promotionType: null, termsText: null, checklistAcknowledgedAt: null },
+      }),
+      NOW,
+    );
+    const issue = byCode(issues, 'unselectedPromotionType')[0];
+    expect(issue).toMatchObject({
+      level: 'warning',
+      code: 'unselectedPromotionType',
+      where: { area: 'rules' },
+    });
+    expect(hasBlockingIssues(issues)).toBe(false);
+  });
+
+  test('selected promotion type has no compliance issue', () => {
+    for (const promotionType of ['purchase_linked', 'not_linked'] as const) {
+      const issues = preflight(
+        campaign({
+          compliance: { promotionType, termsText: null, checklistAcknowledgedAt: null },
+        }),
+        NOW,
+      );
+      expect(byCode(issues, 'unselectedPromotionType')).toEqual([]);
     }
   });
 

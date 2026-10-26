@@ -47,9 +47,12 @@ test('playbook: goal → budget → suggestion → editor with prizes and rules 
   await expect(page.getByRole('switch', { name: 'Chỉ phát quà trong khung giờ' })).toBeChecked();
   await expect(page.getByText('Mỗi khách chơi được 1 lượt mỗi ngày.')).toBeVisible();
 
-  // Pre-flight has no blocking errors: publish goes through.
+  // Pre-flight has no blocking errors: answer promotion question and confirm legal checklist before publish.
   await page.getByRole('button', { name: 'Publish' }).first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('radio', { name: /Không/ }).click();
+  await dialog.getByRole('checkbox', { name: /đơn vị tổ chức/ }).check();
+  await dialog.getByRole('checkbox', { name: /kiểm tra thể lệ/ }).check();
   await dialog.getByRole('button', { name: 'Publish' }).click();
   await expect(dialog.getByText('Đã publish v1')).toBeVisible();
 

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { type Campaign, useUpdateCampaign } from '../../api';
 
 export type DraftPatch = Partial<
-  Pick<Campaign, 'name' | 'skinKey' | 'brand' | 'screens' | 'prizes' | 'rules'>
+  Pick<Campaign, 'name' | 'skinKey' | 'brand' | 'screens' | 'prizes' | 'rules' | 'compliance'>
 >;
 export type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
