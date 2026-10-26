@@ -265,7 +265,7 @@ Khai báo ở `packages/jobs/src/definitions.ts`; TypeScript buộc mọi job c�
 | DB | Bảng `clients`, `brand_kits`, `events`, `games`, `game_versions`, `guest_list_entries`, `players`, `consents`, `prizes`, `draw_spins`, `awards`, `assets`, `audit_logs` + bảng Better Auth. Chưa có `plays`, `play_counters`, `voucher_codes` |
 | Core | Prize engine, draw provably-fair, registration/consent, player session: có test, **chưa được API gọi** |
 | Templates | `spin-wheel` |
-| Studio | Luồng chính là **Builder Lab**: chương trình, editor 3 chế độ (Sửa nhanh, Tuỳ biến canvas, Luật & giải), Play giả lập, quầy đổi quà. Lưu trữ là **backend giả** (`apps/studio/src/features/builder-lab/mock`, localStorage); quyết định giải đã chạy `decide()`/`simulate()` thật của `@playora/core/prize`. UI sự kiện/trò chơi cũ (`/events/**`) vẫn còn |
+| Studio | Một mô hình **Campaign** trên API thật (`features/builder-lab`, hook ở `api.ts`): chương trình, editor 3 chế độ (Sửa nhanh, Tuỳ biến canvas, Luật & giải), chạy thử, trang vận hành, quầy đổi quà. Gói & sử dụng ở `/orgs/:orgId/settings/billing` (cảnh báo 80%/100% trên Trang chủ, quầy đổi quà, publish/tiếp tục) và back-office nội bộ `/admin` (`features/billing`). UI sự kiện/trò chơi/khách mời cũ (`/events/**`, `features/events|games|guests`) **đã gỡ** (27/10); module API `events`/`games`/`guests` vẫn giữ vì Campaign lưu trên các bảng đó (ADR-015) |
 | Play | `/`, `/preview`, `/[slug]` (dừng ở phòng chờ sau khi join) |
 
 **Bước tiếp theo** (theo [product/roadmap.md](../product/roadmap.md)):

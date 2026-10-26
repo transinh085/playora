@@ -19,6 +19,7 @@ import {
 import {
   CalendarDays,
   ChevronsUpDown,
+  Gem,
   House,
   ImageIcon,
   LayoutTemplate,
@@ -55,6 +56,7 @@ type NavKey =
   | 'brandKits'
   | 'assets'
   | 'settings'
+  | 'billing'
   | 'canvasLab';
 interface NavItem {
   key: NavKey;
@@ -103,7 +105,18 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
       { key: 'assets', icon: ImageIcon, path: 'assets', permission: { asset: ['read'] } },
     ],
   },
-  { key: 'organization', items: [{ key: 'settings', icon: Settings, path: 'settings' }] },
+  {
+    key: 'organization',
+    items: [
+      { key: 'settings', icon: Settings, path: 'settings' },
+      {
+        key: 'billing',
+        icon: Gem,
+        path: 'settings/billing',
+        permission: { billing: ['read'] },
+      },
+    ],
+  },
   ...(LABS_ENABLED
     ? [
         {
@@ -153,7 +166,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
       )
     : undefined;
-  const inEvent = /\/(events|campaigns)\/(?!new\b)[^/]+/.test(pathname);
+  const inEvent = /\/campaigns\/(?!new\b)[^/]+/.test(pathname);
 
   const navMenuItems: MenuProps['items'] = current
     ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {

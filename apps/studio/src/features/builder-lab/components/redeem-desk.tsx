@@ -2,7 +2,7 @@
 
 import { ApiError } from '@playora/api-client';
 import { useRouteQuery } from '@playora/api-client/react';
-import { meApi, ReopenVoucherBody } from '@playora/contracts';
+import { ErrorCode, meApi, ReopenVoucherBody } from '@playora/contracts';
 import { applyApiError, useZodForm } from '@playora/ui/form';
 import {
   Alert,
@@ -22,9 +22,12 @@ import {
   theme,
 } from 'antd';
 import { Gift, RotateCcw, ScanLine } from 'lucide-react';
+import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { useInvalidateBilling } from '@/features/billing/api';
+import { billingPath } from '@/features/billing/lib/plans';
 import { api } from '@/lib/api';
 import { can } from '@/lib/permissions';
 import { useRedeemVoucher, useReopenVoucher, useVoucherLookup } from '../api';
@@ -45,6 +48,7 @@ interface Redemption {
 export function RedeemDesk({ orgId }: { orgId: string }) {
   const t = useTranslations('builderLab.redeem');
   const tErrors = useTranslations('errors');
+  const tBilling = useTranslations('billing');
   const format = useFormatter();
   const { modal, message } = App.useApp();
   const { token } = theme.useToken();
@@ -58,6 +62,10 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
   const [session, setSession] = useState<Redemption[]>([]);
   const [justRedeemed, setJustRedeemed] = useState<Redemption | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
+  /** Code refused because the plan's monthly redemptions are used up (D-21); it stays valid. */
+  const [planBlocked, setPlanBlocked] = useState<string | null>(null);
+  const invalidateBilling = useInvalidateBilling();
+  const canSeePlan = can(role, { billing: ['read'] });
 
   const lookup = useVoucherLookup(orgId, code);
   const redeem = useRedeemVoucher(orgId);
@@ -81,6 +89,7 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
     const next = normalizeCode(input);
     if (!next) return;
     setJustRedeemed(null);
+    setPlanBlocked(null);
     redeem.reset();
     if (next === code) void lookup.refetch();
     else setCode(next);
@@ -104,12 +113,18 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
             at: voucher.redeemedAt ?? new Date().toISOString(),
           };
           setJustRedeemed(entry);
+          void invalidateBilling();
           setSession((list) => [entry, ...list.filter((item) => item.code !== entry.code)]);
         } catch (error) {
           if (error instanceof ApiError) {
             if (error.code === 'VOUCHER_ALREADY_REDEEMED') {
               message.error(t('alreadyRedeemedShort', { code: data.code }));
               void lookup.refetch();
+              return;
+            }
+            if (error.code === ErrorCode.PLAN_REDEMPTION_LIMIT) {
+              setPlanBlocked(data.code);
+              void invalidateBilling();
               return;
             }
             if (tErrors.has(error.code)) {
@@ -153,6 +168,7 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
     setInput('');
     setCode('');
     setJustRedeemed(null);
+    setPlanBlocked(null);
   };
 
   const lookupError = lookup.error;
@@ -208,6 +224,22 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
           </form>
         </Card>
 
+        {planBlocked && (
+          <Alert
+            type="error"
+            showIcon
+            data-testid="redeem-plan-limit"
+            title={tErrors('PLAN_REDEMPTION_LIMIT')}
+            description={tBilling('redeemBlocked', { code: planBlocked })}
+            action={
+              canSeePlan ? (
+                <Link href={billingPath(orgId)}>
+                  <Button tabIndex={-1}>{tBilling('viewPlan')}</Button>
+                </Link>
+              ) : undefined
+            }
+          />
+        )}
         {justRedeemed ? (
           <Card
             variant="borderless"
