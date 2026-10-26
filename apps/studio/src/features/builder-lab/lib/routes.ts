@@ -16,5 +16,13 @@ export function campaignRoutes(orgId: string) {
     play: (id: string) => `${base}/play/${id}` as Route,
     rehearsal: (id: string) => `${base}/play/${id}?rehearsal=1` as Route,
     redeem: `${base}/redeem` as Route,
+    share: (id: string) => `${base}/campaigns/${id}/share` as Route,
+    sharePrint: (id: string, query?: { ch?: string; format?: 'standee' | 'tent' }) => {
+      const q = new URLSearchParams();
+      if (query?.ch) q.set('ch', query.ch);
+      if (query?.format) q.set('format', query.format);
+      const qs = q.toString();
+      return `${base}/campaigns/${id}/share/print${qs ? `?${qs}` : ''}` as Route;
+    },
   };
 }

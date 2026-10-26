@@ -10,6 +10,7 @@ import {
   Play,
   QrCode,
   Rocket,
+  Share2,
   TicketCheck,
   TriangleAlert,
   Users,
@@ -120,6 +121,9 @@ export function PublishDialog({
       footer={
         published ? (
           <Flex justify="end" gap={8}>
+            <Link href={campaignRoutes(orgId).share(campaign.id)}>
+              <Button icon={<Share2 className="size-4" />}>{t('openShare')}</Button>
+            </Link>
             <Button
               icon={<ExternalLink className="size-4" />}
               href={labLinks(orgId, campaign.id).play}
@@ -254,8 +258,17 @@ function IssueRow({
 }
 
 function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
+  const t = useTranslations('builderLab.publish');
   return (
     <Flex vertical gap={20} data-testid="publish-success">
+      <Flex justify="space-between" align="center">
+        <Typography.Text type="secondary">{t('liveHint')}</Typography.Text>
+        <Link href={campaignRoutes(orgId).share(campaign.id)}>
+          <Button type="primary" icon={<Share2 className="size-4" />}>
+            {t('openShare')}
+          </Button>
+        </Link>
+      </Flex>
       <ShareLinks orgId={orgId} campaign={campaign} />
       <CampaignMetrics orgId={orgId} campaignId={campaign.id} />
     </Flex>

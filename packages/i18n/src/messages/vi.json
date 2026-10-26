@@ -1130,7 +1130,8 @@
         "redeemed": "Đã đổi quà",
         "budget": "Ngân sách đã dùng"
       },
-      "openOps": "Mở trang vận hành"
+      "openOps": "Mở trang vận hành",
+      "openShare": "Chia sẻ & QR"
     }
   },
   "campaignPlayer": {
@@ -1294,7 +1295,65 @@
       "no_turns": "Hết lượt"
     },
     "share": {
-      "draft": "Chương trình chưa publish nên chưa có link cho khách. Bạn vẫn chơi thử được bằng link nháp."
+      "title": "Chia sẻ & QR",
+      "subtitle": "Link tham gia theo kênh, mã QR tải về và mẫu in standee / tent card cho quán.",
+      "action": "Chia sẻ & QR",
+      "draft": "Chương trình chưa publish nên chưa có link cho khách. Bạn vẫn chơi thử được bằng link nháp.",
+      "draftNotice": "Chương trình đang ở trạng thái Nháp. Mã QR sẽ chỉ hoạt động cho khách sau khi phát hành.",
+      "channels": {
+        "title": "Kênh phân phối",
+        "hint": "Mỗi kênh có đường link và mã QR riêng kèm tham số ?ch= để bạn đo lường hiệu quả từng điểm chạm.",
+        "tableQr": "QR để bàn",
+        "counter": "Quầy thu ngân",
+        "fanpage": "Fanpage Facebook",
+        "zalo": "Zalo OA / Chat",
+        "add": "Thêm kênh",
+        "addTitle": "Thêm kênh phân phối mới",
+        "channelName": "Tên kênh",
+        "channelNamePlaceholder": "Ví dụ: Instagram, Tờ rơi, Bàn VIP...",
+        "channelKey": "Mã kênh (ch)",
+        "channelKeyHint": "Chỉ gồm chữ thường không dấu, số, gạch nối hoặc gạch dưới (tối đa 64 ký tự).",
+        "deleteConfirm": "Xoá kênh này?",
+        "direct": "Trực tiếp (không có kênh)",
+        "custom": "Tuỳ chỉnh",
+        "keyRequired": "Vui lòng nhập tên kênh để tạo mã kênh hợp lệ",
+        "keyDuplicate": "Mã kênh này đã tồn tại"
+      },
+      "links": {
+        "copy": "Sao chép link",
+        "copied": "Đã sao chép liên kết vào clipboard",
+        "downloadPng": "Tải PNG",
+        "downloadSvg": "Tải SVG",
+        "printStandee": "In Standee A5",
+        "printTent": "In Tent card A6"
+      },
+      "report": {
+        "title": "Hiệu quả theo kênh",
+        "description": "Số lượt chơi, trúng thưởng và khách đến quầy đổi quà phân theo từng kênh.",
+        "channel": "Kênh",
+        "plays": "Lượt chơi",
+        "wins": "Trúng thưởng",
+        "visits": "Đến quầy",
+        "redemptionRate": "Tỷ lệ đổi quà",
+        "empty": "Chưa có dữ liệu theo kênh."
+      },
+      "counterStaff": {
+        "title": "Mời nhân viên quầy",
+        "description": "Mời nhân viên với vai trò “Chỉ đổi quà” (redeemer). Nhân viên chỉ có thể mở Quầy đổi quà để tra cứu và trao quà cho khách, không thể xem hay chỉnh sửa thông tin chương trình.",
+        "action": "Mời nhân viên"
+      },
+      "print": {
+        "title": "Mẫu in QR tham gia",
+        "standeeA5": "Standee A5",
+        "tentCardA6": "Tent card A6",
+        "cta": "Quét để nhận quà",
+        "instruction": "Dùng camera điện thoại hoặc Zalo để quét mã",
+        "printNow": "In ngay",
+        "back": "Quay lại Chia sẻ & QR",
+        "foldHere": "Nếp gấp / Fold here",
+        "draftNotice": "Chương trình đang ở trạng thái Nháp. Mã QR sẽ chỉ hoạt động cho khách sau khi phát hành.",
+        "poweredBy": "Phát hành qua Playora"
+      }
     },
     "vouchers": {
       "title": "Mã đổi quà đã phát",
