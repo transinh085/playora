@@ -3,7 +3,7 @@ import { ApiError, createApiClient } from '@playora/api-client';
 import {
   type Campaign,
   type CampaignPrize,
-  type CampaignRules,
+  type CampaignRulesInput,
   campaignsApi,
   ErrorCode,
   type PlayResult,
@@ -14,6 +14,7 @@ import {
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
 import { DB } from '../src/infra/tokens';
+import { localWeekday } from '../src/modules/plays/plays.service';
 import { campaignBody, P1, P2 } from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
@@ -47,8 +48,11 @@ async function expectApiError(promise: Promise<unknown>, status: number, code?: 
 
 const DAY = 86_400_000;
 
-/** Live rules: started yesterday, no opening hours, no pacing, anonymous (no form). */
-function rules(overrides: Partial<CampaignRules> = {}): CampaignRules {
+/**
+ * Live rules: started yesterday, no opening hours, no pacing, anonymous (no form). Anti-fraud `low`
+ * because these tests run many players from one IP; `standard` is covered in anti-fraud.e2e.
+ */
+function rules(overrides: Partial<CampaignRulesInput> = {}): CampaignRulesInput {
   const now = Date.now();
   return {
     mode: 'overall_win_rate',
@@ -61,12 +65,13 @@ function rules(overrides: Partial<CampaignRules> = {}): CampaignRules {
     pacing: false,
     budgetVnd: null,
     collectForm: false,
+    antiFraud: 'low',
     ...overrides,
   };
 }
 
 async function createCampaign(
-  input: { prizes?: CampaignPrize[]; rules?: Partial<CampaignRules> } = {},
+  input: { prizes?: CampaignPrize[]; rules?: Partial<CampaignRulesInput> } = {},
   opts: { publish?: boolean } = {},
 ): Promise<Campaign> {
   const api = t.client(alice);
@@ -126,6 +131,9 @@ describe('player campaign', () => {
       version: 1,
       phase: 'live',
       playsPerDay: 1,
+      openDays: null,
+      requireRedeemBeforeReplay: false,
+      captchaSiteKey: null,
       collectForm: false,
       timezone: 'Asia/Ho_Chi_Minh',
       registrationForm: { fields: [], consents: [] },
@@ -239,7 +247,7 @@ describe('plays', () => {
     expect(await playRows(c.id)).toHaveLength(1);
     expect(await awardRows(c.id)).toHaveLength(0);
     const me = await p.api.call(playsApi.me, { params: { slug: c.slug } });
-    expect(me).toEqual({ turnsLeftToday: 1, nextTurnAt: null, vouchers: [] });
+    expect(me).toEqual({ turnsLeftToday: 1, nextTurnAt: null, blockedReason: null, vouchers: [] });
   });
 
   test('no_turns once playsPerDay is used, not recorded as a play', async () => {
@@ -410,6 +418,138 @@ describe('plays', () => {
       ErrorCode.VALIDATION_FAILED,
     );
     expect(await playRows(other.id)).toHaveLength(0);
+  });
+});
+
+describe('open days, redeem first and session version', () => {
+  test('a closed weekday answers closed without using a turn', async () => {
+    const today = localWeekday(new Date(), 'Asia/Ho_Chi_Minh');
+    const openDays = [0, 1, 2, 3, 4, 5, 6].filter((d) => d !== today);
+    const c = await createCampaign({ rules: { openDays } });
+    const pub = await playerClient().call(playsApi.campaign, { params: { slug: c.slug } });
+    expect(pub).toMatchObject({ phase: 'live', openDays });
+
+    const p = await join(c.slug);
+    expect(await play(p.api, c.slug)).toEqual({
+      playId: null,
+      outcome: 'closed',
+      reason: 'closed',
+      prize: null,
+      voucher: null,
+      turnsLeftToday: 1,
+    });
+    expect(await playRows(c.id)).toHaveLength(0);
+    const [counter] = await db
+      .select()
+      .from(schema.playCounters)
+      .where(eq(schema.playCounters.playerId, p.playerId));
+    expect(counter?.n ?? 0).toBe(0);
+    expect((await p.api.call(playsApi.me, { params: { slug: c.slug } })).turnsLeftToday).toBe(1);
+
+    // Open today again: the same player plays.
+    await t.client(alice).call(campaignsApi.update, {
+      params: ids(c),
+      body: { rules: { ...c.rules, openDays: null } },
+    });
+    await t.client(alice).call(campaignsApi.publish, { params: ids(c) });
+    expect((await play(p.api, c.slug)).outcome).toBe('win');
+  });
+
+  test('redeem first: an unused voucher blocks the next turn until it is redeemed', async () => {
+    const c = await createCampaign({
+      prizes: [{ ...P1, quantity: 100 }],
+      rules: {
+        mode: 'guaranteed',
+        playsPerDay: 3,
+        maxWinsPerPlayer: 3,
+        requireRedeemBeforeReplay: true,
+      },
+    });
+    expect(
+      (await playerClient().call(playsApi.campaign, { params: { slug: c.slug } }))
+        .requireRedeemBeforeReplay,
+    ).toBe(true);
+    const p = await join(c.slug);
+    const meBefore = await p.api.call(playsApi.me, { params: { slug: c.slug } });
+    expect(meBefore.blockedReason).toBeNull();
+
+    const first = await play(p.api, c.slug);
+    expect(first).toMatchObject({ outcome: 'win', turnsLeftToday: 2 });
+    const me = await p.api.call(playsApi.me, { params: { slug: c.slug } });
+    expect(me).toMatchObject({ turnsLeftToday: 2, blockedReason: 'redeem_first' });
+
+    expect(await play(p.api, c.slug)).toEqual({
+      playId: null,
+      outcome: 'no_turns',
+      reason: 'redeem_first',
+      prize: null,
+      voucher: null,
+      turnsLeftToday: 2,
+    });
+    expect(await playRows(c.id)).toHaveLength(1);
+
+    await t.client(alice).call(vouchersApi.redeem, {
+      params: { orgId: aliceOrg, code: first.voucher?.code as string },
+    });
+    expect((await p.api.call(playsApi.me, { params: { slug: c.slug } })).blockedReason).toBeNull();
+    expect(await play(p.api, c.slug)).toMatchObject({ outcome: 'win', turnsLeftToday: 1 });
+  });
+
+  test('redeem first ignores void and expired vouchers', async () => {
+    const c = await createCampaign({
+      prizes: [{ ...P1, quantity: 100 }],
+      rules: {
+        mode: 'guaranteed',
+        playsPerDay: 3,
+        maxWinsPerPlayer: 3,
+        requireRedeemBeforeReplay: true,
+      },
+    });
+    const p = await join(c.slug);
+    expect((await play(p.api, c.slug)).outcome).toBe('win');
+    await db
+      .update(schema.awards)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(schema.awards.playerId, p.playerId));
+    expect((await play(p.api, c.slug)).outcome).toBe('win');
+    await db
+      .update(schema.awards)
+      .set({ status: 'void' })
+      .where(eq(schema.awards.playerId, p.playerId));
+    expect((await p.api.call(playsApi.me, { params: { slug: c.slug } })).blockedReason).toBeNull();
+    expect((await play(p.api, c.slug)).outcome).toBe('win');
+  });
+
+  test('tokens are signed with players.session_ver; bumping it revokes them', async () => {
+    const c = await createCampaign({ rules: { playsPerDay: 2, overallWinRate: 0 } });
+    const deviceId = crypto.randomUUID();
+    const p = await join(c.slug, deviceId);
+    expect((await play(p.api, c.slug)).outcome).toBe('lose');
+
+    await db.update(schema.players).set({ sessionVer: 1 }).where(eq(schema.players.id, p.playerId));
+    await expectApiError(play(p.api, c.slug), 401, ErrorCode.UNAUTHORIZED);
+    await expectApiError(
+      p.api.call(playsApi.me, { params: { slug: c.slug } }),
+      401,
+      ErrorCode.UNAUTHORIZED,
+    );
+
+    // Joining again from the same device returns the same player with a fresh token.
+    const again = await join(c.slug, deviceId);
+    expect(again.playerId).toBe(p.playerId);
+    expect((await play(again.api, c.slug)).outcome).toBe('lose');
+  });
+
+  test('one device is one player, also under concurrent joins', async () => {
+    const c = await createCampaign();
+    const deviceId = crypto.randomUUID();
+    const joins = await Promise.all(Array.from({ length: 8 }, () => join(c.slug, deviceId)));
+    expect(new Set(joins.map((j) => j.playerId)).size).toBe(1);
+    const rows = await db
+      .select()
+      .from(schema.players)
+      .where(and(eq(schema.players.eventId, c.id), eq(schema.players.deviceId, deviceId)));
+    expect(rows).toHaveLength(1);
   });
 });
 

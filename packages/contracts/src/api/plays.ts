@@ -35,7 +35,11 @@ export const PublicCampaign = z.object({
   timezone: z.string(),
   openingHours: z.object({ start: z.string(), end: z.string() }).nullable(),
   playsPerDay: z.number().int(),
+  openDays: z.array(z.number().int()).nullable(),
+  requireRedeemBeforeReplay: z.boolean(),
   collectForm: z.boolean(),
+  /** Cloudflare Turnstile site key when the anti-fraud level asks for a challenge. */
+  captchaSiteKey: z.string().nullable(),
   registrationForm: PublicRegistrationForm,
 });
 export type PublicCampaign = z.infer<typeof PublicCampaign>;
@@ -69,6 +73,8 @@ export const PlayerState = z.object({
   turnsLeftToday: z.number().int().min(0),
   /** When the next turn opens if none are left today (start of the next open day). */
   nextTurnAt: IsoDateTime.nullable(),
+  /** `redeem_first`: an unredeemed voucher must be used at the counter before playing again. */
+  blockedReason: z.enum(['redeem_first']).nullable(),
   vouchers: z.array(MyVoucher),
 });
 export type PlayerState = z.infer<typeof PlayerState>;

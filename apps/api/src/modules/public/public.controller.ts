@@ -3,6 +3,7 @@ import { normalizeIp } from '@nestjs/throttler';
 import { publicApi, type RouteArgs } from '@playora/contracts';
 import type { Database } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
+import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { Args, Route } from '../../common/contract/route.decorator';
 import { DB, ENV } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
@@ -35,8 +36,13 @@ export function getPublicJoinDeviceTracker(req: Record<string, unknown>): string
 export class PublicController {
   private readonly publicService: PublicService;
 
-  constructor(@Inject(DB) db: Database, @Inject(ENV) env: ApiEnv, assets: AssetsService) {
-    this.publicService = new PublicService(new PublicRepository(db), assets, env);
+  constructor(
+    @Inject(DB) db: Database,
+    @Inject(ENV) env: ApiEnv,
+    assets: AssetsService,
+    antiFraud: AntiFraudService,
+  ) {
+    this.publicService = new PublicService(new PublicRepository(db), assets, env, antiFraud);
   }
 
   @Route(publicApi.event)

@@ -84,6 +84,15 @@ export const CampaignRules = z
     budgetVnd: z.number().int().min(0).nullable(),
     /** Show the Form screen (name, phone, consent) before the game. */
     collectForm: z.boolean(),
+    /** Days of week the campaign is open (0 = Sunday … 6 = Saturday); null = every day ("Lấp ngày vắng"). */
+    openDays: z.array(z.number().int().min(0).max(6)).min(1).max(7).nullable().default(null),
+    /**
+     * A player with a won voucher not yet redeemed at the counter cannot play again
+     * ("Khách quay lại lần 2": the next turn opens only after the first visit).
+     */
+    requireRedeemBeforeReplay: z.boolean().default(false),
+    /** Anti-fraud level (docs/product/specs/participation.md §4); `high` arrives in M2. */
+    antiFraud: z.enum(['low', 'standard']).default('standard'),
   })
   .refine((r) => Date.parse(r.startsAt) < Date.parse(r.endsAt), {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
@@ -94,6 +103,8 @@ export const CampaignRules = z
     path: ['openingHours', 'end'],
   });
 export type CampaignRules = z.infer<typeof CampaignRules>;
+/** Rules as stored or sent; fields added after M1 launch may be missing from older drafts. */
+export type CampaignRulesInput = z.input<typeof CampaignRules>;
 
 export const CampaignScreenKey = z.enum(['cover', 'form', 'game', 'resultWin', 'resultLose']);
 export type CampaignScreenKey = z.infer<typeof CampaignScreenKey>;
@@ -127,6 +138,10 @@ export type CampaignScreens = z.infer<typeof CampaignScreens>;
 export const CampaignStatus = z.enum(['draft', 'published']);
 export type CampaignStatus = z.infer<typeof CampaignStatus>;
 
+/** Goal-led starting points (docs/product/specs/playbooks.md §2); only seed the draft. */
+export const PlaybookKey = z.enum(['tet_traffic', 'second_visit', 'slow_days']);
+export type PlaybookKey = z.infer<typeof PlaybookKey>;
+
 export const CampaignPhase = z.enum(['draft', 'scheduled', 'live', 'paused', 'ended']);
 export type CampaignPhase = z.infer<typeof CampaignPhase>;
 
@@ -137,6 +152,8 @@ export const Campaign = z.object({
   name: z.string(),
   templateKey: CampaignTemplateKey,
   skinKey: CampaignSkinKey,
+  /** Playbook the campaign was created from; drives which outcome the report leads with. */
+  playbook: PlaybookKey.nullable(),
   brand: CampaignBrand,
   screens: CampaignScreens,
   prizes: z.array(CampaignPrize),
@@ -164,6 +181,7 @@ export const CreateCampaignBody = z.object({
   skinKey: CampaignSkinKey,
   /** Slug for the player link; generated from the name when omitted. */
   slug: Slug.optional(),
+  playbook: PlaybookKey.nullable().optional(),
   /** The Studio builds the starter screens, prizes and rules from the template × skin (or a playbook). */
   brand: CampaignBrand,
   screens: CampaignScreens,
@@ -185,6 +203,56 @@ export const UpdateCampaignBody = z
   .partial();
 export type UpdateCampaignBody = z.input<typeof UpdateCampaignBody>;
 
+/**
+ * Outcome report (docs/product/specs/playbooks.md §3). "Visits" are counter redemptions
+ * (North Star, D-16); returning visitors redeemed on two different local days.
+ */
+export const CampaignReport = z.object({
+  visits: z.number().int(),
+  uniqueVisitors: z.number().int(),
+  returningVisitors: z.number().int(),
+  /** Cost of prizes redeemed at the counter; issued-but-unredeemed shown separately. */
+  prizeCostVnd: z.number().int(),
+  outstandingCostVnd: z.number().int(),
+  budgetVnd: z.number().int().nullable(),
+  /** prizeCostVnd / visits; null when nobody visited yet. */
+  costPerVisitVnd: z.number().int().nullable(),
+  plays: z.number().int(),
+  players: z.number().int(),
+  issued: z.number().int(),
+  /** redeemed / issued (0..1); null when nothing issued. */
+  redemptionRate: z.number().nullable(),
+  timezone: z.string(),
+  byDay: z.array(
+    z.object({
+      day: z.string(),
+      plays: z.number().int(),
+      wins: z.number().int(),
+      visits: z.number().int(),
+    }),
+  ),
+  byChannel: z.array(
+    z.object({
+      channel: z.string().nullable(),
+      plays: z.number().int(),
+      wins: z.number().int(),
+      visits: z.number().int(),
+    }),
+  ),
+  byPrize: z.array(
+    z.object({
+      prizeId: CampaignPrizeKey,
+      name: z.string(),
+      valueVnd: z.number().int(),
+      quantity: z.number().int(),
+      issued: z.number().int(),
+      redeemed: z.number().int(),
+      remaining: z.number().int(),
+    }),
+  ),
+});
+export type CampaignReport = z.infer<typeof CampaignReport>;
+
 export const CampaignPlayOutcome = z.enum(['win', 'lose', 'no_turns', 'closed']);
 export type CampaignPlayOutcome = z.infer<typeof CampaignPlayOutcome>;
 
@@ -195,7 +263,7 @@ export const CampaignPlayRecord = z.object({
   rehearsal: z.boolean(),
   at: IsoDateTime,
   outcome: CampaignPlayOutcome,
-  /** Prize engine reason (`win`, `lose`, `paced`, `out_of_stock`, `limit`, `budget`, `closed`, `paused`). */
+  /** Prize engine reason (`win`, `lose`, `paced`, `out_of_stock`, `limit`, `budget`, `closed`, `paused`, `redeem_first`). */
   reason: z.string(),
   prizeId: CampaignPrizeKey.nullable(),
   voucherCode: z.string().nullable(),
@@ -380,6 +448,16 @@ export const campaignsApi = {
     permission: { campaign: ['read'] },
     params: CampaignParams,
     response: CampaignStats,
+  }),
+  report: defineRoute({
+    method: 'GET',
+    path: '/orgs/:orgId/campaigns/:campaignId/report',
+    summary: 'Outcome report: counter visits, returning visitors, prize cost, by day/channel/prize',
+    tags: ['campaigns'],
+    auth: 'session',
+    permission: { campaign: ['read'] },
+    params: CampaignParams,
+    response: CampaignReport,
   }),
   rehearsalPlay: defineRoute({
     method: 'POST',

@@ -88,6 +88,11 @@ export class CampaignsController {
     return this.campaigns.vouchers(params.orgId, params.campaignId, query);
   }
 
+  @Route(campaignsApi.report)
+  report(@Args() { params }: RouteArgs<typeof campaignsApi.report>) {
+    return this.campaigns.report(params.orgId, params.campaignId);
+  }
+
   @Route(campaignsApi.stats)
   stats(@Args() { params }: RouteArgs<typeof campaignsApi.stats>) {
     return this.campaigns.stats(params.orgId, params.campaignId);

@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import type { CampaignPrize, CampaignRules } from '@playora/contracts';
-import { campaignPhase, localDayKey, toPrizeRules } from './campaign';
+import type { CampaignPrize, CampaignRulesInput } from '@playora/contracts';
+import { campaignPhase, localDayKey, toOpeningHours, toPrizeRules } from './campaign';
 import { decide } from './decide';
 import { PrizeRules } from './schemas';
 
-const rules: CampaignRules = {
+const rules: CampaignRulesInput = {
   mode: 'per_prize_probability',
   overallWinRate: 0.3,
   playsPerDay: 1,
@@ -51,6 +51,23 @@ describe('toPrizeRules', () => {
     );
     expect(parsed.prizes.map((p) => p.remaining)).toEqual([10, 0]);
   });
+});
+
+test('open days become weekday windows, all day when no hours are set', () => {
+  expect(toOpeningHours({ openingHours: null, openDays: [2, 3, 4] })).toEqual([
+    { days: [2, 3, 4], start: '00:00', end: '24:00' },
+  ]);
+  expect(
+    toOpeningHours({ openingHours: { start: '14:00', end: '17:00' }, openDays: null }),
+  ).toEqual([{ start: '14:00', end: '17:00' }]);
+  expect(toOpeningHours({ openingHours: null })).toBeUndefined();
+  const parsed = PrizeRules.parse(
+    toPrizeRules({ ...rules, openDays: [1] }, prizes, { rehearsal: false }),
+  );
+  // 2027-01-05 is a Tuesday in Vietnam: closed on a Monday-only campaign.
+  expect(
+    decide({ rules: parsed, snapshot: {}, now: new Date('2027-01-05T03:00:00Z'), rng: () => 0 }),
+  ).toEqual({ prizeId: null, reason: 'closed' });
 });
 
 describe('campaignPhase', () => {

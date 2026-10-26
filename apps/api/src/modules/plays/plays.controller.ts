@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Ip } from '@nestjs/common';
 import { campaignsApi, playsApi, type RouteArgs } from '@playora/contracts';
 import type { PlayerSessionClaims } from '@playora/core/session';
 import { CurrentPlayer } from '../../common/auth/decorators';
@@ -19,8 +19,9 @@ export class PlaysController {
   play(
     @Args() { params, body }: RouteArgs<typeof playsApi.play>,
     @CurrentPlayer() player: PlayerSessionClaims,
+    @Ip() ip: string,
   ) {
-    return this.plays.play(params.slug, player, body);
+    return this.plays.play(params.slug, player, body, ip);
   }
 
   @Route(playsApi.me)

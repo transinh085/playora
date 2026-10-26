@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
   index,
@@ -57,6 +58,8 @@ export const players = pgTable(
     index().on(t.eventId, t.env),
     uniqueIndex().on(t.eventId, t.env, t.phoneHash),
     uniqueIndex().on(t.eventId, t.env, t.guestListEntryId),
+    /** One device = one player per campaign (anonymous identity, ADR-012 §5). */
+    uniqueIndex().on(t.eventId, t.env, t.deviceId).where(sql`${t.deviceId} is not null`),
   ],
 );
 

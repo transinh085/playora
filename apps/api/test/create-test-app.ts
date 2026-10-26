@@ -19,6 +19,9 @@ export async function createTestApp(envOverrides: Record<string, string> = {}) {
     DATABASE_POOL_MAX: '4',
     RATE_LIMIT_PER_MIN: '100000',
     STUDIO_ORIGINS: TEST_ORIGIN,
+    // No Turnstile unless a test opts in (with a fake verifier): tests never call Cloudflare.
+    TURNSTILE_SITE_KEY: '',
+    TURNSTILE_SECRET_KEY: '',
     ...envOverrides,
   });
 

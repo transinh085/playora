@@ -78,6 +78,12 @@ export const apiEnvSchema = z
     /** Optional Google OAuth credentials (ORG-01); enabled only when both are present. */
     GOOGLE_CLIENT_ID: optionalString,
     GOOGLE_CLIENT_SECRET: optionalString,
+    /**
+     * Cloudflare Turnstile (EVT-13 "Chuẩn"): plays ask for a challenge only when the secret is set.
+     * The site key is handed to the player shell; both empty = no challenge.
+     */
+    TURNSTILE_SITE_KEY: optionalString,
+    TURNSTILE_SECRET_KEY: optionalString,
     ...s3Env,
     ...playerSessionEnv,
   })

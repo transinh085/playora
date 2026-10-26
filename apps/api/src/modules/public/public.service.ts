@@ -24,6 +24,8 @@ import {
 } from '@playora/core/registration';
 import { PLAYER_SESSION_TTL_S, signPlayerSession } from '@playora/core/session';
 import type { ApiEnv } from '@playora/env';
+import { AntiFraudService, antiFraudLevelOf } from '../../common/anti-fraud/anti-fraud.service';
+import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
 import { ENV } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
 import { type PlayerRow, PublicRepository } from './public.repository';
@@ -41,6 +43,7 @@ export class PublicService {
     private readonly repo: PublicRepository,
     private readonly assets: AssetsService,
     @Inject(ENV) private readonly env: ApiEnv,
+    private readonly antiFraud: AntiFraudService,
   ) {}
 
   private async resolveBrandKit(
@@ -137,101 +140,126 @@ export class PublicService {
       });
     }
 
-    const player = await this.repo.transaction(async (tx) => {
-      /*
-       * ADR-012 §5 wants this lock gone, but it still guards two things the schema does not:
-       * there is no unique index on (event_id, env, device_id), so two concurrent joins from one
-       * device would create two players, and `playerLimit` is a count-then-insert. Drop it once
-       * that unique index exists (and the limit becomes a soft cap).
-       */
-      await this.repo.lockEvent(orgId, eventId, tx);
-
-      let existing: PlayerRow | undefined;
-      let guestEntryId: string | null = null;
-      let displayName: string;
-      let team: string | null = null;
-
-      if (event.identity === 'guest_list') {
-        const guest = await this.repo.findGuestByCode(orgId, eventId, body.code ?? '', tx);
-        if (!guest) {
-          throw new NotFoundException({
-            code: ErrorCode.GUEST_CODE_NOT_FOUND,
-            message: 'Mã khách mời không tồn tại trong sự kiện này',
-            details: { field: 'code' },
-          });
-        }
-        guestEntryId = guest.id;
-        displayName = guest.displayName;
-        team = guest.team ?? null;
-        existing = await this.repo.findPlayerByGuestEntry(orgId, eventId, guest.id, tx);
-        if (existing?.deviceId && existing.deviceId !== cleanDeviceId) {
-          throw new ConflictException({
-            code: ErrorCode.GUEST_CODE_ALREADY_USED,
-            message:
-              'Mã khách mời đã được sử dụng trên thiết bị khác. Vui lòng liên hệ ban tổ chức để mở khoá.',
-          });
-        }
-      } else {
-        displayName = resolveDisplayName(body.displayName, formData, formConfig.fields);
-        existing = await this.repo.findPlayerByDeviceId(orgId, eventId, cleanDeviceId, tx);
-      }
-
-      const now = new Date();
-      let playerRow: PlayerRow;
-
-      if (existing) {
-        const patch = reconcileExistingPlayer({
-          existing,
-          isGuestList: event.identity === 'guest_list',
-          explicitDisplayName: body.displayName,
-          defaultDisplayName: displayName,
-          guestTeam: team,
-          deviceId: cleanDeviceId,
-          formData,
-          formFields: formConfig.fields,
-          now,
-        });
-        playerRow = patch ? await this.repo.updatePlayer(orgId, existing.id, patch, tx) : existing;
-      } else {
-        const liveCount = await this.repo.countLivePlayers(orgId, eventId, tx);
-        if (liveCount >= event.playerLimit) {
-          throw new ConflictException({
-            code: ErrorCode.PLAYER_LIMIT_REACHED,
-            message: 'Sự kiện đã đủ số người tham gia',
-          });
-        }
-
-        playerRow = await this.repo.insertPlayer(
-          orgId,
-          {
-            eventId,
-            env: 'live',
-            guestListEntryId: guestEntryId,
-            displayName,
-            deviceId: cleanDeviceId,
-            team,
-            formData,
-            checkedInAt: now,
-          },
-          tx,
-        );
-      }
-
-      if (formConfig.consents.length > 0) {
-        const existingPurposes = existing
-          ? await this.repo.findConsentPurposes(orgId, playerRow.id, tx)
-          : new Set<string>();
-        const newConsents = buildNewConsentRecords(
-          formConfig.consents,
-          consentsMap,
-          existingPurposes,
-          { playerId: playerRow.id, ip: meta.ip, userAgent: meta.userAgent },
-        );
-        await this.repo.insertConsents(orgId, newConsents, tx);
-      }
-
-      return playerRow;
+    await this.antiFraud.checkJoin({
+      level: antiFraudLevelOf(event.antiFraud),
+      eventId,
+      ip: meta.ip ?? '',
+      deviceId: cleanDeviceId,
     });
+
+    /*
+     * No lock on the event row (ADR-012 §5): the unique indexes on players (event, env, device_id)
+     * and (event, env, guest_list_entry_id) make one device = one player. Two concurrent first
+     * joins from one device race on the insert; the loser retries once and finds the winner's row.
+     * `playerLimit` is a count-then-insert, so it is a soft cap under concurrency.
+     */
+    const joinOnce = () =>
+      this.repo.transaction(async (tx) => {
+        let existing: PlayerRow | undefined;
+        let guestEntryId: string | null = null;
+        let displayName: string;
+        let team: string | null = null;
+
+        if (event.identity === 'guest_list') {
+          const guest = await this.repo.findGuestByCode(orgId, eventId, body.code ?? '', tx);
+          if (!guest) {
+            throw new NotFoundException({
+              code: ErrorCode.GUEST_CODE_NOT_FOUND,
+              message: 'Mã khách mời không tồn tại trong sự kiện này',
+              details: { field: 'code' },
+            });
+          }
+          guestEntryId = guest.id;
+          displayName = guest.displayName;
+          team = guest.team ?? null;
+          existing = await this.repo.findPlayerByGuestEntry(orgId, eventId, guest.id, tx);
+          if (existing?.deviceId && existing.deviceId !== cleanDeviceId) {
+            throw new ConflictException({
+              code: ErrorCode.GUEST_CODE_ALREADY_USED,
+              message:
+                'Mã khách mời đã được sử dụng trên thiết bị khác. Vui lòng liên hệ ban tổ chức để mở khoá.',
+            });
+          }
+        } else {
+          displayName = resolveDisplayName(body.displayName, formData, formConfig.fields);
+          existing = await this.repo.findPlayerByDeviceId(orgId, eventId, cleanDeviceId, tx);
+        }
+
+        const now = new Date();
+        let playerRow: PlayerRow;
+
+        if (existing) {
+          const patch = reconcileExistingPlayer({
+            existing,
+            isGuestList: event.identity === 'guest_list',
+            explicitDisplayName: body.displayName,
+            defaultDisplayName: displayName,
+            guestTeam: team,
+            deviceId: cleanDeviceId,
+            formData,
+            formFields: formConfig.fields,
+            now,
+          });
+          playerRow = patch
+            ? await this.repo.updatePlayer(orgId, existing.id, patch, tx)
+            : existing;
+        } else {
+          const liveCount = await this.repo.countLivePlayers(orgId, eventId, tx);
+          if (liveCount >= event.playerLimit) {
+            throw new ConflictException({
+              code: ErrorCode.PLAYER_LIMIT_REACHED,
+              message: 'Sự kiện đã đủ số người tham gia',
+            });
+          }
+
+          playerRow = await this.repo.insertPlayer(
+            orgId,
+            {
+              eventId,
+              env: 'live',
+              guestListEntryId: guestEntryId,
+              displayName,
+              deviceId: cleanDeviceId,
+              team,
+              formData,
+              checkedInAt: now,
+            },
+            tx,
+          );
+        }
+
+        if (formConfig.consents.length > 0) {
+          const existingPurposes = existing
+            ? await this.repo.findConsentPurposes(orgId, playerRow.id, tx)
+            : new Set<string>();
+          const newConsents = buildNewConsentRecords(
+            formConfig.consents,
+            consentsMap,
+            existingPurposes,
+            { playerId: playerRow.id, ip: meta.ip, userAgent: meta.userAgent },
+          );
+          await this.repo.insertConsents(orgId, newConsents, tx);
+        }
+
+        return playerRow;
+      });
+    let player: PlayerRow;
+    try {
+      player = await joinOnce();
+    } catch (err) {
+      if (pgErrorCode(err) !== PG_UNIQUE_VIOLATION) throw err;
+      try {
+        player = await joinOnce();
+      } catch (retryErr) {
+        if (pgErrorCode(retryErr) !== PG_UNIQUE_VIOLATION) throw retryErr;
+        // A guest code joining from a device another guest already uses.
+        throw new ConflictException({
+          code: ErrorCode.CONFLICT,
+          message: 'Thiết bị này đã được dùng cho một người chơi khác trong sự kiện',
+          details: { field: 'deviceId' },
+        });
+      }
+    }
 
     const finalDisplayName = player.displayName ?? DEFAULT_PLAYER_DISPLAY_NAME;
     const playerToken = signPlayerSession(
@@ -241,7 +269,7 @@ export class PublicService {
         eventId,
         sub: player.id,
         displayName: finalDisplayName,
-        ver: 1,
+        ver: player.sessionVer,
         exp: Math.floor(Date.now() / 1000) + PLAYER_SESSION_TTL_S,
       },
       this.env.PLAYER_SESSION_SECRET,

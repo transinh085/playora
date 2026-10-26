@@ -1,4 +1,4 @@
-import type { CampaignPhase, CampaignPrize, CampaignRules } from '@playora/contracts';
+import type { CampaignPhase, CampaignPrize, CampaignRulesInput } from '@playora/contracts';
 import type { PrizeRulesInput } from './schemas';
 
 /**
@@ -16,7 +16,7 @@ export interface CampaignEngineOptions {
 }
 
 export function toPrizeRules(
-  rules: CampaignRules,
+  rules: CampaignRulesInput,
   prizes: readonly CampaignPrize[],
   opts: CampaignEngineOptions,
 ): PrizeRulesInput {
@@ -44,14 +44,26 @@ export function toPrizeRules(
       rules.pacing && !opts.rehearsal
         ? { strategy: 'time_uniform', smoothing: true }
         : { strategy: 'none' },
-    openingHours:
-      rules.openingHours && !opts.rehearsal
-        ? [{ start: rules.openingHours.start, end: rules.openingHours.end }]
-        : undefined,
+    openingHours: opts.rehearsal ? undefined : toOpeningHours(rules),
     window: opts.rehearsal
       ? { startsAt: now - 86_400_000, endsAt: now + 86_400_000, timezone }
       : { startsAt: rules.startsAt, endsAt: rules.endsAt, timezone },
   };
+}
+
+/** Daily hours and open weekdays as engine windows; undefined = always open. */
+export function toOpeningHours(
+  rules: Pick<CampaignRulesInput, 'openingHours' | 'openDays'>,
+): Array<{ days?: number[]; start: string; end: string }> | undefined {
+  const days = rules.openDays?.length ? [...rules.openDays] : undefined;
+  if (!rules.openingHours && !days) return undefined;
+  return [
+    {
+      ...(days ? { days } : {}),
+      start: rules.openingHours?.start ?? '00:00',
+      end: rules.openingHours?.end ?? '24:00',
+    },
+  ];
 }
 
 /**
