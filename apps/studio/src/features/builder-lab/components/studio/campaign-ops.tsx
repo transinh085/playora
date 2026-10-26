@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Alert,
   App,
   Button,
   Card,
@@ -24,6 +23,7 @@ import {
   Pause,
   Pencil,
   Play,
+  Share2,
   Square,
   Trash2,
   TriangleAlert,
@@ -50,8 +50,9 @@ import { campaignPhase, isRunning } from '../../lib/phase';
 import { preflight } from '../../lib/preflight';
 import { campaignRoutes } from '../../lib/routes';
 import { isoToLocalInput, localInputToIso } from '../../lib/rules-format';
-import { CampaignMetrics, ShareLinks } from '../editor/publish-dialog';
+import { CampaignMetrics } from '../editor/publish-dialog';
 import { campaignPeriod } from './campaign-period';
+import { CampaignShareView } from './campaign-share-view';
 import { PhaseTag } from './phase-tag';
 import { PlaybookTag } from './playbook-tag';
 
@@ -142,10 +143,23 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
       </Button>
     </Link>
   );
-  if (phase === 'draft') return edit;
+  const share = (
+    <Link href={routes.share(campaign.id)}>
+      <Button icon={<Share2 className="size-4" />}>{t('share.action')}</Button>
+    </Link>
+  );
+  if (phase === 'draft') {
+    return (
+      <Flex gap={8} wrap>
+        {edit}
+        {share}
+      </Flex>
+    );
+  }
   return (
     <Flex gap={8} wrap>
       {edit}
+      {share}
       {phase === 'paused' ? (
         <Button
           type="primary"
@@ -359,27 +373,7 @@ function PlaysTable({
 }
 
 function ShareTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
-  const t = useTranslations('campaigns');
-  const { token } = theme.useToken();
-  if (campaign.status === 'draft') {
-    return (
-      <Alert
-        type="info"
-        showIcon
-        title={t('share.draft')}
-        action={
-          <Button href={campaignRoutes(orgId).rehearsal(campaign.id)} target="_blank">
-            {t('rehearse')}
-          </Button>
-        }
-      />
-    );
-  }
-  return (
-    <Card variant="borderless" style={{ border: `1px solid ${token.colorBorderSecondary}` }}>
-      <ShareLinks orgId={orgId} campaign={campaign} />
-    </Card>
-  );
+  return <CampaignShareView orgId={orgId} campaignId={campaign.id} embedded />;
 }
 
 function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {

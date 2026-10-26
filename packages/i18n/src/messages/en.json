@@ -927,7 +927,8 @@
         "redeemed": "Redeemed",
         "budget": "Budget used"
       },
-      "openOps": "Open campaign page"
+      "openOps": "Open campaign page",
+      "openShare": "Share & QR"
     },
     "weekdays": {
       "0": "Sun",
@@ -1191,7 +1192,65 @@
       "no_turns": "No turns left"
     },
     "share": {
-      "draft": "This campaign is not published yet, so there is no guest link. You can still try it with the draft link."
+      "draft": "This campaign is not published yet, so there is no guest link. You can still try it with the draft link.",
+      "title": "Share & QR",
+      "subtitle": "Channel links, downloadable QR codes, and printable standee / tent card templates for your shop.",
+      "action": "Share & QR",
+      "draftNotice": "This campaign is currently in Draft status. The QR code will only work for guests after publishing.",
+      "channels": {
+        "title": "Distribution channels",
+        "hint": "Each channel has a dedicated link and QR code with a ?ch= parameter to track performance.",
+        "tableQr": "Table QR",
+        "counter": "Counter",
+        "fanpage": "Facebook Fanpage",
+        "zalo": "Zalo OA / Chat",
+        "add": "Add channel",
+        "addTitle": "Add new distribution channel",
+        "channelName": "Channel name",
+        "channelNamePlaceholder": "e.g. Instagram, Flyer, VIP Table...",
+        "channelKey": "Channel key (ch)",
+        "channelKeyHint": "Lowercase alphanumeric, dash, or underscore only (max 64 characters).",
+        "deleteConfirm": "Delete this channel?",
+        "direct": "Direct (no channel)",
+        "custom": "Custom",
+        "keyRequired": "Please enter a channel name to generate a valid key",
+        "keyDuplicate": "This channel key already exists"
+      },
+      "links": {
+        "copy": "Copy link",
+        "copied": "Link copied to clipboard",
+        "downloadPng": "Download PNG",
+        "downloadSvg": "Download SVG",
+        "printStandee": "Print A5 Standee",
+        "printTent": "Print A6 Tent card"
+      },
+      "report": {
+        "title": "Performance by channel",
+        "description": "Plays, wins, and counter visits tracked across each distribution channel.",
+        "channel": "Channel",
+        "plays": "Plays",
+        "wins": "Wins",
+        "visits": "Counter visits",
+        "redemptionRate": "Redemption rate",
+        "empty": "No channel data yet."
+      },
+      "counterStaff": {
+        "title": "Invite counter staff",
+        "description": "Invite staff with the “Redeem only” (redeemer) role. They can only access the counter redemption desk to look up and redeem prizes, with no permission to view or edit campaign settings.",
+        "action": "Invite staff"
+      },
+      "print": {
+        "title": "Printable QR templates",
+        "standeeA5": "A5 Standee",
+        "tentCardA6": "A6 Tent card",
+        "cta": "Scan to win prizes",
+        "instruction": "Scan with your phone camera or Zalo",
+        "printNow": "Print now",
+        "back": "Back to Share & QR",
+        "foldHere": "Fold here",
+        "draftNotice": "This campaign is currently in Draft status. The QR code will only work for guests after publishing.",
+        "poweredBy": "Powered by Playora"
+      }
     },
     "vouchers": {
       "title": "Issued codes",

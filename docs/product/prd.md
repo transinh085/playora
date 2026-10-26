@@ -143,8 +143,8 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 | EVT-01 | Vòng đời suy ra: Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; gia hạn; không xoá khi đang chạy | M1 | ✅ |
 | EVT-02 | Danh tính: ẩn danh (thiết bị), form (tên, SĐT), danh sách khách mời | M1 | ✅ (join cũ) |
 | EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ |
-| EVT-10 | QR tham gia (PNG/SVG/PDF), mẫu standee | M1 | 🧪 |
-| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ✅ API (`plays.channel_key`, `byChannel` trong báo cáo) · ✅ Play đọc `?ch=` · ⬜ UI Studio |
+| EVT-10 | QR tham gia (PNG/SVG), mẫu standee & tent card | M1 | ✅ |
+| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ✅ |
 | EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ✅ Thấp/Chuẩn (rate limit, Turnstile trên Play, một thiết bị một người chơi, thu hồi token) · ⬜ Cao |
 | EVT-14 | Lượt chơi theo ngày/tổng/khung giờ; thêm lượt khi chia sẻ (giới hạn) | M1/M2 | ✅ M1 (lượt/ngày, giờ và ngày mở cửa) · ⬜ thêm lượt khi chia sẻ (M2) |
 | EVT-09 | Chạy thử bằng bot N lượt, không trừ kho thật | M1 | ⬜ |

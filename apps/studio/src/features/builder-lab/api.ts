@@ -9,6 +9,7 @@ import {
   type CampaignPlayRecord,
   type CampaignPrize,
   type CampaignPrizeMode,
+  type CampaignReport,
   type CampaignRules,
   type CampaignSkinKey,
   type CampaignStats,
@@ -51,6 +52,7 @@ export type {
   CampaignPlayRecord,
   CampaignPrize,
   CampaignPrizeMode,
+  CampaignReport,
   CampaignRules,
   CampaignSkinKey,
   CampaignStats,
@@ -153,6 +155,15 @@ export function useCampaignVouchers(orgId: string, campaignId: string) {
     { enabled: Boolean(orgId && campaignId) },
   );
   return { ...query, data: query.data?.items };
+}
+
+export function useCampaignReport(orgId: string, campaignId: string) {
+  return useRouteQuery(
+    api,
+    campaignsApi.report,
+    { params: { orgId, campaignId } },
+    { enabled: Boolean(orgId && campaignId) },
+  );
 }
 
 // ── Campaign Mutations ───────────────────────────────────────────────────────
