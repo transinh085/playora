@@ -400,7 +400,21 @@
     "endedTitle": "Chương trình đã kết thúc",
     "endedBody": "Cảm ơn bạn đã quan tâm. Quà đã trúng vẫn đổi được trong hạn.",
     "notFoundTitle": "Không tìm thấy chương trình",
-    "notFoundBody": "Đường dẫn không đúng hoặc chương trình đã bị gỡ. Bạn kiểm tra lại mã QR nhé."
+    "notFoundBody": "Đường dẫn không đúng hoặc chương trình đã bị gỡ. Bạn kiểm tra lại mã QR nhé.",
+    "redeemFirstMessage": "Đổi quà ở quầy trước để chơi lượt tiếp theo",
+    "captchaTitle": "Xác minh bảo mật",
+    "captchaHint": "Vui lòng xác minh để tiếp tục chơi",
+    "nextTurnAt": "Lượt tiếp theo mở lúc {time}",
+    "openDaysNote": "Chương trình mở vào các ngày: {days}",
+    "weekdays": {
+      "0": "Chủ Nhật",
+      "1": "Thứ Hai",
+      "2": "Thứ Ba",
+      "3": "Thứ Tư",
+      "4": "Thứ Năm",
+      "5": "Thứ Sáu",
+      "6": "Thứ Bảy"
+    }
   },
   "navGroups": {
     "campaigns": "Minigame",
@@ -1148,11 +1162,13 @@
     "noTurns": {
       "title": "Bạn đã hết lượt hôm nay",
       "body": "Quay lại ngày mai để chơi tiếp nhé!",
+      "nextTurn": "Lượt chơi tiếp theo sẽ mở lúc {time}.",
       "ok": "Đã hiểu"
     },
     "closed": {
       "title": "Chương trình chưa mở hoặc đã kết thúc",
       "body": "Hãy xem lại thời gian diễn ra chương trình rồi quay lại nhé.",
+      "openDays": "Chương trình chỉ mở vào các ngày: {days}.",
       "ok": "Đã hiểu"
     },
     "vouchers": {
@@ -1175,6 +1191,7 @@
       "window": "Thời gian: {start} – {end}.",
       "hours": "Giờ chơi: {start}–{end} mỗi ngày.",
       "allDay": "Chơi được cả ngày.",
+      "openDays": "Ngày mở: {days}.",
       "form": "Bạn cần để lại tên và số điện thoại trước khi chơi.",
       "prizes": "Quà tặng",
       "prizeLine": "{name} · {count} phần",
@@ -1182,7 +1199,8 @@
       "redeem": "Mang mã đổi quà đến quầy. Mỗi mã chỉ đổi được một lần.",
       "rehearsalNote": "Đang chơi thử: bỏ qua lịch và giờ chơi, quà thử không tính vào số liệu thật.",
       "ok": "Đã hiểu"
-    }
+    },
+    "redeemFirstMessage": "Đổi quà ở quầy trước để chơi lượt tiếp theo"
   },
   "campaigns": {
     "title": "Chương trình",

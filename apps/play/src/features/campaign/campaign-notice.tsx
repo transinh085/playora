@@ -1,9 +1,11 @@
 'use client';
 
 import type { PublicCampaign } from '@playora/contracts';
-import { Button, Result, Typography } from 'antd';
+import { Button, Flex, Result, Typography } from 'antd';
 import { useFormatter, useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import { CampaignFrame } from './campaign-frame';
+import { formatOpenDays } from './open-days';
 
 type ClosedPhase = Exclude<PublicCampaign['phase'], 'live' | 'draft'>;
 
@@ -16,11 +18,18 @@ export function CampaignNotice({
     'slug' | 'name' | 'brand' | 'skinKey' | 'startsAt' | 'timezone'
   > & {
     phase: ClosedPhase;
+    openDays?: readonly number[] | null;
   };
 }) {
   const t = useTranslations('play');
+  const tWeekdays = useTranslations('play.weekdays');
   const format = useFormatter();
   const { phase } = campaign;
+
+  const openDaysFormatted = useMemo(
+    () => formatOpenDays(campaign.openDays, (d) => tWeekdays(String(d))),
+    [campaign.openDays, tWeekdays],
+  );
 
   const body =
     phase === 'scheduled'
@@ -40,7 +49,16 @@ export function CampaignNotice({
         <Result
           status={phase === 'paused' ? 'warning' : 'info'}
           title={t(`${phase}Title`)}
-          subTitle={body}
+          subTitle={
+            <Flex vertical gap={4} align="center">
+              <span>{body}</span>
+              {openDaysFormatted && (
+                <Typography.Text type="secondary" data-testid="notice-open-days">
+                  {t('openDaysNote', { days: openDaysFormatted })}
+                </Typography.Text>
+              )}
+            </Flex>
+          }
           extra={
             phase === 'scheduled' ? null : (
               <Button type="primary" href={`/${campaign.slug}/prizes`}>

@@ -151,6 +151,7 @@ function campaignBody(slug: string) {
       pacing: false,
       budgetVnd: null,
       collectForm: true,
+      antiFraud: 'low',
     },
   };
 }
@@ -246,6 +247,71 @@ test('guest plays a published campaign from the table QR and finds the voucher i
   await page.goto(`${PLAY}/${slug}`);
   await page.getByRole('button', { name: 'CHƠI NGAY' }).click();
   await expect(page.getByRole('button', { name: /chạm để quay/i })).toBeVisible();
+});
+
+test('guest must redeem prize before replay when requireRedeemBeforeReplay is true', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const id = unique();
+  const replaySlug = `e2e-replay-${id}`;
+
+  const now = Date.now();
+  const body = {
+    ...campaignBody(replaySlug),
+    rules: {
+      mode: 'guaranteed',
+      overallWinRate: 1,
+      playsPerDay: 3,
+      maxWinsPerPlayer: 5,
+      startsAt: new Date(now - DAY).toISOString(),
+      endsAt: new Date(now + 7 * DAY).toISOString(),
+      openingHours: null,
+      pacing: false,
+      budgetVnd: null,
+      collectForm: false,
+      requireRedeemBeforeReplay: true,
+      antiFraud: 'low',
+    },
+  };
+
+  const c = await apiCall<{ id: string }>('POST', `/orgs/${orgId}/campaigns`, cookie, body);
+  await apiCall('POST', `/orgs/${orgId}/campaigns/${c.id}/publish`, cookie);
+
+  await page.goto(`${PLAY}/${replaySlug}`);
+  await page.getByRole('button', { name: 'CHƠI NGAY' }).click();
+
+  // First play: win a prize
+  const spinBtn = page.getByRole('button', { name: /chạm để quay/i });
+  await expect(spinBtn).toBeVisible();
+  await spinBtn.click();
+  await expect(page.getByText('CHÚC MỪNG!')).toBeVisible({ timeout: 20_000 });
+
+  const codeEl = page.getByTestId('voucher-code');
+  await expect(codeEl).toBeVisible();
+  const code = ((await codeEl.textContent()) ?? '').trim();
+  expect(code).toMatch(/^[A-Z0-9]{4,32}$/);
+
+  // Return to game screen to attempt the second play
+  await page.goto(`${PLAY}/${replaySlug}`);
+  await page.getByRole('button', { name: 'CHƠI NGAY' }).click();
+
+  // Second play: tap spin again -> server returns no_turns + redeem_first
+  await expect(spinBtn).toBeVisible();
+  await spinBtn.click();
+
+  // The redeem-first notice appears on the game screen with the button opening Quà của tôi
+  const notice = page.getByTestId('redeem-first-notice');
+  await expect(notice).toBeVisible({ timeout: 10_000 });
+  await expect(notice.getByText('Đổi quà ở quầy trước để chơi lượt tiếp theo')).toBeVisible();
+  await expect(notice.getByRole('button', { name: 'Quà của tôi' })).toBeVisible();
+
+  // Redeem the voucher via API at the shop counter
+  await apiCall('POST', `/orgs/${orgId}/vouchers/${code}/redeem`, cookie);
+
+  // Third tap: now that the voucher is redeemed, the player can play again!
+  await spinBtn.click();
+  await expect(page.getByText('CHÚC MỪNG!')).toBeVisible({ timeout: 20_000 });
 });
 
 test('unknown campaign slug is a 404', async ({ page }) => {

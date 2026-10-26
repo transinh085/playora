@@ -11,13 +11,17 @@ import {
   toCanvasDoc,
 } from '@playora/ui/campaign';
 import { App, Badge, Button, Flex, Tag } from 'antd';
-import { useTranslations } from 'next-intl';
-import { useMemo, useRef, useState } from 'react';
+import Script from 'next/script';
+import { useFormatter, useTranslations } from 'next-intl';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { TurnstileModal, type TurnstileModalHandle } from '@/features/captcha';
 import { api, playerApi } from '@/lib/api';
 import { buttonActionHref } from './button-action';
 import { CampaignFrame } from './campaign-frame';
 import { toJoinBody } from './join-body';
-import { PlayRequester } from './play-request';
+import { formatOpenDays } from './open-days';
+import { executePlayWithCaptcha } from './play-captcha';
+import { isRateLimitedError, PlayRequester } from './play-request';
 import { getOrCreateDeviceId, type PlayerSession, usePlayerSession } from './session';
 import { useCampaignPlayerLabels } from './use-labels';
 import { usePlayerState, usePolling } from './use-player-state';
@@ -40,6 +44,7 @@ export function toPlayerDocument(campaign: PublicCampaign): CampaignPlayerDocume
       endsAt: campaign.endsAt,
       openingHours: campaign.openingHours,
       playsPerDay: campaign.playsPerDay,
+      openDays: campaign.openDays,
       collectForm: campaign.collectForm,
     },
   };
@@ -63,7 +68,9 @@ export function CampaignShell({
 function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel?: string }) {
   const { slug } = campaign;
   const t = useTranslations('play');
+  const tWeekdays = useTranslations('play.weekdays');
   const tErrors = useTranslations('errors');
+  const format = useFormatter();
   const { message } = App.useApp();
   const labels = useCampaignPlayerLabels(
     campaign.collectForm ? campaign.registrationForm : undefined,
@@ -80,6 +87,47 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
   const me = usePlayerState(slug, session?.playerToken ?? null, clearSession);
   const [vouchersOpen, setVouchersOpen] = useState(false);
   usePolling(vouchersOpen, me.refresh, VOUCHER_POLL_MS);
+
+  // Turnstile state & ref
+  const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
+  const turnstileModalRef = useRef<TurnstileModalHandle>(null);
+  const captchaTokenRef = useRef<string | null>(null);
+  const captchaResolverRef = useRef<{
+    resolve: (token: string) => void;
+    reject: (err: unknown) => void;
+  } | null>(null);
+
+  const acquireCaptchaToken = (): Promise<string> => {
+    if (captchaTokenRef.current) return Promise.resolve(captchaTokenRef.current);
+    setCaptchaModalOpen(true);
+    return new Promise<string>((resolve, reject) => {
+      captchaResolverRef.current = { resolve, reject };
+    });
+  };
+
+  const onCaptchaSuccess = (token: string) => {
+    captchaTokenRef.current = token;
+    setCaptchaModalOpen(false);
+    if (captchaResolverRef.current) {
+      captchaResolverRef.current.resolve(token);
+      captchaResolverRef.current = null;
+    }
+  };
+
+  const onCaptchaClose = () => {
+    setCaptchaModalOpen(false);
+    if (captchaResolverRef.current) {
+      captchaResolverRef.current.reject(new Error('Captcha cancelled'));
+      captchaResolverRef.current = null;
+    }
+  };
+
+  // Open Turnstile before first play of the session if captchaSiteKey is set
+  useEffect(() => {
+    if (campaign.captchaSiteKey && hydrated && !captchaTokenRef.current) {
+      setCaptchaModalOpen(true);
+    }
+  }, [campaign.captchaSiteKey, hydrated]);
 
   const errorText = (error: unknown, fallback: string) => {
     if (error instanceof ApiError) return tErrors.has(error.code) ? tErrors(error.code) : fallback;
@@ -116,13 +164,22 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
     }
   };
 
-  const sendPlay = (requestId: string) =>
-    withPlayerToken((token) =>
-      playerApi(token).call(playsApi.play, {
-        params: { slug },
-        body: { requestId, ...(channel ? { channel } : {}) },
-      }),
-    );
+  const sendPlay = (requestId: string): Promise<PlayResult> =>
+    executePlayWithCaptcha({
+      requestId,
+      captchaSiteKey: campaign.captchaSiteKey,
+      currentCaptchaToken: captchaTokenRef.current,
+      channel,
+      acquireCaptchaToken,
+      resetTurnstile: () => turnstileModalRef.current?.reset(),
+      onTokenUpdated: (t) => {
+        captchaTokenRef.current = t;
+      },
+      callPlayApi: (body) =>
+        withPlayerToken((playerToken) =>
+          playerApi(playerToken).call(playsApi.play, { params: { slug }, body }),
+        ),
+    });
   const sendRef = useRef(sendPlay);
   sendRef.current = sendPlay;
   const [requester] = useState(
@@ -145,9 +202,13 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
       void me.refresh(sessionRef.current?.playerToken ?? null);
       return result;
     } catch (error) {
-      if (error instanceof SessionExpiredError) {
+      if (isRateLimitedError(error)) {
+        message.warning(errorText(error, tErrors('RATE_LIMITED')));
+      } else if (error instanceof SessionExpiredError) {
         message.warning(t('sessionExpired'));
         player.current?.reset();
+      } else if (error instanceof Error && error.message === 'Captcha cancelled') {
+        // user cancelled captcha modal
       } else {
         message.error(errorText(error, t('playFailed')));
       }
@@ -166,6 +227,19 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
   const unredeemed = vouchers.filter((v) => v.status === 'issued').length;
   const turnsLeft = me.state?.turnsLeftToday;
 
+  const nextTurnFormatted = me.state?.nextTurnAt
+    ? format.dateTime(new Date(me.state.nextTurnAt), {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: campaign.timezone,
+      })
+    : null;
+
+  const openDaysFormatted = useMemo(
+    () => formatOpenDays(campaign.openDays, (d) => tWeekdays(String(d))),
+    [campaign.openDays, tWeekdays],
+  );
+
   return (
     <>
       <CampaignPlayer
@@ -182,11 +256,17 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         skipForm={Boolean(session)}
         onVouchersOpenChange={setVouchersOpen}
         prizesHref={`/${slug}/prizes`}
+        blockedReason={me.state?.blockedReason ?? null}
+        nextTurnAtFormatted={nextTurnFormatted}
+        openDaysFormatted={openDaysFormatted}
       />
       <Flex gap="small" align="center" className="absolute top-3 right-3 z-10">
         {turnsLeft !== undefined && (
           <Tag className="m-0" data-testid="turns-left">
             {t('turnsLeft', { count: turnsLeft })}
+            {turnsLeft === 0 &&
+              nextTurnFormatted &&
+              ` · ${t('nextTurnAt', { time: nextTurnFormatted })}`}
           </Tag>
         )}
         <Badge count={unredeemed} size="small">
@@ -199,6 +279,23 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         <div className="absolute top-3 left-3 z-10">
           <PlayoraWatermark />
         </div>
+      )}
+      {campaign.captchaSiteKey && (
+        <>
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+            strategy="lazyOnload"
+          />
+          <TurnstileModal
+            ref={turnstileModalRef}
+            open={captchaModalOpen}
+            siteKey={campaign.captchaSiteKey}
+            title={t('captchaTitle')}
+            hint={t('captchaHint')}
+            onSuccess={onCaptchaSuccess}
+            onClose={onCaptchaClose}
+          />
+        </>
       )}
     </>
   );

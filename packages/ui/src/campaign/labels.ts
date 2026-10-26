@@ -37,6 +37,8 @@ export interface NoticeLabels {
   title: string;
   body: string;
   ok: string;
+  nextTurn?: (time: string) => string;
+  openDays?: (days: string) => string;
 }
 
 export interface CampaignPlayerLabels {
@@ -71,6 +73,7 @@ export interface CampaignPlayerLabels {
     window: (startIso: string, endIso: string) => string;
     hours: (start: string, end: string) => string;
     allDay: string;
+    openDays?: (days: string) => string;
     playsPerDay: (count: number) => string;
     maxWins: (count: number) => string;
     form: string;
@@ -81,6 +84,7 @@ export interface CampaignPlayerLabels {
     rehearsalNote: string;
     ok: string;
   };
+  redeemFirstMessage?: string;
 }
 
 /** Keys used under the `campaignPlayer` message namespace. */
@@ -118,9 +122,11 @@ export type CampaignMessageKey =
   | 'voucher.show'
   | 'noTurns.title'
   | 'noTurns.body'
+  | 'noTurns.nextTurn'
   | 'noTurns.ok'
   | 'closed.title'
   | 'closed.body'
+  | 'closed.openDays'
   | 'closed.ok'
   | 'vouchers.title'
   | 'vouchers.empty'
@@ -137,6 +143,7 @@ export type CampaignMessageKey =
   | 'rules.window'
   | 'rules.hours'
   | 'rules.allDay'
+  | 'rules.openDays'
   | 'rules.playsPerDay'
   | 'rules.maxWins'
   | 'rules.form'
@@ -145,7 +152,8 @@ export type CampaignMessageKey =
   | 'rules.fairness'
   | 'rules.redeem'
   | 'rules.rehearsalNote'
-  | 'rules.ok';
+  | 'rules.ok'
+  | 'redeemFirstMessage';
 
 /** A translator scoped to `campaignPlayer` (next-intl's `useTranslations('campaignPlayer')` fits). */
 export type CampaignTranslate = (
@@ -166,6 +174,9 @@ export function createCampaignPlayerLabels(
     title: t(`${kind}.title`),
     body: t(`${kind}.body`),
     ok: t(`${kind}.ok`),
+    ...(kind === 'noTurns'
+      ? { nextTurn: (time: string) => t('noTurns.nextTurn', { time }) }
+      : { openDays: (days: string) => t('closed.openDays', { days }) }),
   });
   const date = (iso: string) => formatDateTime(new Date(iso), { dateStyle: 'medium' });
   return {
@@ -236,6 +247,7 @@ export function createCampaignPlayerLabels(
       window: (start, end) => t('rules.window', { start: date(start), end: date(end) }),
       hours: (start, end) => t('rules.hours', { start, end }),
       allDay: t('rules.allDay'),
+      openDays: (days) => t('rules.openDays', { days }),
       playsPerDay: (count) => t('rules.playsPerDay', { count }),
       maxWins: (count) => t('rules.maxWins', { count }),
       form: t('rules.form'),
@@ -246,5 +258,6 @@ export function createCampaignPlayerLabels(
       rehearsalNote: t('rules.rehearsalNote'),
       ok: t('rules.ok'),
     },
+    redeemFirstMessage: t('redeemFirstMessage'),
   };
 }

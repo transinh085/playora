@@ -68,7 +68,7 @@ describe('PlayRequester', () => {
     const sent: string[] = [];
     const answers: unknown[] = [
       new ApiError(503, ErrorCode.INTERNAL, 'down'),
-      new ApiError(429, ErrorCode.RATE_LIMITED, 'slow down'),
+      new ApiError(400, ErrorCode.VALIDATION_FAILED, 'bad request'),
     ];
     const requester = new PlayRequester<string>({
       newId: idFactory(),
@@ -86,6 +86,21 @@ describe('PlayRequester', () => {
 
     await requester.play();
     expect(sent[2]).not.toBe(sent[0] as string);
+  });
+
+  test('429 RATE_LIMITED keeps the requestId for the retry without auto-retrying in loop', async () => {
+    const sent: string[] = [];
+    const requester = new PlayRequester<string>({
+      newId: idFactory(),
+      wait: noWait,
+      send: async (id) => {
+        sent.push(id);
+        throw new ApiError(429, ErrorCode.RATE_LIMITED, 'slow down');
+      },
+    });
+    await expect(requester.play()).rejects.toBeInstanceOf(ApiError);
+    expect(sent).toHaveLength(1);
+    expect(requester.pendingRequestId).toBe(sent[0] as string);
   });
 });
 

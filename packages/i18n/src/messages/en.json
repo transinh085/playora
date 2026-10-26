@@ -400,7 +400,21 @@
     "endedTitle": "The campaign has ended",
     "endedBody": "Thanks for your interest. Prizes you won can still be redeemed until they expire.",
     "notFoundTitle": "Campaign not found",
-    "notFoundBody": "The link is wrong or the campaign was removed. Please check the QR code."
+    "notFoundBody": "The link is wrong or the campaign was removed. Please check the QR code.",
+    "redeemFirstMessage": "Redeem your prize at the counter before playing the next turn",
+    "captchaTitle": "Security verification",
+    "captchaHint": "Please complete verification to continue playing",
+    "nextTurnAt": "Next turn opens at {time}",
+    "openDaysNote": "Campaign is open on: {days}",
+    "weekdays": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    }
   },
   "navGroups": {
     "campaigns": "Minigames",
@@ -1148,11 +1162,13 @@
     "noTurns": {
       "title": "You're out of turns for today",
       "body": "Come back tomorrow to play again!",
+      "nextTurn": "Next turn opens at {time}.",
       "ok": "Got it"
     },
     "closed": {
       "title": "This campaign hasn't started or has ended",
       "body": "Check the campaign dates and come back.",
+      "openDays": "This campaign is only open on: {days}.",
       "ok": "Got it"
     },
     "vouchers": {
@@ -1175,6 +1191,7 @@
       "window": "Runs {start} – {end}.",
       "hours": "Playable {start}–{end} every day.",
       "allDay": "Playable all day.",
+      "openDays": "Open days: {days}.",
       "form": "You leave your name and phone number before playing.",
       "prizes": "Prizes",
       "prizeLine": "{name} · {count} available",
@@ -1182,7 +1199,8 @@
       "redeem": "Bring your redemption code to the counter. Each code can be redeemed once.",
       "rehearsalNote": "Rehearsal: schedule and opening hours are ignored, and test prizes don't count in real numbers.",
       "ok": "Got it"
-    }
+    },
+    "redeemFirstMessage": "Redeem your prize at the counter before playing the next turn"
   },
   "campaigns": {
     "title": "Campaigns",

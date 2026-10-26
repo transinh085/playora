@@ -1,6 +1,8 @@
 'use client';
 
 import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
+import { Button, Typography, theme } from 'antd';
+import { Gift } from 'lucide-react';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
 import { type CanvasRuntime, CanvasScreen } from './canvas-screen';
@@ -80,9 +82,45 @@ export interface CampaignPlayerProps {
   /** Link to a standalone "Quà của tôi" page, shown in the sheet. */
   prizesHref?: string;
   ref?: Ref<CampaignPlayerHandle>;
+  /** External blocked reason, e.g. 'redeem_first' from player state. */
+  blockedReason?: 'redeem_first' | null;
+  /** Pre-formatted next turn time for the out-of-turns notice. */
+  nextTurnAtFormatted?: string | null;
+  /** Pre-formatted open weekdays for closed notice and rules sheet. */
+  openDaysFormatted?: string | null;
 }
 
 type Sheet = 'noTurns' | 'closed' | 'vouchers' | 'rules' | null;
+
+/** Floating notice on the game screen when an unredeemed prize blocks the next play. */
+export function RedeemFirstBanner({
+  labels,
+  onOpenVouchers,
+}: {
+  labels: CampaignPlayerLabels;
+  onOpenVouchers: () => void;
+}) {
+  const { token } = theme.useToken();
+  return (
+    <div className="absolute inset-x-3 bottom-4 z-10" data-testid="redeem-first-notice">
+      <div
+        className="flex flex-col items-center gap-3 p-4 text-center"
+        style={{
+          background: token.colorBgElevated,
+          borderRadius: token.borderRadiusLG * 2,
+          boxShadow: token.boxShadowSecondary,
+        }}
+      >
+        <Typography.Text strong className="text-sm">
+          {labels.redeemFirstMessage ?? 'Đổi quà ở quầy trước để chơi lượt tiếp theo'}
+        </Typography.Text>
+        <Button type="primary" shape="round" icon={<Gift size={16} />} onClick={onOpenVouchers}>
+          {labels.myPrizes}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The playable campaign (docs/product/specs/builder.md §3.1): Cover → Form? → Game → Result, drawn
@@ -107,6 +145,9 @@ export function CampaignPlayer({
   onVouchersOpenChange,
   prizesHref,
   ref,
+  blockedReason,
+  nextTurnAtFormatted,
+  openDaysFormatted,
 }: CampaignPlayerProps) {
   const reduced = useReducedMotion();
 
@@ -126,6 +167,16 @@ export function CampaignPlayer({
   useEffect(() => {
     vouchersOpenChange.current?.(vouchersOpen);
   }, [vouchersOpen]);
+
+  const [internalBlockedReason, setInternalBlockedReason] = useState<'redeem_first' | null>(null);
+
+  useEffect(() => {
+    if (blockedReason !== undefined) {
+      setInternalBlockedReason(blockedReason);
+    }
+  }, [blockedReason]);
+
+  const isBlockedRedeemFirst = internalBlockedReason === 'redeem_first';
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -193,20 +244,29 @@ export function CampaignPlayer({
   const onDone = (played: PlayResult) => {
     switch (played.outcome) {
       case 'win':
+        setInternalBlockedReason(null);
         setResult(played);
         setVoucherExpanded(true);
         go('resultWin');
         break;
       case 'lose':
         // Out of stock, paced, limit and budget all read as "not this time" to the player.
+        setInternalBlockedReason(null);
         setResult(played);
         go('resultLose');
         break;
       case 'no_turns':
-        setSheet('noTurns');
-        setRound((r) => r + 1);
+        if (played.reason === 'redeem_first') {
+          setInternalBlockedReason('redeem_first');
+          setRound((r) => r + 1);
+        } else {
+          setInternalBlockedReason(null);
+          setSheet('noTurns');
+          setRound((r) => r + 1);
+        }
         break;
       case 'closed':
+        setInternalBlockedReason(null);
         setSheet('closed');
         setRound((r) => r + 1);
         break;
@@ -297,10 +357,16 @@ export function CampaignPlayer({
         />
       )}
 
+      {screen === 'game' && isBlockedRedeemFirst && (
+        <RedeemFirstBanner labels={labels} onOpenVouchers={() => setSheet('vouchers')} />
+      )}
+
       <NoticeSheet
         kind={sheet === 'noTurns' || sheet === 'closed' ? sheet : null}
         onClose={() => setSheet(null)}
         labels={labels}
+        nextTurnAtFormatted={nextTurnAtFormatted}
+        openDaysFormatted={openDaysFormatted}
       />
       <RulesSheet
         open={sheet === 'rules'}
@@ -309,6 +375,7 @@ export function CampaignPlayer({
         prizes={campaign.prizes}
         rehearsal={rehearsal}
         labels={labels}
+        openDaysFormatted={openDaysFormatted}
       />
       <MyPrizesSheet
         open={sheet === 'vouchers'}
