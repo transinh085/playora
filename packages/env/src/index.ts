@@ -68,6 +68,8 @@ export const apiEnvSchema = z
     TRUST_PROXY: z.coerce.number().int().min(0).default(0),
     /** Comma-separated origins allowed to call the API with cookies (Studio, Play). */
     STUDIO_ORIGINS: z.string().default('http://localhost:3001,http://localhost:3002'),
+    /** Parent cookie domain for cross-subdomain session cookies in production (e.g. .playora.vn; docs/engineering/architecture.md §8). */
+    COOKIE_DOMAIN: optionalString,
     /** SMTP settings for transactional emails (Mailpit on 1025 in dev). */
     SMTP_HOST: z.string().default('localhost'),
     SMTP_PORT: z.coerce.number().int().positive().default(1025),

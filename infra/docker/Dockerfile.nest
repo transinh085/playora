@@ -17,8 +17,6 @@ RUN bun install --frozen-lockfile --ignore-scripts
 COPY --from=prune /repo/out/full/ .
 ARG APP_DIR
 RUN cd ${APP_DIR} && bun run build
-RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules \
-  && bun install --frozen-lockfile --production --ignore-scripts
 
 FROM oven/bun:${BUN_VERSION}-slim AS runtime
 ENV NODE_ENV=production

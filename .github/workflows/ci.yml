@@ -90,6 +90,9 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -102,6 +105,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
+      - name: Image metadata
+        id: meta
+        run: |
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            {
+              echo "tags<<EOF"
+              echo "ghcr.io/${owner}/playora-${{ matrix.app }}:${{ github.sha }}"
+              echo "ghcr.io/${owner}/playora-${{ matrix.app }}:latest"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=playora-${{ matrix.app }}:ci" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -109,7 +133,10 @@ jobs:
           build-args: |
             APP=@playora/${{ matrix.app }}
             APP_DIR=apps/${{ matrix.app }}
-          push: false
-          tags: playora-${{ matrix.app }}:ci
+            NEXT_PUBLIC_API_URL=https://api.playora.vn
+            NEXT_PUBLIC_PLAY_URL=https://play.playora.vn
+            NEXT_PUBLIC_STUDIO_ORIGINS=https://studio.playora.vn
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}

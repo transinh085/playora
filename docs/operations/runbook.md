@@ -37,21 +37,28 @@ Nguyên tắc chung: **ưu tiên không phát sai giải hơn là giữ game ch�
 | **Tỷ lệ gắn cờ tăng đột biến** | Nhiều lượt bị chặn từ một IP/thiết bị; nhiều người chơi mới trong vài phút | Siết preset chống gian lận (lên Chuẩn/Cao), chặn IP/thiết bị cụ thể | Xem lại người trúng trong khoảng thời gian đó; void giải gian lận có lý do |
 | **Khách thật bị chặn nhầm** | Quán báo khách không chơi được; nhiều khách sau cùng một wifi quán | Nới rate limit theo IP cho chương trình đó (ưu tiên token/thiết bị hơn IP) | Ghi lại để chỉnh mặc định |
 | **Postgres chậm** | p95 lượt chơi > 200 ms, timeout, lỗi 5xx | Kiểm tra kết nối đang mở, truy vấn chậm, khoá chờ trên dòng `prizes` | Thêm index; nếu tranh chấp kho cao thì chia kho thành bucket ([engineering/architecture.md §7.3](../engineering/architecture.md#73-cấp-giải-nguyên-tử)) |
-| **API sập / 5xx hàng loạt** | Health `/health/ready` lỗi | Khởi động lại container; nếu do bản deploy mới thì rollback image trước đó | Postmortem ngắn trong runbook |
-| **Valkey mất** | Rate limit và cache lỗi | Giải vẫn đúng vì tính đúng nằm ở Postgres ([ADR-012](../adr/012-campaign-architecture.md)); khởi động lại Valkey | Theo dõi gian lận tăng trong khoảng mất Valkey |
+| **API sập / 5xx hàng loạt** | Health `/v1/health/ready` lỗi | Khởi động lại container; nếu do bản deploy mới thì rollback về SHA trước đó bằng `./infra/scripts/deploy.sh <prev-sha>` | Postmortem ngắn trong runbook |
+| **Valkey mất** | Rate limit và cache lỗi | Giải vẫn đúng vì tính đúng nằm ở Postgres ([ADR-012](../adr/012-campaign-architecture.md)); khởi động lại `valkey` (`docker compose -f infra/compose/docker-compose.prod.yml --env-file infra/env/.env.prod restart valkey`) | Theo dõi gian lận tăng trong khoảng mất Valkey |
 | **Mất mạng tại quầy** | Nhân viên không mở được màn Đổi quà | Nhân viên ghi mã đổi quà ra giấy, đổi lại khi có mạng; khuyên quán dùng 4G dự phòng | Mã đổi quà dùng một lần, nên đổi bù không tạo ra đổi trùng |
 | **Đổi nhầm quà** | Nhân viên báo đổi sai mã | Owner mở lại mã trong Studio, có lý do (audit) | |
 
 ## 3. Checklist kỹ thuật trước pilot
+
+### 3.1 Ứng dụng, tải và bảo mật
 
 - [ ] Test cross-tenant tự động cho mọi endpoint Studio đều xanh.
 - [ ] Test mô phỏng 1 triệu lượt: 0 vượt tồn kho, 0 vượt ngân sách, 0 vượt giới hạn/người.
 - [ ] k6 Play API ở đỉnh dự kiến: p95 < 200 ms, 0 lỗi 5xx, kết quả khớp DB.
 - [ ] Mã hoá PII + HMAC lookup hoạt động; key không nằm trong repo.
 - [ ] Rate limit, Turnstile, giới hạn tốc độ phát giải đã bật.
-- [ ] Backup + diễn tập khôi phục thành công; ghi thời gian khôi phục.
-- [ ] Alert tối thiểu (5xx, độ trễ, giải lệch kế hoạch) gửi về điện thoại.
 - [ ] Đã thử trên thiết bị thật: iPhone SE, iPhone đời gần, Samsung A-series, Xiaomi tầm thấp, Zalo/Facebook in-app.
+
+### 3.2 Hạ tầng, sao lưu và giám sát (P2.5)
+
+- [ ] **Backup đã chạy thử (`backup tested`):** chạy `./infra/scripts/backup.sh` trên VM production, xác nhận file `.dump` và `.dump.sha256` xuất hiện trên bucket S3 (`BACKUP_S3_BUCKET`) và cron hằng ngày đã bật.
+- [ ] **Diễn tập khôi phục (`restore drill`):** chạy `TARGET_DATABASE_URL=<db-drill> RESTORE_CONFIRM=yes ./infra/scripts/restore.sh <latest-dump>`, kiểm tra số dòng `events`, `prizes`, `awards`, `voucher_codes` khớp và ghi thời gian khôi phục thực tế (RTO: `___ giây`, ngày diễn tập: `___/___/2026`).
+- [ ] **Uptime monitor:** đã cấu hình kiểm tra định kỳ (mỗi 60 giây) cho `https://api.playora.vn/v1/health/ready` (kỳ vọng HTTP 200 và `"status":"ok"`), `https://studio.playora.vn/login`, `https://play.playora.vn` và `https://playora.vn`.
+- [ ] **Kênh cảnh báo (`alert channel`):** cảnh báo khi `/v1/health/ready` lỗi liên tiếp ≥ 2 lần, chứng chỉ TLS sắp hết hạn, lỗi 5xx hoặc độ trễ tăng cao đã gửi thử thành công về điện thoại founder (Telegram / Zalo / cuộc gọi khẩn).
 
 Checklist pháp lý tương ứng: [business/compliance.md §5](../business/compliance.md#5-checklist-pháp-lý-trước-chương-trình-thật-đầu-tiên).
 
