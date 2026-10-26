@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -48,6 +49,8 @@ export const players = pgTable(
     formData: jsonb().$type<Record<string, string | boolean>>().notNull().default({}),
     checkedInAt: timestamp({ withTimezone: true }),
     flagged: boolean().notNull().default(false),
+    /** Bumped to revoke issued player tokens (claim `ver`). */
+    sessionVer: integer().notNull().default(0),
     ...timestamps,
   },
   (t) => [

@@ -222,6 +222,15 @@
     "GUEST_CODE_ALREADY_USED": "Mã khách mời đã được sử dụng trên thiết bị khác. Vui lòng liên hệ ban tổ chức để mở khoá",
     "PRIZE_OUT_OF_STOCK": "Giải thưởng đã hết",
     "DRAW_POOL_EMPTY": "Không còn người phù hợp để quay số",
+    "CAMPAIGN_NOT_PUBLISHED": "Chương trình chưa được phát hành",
+    "CAMPAIGN_RUNNING": "Chương trình đang chạy hoặc đã lên lịch. Hãy tạm dừng hoặc kết thúc trước khi xoá",
+    "INVALID_PRIZE_RULES": "Luật phát quà chưa hợp lệ, vui lòng kiểm tra lại",
+    "PRIZE_QUANTITY_BELOW_ISSUED": "Số lượng quà không được ít hơn số đã phát",
+    "CAPTCHA_REQUIRED": "Vui lòng xác minh bạn không phải người máy",
+    "VOUCHER_NOT_FOUND": "Không tìm thấy mã đổi quà",
+    "VOUCHER_ALREADY_REDEEMED": "Mã này đã được đổi quà",
+    "VOUCHER_EXPIRED": "Mã này đã hết hạn đổi quà",
+    "VOUCHER_VOID": "Mã này đã bị huỷ",
     "INTERNAL": "Đã có lỗi hệ thống, vui lòng thử lại",
     "PAYLOAD_TOO_LARGE": "Dữ liệu tải lên vượt quá dung lượng cho phép"
   },
@@ -257,7 +266,8 @@
       "admin": "Quản trị viên",
       "editor": "Biên tập viên",
       "operator": "Vận hành",
-      "viewer": "Người xem"
+      "viewer": "Người xem",
+      "redeemer": "Chỉ đổi quà"
     }
   },
   "guests": {

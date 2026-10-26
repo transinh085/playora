@@ -57,6 +57,14 @@ export const events = pgTable(
     registrationForm: jsonb(),
     playerLimit: integer().notNull().default(100),
     isCritical: boolean().notNull().default(false),
+    /** Organizer paused a published campaign; plays are closed until resumed (ADR-015). */
+    paused: boolean().notNull().default(false),
+    /** Opening hours by weekday (ADR-012 §5); null = all day. */
+    schedule: jsonb(),
+    /** Turn limits: plays per day, total (ADR-012 §5). */
+    participation: jsonb().notNull().default({}),
+    /** Anti-fraud preset and overrides (docs/engineering/security.md §1). */
+    antiFraud: jsonb().notNull().default({}),
     deletedAt: timestamp({ withTimezone: true }),
     ...timestamps,
   },
