@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Trạng thái** | Proposed |
+| **Trạng thái** | Accepted |
 | **Ngày** | 26/10/2026 |
-| **Người quyết định** | Founder (chờ duyệt) |
+| **Người quyết định** | Founder |
 | **Thay thế / Liên quan** | Mở rộng [ADR-012](./012-campaign-architecture.md) §5 · [ADR-014](./014-free-canvas-screen-editor.md) · [../product/specs/studio-ux.md](../product/specs/studio-ux.md) §5 (giai đoạn B) |
 
 ## Bối cảnh
@@ -28,7 +28,7 @@ Schema hiện có (`packages/db/src/schema`):
 
 Cần chọn cách lưu Campaign thật trước khi viết contract và API (giai đoạn B, P0 của kế hoạch builder).
 
-## Quyết định (đề xuất)
+## Quyết định
 
 **Phương án A: tái dùng bảng hiện có, M1 cố định "1 Campaign = 1 event có đúng 1 game".**
 
@@ -79,3 +79,4 @@ Không thấy điểm chặn trong code cho phương án A: `games.draftConfig`/
 ## Lịch sử
 
 - 26/10/2026: Proposed.
+- 26/10/2026: Accepted (founder chọn phương án A).

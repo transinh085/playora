@@ -48,4 +48,4 @@ Proposed ──► Accepted ──► Superseded by ADR-x   (có ADR mới thay 
 | [012](./012-campaign-architecture.md) | Play engine + prize engine trên API, Game SDK v2 (`instant`/`skill`), dữ liệu campaign | Accepted · đang thực hiện | 24/10/2026 |
 | [013](./013-antd-ui.md) | Ant Design v6 mọi bề mặt, `useZodForm`, ngân sách bundle Play ≤ 260 KB | Accepted | 24/10/2026 |
 | [014](./014-free-canvas-screen-editor.md) | Canvas tự do cho các màn (artboard 375, `gameStage`, một renderer); chế độ Tuỳ biến của builder | Accepted (26/10/2026) | 25/10/2026 |
-| [015](./015-campaign-persistence.md) | Lưu Campaign trên `events` + `games` + `game_versions`; contract `campaigns`/`plays`/`vouchers`/`stats`; vai trò "chỉ đổi quà" | Proposed | 26/10/2026 |
+| [015](./015-campaign-persistence.md) | Lưu Campaign trên `events` + `games` + `game_versions`; contract `campaigns`/`plays`/`vouchers`/`stats`; vai trò "chỉ đổi quà" | Accepted | 26/10/2026 |
