@@ -73,7 +73,13 @@ Builder Lab ([kế hoạch 25/10 §11](../../plans/2026-10-25-game-builder-plan.
 
 **B — API thật thay backend giả** (P0 của [roadmap](../roadmap.md#p0--vòng-lõi-thật--2610--2211-4-tuần)): contract `campaigns` / `plays` / `vouchers` / `stats`, vai trò "chỉ đổi quà", e2e API có cross-tenant; đổi `mock/hooks.ts` sang `useRouteQuery`. Cách lưu Campaign: [ADR-015](../../adr/015-campaign-persistence.md) (đề xuất dùng `events` + `games` + `game_versions`).
 
-**C — Dọn:** gỡ UI sự kiện/trò chơi/khách mời cũ (`/events/**`, editor cũ, chia đội), Canvas lab; đổi tên `features/builder-lab` → `features/campaigns`; e2e theo luồng mới.
+**C — Dọn:**
+
+| | Nội dung | Trạng thái |
+|---|---|---|
+| C1 | Gỡ UI sự kiện/trò chơi/khách mời cũ (`/events/**`, `features/events`, `features/games`, `features/guests`, editor cũ, chia đội) cùng e2e và chuỗi i18n của chúng; module API giữ nguyên | Xong (27/10) |
+| C2 | Gói & sử dụng (`/settings/billing`, mục "Gói & sử dụng" trong nhóm Tổ chức), cảnh báo hạn mức, back-office `/admin` | Xong (27/10) |
+| C3 | Gỡ Canvas lab; đổi tên `features/builder-lab` → `features/campaigns` | Chưa |
 
 **D — Kết quả trước** (P1 của [roadmap](../roadmap.md)): luồng tạo từ playbook; Tổng quan đổi thứ tự thẻ số liệu thành Khách tới quầy · Khách quay lại · Chi phí quà · Chi phí mỗi khách; báo cáo một trang ([playbooks §3](./playbooks.md#3-báo-cáo-kết-quả)).
 

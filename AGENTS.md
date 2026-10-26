@@ -93,7 +93,7 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 | Need                                      | Look at                                                                          |
 | ----------------------------------------- | -------------------------------------------------------------------------------- |
 | Reference backend module                  | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`              |
-| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/events/`                                 |
+| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/brand-kits/` + `features/brand-kits/`    |
 | Request pipeline (guards, filters)        | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`          |
 | Game template interfaces                  | `packages/game-sdk/src/index.ts`, `docs/product/specs/{game-catalog,builder}.md` |
 | Background jobs                           | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                |

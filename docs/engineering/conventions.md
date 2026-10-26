@@ -96,7 +96,7 @@ Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng th�
    - `games.controller.ts`: chỉ có `@Route(gamesApi.x)` + `@Args()`. Không validate tay, không kiểm quyền tay.
    - `games.module.ts`, import vào `AppModule`.
 5. **Integration test** — `apps/api/test/games.e2e.test.ts` dùng `createTestApp()`. **Bắt buộc** có test cross-tenant (người org khác nhận 403/404).
-6. **Studio** — `apps/studio/src/features/games/` + route mỏng ở `apps/studio/src/app/(app)/orgs/[orgId]/events/[eventId]/games/`
+6. **Studio** — `apps/studio/src/features/<feature>/` + route mỏng ở `apps/studio/src/app/(app)/orgs/[orgId]/<feature>/` (mẫu hiện có: `features/brand-kits`; UI `features/games` cũ đã gỡ 27/10, ví dụ dưới giữ tên `games` để minh hoạ)
    - `features/games/api.ts`: gom hook đọc (`useRouteQuery(api, gamesApi.list, …)`) và ghi (`useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`).
    - `features/games/components/*`: UI của feature; `page.tsx` trong `app/**` chỉ đọc `params`, khai báo `metadata` và render component từ `@/features/*` (≤ 30 dòng).
    - Form: antd `Form` + `useZodForm(CreateGameBody)` (`@playora/ui/form`) dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`; toast/confirm qua `App.useApp()`.

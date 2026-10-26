@@ -70,7 +70,7 @@ Ký hiệu: ✅ dùng được · ⚠️ có nhưng yếu/chưa đủ · ❌ ch�
 | ⑪ | Player | `CampaignPlayer` trong `@playora/ui/campaign` (thuần, không gọi API); `components/lab-player.tsx` là adapter mock + toolbar Lab | 🧪 | — | Play app chưa nối API (story riêng) |
 | ⑫ | Vận hành | `redeem-desk.tsx`, `studio/campaign-ops.tsx`, `campaign-home.tsx` | 🧪 | Tạm dừng, đổi quà một lần | — |
 
-Song song có **builder thế hệ cũ** `apps/studio/src/features/games/**` (AutoForm từ `configSchema`, iframe preview, skin panel) chạy trên API thật. Builder Lab là hướng đích (16 phase A).
+**Builder thế hệ cũ** `apps/studio/src/features/games/**` (AutoForm từ `configSchema`, iframe preview, skin panel) đã gỡ ngày 27/10 cùng UI `/events/**` ([studio-ux §5](../product/specs/studio-ux.md) C1).
 
 ### 2.3 Màn
 
