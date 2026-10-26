@@ -13,6 +13,7 @@ import {
   Popconfirm,
   QRCode,
   Skeleton,
+  Space,
   Table,
   Tag,
   Typography,
@@ -477,21 +478,12 @@ function ChannelCard({
         </Flex>
 
         {/* Link and Copy */}
-        <Input
-          value={playerLink}
-          readOnly
-          data-testid={`channel-link-${channel.key}`}
-          addonAfter={
-            <Button
-              type="text"
-              size="small"
-              icon={<Copy className="size-3.5" />}
-              onClick={copyLink}
-            >
-              {t('links.copy')}
-            </Button>
-          }
-        />
+        <Space.Compact block>
+          <Input value={playerLink} readOnly data-testid={`channel-link-${channel.key}`} />
+          <Button icon={<Copy className="size-3.5" />} onClick={copyLink}>
+            {t('links.copy')}
+          </Button>
+        </Space.Compact>
 
         {/* QR Code and Actions */}
         <Flex gap={16} align="center">
