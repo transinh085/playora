@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { CampaignPrize, CampaignRules } from '@playora/contracts';
+import type { CampaignPrize, CampaignRulesInput } from '@playora/contracts';
 import {
   createSeededRng,
   type DecisionReason,
@@ -54,7 +54,7 @@ interface AcceptanceRunSummary {
 }
 
 function runCampaignAcceptanceSimulation(input: {
-  campaignRules: CampaignRules;
+  campaignRules: CampaignRulesInput;
   campaignPrizes: readonly CampaignPrize[];
   plays?: number;
   playerPoolSize?: number;
@@ -307,7 +307,7 @@ describe('Prize engine 1M-play acceptance suite (PRZ-05, PRZ-07, PRZ-09)', () =>
   let cumulativePlaysExecuted = 0;
 
   test('1. overall_win_rate with budget: 0 stock over-issue, 0 budget overrun, 0 player limit violations', () => {
-    const campaignRules: CampaignRules = {
+    const campaignRules: CampaignRulesInput = {
       mode: 'overall_win_rate',
       overallWinRate: 0.25,
       playsPerDay: 5,
@@ -346,7 +346,7 @@ describe('Prize engine 1M-play acceptance suite (PRZ-05, PRZ-07, PRZ-09)', () =>
   });
 
   test('2. per_prize_probability with per-player limit: 0 stock over-issue, 0 budget overrun, 0 player limit violations', () => {
-    const campaignRules: CampaignRules = {
+    const campaignRules: CampaignRulesInput = {
       mode: 'per_prize_probability',
       overallWinRate: 0.38,
       playsPerDay: 3,
@@ -400,7 +400,7 @@ describe('Prize engine 1M-play acceptance suite (PRZ-05, PRZ-07, PRZ-09)', () =>
   });
 
   test('3. guaranteed mode: awards every eligible play until stock exhausts with 0 over-issue', () => {
-    const campaignRules: CampaignRules = {
+    const campaignRules: CampaignRulesInput = {
       mode: 'guaranteed',
       overallWinRate: 1,
       playsPerDay: 3,
@@ -440,7 +440,7 @@ describe('Prize engine 1M-play acceptance suite (PRZ-05, PRZ-07, PRZ-09)', () =>
 
   test('4. time_uniform pacing with opening hours: 0 violations and issued curve stays within ±10% of plan at each tenth', () => {
     // 10 full days in Asia/Ho_Chi_Minh (2027-01-01 00:00+07:00 to 2027-01-11 00:00+07:00)
-    const campaignRules: CampaignRules = {
+    const campaignRules: CampaignRulesInput = {
       mode: 'overall_win_rate',
       overallWinRate: 0.35,
       playsPerDay: 2,
