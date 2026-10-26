@@ -59,6 +59,21 @@ describe('RulesPrizesPanel', () => {
     expect(html).not.toContain('builderLab.rules');
   });
 
+  test('shows open weekdays, redeem-before-replay, anti-fraud level and prize cost (PLB-02)', () => {
+    const html = render(
+      campaign({ openDays: [2, 3, 4], requireRedeemBeforeReplay: true, budgetVnd: 2_000_000 }),
+    );
+    expect(html).toContain('Chỉ mở vào');
+    expect(html).toContain('Chỉ mở vào T3, T4, T5 mỗi tuần.');
+    expect(html).toContain('Phải đổi quà ở quầy trước khi chơi tiếp');
+    expect(html).toContain('Khách phải đổi quà ở quầy trước khi được chơi tiếp.');
+    expect(html).toContain('Mức chống gian lận');
+    expect(html).toContain('Thấp');
+    expect(html).toContain('Giá vốn');
+    expect(html).toContain('Chi phí quà dự kiến');
+    expect(html).not.toContain('builderLab.');
+  });
+
   test('per-prize mode over 100% shows the error and blocks the simulation', () => {
     const c = campaign({ mode: 'per_prize_probability' });
     c.prizes = c.prizes.map((p) => ({ ...p, probability: 0.5 }));

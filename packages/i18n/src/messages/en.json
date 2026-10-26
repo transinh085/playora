@@ -837,7 +837,7 @@
         "name": "Prize name",
         "namePlaceholder": "E.g. Salted coffee",
         "quantity": "Quantity",
-        "value": "Value",
+        "value": "Cost to you",
         "probability": "Win rate",
         "moveUp": "Move up",
         "moveDown": "Move down",
@@ -866,7 +866,20 @@
         "budgetOn": "Limit the budget to <amount></amount>",
         "budgetOff": "Limit the prize budget",
         "formLabel": "Ask for customer details",
-        "form": "Ask for name and phone number before playing"
+        "form": "Ask for name and phone number before playing",
+        "daysLabel": "Only open on some days of the week",
+        "daysOn": "Only open on",
+        "daysOff": "Open every day (turn on to open only on quiet days, e.g. Tue–Thu)",
+        "redeemFirst": "Prize must be redeemed at the counter before playing again",
+        "antiFraud": "Anti-fraud level",
+        "antiFraudLevels": {
+          "standard": "Standard",
+          "low": "Low"
+        },
+        "antiFraudHints": {
+          "standard": "A captcha once per play session, and speed limits per guest, device and IP. Recommended.",
+          "low": "No captcha, only a loose limit per IP; fine for in-store fun with small prizes."
+        }
       },
       "summary": {
         "title": "Rules summary",
@@ -885,7 +898,10 @@
         "budget": "Stops giving prizes once their total value reaches {amount}.",
         "budgetOff": "No budget limit (only the prize quantities).",
         "formOn": "Customers leave their name and phone number before playing.",
-        "formOff": "Customers play straight away without leaving details."
+        "formOff": "Customers play straight away without leaving details.",
+        "openDays": "Open only on {days} each week.",
+        "redeemFirst": "Guests must redeem their prize at the counter before playing again.",
+        "antiFraudLow": "Anti-fraud is set to low."
       },
       "issues": {
         "title": "Fix these before simulating and publishing",
@@ -912,7 +928,7 @@
         "winsSub": "{left} left over",
         "winRate": "Real win rate",
         "winRateSub": "of plays during prize hours",
-        "cost": "Prize cost",
+        "cost": "Expected prize cost",
         "costBudget": "budget {budget}",
         "costSub": "total value of prizes given",
         "stockOut": "Prizes run out on day {day}, around {time}",
@@ -1131,6 +1147,105 @@
         "budget": "Budget used"
       },
       "openOps": "Open campaign page"
+    },
+    "weekdays": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
+    "playbooks": {
+      "title": "What do you want?",
+      "hint": "Pick a goal for your shop. Playora fills in the game, the rules and a prize mix for your budget; you can still change everything.",
+      "goalLabel": "Goal",
+      "mechanismLabel": "How",
+      "metricLabel": "Measured by",
+      "daysTag": "{days} days",
+      "choose": "Choose this goal",
+      "customTitle": "Want to pick the game and look yourself?",
+      "custom": "Pick a template",
+      "backToGoals": "Choose another goal",
+      "items": {
+        "tet_traffic": {
+          "title": "Tết footfall",
+          "goal": "More guests over Tết",
+          "mechanism": "Tết lucky wheel, 1 play per guest per day, prizes spread over opening hours",
+          "metric": "Redemptions per day vs. the week before Tết",
+          "defaultName": "Tết footfall lucky wheel"
+        },
+        "second_visit": {
+          "title": "Second visit",
+          "goal": "Turn new guests into regulars",
+          "mechanism": "Scratch card; the next play opens only after the first prize was redeemed at the counter",
+          "metric": "% of guests returning within 14 days",
+          "defaultName": "Second-visit scratch card"
+        },
+        "slow_days": {
+          "title": "Fill quiet days",
+          "goal": "More guests Tuesday to Thursday",
+          "mechanism": "Gift box open only on quiet days, with richer prizes",
+          "metric": "Quiet-day redemptions vs. the 4-week average",
+          "defaultName": "Quiet-day gift box"
+        }
+      },
+      "setup": {
+        "title": "Set up",
+        "name": "Campaign name",
+        "budget": "Prize budget",
+        "budgetHint": "Total cost of prizes you are willing to spend.",
+        "prizes": "Prizes and their cost",
+        "prizesHint": "Prize name and what each one really costs you. Quantities are worked out from the budget.",
+        "prizeName": "Prize name",
+        "prizeCost": "Cost",
+        "addPrize": "Add prize",
+        "removePrize": "Remove prize",
+        "newPrize": "Prize {n}",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "hours": "Opening hours",
+        "hoursStart": "Opens at",
+        "hoursEnd": "Closes at",
+        "openDays": "Open on",
+        "guests": "Guests per day (estimate)",
+        "guestsHint": "Guests who visit and could play on each open day.",
+        "guestsSuffix": "guests/day",
+        "errors": {
+          "name": "Enter a campaign name.",
+          "budget": "The budget must be at least 10,000 đ.",
+          "prizes": "Add at least one prize.",
+          "prizeName": "Enter a prize name.",
+          "prizeCost": "The cost must be more than 0.",
+          "date": "Pick a date.",
+          "endBeforeStart": "The end date must be on or after the start date.",
+          "endInPast": "The end date has passed.",
+          "time": "Pick a time.",
+          "hoursOrder": "Closing time must be after opening time.",
+          "openDays": "Pick at least one day.",
+          "guests": "Enter guests per day (at least 1)."
+        }
+      },
+      "suggestion": {
+        "title": "Suggestion",
+        "sentence": "With {budget} you can give about {count} prizes, enough for 1 in {oneIn} guests to win over {days} days.",
+        "invalid": "Fill in the form to see the suggestion.",
+        "quantity": "× {count}",
+        "winRate": "Win rate",
+        "winRateSub": "about 1 in {oneIn} plays",
+        "prizes": "Prizes",
+        "prizesSub": "{plays} plays expected",
+        "cost": "Prize cost",
+        "costSub": "of a {budget} budget",
+        "risk": "Chance of running out before 90% of the campaign: {percent}%.",
+        "tooFew": "Few prizes for this many guests: even a 1% win rate may run out early. Raise the budget or pick cheaper prizes.",
+        "zeroPrize": "{name}: its share of the budget does not cover one, so the quantity is 0.",
+        "editLater": "After creating you go straight to the editor; prizes, rules and design stay editable.",
+        "create": "Create campaign",
+        "created": "Campaign created from the playbook",
+        "createFailed": "Could not create the campaign. Please try again."
+      }
     }
   },
   "campaignPlayer": {
@@ -1375,6 +1490,11 @@
       "templates": "Suggested templates",
       "allTemplates": "All templates"
     },
-    "openPlay": "Open player page"
+    "openPlay": "Open player page",
+    "playbookTag": {
+      "tet_traffic": "Tết footfall",
+      "second_visit": "Second visit",
+      "slow_days": "Fill quiet days"
+    }
   }
 }

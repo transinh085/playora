@@ -837,7 +837,7 @@
         "name": "Tên quà",
         "namePlaceholder": "Vd. Ly cà phê muối",
         "quantity": "Số lượng",
-        "value": "Giá trị",
+        "value": "Giá vốn",
         "probability": "Tỉ lệ trúng",
         "moveUp": "Đưa lên",
         "moveDown": "Đưa xuống",
@@ -866,7 +866,20 @@
         "budgetOn": "Giới hạn ngân sách <amount></amount>",
         "budgetOff": "Giới hạn ngân sách quà",
         "formLabel": "Hỏi thông tin khách",
-        "form": "Hỏi tên và số điện thoại trước khi chơi"
+        "form": "Hỏi tên và số điện thoại trước khi chơi",
+        "daysLabel": "Chỉ mở vào một số ngày trong tuần",
+        "daysOn": "Chỉ mở vào",
+        "daysOff": "Mở tất cả các ngày (bật để chỉ mở ngày vắng, ví dụ T3–T5)",
+        "redeemFirst": "Phải đổi quà ở quầy trước khi chơi tiếp",
+        "antiFraud": "Mức chống gian lận",
+        "antiFraudLevels": {
+          "standard": "Chuẩn",
+          "low": "Thấp"
+        },
+        "antiFraudHints": {
+          "standard": "Hỏi captcha một lần mỗi phiên chơi, giới hạn tốc độ chơi theo khách, thiết bị và IP. Nên dùng.",
+          "low": "Không hỏi captcha, chỉ giới hạn lỏng theo IP; hợp với game vui tại quán, quà giá trị nhỏ."
+        }
       },
       "summary": {
         "title": "Tóm tắt luật",
@@ -885,7 +898,10 @@
         "budget": "Ngừng phát khi tổng giá trị quà đạt {amount}.",
         "budgetOff": "Không giới hạn ngân sách (chỉ giới hạn theo số lượng quà).",
         "formOn": "Khách để lại tên và số điện thoại trước khi chơi.",
-        "formOff": "Khách chơi ngay, không cần để lại thông tin."
+        "formOff": "Khách chơi ngay, không cần để lại thông tin.",
+        "openDays": "Chỉ mở vào {days} mỗi tuần.",
+        "redeemFirst": "Khách phải đổi quà ở quầy trước khi được chơi tiếp.",
+        "antiFraudLow": "Chống gian lận ở mức thấp."
       },
       "issues": {
         "title": "Cần sửa trước khi mô phỏng và publish",
@@ -912,7 +928,7 @@
         "winsSub": "còn dư {left} món",
         "winRate": "Tỉ lệ trúng thực tế",
         "winRateSub": "trên lượt chơi trong giờ phát quà",
-        "cost": "Chi phí quà",
+        "cost": "Chi phí quà dự kiến",
         "costBudget": "ngân sách {budget}",
         "costSub": "tổng giá trị quà đã phát",
         "stockOut": "Hết quà vào ngày {day}, khoảng {time}",
@@ -1131,6 +1147,105 @@
         "budget": "Ngân sách đã dùng"
       },
       "openOps": "Mở trang vận hành"
+    },
+    "weekdays": {
+      "0": "CN",
+      "1": "T2",
+      "2": "T3",
+      "3": "T4",
+      "4": "T5",
+      "5": "T6",
+      "6": "T7"
+    },
+    "playbooks": {
+      "title": "Bạn muốn gì?",
+      "hint": "Chọn mục tiêu cho quán. Playora điền sẵn trò chơi, luật và gợi ý quà theo ngân sách; sau đó vẫn sửa được hết.",
+      "goalLabel": "Mục tiêu",
+      "mechanismLabel": "Cách làm",
+      "metricLabel": "Đo bằng",
+      "daysTag": "{days} ngày",
+      "choose": "Chọn mục tiêu này",
+      "customTitle": "Muốn tự chọn trò chơi và giao diện?",
+      "custom": "Tự chọn mẫu",
+      "backToGoals": "Chọn mục tiêu khác",
+      "items": {
+        "tet_traffic": {
+          "title": "Tết kéo khách",
+          "goal": "Đông khách hơn dịp Tết",
+          "mechanism": "Vòng quay skin Tết, mỗi khách 1 lượt/ngày, rải quà theo giờ mở cửa",
+          "metric": "Lượt đổi quà mỗi ngày so với tuần trước Tết",
+          "defaultName": "Vòng quay Tết kéo khách"
+        },
+        "second_visit": {
+          "title": "Khách quay lại lần 2",
+          "goal": "Khách mới thành khách quen",
+          "mechanism": "Thẻ cào; lượt chơi tiếp chỉ mở khi khách đã đổi quà lần 1 ở quầy",
+          "metric": "% khách quay lại trong 14 ngày",
+          "defaultName": "Thẻ cào khách quay lại"
+        },
+        "slow_days": {
+          "title": "Lấp ngày vắng",
+          "goal": "Tăng khách thứ 3 – thứ 5",
+          "mechanism": "Hộp quà chỉ mở vào ngày vắng, quà giá trị cao hơn",
+          "metric": "Lượt đổi quà ngày vắng so với trung bình 4 tuần trước",
+          "defaultName": "Hộp quà ngày vắng"
+        }
+      },
+      "setup": {
+        "title": "Thiết lập",
+        "name": "Tên chương trình",
+        "budget": "Ngân sách quà",
+        "budgetHint": "Tổng giá vốn quà bạn sẵn sàng bỏ ra.",
+        "prizes": "Quà và giá vốn",
+        "prizesHint": "Tên quà và giá vốn (chi phí thật của quán cho mỗi món). Số lượng được tính từ ngân sách.",
+        "prizeName": "Tên quà",
+        "prizeCost": "Giá vốn",
+        "addPrize": "Thêm quà",
+        "removePrize": "Xoá quà",
+        "newPrize": "Quà {n}",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "hours": "Giờ mở cửa",
+        "hoursStart": "Giờ mở cửa",
+        "hoursEnd": "Giờ đóng cửa",
+        "openDays": "Mở vào các ngày",
+        "guests": "Khách mỗi ngày (ước tính)",
+        "guestsHint": "Số khách ghé quán và có thể chơi mỗi ngày mở cửa.",
+        "guestsSuffix": "khách/ngày",
+        "errors": {
+          "name": "Nhập tên chương trình.",
+          "budget": "Ngân sách tối thiểu 10.000 đ.",
+          "prizes": "Cần ít nhất một món quà.",
+          "prizeName": "Nhập tên quà.",
+          "prizeCost": "Giá vốn phải lớn hơn 0.",
+          "date": "Chọn ngày.",
+          "endBeforeStart": "Ngày kết thúc phải từ ngày bắt đầu trở đi.",
+          "endInPast": "Ngày kết thúc đã qua.",
+          "time": "Chọn giờ.",
+          "hoursOrder": "Giờ đóng cửa phải sau giờ mở cửa.",
+          "openDays": "Chọn ít nhất một ngày.",
+          "guests": "Nhập số khách mỗi ngày (ít nhất 1)."
+        }
+      },
+      "suggestion": {
+        "title": "Đề xuất",
+        "sentence": "Với {budget}, bạn phát được khoảng {count} phần quà, đủ cho 1 trong {oneIn} khách trúng trong {days} ngày.",
+        "invalid": "Điền đủ thông tin bên trái để xem đề xuất.",
+        "quantity": "× {count}",
+        "winRate": "Tỉ lệ trúng",
+        "winRateSub": "khoảng 1 trong {oneIn} lượt chơi",
+        "prizes": "Số quà",
+        "prizesSub": "{plays} lượt chơi dự kiến",
+        "cost": "Chi phí quà",
+        "costSub": "trên ngân sách {budget}",
+        "risk": "Khả năng hết quà trước 90% thời gian: {percent}%.",
+        "tooFew": "Quà hơi ít so với lượng khách: kể cả tỉ lệ trúng 1% vẫn có thể hết sớm. Tăng ngân sách hoặc chọn quà rẻ hơn.",
+        "zeroPrize": "{name}: ngân sách chia cho món này chưa đủ một phần, nên số lượng là 0.",
+        "editLater": "Sau khi tạo, bạn vào thẳng trình chỉnh sửa; quà, luật và giao diện vẫn sửa được.",
+        "create": "Tạo chương trình",
+        "created": "Đã tạo chương trình từ playbook",
+        "createFailed": "Không tạo được chương trình. Thử lại nhé."
+      }
     }
   },
   "campaignPlayer": {
@@ -1375,6 +1490,11 @@
       "templates": "Mẫu gợi ý",
       "allTemplates": "Tất cả mẫu"
     },
-    "openPlay": "Mở trang chơi"
+    "openPlay": "Mở trang chơi",
+    "playbookTag": {
+      "tet_traffic": "Tết kéo khách",
+      "second_visit": "Khách quay lại lần 2",
+      "slow_days": "Lấp ngày vắng"
+    }
   }
 }

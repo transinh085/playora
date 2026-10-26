@@ -1,8 +1,9 @@
 'use client';
 
-import { Flex, Input, InputNumber, Switch, Typography, theme } from 'antd';
+import { Checkbox, Flex, Input, InputNumber, Radio, Switch, Typography, theme } from 'antd';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import { Caption } from '@/components/caption';
 import type { CampaignPrize, CampaignRules } from '../../api';
 import {
   formatVnd,
@@ -11,9 +12,11 @@ import {
   localInputToIso,
   parseDigits,
 } from '../../lib/rules-format';
-import { summarizeRules } from '../../lib/rules-summary';
+import { sortWeekdays, summarizeRules, WEEKDAYS, weekdayKey } from '../../lib/rules-summary';
 
 const DEFAULT_HOURS = { start: '07:00', end: '22:00' };
+/** "Lấp ngày vắng" default: Tuesday to Thursday. */
+const DEFAULT_OPEN_DAYS = [2, 3, 4];
 
 /**
  * Step 3: each rule is one sentence with its control inline (docs/product/specs/builder.md §4.2). Dates use native
@@ -31,6 +34,7 @@ export function RulesSentencesStep({
   onChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.sentences');
+  const tw = useTranslations('builderLab.weekdays');
   const { token } = theme.useToken();
   const locale = useLocale();
   const hours = rules.openingHours;
@@ -122,6 +126,34 @@ export function RulesSentencesStep({
       ),
     },
     {
+      key: 'days',
+      node: (
+        <>
+          <Switch
+            aria-label={t('daysLabel')}
+            checked={rules.openDays !== null}
+            onChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
+          />
+          {rules.openDays !== null ? (
+            <>
+              {t('daysOn')}
+              <Checkbox.Group
+                aria-label={t('daysLabel')}
+                value={rules.openDays}
+                options={WEEKDAYS.map((d) => ({ value: d, label: tw(weekdayKey(d)) }))}
+                onChange={(days) =>
+                  days.length > 0 &&
+                  onChange({ openDays: days.length === 7 ? null : sortWeekdays(days) })
+                }
+              />
+            </>
+          ) : (
+            t('daysOff')
+          )}
+        </>
+      ),
+    },
+    {
       key: 'pacing',
       node: (
         <>
@@ -177,6 +209,41 @@ export function RulesSentencesStep({
         </>
       ),
     },
+    {
+      key: 'redeemFirst',
+      node: (
+        <>
+          <Switch
+            aria-label={t('redeemFirst')}
+            checked={rules.requireRedeemBeforeReplay}
+            onChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
+          />
+          {t('redeemFirst')}
+        </>
+      ),
+    },
+    {
+      key: 'antiFraud',
+      node: (
+        <Flex vertical gap={4}>
+          <span>{t('antiFraud')}</span>
+          <Radio.Group
+            aria-label={t('antiFraud')}
+            value={rules.antiFraud}
+            onChange={(e) => onChange({ antiFraud: e.target.value })}
+          >
+            <Flex vertical gap={4}>
+              {(['standard', 'low'] as const).map((level) => (
+                <Radio key={level} value={level}>
+                  {t(`antiFraudLevels.${level}`)}
+                  <Caption className="block">{t(`antiFraudHints.${level}`)}</Caption>
+                </Radio>
+              ))}
+            </Flex>
+          </Radio.Group>
+        </Flex>
+      ),
+    },
   ];
 
   return (
@@ -201,8 +268,9 @@ export function RulesSentencesStep({
 }
 
 /** Auto-generated plain-language recap of every rule. */
-function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: CampaignPrize[] }) {
+export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: CampaignPrize[] }) {
   const t = useTranslations('builderLab.rules.summary');
+  const tw = useTranslations('builderLab.weekdays');
   const format = useFormatter();
   const locale = useLocale();
   const { token } = theme.useToken();
@@ -212,8 +280,12 @@ function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: Campaig
         dateTime: (iso) =>
           format.dateTime(new Date(iso), { dateStyle: 'short', timeStyle: 'short' }),
         vnd: (v) => formatVnd(v, locale),
+        weekdays: (days) =>
+          sortWeekdays(days)
+            .map((d) => tw(weekdayKey(d)))
+            .join(', '),
       }),
-    [rules, prizes, format, locale],
+    [rules, prizes, format, locale, tw],
   );
 
   return (
