@@ -223,7 +223,7 @@ test('guest plays a published campaign from the table QR and finds the voucher i
 
   // Quà của tôi: the code, its live status and a running clock (anti-screenshot).
   await page.getByRole('button', { name: 'Quà của tôi' }).first().click();
-  const sheet = page.locator('.ant-drawer-content').filter({ hasText: 'Quà của tôi' });
+  const sheet = page.getByRole('dialog', { name: 'Quà của tôi' });
   const row = sheet.getByTestId('voucher-row').filter({ hasText: code });
   await expect(row).toHaveAttribute('data-status', 'issued');
   await expect(row.getByText('Chưa đổi')).toBeVisible();
