@@ -22,7 +22,8 @@ test('builder lab: create from template → set rules → publish → play on a 
 
   await page.goto(`${org}/campaigns/new`);
 
-  // Template gallery → new campaign.
+  // Goal picker → "Tự chọn mẫu" → template gallery → new campaign.
+  await page.getByRole('button', { name: 'Tự chọn mẫu' }).click();
   await page
     .getByRole('button', { name: /^Vòng quay may mắn · / })
     .first()

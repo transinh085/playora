@@ -1,6 +1,6 @@
 # Đặc tả Playbook và Báo cáo kết quả
 
-Cập nhật: 26/10/2026 · Owner: PO · Trạng thái: **Mới ở v4.0, chưa làm** · PRD: PLB-* ([prd §5.2](../prd.md#52-playbook-và-kết-quả-plb--mới-ở-v40)) · Quyết định: [D-15](../decisions.md), [D-16](../decisions.md)
+Cập nhật: 26/10/2026 · Owner: PO · Trạng thái: **Mới ở v4.0** · §1–§2 đã có ở Studio (PLB-01, PLB-02), §3 có API · PRD: PLB-* ([prd §5.2](../prd.md#52-playbook-và-kết-quả-plb--mới-ở-v40)) · Quyết định: [D-15](../decisions.md), [D-16](../decisions.md)
 
 Builder trả lời "làm game thế nào". Playbook và báo cáo trả lời câu chủ quán thực sự hỏi: **"Làm chương trình gì, và nó mang lại gì cho quán?"**
 
