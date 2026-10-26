@@ -1336,6 +1336,101 @@
       "tet_traffic": "Tết kéo khách",
       "second_visit": "Khách quay lại lần 2",
       "slow_days": "Lấp ngày vắng"
+    },
+    "viewReport": "Xem báo cáo",
+    "report": {
+      "title": "Báo cáo kết quả",
+      "pageTitle": "Báo cáo: {name}",
+      "backToCampaign": "Về trang chương trình",
+      "printPdf": "In / Lưu PDF",
+      "autoRefreshHint": "Tự làm mới mỗi 30 giây khi đang chạy",
+      "goalLabel": "Mục tiêu chương trình",
+      "periodLabel": "Thời gian chạy",
+      "keyMetricLabel": "Chỉ số trọng tâm",
+      "playbooks": {
+        "tet_traffic": {
+          "title": "Tết kéo khách",
+          "goal": "Đông khách hơn dịp Tết",
+          "highlight": "{visitsPerDay} khách tới quầy/ngày ({visits} lượt trong {days} ngày)"
+        },
+        "second_visit": {
+          "title": "Khách quay lại lần 2",
+          "goal": "Khách mới thành khách quen",
+          "highlight": "{rate}% khách quay lại ({returning}/{unique} khách)"
+        },
+        "slow_days": {
+          "title": "Lấp ngày vắng",
+          "goal": "Tăng khách các ngày vắng trong tuần",
+          "highlight": "{visits} khách tới quầy vào {days} ngày mở cửa"
+        },
+        "custom": {
+          "title": "Chương trình tự dựng",
+          "goal": "Thu hút khách chơi minigame và đổi quà tại quầy"
+        }
+      },
+      "metrics": {
+        "visits": "Khách tới quầy",
+        "visitsSub": "{unique} khách · đã đổi {rate}% ({visits}/{issued})",
+        "visitsEmpty": "Chưa có khách đổi quà tại quầy",
+        "returning": "Khách quay lại (%)",
+        "returningSub": "{returning}/{unique} khách đổi quà từ 2 ngày trở lên",
+        "returningEmpty": "Chưa có khách quay lại ngày thứ 2",
+        "prizeCost": "Chi phí quà / ngân sách",
+        "prizeCostSub": "Tổng giá vốn quà đã đổi tại quầy",
+        "prizeCostOutstanding": "Chưa đổi tại quầy: {amount}",
+        "costPerVisit": "Chi phí mỗi khách tới quầy",
+        "costPerVisitSub": "{plays} lượt chơi · {players} người chơi",
+        "costPerVisitEmpty": "Tính khi có lượt đổi quà đầu tiên"
+      },
+      "daily": {
+        "title": "Biểu đồ theo ngày",
+        "ariaLabel": "Biểu đồ theo ngày: lượt chơi, lượt trúng và khách tới quầy",
+        "empty": "Chưa có hoạt động nào. Chia sẻ link hoặc đặt mã QR để khách bắt đầu chơi.",
+        "plays": "Lượt chơi",
+        "wins": "Lượt trúng",
+        "visits": "Khách tới quầy"
+      },
+      "channels": {
+        "title": "Theo kênh",
+        "empty": "Chưa có lượt chơi theo kênh.",
+        "channel": "Kênh",
+        "plays": "Lượt chơi",
+        "wins": "Lượt trúng",
+        "visits": "Khách tới quầy",
+        "known": {
+          "direct": "Trực tiếp",
+          "table-qr": "QR tại bàn",
+          "counter-qr": "QR tại quầy",
+          "standee": "Standee",
+          "fanpage": "Fanpage",
+          "facebook": "Facebook",
+          "zalo": "Zalo"
+        }
+      },
+      "prizes": {
+        "title": "Quà theo loại",
+        "empty": "Chưa có quà nào trong chương trình.",
+        "name": "Quà tặng",
+        "unitCost": "Giá vốn",
+        "issued": "Đã phát",
+        "redeemed": "Đã đổi",
+        "remaining": "Còn lại",
+        "redeemedCost": "Chi phí đã đổi"
+      },
+      "insights": {
+        "title": "Nhận xét từ số liệu",
+        "busiestDayVisits": "Ngày đông khách nhất: {day} với {visits} lượt khách tới quầy ({plays} lượt chơi).",
+        "busiestDayPlays": "Ngày sôi động nhất: {day} với {plays} lượt chơi ({wins} lượt trúng quà).",
+        "noActivityYet": "Chưa ghi nhận lượt chơi hay đổi quà nào. Hãy đặt mã QR tại quầy hoặc bàn để khách bắt đầu tham gia.",
+        "topChannelVisits": "Kênh mang khách tới quầy nhiều nhất: {channel} ({visits} lượt đổi quà từ {plays} lượt chơi).",
+        "topChannelPlays": "Kênh thu hút nhiều lượt chơi nhất: {channel} ({plays} lượt chơi, {wins} lượt trúng).",
+        "unattributedChannel": "{visits} lượt đổi quà ({plays} lượt chơi) đến từ link chung; gắn ?ch= cho từng kênh để so sánh hiệu quả.",
+        "noChannelYet": "Chưa có dữ liệu theo kênh. Chia sẻ link riêng cho QR tại bàn, Fanpage và Zalo để đo kênh kéo khách tốt nhất.",
+        "redemptionAndCostWithBudget": "Tỷ lệ đổi quà đạt {rate}% ({visits}/{issued} mã đã phát); chi phí {costPerVisit}/khách, đã dùng {budgetPercent}% ngân sách ({prizeCost} / {budget}).",
+        "redemptionAndCost": "Tỷ lệ đổi quà đạt {rate}% ({visits}/{issued} mã đã phát); tổng chi phí quà đã đổi {prizeCost} ({costPerVisit}/khách tới quầy).",
+        "issuedPendingRedemption": "Đã phát {issued} mã quà (trị giá {outstandingCost}) nhưng chưa có khách đổi tại quầy.",
+        "noPrizesIssuedYet": "Chưa phát mã quà nào. Chi phí quà chỉ tính khi khách mang mã tới quầy đổi quà."
+      }
     }
   },
   "billing": {

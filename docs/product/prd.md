@@ -101,8 +101,8 @@ Khách đã đổi quà nhận tin "Hôm nay bạn còn 1 lượt" (Zalo ZNS t�
 |---|---|---|---|
 | PLB-01 | Luồng tạo bắt đầu bằng **mục tiêu**; ≥ 3 playbook F&B (Tết kéo khách, khách quay lại lần 2, ngày vắng) | M1 | 🧪 Studio: "Bạn muốn gì?" → thiết lập + đề xuất → editor (3 màn), "Tự chọn mẫu" mở kho mẫu; tag playbook ở trang chương trình · e2e `playbook-create.spec.ts` |
 | PLB-02 | Playbook điền sẵn mẫu, skin, luật, gợi ý cơ cấu quà theo **ngân sách** và **giá vốn** quà | M1 | 🧪 `lib/playbooks.ts` + `lib/suggest.ts` (q_i = ⌊B·w_i/c_i⌋, Σ q_i·c_i ≤ B có test; tỷ lệ trúng chọn bằng `simulate()` để rủi ro hết quà trước 90% ≤ 10%) |
-| PLB-03 | Báo cáo kết quả: khách tới quầy (lượt đổi quà), khách quay lại, chi phí quà so ngân sách, theo ngày/kênh | M1 | ✅ API (`GET …/campaigns/{id}/report`, 4 số chính khớp `awards` trong test tích hợp) · ⬜ UI |
-| PLB-04 | Báo cáo một trang cuối chương trình (xem/in/tải) | M1 | ⬜ |
+| PLB-03 | Báo cáo kết quả: khách tới quầy (lượt đổi quà), khách quay lại, chi phí quà so ngân sách, theo ngày/kênh | M1 | ✅ API (`GET …/campaigns/{id}/report`, 4 số chính khớp `awards` trong test tích hợp) · ✅ UI (Tổng quan theo kết quả, e2e `campaign-report.spec.ts`) |
+| PLB-04 | Báo cáo một trang cuối chương trình (xem/in/tải) | M1 | ✅ trang `/report` in A4, 3 nhận xét tự sinh |
 | PLB-05 | Benchmark ẩn danh theo ngành ("quán trà sữa trung bình đạt X% đổi quà") | M3 | ⬜ |
 | PLB-06 | Playbook cho ngành khác (spa, gym, bán lẻ) | M2–M3 | ⬜ |
 | PLB-07 | Gợi ý "chương trình tiếp theo" dựa trên kết quả chương trình trước | M3 | ⬜ |
@@ -200,7 +200,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| ANL-01 | Tổng quan chương trình: lượt chơi, khách, quà đã phát/đã đổi/còn lại, theo ngày (xem PLB-03 cho chỉ số kết quả) | M1 | 🧪 |
+| ANL-01 | Tổng quan chương trình: lượt chơi, khách, quà đã phát/đã đổi/còn lại, theo ngày (xem PLB-03 cho chỉ số kết quả) | M1 | ✅ |
 | ANL-02 | Export CSV/XLSX: người chơi (kèm consent), người trúng, mã đã đổi | M1 | ⬜ |
 | ANL-04 | Phễu: mở link → form → chơi → trúng → đổi; theo kênh | M2 | ⬜ |
 | ANL-05 | Webhook `player.registered`, `play.completed`, `prize.awarded`, `prize.redeemed` | M4 | ⬜ |

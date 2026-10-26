@@ -20,6 +20,7 @@ import {
 import {
   CircleX,
   ExternalLink,
+  FileText,
   Pause,
   Pencil,
   Play,
@@ -33,11 +34,13 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
+import { QueryError } from '@/components/query-error';
 import { useCampaignActionError } from '@/features/billing/components/plan-limit';
 import {
   type Campaign,
   useCampaign,
   useCampaignPlays,
+  useCampaignReport,
   useCampaignStats,
   useCampaignVouchers,
   useDeleteCampaign,
@@ -50,8 +53,14 @@ import { campaignPhase, isRunning } from '../../lib/phase';
 import { preflight } from '../../lib/preflight';
 import { campaignRoutes } from '../../lib/routes';
 import { isoToLocalInput, localInputToIso } from '../../lib/rules-format';
-import { CampaignMetrics } from '../editor/publish-dialog';
 import { campaignPeriod } from './campaign-period';
+import {
+  ChannelsTableCard,
+  DailyOutcomeCard,
+  OutcomeMetricGrid,
+  PlaybookGoalBanner,
+  PrizesOutcomeCard,
+} from './campaign-report';
 import { CampaignShareView } from './campaign-share-view';
 import { PhaseTag } from './phase-tag';
 import { PlaybookTag } from './playbook-tag';
@@ -132,6 +141,14 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
   const resume = useResumeCampaign(orgId);
   const onActionError = useCampaignActionError(orgId);
 
+  const reportLink = (
+    <Link href={routes.report(campaign.id)}>
+      <Button icon={<FileText className="size-4" />} tabIndex={-1}>
+        {t('viewReport')}
+      </Button>
+    </Link>
+  );
+
   const edit = (
     <Link href={routes.edit(campaign.id)}>
       <Button
@@ -158,6 +175,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
   }
   return (
     <Flex gap={8} wrap>
+      {reportLink}
       {edit}
       {share}
       {phase === 'paused' ? (
@@ -184,12 +202,34 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 }
 
 function OverviewTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
-  if (campaign.status === 'draft') return <DraftChecklist orgId={orgId} campaign={campaign} />;
+  const tr = useTranslations('campaigns.report');
+  const phase = campaignPhase(campaign);
+  const isLive = phase === 'live';
+  const report = useCampaignReport(orgId, campaign.id, {
+    refetchInterval: isLive ? 30_000 : undefined,
+  });
+
   return (
     <Flex vertical gap={20}>
-      <CampaignMetrics orgId={orgId} campaignId={campaign.id} />
+      {campaign.status === 'draft' && <DraftChecklist orgId={orgId} campaign={campaign} />}
+      {report.isError && <QueryError onRetry={() => report.refetch()} />}
+      <PlaybookGoalBanner campaign={campaign} report={report.data} />
+      <OutcomeMetricGrid campaign={campaign} report={report.data} loading={report.isPending} />
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <DailyOutcomeCard
+          report={report.data}
+          loading={report.isPending}
+          extra={isLive ? <Caption>{tr('autoRefreshHint')}</Caption> : undefined}
+        />
+        <ChannelsTableCard report={report.data} loading={report.isPending} />
+      </div>
       <div className="grid items-start gap-5 lg:grid-cols-2">
-        <PrizeStock orgId={orgId} campaign={campaign} />
+        <PrizesOutcomeCard
+          orgId={orgId}
+          campaign={campaign}
+          report={report.data}
+          loading={report.isPending}
+        />
         <RecentPlays orgId={orgId} campaign={campaign} />
       </div>
     </Flex>
@@ -293,7 +333,10 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
 function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const { token } = theme.useToken();
-  const plays = useCampaignPlays(orgId, campaign.id);
+  const isLive = campaignPhase(campaign) === 'live';
+  const plays = useCampaignPlays(orgId, campaign.id, {
+    refetchInterval: isLive ? 30_000 : undefined,
+  });
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (

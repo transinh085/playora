@@ -10,6 +10,7 @@ export function campaignRoutes(orgId: string) {
     list: `${base}/campaigns` as Route,
     create: `${base}/campaigns/new` as Route,
     detail: (id: string) => `${base}/campaigns/${id}` as Route,
+    report: (id: string) => `${base}/campaigns/${id}/report` as Route,
     /** `mode` opens a given editor mode, e.g. `rules` from the prizes tab. */
     edit: (id: string, mode?: 'quick' | 'customize' | 'rules') =>
       `${base}/campaigns/${id}/edit${mode ? `?mode=${mode}` : ''}` as Route,
