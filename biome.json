@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!docs", "!packages/db/src/schema/auth.ts", "!packages/db/drizzle"]
+    "includes": [
+      "**",
+      "!docs",
+      "!.claude",
+      "!packages/db/src/schema/auth.ts",
+      "!packages/db/drizzle"
+    ]
   },
   "formatter": {
     "enabled": true,
