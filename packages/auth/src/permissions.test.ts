@@ -38,4 +38,20 @@ describe('org permissions', () => {
       expect(hasPermission(role, { brandKit: ['delete'] })).toBe(false);
     }
   });
+
+  test('redeemers only look up and redeem vouchers', () => {
+    expect(hasPermission('redeemer', { voucher: ['read', 'redeem'] })).toBe(true);
+    expect(hasPermission('redeemer', { voucher: ['reopen'] })).toBe(false);
+    expect(hasPermission('redeemer', { campaign: ['read'] })).toBe(false);
+    expect(hasPermission('redeemer', { event: ['read'] })).toBe(false);
+  });
+
+  test('only the owner can reopen a redeemed voucher', () => {
+    expect(hasPermission('owner', { voucher: ['reopen'] })).toBe(true);
+    for (const role of ['admin', 'editor', 'operator', 'viewer'] as const) {
+      expect(hasPermission(role, { voucher: ['reopen'] })).toBe(false);
+    }
+    expect(hasPermission('editor', { campaign: ['publish'] })).toBe(true);
+    expect(hasPermission('viewer', { campaign: ['update'] })).toBe(false);
+  });
 });

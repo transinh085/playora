@@ -1,3 +1,4 @@
+export * from './campaign';
 export * from './decide';
 export * from './schedule';
 export * from './schemas';

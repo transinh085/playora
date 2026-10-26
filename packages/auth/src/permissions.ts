@@ -12,6 +12,8 @@ export const statements = {
   prize: ['create', 'read', 'update', 'delete'],
   asset: ['create', 'read', 'update', 'delete'],
   brandKit: ['create', 'read', 'update', 'delete'],
+  campaign: ['create', 'read', 'update', 'delete', 'publish'],
+  voucher: ['read', 'redeem', 'reopen'],
   export: ['create'],
   audit: ['read'],
 } as const;
@@ -24,13 +26,24 @@ const content = {
   prize: ['create', 'read', 'update', 'delete'],
   asset: ['create', 'read', 'update', 'delete'],
   brandKit: ['create', 'read', 'update', 'delete'],
+  campaign: ['create', 'read', 'update', 'delete', 'publish'],
+  voucher: ['read', 'redeem'],
 } as const;
 
 export const roles = {
-  owner: ac.newRole({ ...ownerAc.statements, ...content, export: ['create'], audit: ['read'] }),
+  owner: ac.newRole({
+    ...ownerAc.statements,
+    ...content,
+    // Only the owner can undo a redemption (docs/product/specs/prizes-redemption.md §6.2).
+    voucher: ['read', 'redeem', 'reopen'],
+    export: ['create'],
+    audit: ['read'],
+  }),
   admin: ac.newRole({ ...adminAc.statements, ...content, export: ['create'], audit: ['read'] }),
   editor: ac.newRole({ ...content, event: ['create', 'read', 'update'] }),
   operator: ac.newRole({
+    campaign: ['read'],
+    voucher: ['read', 'redeem'],
     event: ['read'],
     game: ['read'],
     prize: ['read'],
@@ -38,12 +51,16 @@ export const roles = {
     brandKit: ['read'],
   }),
   viewer: ac.newRole({
+    campaign: ['read'],
+    voucher: ['read'],
     event: ['read'],
     game: ['read'],
     prize: ['read'],
     asset: ['read'],
     brandKit: ['read'],
   }),
+  /** Counter staff ("chỉ đổi quà"): look up and redeem codes, nothing else. */
+  redeemer: ac.newRole({ voucher: ['read', 'redeem'] }),
 };
 
 export type OrgRole = keyof typeof roles;

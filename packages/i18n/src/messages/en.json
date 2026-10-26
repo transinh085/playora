@@ -222,6 +222,15 @@
     "GUEST_CODE_ALREADY_USED": "This guest code is already in use on another device. Please ask the organizer to release it",
     "PRIZE_OUT_OF_STOCK": "This prize is out of stock",
     "DRAW_POOL_EMPTY": "No eligible players left to draw",
+    "CAMPAIGN_NOT_PUBLISHED": "This campaign has not been published",
+    "CAMPAIGN_RUNNING": "This campaign is live or scheduled. Pause or end it before deleting",
+    "INVALID_PRIZE_RULES": "The prize rules are invalid, please check them",
+    "PRIZE_QUANTITY_BELOW_ISSUED": "Prize quantity cannot be lower than the number already issued",
+    "CAPTCHA_REQUIRED": "Please confirm you are not a robot",
+    "VOUCHER_NOT_FOUND": "Voucher code not found",
+    "VOUCHER_ALREADY_REDEEMED": "This code has already been redeemed",
+    "VOUCHER_EXPIRED": "This code has expired",
+    "VOUCHER_VOID": "This code has been voided",
     "INTERNAL": "Something went wrong on our side, please retry",
     "PAYLOAD_TOO_LARGE": "The uploaded file or request is too large"
   },
@@ -257,7 +266,8 @@
       "admin": "Admin",
       "editor": "Editor",
       "operator": "Operator",
-      "viewer": "Viewer"
+      "viewer": "Viewer",
+      "redeemer": "Counter staff (redeem only)"
     }
   },
   "guests": {

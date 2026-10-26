@@ -29,3 +29,4 @@ export const awardStatus = pgEnum('award_status', ['issued', 'notified', 'redeem
 export const dataEnv = pgEnum('data_env', ['live', 'rehearsal']);
 export const assetKind = pgEnum('asset_kind', ['image', 'audio', 'video']);
 export const assetStatus = pgEnum('asset_status', ['pending', 'ready', 'failed']);
+export const playOutcome = pgEnum('play_outcome', ['win', 'lose', 'closed']);
