@@ -173,7 +173,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 | GAM-01 | Instant-win: token lượt chơi dùng một lần; server quyết định kết quả và giải trước khi client animate | M1 | ✅ |
 | GAM-02 | Skill: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M1 | ⬜ |
 | GAM-03 | Cùng phiên bản chạy trên Player và Kiosk | M1/M3 | ⬜ |
-| GAM-04 | Renderer M1: vòng quay, cào thẻ, mở hộp (instant); hứng quà (skill) | M1 | ✅ vòng quay · 🧪 cào, mở hộp · ⬜ hứng quà |
+| GAM-04 | Renderer M1: vòng quay, cào thẻ, mở hộp (instant); hứng quà (skill) | M1 | ✅ vòng quay, cào thẻ, mở hộp (API thật, e2e `play-mechanisms`) · ⬜ hứng quà (dời M2 theo roadmap §1.4) |
 
 ### 5.7 Giải và đổi quà (PRZ)
 
