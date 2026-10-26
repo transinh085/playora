@@ -1,6 +1,6 @@
 # Plan tái cấu trúc kiến trúc (backend + frontend, chuyển sang antd) — 24/10/2026
 
-Trạng thái: **Draft, chờ duyệt** · Nền: `main@e9a8106` (đã gỡ live engine, SDK v2) · Điều phối: Opus (review + merge + e2e) · Worker: Antigravity (agy) qua Orca
+Trạng thái: **Đã thực hiện** (các commit `refactor …` 24–25/10/2026; xem `git log --grep refactor`) · Nền: `main@e9a8106` (đã gỡ live engine, SDK v2) · Điều phối: Opus (review + merge + e2e) · Worker: Antigravity (agy) qua Orca
 
 Mục tiêu: đưa code về đúng kiến trúc v2 ([ADR-012](../adr/012-campaign-architecture.md)) và **thay shadcn/ui bằng Ant Design ở mọi bề mặt** trước Đợt 4 (API lượt chơi, UI giải, flow Play). Ngoài việc đổi thư viện UI, mỗi task giữ **nguyên hành vi** trừ chỗ ghi rõ. Không thêm migration (migration thuộc story "nền dữ liệu campaign").
 

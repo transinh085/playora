@@ -1,43 +1,78 @@
-# Playora — Bộ tài liệu dự án
+# Tài liệu Playora
 
-> **Playora** là nền tảng dựng minigame có thưởng cho chiến dịch marketing tại Việt Nam, bán qua agency. Dựng trong 30 phút từ template × skin theo mùa, giải thưởng được kiểm soát chặt và minh bạch, chạy online và tại booth. *"Dựng minigame có thưởng trong 30 phút."*
+> **Playora** giúp quán nhỏ kéo khách tới và giữ khách quay lại bằng minigame có thưởng mang đúng sản phẩm của quán: dựng trong vài phút, giải không bao giờ phát sai, đổi quà tại quầy, báo lại bằng kết quả kinh doanh. Builder là lõi; kết quả là thứ để bán.
 
-Cập nhật: 24/10/2026 · Trạng thái: **v2.1**, chỉ làm minigame campaign có thưởng; bỏ hẳn Live add-on (game LED, Host Console, Screen), lucky draw sân khấu thay bằng bốc thăm cuối chương trình online (xem [00 §10](./00-product-strategy.md#10-thay-đổi-so-với-v10))
+Cập nhật: 26/10/2026 · Chiến lược **v4.0** · Giai đoạn hiện tại: **M0 + P0 vòng lõi** ([roadmap](./product/roadmap.md))
 
-## Bắt đầu từ đâu
+## Cấu trúc
+
+```
+docs/
+├── product/            SẢN PHẨM & NGHIỆP VỤ — PO sở hữu, ràng buộc
+│   ├── strategy.md         nguồn chân lý: định nghĩa, ICP, định vị, nguyên tắc, chỉ số
+│   ├── prd.md              yêu cầu theo ID và giai đoạn, kèm hiện trạng
+│   ├── roadmap.md          kế hoạch theo tuần, gate
+│   ├── decisions.md        nhật ký quyết định sản phẩm (D-xx) + câu hỏi mở
+│   ├── glossary.md         thuật ngữ UI ↔ code
+│   └── specs/              đặc tả nghiệp vụ theo mảng
+│       ├── playbooks.md        playbook theo mục tiêu, báo cáo kết quả
+│       ├── builder.md          mẫu, skin, flow, 3 chế độ soạn, vòng đời
+│       ├── prizes-redemption.md  prize engine, mô phỏng, đổi quà, bốc thăm
+│       ├── participation.md    danh tính, điều kiện, giữ chân, chống gian lận, kênh
+│       ├── game-catalog.md     danh mục mẫu và đặc tả mẫu M1
+│       └── studio-ux.md        điều hướng, luồng, bố cục Studio
+├── business/           KINH DOANH & PHÁP LÝ
+│   ├── business-model.md   giá, GTM, unit economics, rủi ro
+│   └── compliance.md       khuyến mại, PDPL, thuế, điều khoản
+├── research/           NGHIÊN CỨU — đầu vào, không ràng buộc
+│   ├── market-research.md, builder-research.md, guandayun-teardown.md
+│   └── customer-interview-guide.md
+├── engineering/        KỸ THUẬT — Tech Lead sở hữu
+│   ├── architecture.md     kiến trúc, game runtime, play/prize engine, auth
+│   ├── data-model.md, api.md
+│   ├── conventions.md      quy trình thêm tính năng, quy tắc code, test
+│   ├── design-system.md    token, Studio look, game UI
+│   └── security.md         chống gian lận, bảo mật ứng dụng
+├── operations/         TRIỂN KHAI & VẬN HÀNH
+│   ├── environments-deploy.md  môi trường, CI/CD, Docker, backup
+│   └── runbook.md          vận hành chương trình, sự cố, checklist trước pilot
+├── adr/                QUYẾT ĐỊNH KIẾN TRÚC (ADR-NNN)
+├── plans/              kế hoạch thực thi có ngày (đã chạy hoặc đang chạy)
+└── archive/            bản cũ không còn hiệu lực
+```
+
+## Đọc gì trước
 
 | Bạn là | Đọc |
 |---|---|
-| Nhà đầu tư, lãnh đạo, đối tác | [03-proposal.md](./03-proposal.md) → [00-product-strategy.md](./00-product-strategy.md) |
-| PM, Designer | [00-product-strategy.md](./00-product-strategy.md) → [prd.md](./prd.md) → [12-builder-spec.md](./12-builder-spec.md) → [04-game-catalog.md](./04-game-catalog.md) → [13-design-system.md](./13-design-system.md) |
-| Developer | [00-product-strategy.md](./00-product-strategy.md) → [05-architecture.md](./05-architecture.md) → [12-builder-spec.md](./12-builder-spec.md) → [06](./06-data-model.md) / [07](./07-api-realtime.md) → [10-dev-setup-conventions.md](./10-dev-setup-conventions.md) |
-| BD, Sales | [02-business-model.md](./02-business-model.md) → [01-market-research.md](./01-market-research.md) → [11-game-builder-research.md](./11-game-builder-research.md) |
+| Mới vào dự án, nhà đầu tư | [strategy](./product/strategy.md) → [business-model](./business/business-model.md) → [roadmap](./product/roadmap.md) |
+| Làm sản phẩm, thiết kế | [strategy](./product/strategy.md) → [prd](./product/prd.md) → [specs/](./product/specs/) → [design-system](./engineering/design-system.md) |
+| Developer, AI agent | [AGENTS.md](../AGENTS.md) → [conventions](./engineering/conventions.md) → [architecture](./engineering/architecture.md) → spec của tính năng đang làm → [adr/](./adr/README.md) |
+| Vận hành pilot | [runbook](./operations/runbook.md) → [specs/prizes-redemption §6](./product/specs/prizes-redemption.md#6-đổi-quà-tại-quầy) → [compliance](./business/compliance.md) |
 
-## Danh mục
+## Thứ tự ưu tiên khi mâu thuẫn
 
-| Tài liệu | Nội dung |
+1. [product/strategy.md](./product/strategy.md) — định hướng.
+2. [product/decisions.md](./product/decisions.md) và [adr/](./adr/README.md) — quyết định mới hơn thắng.
+3. [product/prd.md](./product/prd.md) và [product/specs/](./product/specs/) — yêu cầu.
+4. [engineering/](./engineering/) — cách làm.
+5. [research/](./research/), [plans/](./plans/), [archive/](./archive/) — tham khảo, không ràng buộc.
+
+Thấy mâu thuẫn thì sửa tài liệu cấp thấp hơn trong cùng PR, hoặc ghi vào câu hỏi mở của [decisions.md](./product/decisions.md#câu-hỏi-đang-mở).
+
+## Quy ước viết
+
+- **Đặt file:** đúng thư mục theo bảng trên; tên `kebab-case.md`, không đánh số. Kế hoạch có ngày: `plans/YYYY-MM-DD-ten.md`. ADR: `adr/NNN-ten.md` theo [mẫu](./adr/000-template.md).
+- **Dòng đầu mỗi file:** `Cập nhật: dd/mm/yyyy · Owner: … · Liên quan: …`.
+- **Ngôn ngữ:** tiếng Việt; thuật ngữ theo [glossary](./product/glossary.md). Tên trong code giữ tiếng Anh.
+- **Nhãn:** `[GĐ]` số giả định · `[CXM]` chưa xác minh · M0–M4 giai đoạn · `BLD-01` ID yêu cầu · `D-xx` quyết định sản phẩm · `ADR-xxx` quyết định kiến trúc.
+- **Link:** đường dẫn tương đối. Code trích tài liệu theo dạng `docs/<thư mục>/<file>.md §n`; đổi số mục thì sửa luôn chỗ trích trong code (`git grep "docs/"`).
+- **Khi nào viết gì:**
+
+| Việc | Ghi vào |
 |---|---|
-| [00-product-strategy.md](./00-product-strategy.md) | **Nguồn chân lý:** định nghĩa sản phẩm, ICP, định vị, kiến trúc sản phẩm, nguyên tắc, **giai đoạn MVP M0–M4** và gate, chỉ số, giả định rủi ro |
-| [01-market-research.md](./01-market-research.md) | Quy mô thị trường, đối thủ, insight khách hàng, mùa vụ, SWOT, kế hoạch kiểm chứng |
-| [02-business-model.md](./02-business-model.md) | Business model canvas, bảng giá (Free / Campaign Pass / Agency năm / Enterprise), GTM, unit economics, dự phóng |
-| [03-proposal.md](./03-proposal.md) | Proposal trình bày (Gamified Campaign Builder) |
-| [prd.md](./prd.md) | Yêu cầu sản phẩm theo giai đoạn M1–M4, NFR, tiêu chí nghiệm thu M1 |
-| [04-game-catalog.md](./04-game-catalog.md) | Danh mục minigame (campaign, booth) theo giai đoạn; đặc tả 4 minigame M1 và bốc thăm cuối chương trình |
-| [05-architecture.md](./05-architecture.md) | Kiến trúc, tech stack (Bun, Next.js, NestJS, Drizzle), monorepo, play engine + prize engine trên API, ADR, đơn giản hoá cho M1 |
-| [06-data-model.md](./06-data-model.md) | Drizzle schema |
-| [07-api-realtime.md](./07-api-realtime.md) | REST API và public API (phần realtime đã bỏ ở v2.1) |
-| [08-security-compliance.md](./08-security-compliance.md) | Chống gian lận, bảo mật, PDPL 2025, quy định khuyến mại |
-| [09-roadmap-plan.md](./09-roadmap-plan.md) | Sprint plan M0–M1 (gỡ live engine, play engine, prize engine v1, chống gian lận, 4 minigame), các track M2–M4, gate, đội ngũ, ngân sách, rủi ro |
-| [10-dev-setup-conventions.md](./10-dev-setup-conventions.md) | Scaffold monorepo, convention, CI/CD, testing |
-| [adr/](./adr/README.md) | Quyết định kiến trúc; [ADR-011](./adr/011-remove-live-engine.md) gỡ live engine (thay ADR-004) |
-| [11-game-builder-research.md](./11-game-builder-research.md) | Nghiên cứu sâu builder: Guandayun/凡科, Trung Quốc, quốc tế, Việt Nam |
-| [12-builder-spec.md](./12-builder-spec.md) | Đặc tả builder (tính năng lõi) và phân kỳ theo M1–M4 |
-| [13-design-system.md](./13-design-system.md) | Design system: token 3 tầng, skin + brand kit, component Studio và game/LED |
-| [16-studio-ux.md](./16-studio-ux.md) | UX Studio: mô hình chương trình hai chế độ (Soạn / Vận hành), điều hướng, luồng chính, lộ trình S1–S8 |
-
-## Quy ước
-
-- **Giai đoạn:** M0 Discovery (26/10–06/11/2026) · **M1** MVP "Tết Campaign" (→ 11/12/2026, pilot đến 06/02/2027) · **M2** Self-serve & Agency (22/02–30/04/2027) · **M3** Booth & Activation (05–07/2027) · **M4** Scale & Platform (08–12/2027) · Later (2028+).
-- Số liệu thị trường có trích nguồn. Số **giả định** gắn nhãn `[GĐ]`; số **chưa xác minh** gắn nhãn `[CXM]`.
-- "Guandayun" là **观达云互动** (guandayun.com), gần như chắc chắn là đại lý OEM của **凡科互动** (hd.fkw.com). Xem [11-game-builder-research.md](./11-game-builder-research.md).
-- Khi có mâu thuẫn giữa các tài liệu, [00-product-strategy.md](./00-product-strategy.md) là chuẩn.
+| Đổi phạm vi, khách hàng, giá, thứ tự ưu tiên | Dòng mới trong [decisions.md](./product/decisions.md), rồi sửa strategy/prd |
+| Lựa chọn kỹ thuật khó đảo ngược | ADR mới |
+| Tính năng mới | ID trong [prd.md](./product/prd.md) + mục trong spec của mảng |
+| Kế hoạch nhiều bước có ngày | `plans/` |
+| Tài liệu hết hiệu lực | Chuyển vào `archive/`, thêm dòng "LƯU TRỮ" ở đầu |

@@ -1,149 +1,107 @@
-# 04 — Danh mục game template
+# Danh mục game
 
-Cập nhật: 24/10/2026 · theo [00 v2.1](./00-product-strategy.md): chỉ làm minigame có thưởng (v2.1: bỏ game live/LED và quiz)
+Cập nhật: 26/10/2026 · Owner: PO · PRD: GAM-* ([prd §5.6](../prd.md#56-game-gam)) · Liên quan: [builder §2](./builder.md#2-mô-hình-khái-niệm), [prizes-redemption](./prizes-redemption.md), [architecture §5](../../engineering/architecture.md)
 
 ---
 
 ## 1. Phân loại
 
-| Loại | `kind` | Ai quyết định kết quả | Ví dụ |
+| Engine | `kind` | Ai quyết định kết quả | Ví dụ |
 |---|---|---|---|
-| **Instant-win** | `instant` | Server, *trước* khi client animate | Vòng quay, cào thẻ, mở hộp |
-| **Skill (async)** | `skill` | Client chơi, server **xác thực** điểm, giải theo ngưỡng điểm hoặc hạng | Hứng quà, lật thẻ, puzzle |
-| **Draw** | `draw` | Server chọn người trúng từ tập người chơi (bốc thăm cuối chương trình, M2) | Bốc thăm online, công bố kết quả |
-| **Display** | `display` | Không có kết quả | Khung ảnh brand (M4) |
+| **Instant-win** | `instant` | Server, **trước** khi client animate | Vòng quay, cào thẻ, mở hộp |
+| **Skill + điểm** | `skill` | Client chơi, server **xác thực** điểm; giải theo ngưỡng điểm hoặc hạng | Hứng quà, lật cặp, ghép hình |
+| **Giữ chân** | (M2) | Server giữ trạng thái nhiều ngày | Điểm danh, sưu tầm thẻ |
+
+Bốc thăm cuối chương trình là tính năng nền tảng, không phải mẫu ([prizes-redemption §7](./prizes-redemption.md#7-bốc-thăm-cuối-chương-trình-m2)).
+
+**Nguyên tắc chọn mẫu** ([D-07](../decisions.md)):
+1. Mẫu là renderer trên engine có sẵn. Engine mới chỉ khi đáng giá ≥ 10 skin.
+2. Ra skin theo dịp đều đặn quan trọng hơn ra cơ chế mới.
+3. Mẫu phải chơi tốt bằng một ngón tay trên điện thoại cũ, trong trình duyệt của Zalo/FB.
 
 ## 2. Danh mục và giai đoạn
 
-Giai đoạn theo [00-product-strategy §7](./00-product-strategy.md#7-lộ-trình-mvp-theo-giai-đoạn): **M1** Tết Campaign (12/2026) · **M2** Self-serve & Agency (04/2027) · **M3** Booth & Activation (07/2027) · **M4** Scale (12/2027).
-
-**Nguyên tắc chọn:**
-1. Ưu tiên **minigame có thưởng** chạy được nhiều ngày trên điện thoại (lõi), cùng engine cho booth.
-2. Cơ chế phải đáng giá ≥ 10 skin; ra skin theo mùa đều đặn quan trọng hơn ra cơ chế mới.
-3. Không làm quiz/poll và game live/LED (v2.1).
-
-### 2.1 Minigame có thưởng (Player + Kiosk) — lõi
-
-| Template | Tên | Kind | GĐ | Độ khó | Ghi chú |
+| Mẫu | Tên | Engine | GĐ | Độ khó | Ghi chú |
 |---|---|---|---|---|---|
-| `spin-wheel` | Vòng quay may mắn | instant | **M1** | S | 4–12 ô; custom widget sửa ô; ô gắn với giải hoặc "chúc may mắn" |
-| `scratch-card` | Cào thẻ | instant | **M1** | S | Canvas cào, lộ ≥ 60% thì hiện kết quả |
-| `gift-box` | Mở hộp quà | instant | **M1** | S | Biến thể skin: **đập trứng vàng, lì xì Tết, lưới 9 ô, hộp bí ẩn** (M1); máy xèng, gacha (M3) — cùng engine `instant` |
-| `catch-items` | Hứng quà / hứng lộc | skill | **M1** | M | PixiJS; `score_threshold` → lượt draw |
-| `memory-match` | Lật thẻ | skill | M2 | S | Logo/sản phẩm brand |
-| `puzzle` | Ghép hình | skill | M2 | M | |
-| `whack-a-mole` | Đập chuột / đập logo | skill | M2 | M | |
+| `spin-wheel` | Vòng quay may mắn | instant | **M1** | S | 4–12 ô; ô gắn giải hoặc "chúc may mắn". Có trong `packages/templates` |
+| `scratch-card` | Cào thẻ | instant | **M1** | S | Lộ ≥ 60% thì hiện kết quả. Có trong Builder Lab |
+| `gift-box` | Mở hộp quà | instant | **M1** | S | Biến thể skin: hộp quà, đập trứng vàng, lì xì, lưới 9 ô. Có trong Builder Lab |
+| `catch-items` | Hứng quà | skill | M1 (cắt sang M2 nếu trễ) | M | PixiJS; `score_threshold` → một lượt xét giải |
+| `memory-match` | Lật cặp | skill | M2 | S | Ảnh sản phẩm của quán làm thẻ |
+| `whack-a-mole` | Đập logo | skill | M2 | M | |
+| `puzzle` | Ghép hình | skill | M2 | M | Ghép ảnh sản phẩm |
 | `red-envelope` | Lì xì rơi | skill | M2 | M | Kịp Tết 2028 bằng skin |
-| `collect-cards` | Sưu tầm thẻ (集福) | instant | M3 | M | Chiến dịch nhiều ngày |
-| `photo-booth` | Khung ảnh brand | display | M4 | M | |
+| `slot-machine`, `gacha` | Máy xèng, gacha | instant | M2 | S | Skin/renderer của instant-win |
+| `daily-checkin` | Điểm danh | giữ chân | M2 | M | |
+| `collect-cards` | Sưu tầm thẻ | giữ chân | M3 | M | Không có cơ chế xin thẻ từ bạn |
 
-**Bỏ:** `live-quiz`, `quiz-async`, `live-poll` (v2.0); toàn bộ game live/LED (v2.1): `shake-race`, `tap-race`, `tug-of-war`, `launch-ceremony`, `checkin-wall`, `danmaku-wall`, `money-count`, `performance-score`, `bingo`, `charades`. Engine realtime lưu ở tag `archive/live-engine`.
+**Độ khó:** S ≈ 3–5 ngày, M ≈ 1,5–2 tuần với một người (gồm schema, màn mặc định, 2 skin, test).
 
-**Độ khó:** S ≈ 3–5 ngày, M ≈ 1,5–2 tuần với 1 game dev (gồm editor schema, skin mặc định và test).
+**Đã bỏ:** quiz, poll (D-01); mọi game live/LED (D-02): `shake-race`, `tap-race`, `tug-of-war`, `checkin-wall`, `money-count`… Code ở tag `archive/live-engine`.
 
-> **Skin thay vì template mới:** Trung Quốc có hàng trăm đến hàng nghìn "template" nhờ nhân **1 cơ chế × N skin theo mùa/ngành**. Playora làm tương tự qua skin và theme pack ([12-builder-spec §5](./12-builder-spec.md#5-skin-theme-và-brand-kit)). Gallery hiển thị theo tổ hợp cơ chế × skin. Mục tiêu: M1 có 4 minigame × (Tết + Chung + biến thể skin) ≈ 12 lựa chọn; M2 có 8 minigame × 8 theme; M4 trên 200 tổ hợp.
+**Kho mẫu = mẫu × skin.** Mục tiêu: pilot Tết 3 mẫu × 2–3 skin; M2 8 mẫu × 8 bộ theo dịp; M4 trên 200 tổ hợp.
 
 ---
 
-## 3. Đặc tả template M1
+## 3. Đặc tả mẫu M1
 
-### 3.0 Luồng chung cho minigame `instant`
+### 3.0 Luồng chung cho instant-win
 
-1. Player mở game → flow chuẩn: Cover (thể lệ) → Form/consent (nếu bật) → màn game.
-2. Player bấm chơi → `POST /p/{slug}/plays` (kèm `deviceId`, Turnstile token theo preset). Server kiểm tra participation (lượt/ngày, tổng, khung giờ), chống gian lận, rồi gọi **prize engine** trong một transaction: chọn kết quả theo chế độ (`per_prize_probability` / `overall_win_rate` / `guaranteed`), áp pacing, giới hạn người/ngày, ngân sách; trừ tồn kho nguyên tử; cấp voucher từ pool nếu có.
-3. Server trả `{ playId, outcome: { kind: 'win' | 'lose' | 'out_of_stock', prize?, voucherCode?, slotIndex? } }`. Client **chỉ animate** đến kết quả đã biết (ví dụ vòng quay dừng ở `slotIndex`), không tự quyết định.
-4. Màn kết quả theo biến thể; "Quà của tôi" liệt kê giải và mã đã nhận.
+1. Shell Play chạy Bìa → Form/consent (nếu bật) → màn Game ([builder §3.1](./builder.md#31-luồng-người-chơi)).
+2. Người chơi bấm chơi → `POST /p/{slug}/games/{gameId}/plays` (kèm `deviceId`, Turnstile theo mức chống gian lận). Server kiểm điều kiện, gọi prize engine trong một giao dịch, trừ kho nguyên tử, cấp mã đổi quà.
+3. Server trả `{ playId, outcome: { kind: 'win' | 'lose' | 'out_of_stock', prize?, voucherCode? }, display }`. Client **chỉ animate** tới kết quả đã biết (vòng quay dừng ở `display.slotIndex`).
+4. Màn Kết quả theo biến thể; "Quà của tôi" liệt kê quà và mã.
 
 **Không hỗ trợ:** định trước người trúng; client gửi kết quả.
 
 ### 3.1 `spin-wheel`
 
-- **Cấu hình:** 4–12 ô (`label`, màu, ảnh, `prizeId` hoặc `none`); ô "chúc may mắn"; số vòng quay tối thiểu, thời lượng 3–8 s; âm thanh.
-- **Map kết quả → ô:** server chọn giải trước, rồi chọn ngẫu nhiên một ô gắn với giải đó (hoặc ô `none` khi không trúng/hết quà). Nếu giải không có ô nào thì publish bị chặn (pre-flight).
-- **Skin:** Tết (hoa mai, bao lì xì), Chung, theo màu brand kit.
+- **Cấu hình:** 4–12 ô (nhãn, màu, ảnh, giải hoặc "không trúng"); số vòng tối thiểu, thời lượng 3–8 s; âm thanh.
+- **Map kết quả → ô:** server chọn giải trước, rồi chọn ngẫu nhiên một ô gắn giải đó (ô "không trúng" khi trượt/hết quà). Giải không có ô nào thì chặn phát hành.
+- **Skin:** Tết, quanh năm, khai trương; màu theo brand kit.
 
 ### 3.2 `scratch-card`
 
-- **Cấu hình:** ảnh lớp phủ, ảnh nền theo kết quả (trúng/không trúng), tỷ lệ lộ để hiện kết quả (mặc định 60%), chữ hướng dẫn.
-- **Client:** canvas cào; kết quả đã được server quyết định và lượt đã được tính trước khi bắt đầu cào, nên xem trước bằng devtools không thay đổi được gì.
+- **Cấu hình:** ảnh lớp phủ, ảnh theo kết quả, tỷ lệ lộ để hiện kết quả (mặc định 60%), chữ hướng dẫn.
+- Kết quả đã quyết định và lượt đã tính trước khi cào; xem trước bằng devtools không đổi được gì.
 
 ### 3.3 `gift-box`
 
-- **Cấu hình:** số hộp hiển thị (1, 3, 9), hiệu ứng mở, ảnh hộp/trứng/bao lì xì theo skin.
-- **Biến thể skin M1:** hộp quà, **đập trứng vàng**, **lì xì Tết**, lưới 9 ô. Kết quả do server quyết định trước khi người chơi chọn hộp; thể lệ ghi rõ điều này. Các hộp còn lại **không** lật ra "giải lẽ ra trúng" (tránh gây hiểu nhầm, nhất quán với nguyên tắc minh bạch).
+- **Cấu hình:** số hộp (1, 3, 9), hiệu ứng mở, ảnh hộp/trứng/bao lì xì theo skin.
+- Kết quả do server quyết định trước khi khách chọn hộp; thể lệ ghi rõ điều này. Hộp còn lại **không** lật ra "giải lẽ ra trúng".
 
 ### 3.4 `catch-items`
 
-- **Cơ chế:** 20–60 s hứng vật phẩm rơi (PixiJS), tránh vật phẩm xấu; điểm theo vật phẩm.
-- **Server:** cấp `playId` lúc bắt đầu; nhận `{ playId, score, durationMs, events digest }` lúc kết thúc; kiểm tra plausibility (điểm tối đa theo thời lượng và tốc độ rơi, thời lượng thực tế theo server). Đạt `score_threshold` thì được một lượt draw qua prize engine; có thể có leaderboard theo ngày.
-- **Skin:** hứng lộc Tết (bao lì xì, vàng), hứng sản phẩm brand.
+- **Cơ chế:** 20–60 s hứng vật phẩm rơi, tránh vật phẩm xấu; điểm theo vật phẩm. Vật phẩm là **ảnh sản phẩm của quán**.
+- **Server:** cấp `playId` + `seed` lúc bắt đầu (lượt tính ngay); nhận `{ score, durationMs, telemetry }` lúc kết thúc; kiểm plausibility (điểm tối đa theo seed và thời lượng thật theo server). Đạt `score_threshold` thì xét giải qua prize engine.
 
-### 3.5 `lucky-draw`: Bốc thăm cuối chương trình (M2)
+---
 
-> v2.1: không còn Screen/Host. Organizer quay trong Studio; kết quả hiện trên trang công bố công khai và trong "Quà của tôi". **Cần sửa khi làm:** commit phải ràng buộc cả `poolHash` và `spinNo` (pool chốt trước khi commit), để organizer không thể đổi pool hay quay lại tới khi ra người mình muốn.
+## 4. Hợp đồng mẫu (tóm tắt)
 
-**Cấu hình (rút gọn):**
-
-```ts
-const luckyDrawConfig = z.object({
-  pool: z.object({
-    source: z.enum(['checked_in', 'guest_list', 'played_game']),
-    gameId: z.string().optional(),            // khi source = played_game
-    filters: z.array(z.object({ field: z.string(), op: z.enum(['eq', 'in']), value: z.any() })).default([]),
-    excludePreviousWinners: z.boolean().default(true),
-  }),
-  tiers: z.array(z.object({
-    prizeId: z.string(),
-    label: z.string(),                        // "Giải Nhất"
-    winnersPerSpin: z.number().int().min(1).max(50).default(1),
-  })),
-  effect: z.enum(['slot', 'name-shuffle', 'wheel']).default('slot'),
-  display: z.object({ showField: z.enum(['name', 'code', 'phone_masked']).default('name') }),
-  durationMs: z.number().int().min(2000).max(20000).default(6000),
-});
-```
-
-**Luồng:**
-
-1. Organizer chốt pool (snapshot ứng viên, sắp xếp theo `player_id`, tính `poolHash`), chọn tier trong Studio.
-2. Server lấy snapshot tập ứng viên, sắp xếp theo `player_id` và tính `poolHash`.
-3. Server sinh `serverSeed` (CSPRNG) và công bố `commit = sha256(serverSeed ‖ poolHash ‖ spinNo)` trước khi quay (trang công bố + log); `spinNo` tăng đơn điệu, lưu DB.
-4. Server chọn người trúng: `index = HMAC_SHA256(serverSeed, poolHash + ":" + spinNo) mod N` (lặp cho nhiều người, loại trùng).
-5. Server ghi `draw_spins` và `awards` trong 1 transaction; Studio chạy hiệu ứng `durationMs` rồi dừng ở người trúng; kết quả lên trang công bố và "Quà của tôi".
-6. Sau sự kiện, biên bản công bố `serverSeed`; bất kỳ ai cũng kiểm chứng được.
-
-**Edge cases:** pool rỗng; người trúng không liên lạc được (organizer "Quay lại" sẽ ghi `void` kèm lý do vào log, không xoá, `spinNo` tăng).
-
-## 4. Template contract (tóm tắt)
-
-Mỗi template là một package trong `packages/games/<key>` và export:
+Mỗi mẫu là một thư mục `packages/templates/src/<key>/` gồm `definition.ts` (server-safe: schema, ô, skin, server module) và `player.tsx` (client) ([ADR-012 §2–3](../../adr/012-campaign-architecture.md)).
 
 ```ts
 export default defineTemplate({
   key: 'spin-wheel',
   version: '1.0.0',
   kind: 'instant',
-  meta: { name: { vi: 'Vòng quay may mắn', en: 'Spin the Wheel' }, thumbnail, tags: ['tet', 'campaign'] },
-  configSchema,              // zod; nguồn chân lý cho validate server và sinh form editor
+  meta: { name: { vi: 'Vòng quay may mắn', en: 'Spin the Wheel' }, tags: ['tet', 'fnb'] },
+  configSchema,              // zod; validate server và sinh form
   defaultConfig,
-  editor: { groups: [...] }, // gợi ý layout form và widget (color, asset, list…)
-  surfaces: {
-    player: () => import('./player'),   // React component, lazy
-  },
-  server: () => import('./server'),     // map kết quả → hiển thị (instant) hoặc validator điểm (skill)
+  assetSlots,                // ô asset có ràng buộc
+  skins,                     // màn mặc định (ScreenDoc) theo skin
+  server: { present },       // instant: outcome → dữ liệu hiển thị
 });
 ```
 
-Chi tiết interface ở [05-architecture.md §5](./05-architecture.md#5-game-runtime--template-system).
+Interface đầy đủ: [architecture §5](../../engineering/architecture.md).
 
----
+## 5. Quy trình làm mẫu mới
 
-## 5. Quy trình làm template mới
-
-1. **Spec 1 trang** gồm cơ chế, config, luồng server, chống gian lận, asset cần.
-2. Scaffold: `bun run gen:template <key>`.
-3. Viết `configSchema` và `defaultConfig`, rồi `player`, rồi `server`.
-4. Test: unit cho logic server (`bun test`); Storybook-like playground (`apps/studio/dev/templates`); load test k6 cho play API.
-5. QA trên thiết bị thật: iPhone SE/12, Android tầm thấp (Samsung A-series), Zalo in-app browser.
-6. Review hiệu năng: bundle ≤ 300 KB gzip mỗi template (chưa tính asset); 60 fps.
-7. Đăng ký vào registry, bật theo gói.
+1. **Spec một trang:** cơ chế, engine, cấu hình, luồng server, chống gian lận, ô asset, playbook nào dùng.
+2. Scaffold: `bun run gen:template <key>` (BLD-24; tới khi có lệnh này thì copy `spin-wheel`).
+3. `configSchema` + `defaultConfig` → `player.tsx` (chỉ vẽ trong `gameStage`) → server module → màn mặc định cho 2 skin.
+4. Test: unit cho server module; preview trong builder; load test k6 cho play API nếu là engine mới.
+5. QA thiết bị thật: iPhone SE/12, Android tầm thấp, trình duyệt trong Zalo.
+6. Hiệu năng: bundle ≤ 300 KB gzip mỗi mẫu (chưa tính asset); 60 fps.

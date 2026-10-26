@@ -1,8 +1,10 @@
-# 16 — UX Studio: luồng, điều hướng và bố cục
+# UX Studio: luồng, điều hướng và bố cục
 
-**Trạng thái:** Đã duyệt hướng · 25/10/2026 · Wireframe: [artifact "Playora Studio Redesign"](https://claude.ai/artifact/BicQJgceiHnnL4voLzpETt) · Liên quan: [00](./00-product-strategy.md), [12 §4](./12-builder-spec.md#4-editor-ux), [13 §3.4](./13-design-system.md#34-luật-studio-theo-games-vt)
+**Trạng thái:** Đã duyệt hướng · 25/10/2026 (cập nhật 26/10/2026 theo strategy v4.0) · Owner: PO · Wireframe: [artifact "Playora Studio Redesign"](https://claude.ai/artifact/BicQJgceiHnnL4voLzpETt) · Liên quan: [strategy](../strategy.md), [builder §4](./builder.md#4-editor), [playbooks](./playbooks.md), [design-system §3.4](../../engineering/design-system.md#34-luật-studio-theo-games-vt)
 
-> **Studio là desktop-first.** Mobile-first chỉ áp dụng cho game người chơi thấy, và cho màn Đổi quà của nhân viên quầy.
+> **Studio là desktop-first** ([D-12](../decisions.md)). Mobile-first chỉ áp dụng cho game người chơi thấy, và cho màn Đổi quà của nhân viên quầy.
+>
+> **v4.0:** luồng tạo bắt đầu bằng **mục tiêu** (playbook) và Tổng quan chương trình hiện **kết quả** (khách tới quầy, quay lại, chi phí quà) trước lượt chơi ([playbooks](./playbooks.md)). Xem §4 và §5 bước D.
 
 ## 1. Vấn đề của Studio trước đây
 
@@ -21,7 +23,7 @@
 
 - UI gọi đối tượng chính là **Chương trình** (en: *Campaign*). API và DB giữ tên `events`.
 - **M1: mỗi chương trình một game.** Dữ liệu vẫn cho nhiều game; UI ẩn danh sách game và sắp xếp.
-- **Trạng thái do hệ thống suy ra** (thay cho ô chọn tay): Nháp → Publish → Đã lên lịch → đến giờ → Đang chạy ⇄ Tạm dừng → Đã kết thúc ([12 §12](./12-builder-spec.md#12-vòng-đời-và-vận-hành)).
+- **Trạng thái do hệ thống suy ra** (thay cho ô chọn tay): Nháp → Publish → Đã lên lịch → đến giờ → Đang chạy ⇄ Tạm dừng → Đã kết thúc ([builder §6](./builder.md#6-vòng-đời-chương-trình)).
 - **Soạn (Builder):** toàn màn hình, 4 bước Giao diện → Giải thưởng → Luật chơi → Phát hành; cột trái là các màn người chơi thấy + lớp (ADR-014), giữa là preview điện thoại thật, phải là thuộc tính. Mặc định khi chương trình là Nháp.
 - **Vận hành:** trong khung app; tab Tổng quan · Người chơi · Giải & đổi quà · Kênh & QR · Cài đặt. Mặc định khi đã publish.
 - Bấm một chương trình ở bất cứ đâu thì mở đúng chế độ theo trạng thái.
@@ -29,7 +31,7 @@
 ## 3. Điều hướng
 
 ```
-Trang chủ                hôm nay, cần xử lý, chương trình đang chạy, checklist bắt đầu
+Trang chủ                kết quả tuần này, cần xử lý, "Bạn muốn gì?" (playbook), checklist bắt đầu
 MINIGAME
   Chương trình           danh sách có ảnh game, lượt hôm nay, giải còn lại
   Kho mẫu                lọc theo dịp, ngành, mục tiêu; xem trước chơi được
@@ -45,13 +47,13 @@ Mục chưa có trang thì không hiện trên menu.
 
 ## 4. Luồng chính
 
-Kho mẫu → Tạo nhanh (tên và brand kit điền sẵn, slug tự sinh) → Builder (4 bước) → Checklist trước publish + chơi thử bằng link nháp → **Màn chia sẻ** (QR, standee, link theo kênh, mời nhân viên đổi quà) → Vận hành → Nhân viên quét mã đổi quà.
+"Bạn muốn gì?" → playbook (nhập ngân sách, giá vốn quà, ngày chạy; hoặc "Tạo trống" từ Kho mẫu) → Tạo nhanh (tên và brand kit điền sẵn, slug tự sinh) → Builder (4 bước) → Checklist trước publish + chơi thử bằng link nháp → **Màn chia sẻ** (QR, standee, link theo kênh, mời nhân viên đổi quà) → Vận hành → Nhân viên quét mã đổi quà.
 
 Mỗi màn kết thúc bằng việc đưa người dùng sang bước sau, không trả về danh sách.
 
 ## 5. Lộ trình (cập nhật 25/10/2026, sau Builder Lab)
 
-Builder Lab ([15 §11](./15-game-builder-plan.md#11-builder-lab--prototype-frontend-với-backend-giả-25102026)) đã thay mô hình Sự kiện → nhiều Trò chơi bằng **một Campaign** (mẫu, skin, màu, màn canvas, giải, luật, lịch). Studio gộp về mô hình này.
+Builder Lab ([kế hoạch 25/10 §11](../../plans/2026-10-25-game-builder-plan.md#11-builder-lab--prototype-frontend-với-backend-giả-25102026)) đã thay mô hình Sự kiện → nhiều Trò chơi bằng **một Campaign** (mẫu, skin, màu, màn canvas, giải, luật, lịch). Studio gộp về mô hình này.
 
 | Đã xong | Nội dung |
 |---|---|
@@ -69,8 +71,10 @@ Builder Lab ([15 §11](./15-game-builder-plan.md#11-builder-lab--prototype-front
 | A5 | Campaign mới lấy màu chính/nhấn từ brand kit đầu tiên của tổ chức | Xong (chọn ảnh từ Thư viện ảnh: chưa) |
 | A6 | Vòng đời suy ra (`lib/phase.ts`): Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; kết thúc ngay, gia hạn; không xoá khi đang chạy/đã lên lịch | Xong |
 
-**B — API thật thay backend giả** (P0 của [15](./15-game-builder-plan.md)): contract `campaigns` / `plays` / `vouchers` / `stats`, vai trò "chỉ đổi quà", e2e API có cross-tenant; đổi `mock/hooks.ts` sang `useRouteQuery`. Cần ADR chọn lưu Campaign trên `events` + `games` + `game_versions` (đề xuất) hay bảng mới.
+**B — API thật thay backend giả** (P0 của [roadmap](../roadmap.md#p0--vòng-lõi-thật--2610--2211-4-tuần)): contract `campaigns` / `plays` / `vouchers` / `stats`, vai trò "chỉ đổi quà", e2e API có cross-tenant; đổi `mock/hooks.ts` sang `useRouteQuery`. Cách lưu Campaign: [ADR-015](../../adr/015-campaign-persistence.md) (đề xuất dùng `events` + `games` + `game_versions`).
 
 **C — Dọn:** gỡ UI sự kiện/trò chơi/khách mời cũ (`/events/**`, editor cũ, chia đội), Canvas lab; đổi tên `features/builder-lab` → `features/campaigns`; e2e theo luồng mới.
+
+**D — Kết quả trước** (P1 của [roadmap](../roadmap.md)): luồng tạo từ playbook; Tổng quan đổi thứ tự thẻ số liệu thành Khách tới quầy · Khách quay lại · Chi phí quà · Chi phí mỗi khách; báo cáo một trang ([playbooks §3](./playbooks.md#3-báo-cáo-kết-quả)).
 
 PR có phần API phải hỏi trước khi sửa `packages/contracts` (AGENTS.md).
