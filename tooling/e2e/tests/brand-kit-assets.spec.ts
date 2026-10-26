@@ -17,7 +17,7 @@ test('create a brand kit', async ({ page }) => {
   await page.getByRole('button', { name: 'Tạo tổ chức' }).click();
 
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
-  await page.getByRole('link', { name: 'Brand kit' }).click();
+  await page.getByRole('link', { name: 'Brand kit', exact: true }).click();
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/brand-kits$/);
 
   await page.getByLabel('Tên brand kit').fill(`Kit ${id}`);
