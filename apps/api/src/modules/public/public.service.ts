@@ -99,7 +99,9 @@ export class PublicService {
     if (!event || event.status === 'draft') {
       throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Event not found' });
     }
-    if (event.status !== 'scheduled' && event.status !== 'live') {
+    // A campaign past its end time is over even before anyone presses End.
+    const pastEnd = event.endsAt !== null && event.endsAt.getTime() <= Date.now();
+    if ((event.status !== 'scheduled' && event.status !== 'live') || pastEnd) {
       throw new ConflictException({
         code: ErrorCode.EVENT_NOT_LIVE,
         message: 'Sự kiện chưa mở hoặc đã kết thúc',
@@ -136,6 +138,12 @@ export class PublicService {
     }
 
     const player = await this.repo.transaction(async (tx) => {
+      /*
+       * ADR-012 §5 wants this lock gone, but it still guards two things the schema does not:
+       * there is no unique index on (event_id, env, device_id), so two concurrent joins from one
+       * device would create two players, and `playerLimit` is a count-then-insert. Drop it once
+       * that unique index exists (and the limit becomes a soft cap).
+       */
       await this.repo.lockEvent(orgId, eventId, tx);
 
       let existing: PlayerRow | undefined;

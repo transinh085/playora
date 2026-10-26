@@ -22,6 +22,7 @@ import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
+import { PlaysModule } from './modules/plays/plays.module';
 import {
   getPublicJoinDeviceTracker,
   PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
@@ -103,6 +104,7 @@ export class AppModule {
         GamesModule,
         CampaignsModule,
         VouchersModule,
+        PlaysModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [
