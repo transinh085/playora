@@ -21,6 +21,7 @@ export default getRequestConfig(async () => {
     messages: {
       play: allMessages.play,
       errors: allMessages.errors,
+      campaignPlayer: allMessages.campaignPlayer,
     },
     timeZone: 'Asia/Ho_Chi_Minh',
   };

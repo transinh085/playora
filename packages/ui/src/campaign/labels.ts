@@ -58,7 +58,13 @@ export interface CampaignPlayerLabels {
     issuedAt: (iso: string) => string;
     redeemed: string;
     notRedeemed: string;
+    expired: string;
+    void: string;
     unknownPrize: string;
+    expiresAt: (iso: string) => string;
+    /** Running clock on voucher screens, so a screenshot is easy to tell apart (anti-screenshot). */
+    liveClock: (now: Date) => string;
+    openPage: string;
   };
   rules: {
     title: string;
@@ -121,7 +127,12 @@ export type CampaignMessageKey =
   | 'vouchers.issuedAt'
   | 'vouchers.redeemed'
   | 'vouchers.notRedeemed'
+  | 'vouchers.expired'
+  | 'vouchers.void'
   | 'vouchers.unknownPrize'
+  | 'vouchers.expiresAt'
+  | 'vouchers.liveClock'
+  | 'vouchers.openPage'
   | 'rules.title'
   | 'rules.window'
   | 'rules.hours'
@@ -144,7 +155,7 @@ export type CampaignTranslate = (
 
 export type FormatDateTime = (
   value: Date,
-  options: { dateStyle: 'short' | 'medium'; timeStyle?: 'short' },
+  options: { dateStyle?: 'short' | 'medium'; timeStyle?: 'short' | 'medium' },
 ) => string;
 
 export function createCampaignPlayerLabels(
@@ -209,7 +220,16 @@ export function createCampaignPlayerLabels(
         }),
       redeemed: t('vouchers.redeemed'),
       notRedeemed: t('vouchers.notRedeemed'),
+      expired: t('vouchers.expired'),
+      void: t('vouchers.void'),
       unknownPrize: t('vouchers.unknownPrize'),
+      expiresAt: (iso) =>
+        t('vouchers.expiresAt', {
+          time: formatDateTime(new Date(iso), { dateStyle: 'short', timeStyle: 'short' }),
+        }),
+      liveClock: (now) =>
+        t('vouchers.liveClock', { time: formatDateTime(now, { timeStyle: 'medium' }) }),
+      openPage: t('vouchers.openPage'),
     },
     rules: {
       title: t('rules.title'),

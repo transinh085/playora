@@ -1,11 +1,6 @@
 'use client';
 
-import type {
-  CampaignBrand,
-  CampaignPrize,
-  CampaignTemplateKey,
-  PlayResult,
-} from '@playora/contracts';
+import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
 import { type CanvasRuntime, CanvasScreen } from './canvas-screen';
@@ -29,6 +24,7 @@ import {
   type CampaignPlayerRules,
   MyPrizesSheet,
   NoticeSheet,
+  type PlayerPrize,
   type PlayerVoucher,
   RulesSheet,
   VoucherCard,
@@ -41,7 +37,8 @@ export interface CampaignPlayerDocument {
   templateKey: CampaignTemplateKey;
   brand: CampaignBrand;
   screens: CanvasDoc;
-  prizes: readonly CampaignPrize[];
+  /** Full prizes in the Studio; the public player only knows id, name and image. */
+  prizes: readonly PlayerPrize[];
   rules: CampaignPlayerRules;
 }
 
@@ -76,6 +73,12 @@ export interface CampaignPlayerProps {
   rehearsal?: boolean;
   /** What the voucher QR encodes; the bare code otherwise. */
   redeemUrl?: (code: string) => string;
+  /** The player already gave the form (e.g. a stored session on reload): Start goes to the game. */
+  skipForm?: boolean;
+  /** "Quà của tôi" sheet opened or closed (hosts refetch and poll while it is open). */
+  onVouchersOpenChange?: (open: boolean) => void;
+  /** Link to a standalone "Quà của tôi" page, shown in the sheet. */
+  prizesHref?: string;
   ref?: Ref<CampaignPlayerHandle>;
 }
 
@@ -100,6 +103,9 @@ export function CampaignPlayer({
   playDisabled = false,
   rehearsal = false,
   redeemUrl,
+  skipForm = false,
+  onVouchersOpenChange,
+  prizesHref,
   ref,
 }: CampaignPlayerProps) {
   const reduced = useReducedMotion();
@@ -113,6 +119,13 @@ export function CampaignPlayer({
   const [formDone, setFormDone] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [voucherExpanded, setVoucherExpanded] = useState(true);
+
+  const vouchersOpen = sheet === 'vouchers';
+  const vouchersOpenChange = useRef(onVouchersOpenChange);
+  vouchersOpenChange.current = onVouchersOpenChange;
+  useEffect(() => {
+    vouchersOpenChange.current?.(vouchersOpen);
+  }, [vouchersOpen]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -155,7 +168,7 @@ export function CampaignPlayer({
     openVouchers: () => setSheet('vouchers'),
   }));
 
-  const start = () => go(campaign.rules.collectForm && !formDone ? 'form' : 'game');
+  const start = () => go(campaign.rules.collectForm && !formDone && !skipForm ? 'form' : 'game');
 
   const submitForm = async () => {
     const found = validatePlayerForm(form);
@@ -253,6 +266,9 @@ export function CampaignPlayer({
   };
 
   const voucherCode = result?.voucher?.code;
+  const voucherStatus = voucherCode
+    ? vouchers.find((v) => v.code === voucherCode)?.status
+    : undefined;
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: fillColor }}>
@@ -277,6 +293,7 @@ export function CampaignPlayer({
           onToggle={() => setVoucherExpanded((v) => !v)}
           onOpenPrizes={() => setSheet('vouchers')}
           labels={labels}
+          status={voucherStatus}
         />
       )}
 
@@ -299,6 +316,7 @@ export function CampaignPlayer({
         vouchers={vouchers}
         loading={vouchersLoading}
         labels={labels}
+        pageHref={prizesHref}
       />
     </div>
   );

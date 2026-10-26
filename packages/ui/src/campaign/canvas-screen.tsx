@@ -40,7 +40,8 @@ export type { CanvasLabels };
 export interface CanvasPrize {
   name: string;
   image?: string;
-  remaining: number;
+  /** Unknown on the public player (stock is never exposed); the count is then hidden. */
+  remaining?: number;
 }
 
 export type CanvasVariable = 'prize.name' | 'player.name' | 'event.name' | 'turns.left';
@@ -647,7 +648,7 @@ function ElementView({
                   style={{ width: 34, height: 34 }}
                 />
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{prize.name}</div>
-                {element.showRemaining && (
+                {element.showRemaining && prize.remaining !== undefined && (
                   <div style={{ fontSize: 11, opacity: 0.75 }}>
                     {labels.remaining(prize.remaining)}
                   </div>

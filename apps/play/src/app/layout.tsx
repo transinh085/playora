@@ -22,6 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const playMessages = {
     play: messages.play,
     errors: messages.errors,
+    campaignPlayer: messages.campaignPlayer,
   };
   return (
     <html lang={locale} className={`${font.variable} ${display.variable}`}>

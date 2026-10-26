@@ -35,5 +35,13 @@ export {
 } from './labels';
 export { Mechanism, type MechanismProps } from './mechanism';
 export * from './model';
-export type { CampaignPlayerRules, PlayerVoucher } from './player-sheets';
+export {
+  type CampaignPlayerRules,
+  LiveClock,
+  type PlayerPrize,
+  type PlayerVoucher,
+  VoucherList,
+  VoucherStatusTag,
+  voucherStatusOf,
+} from './player-sheets';
 export { useReducedMotion } from './use-play-round';

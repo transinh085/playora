@@ -1,9 +1,10 @@
 import { expect, test } from './fixtures';
 
-test('player shell renders a seeded event and 404s unknown slugs', async ({ page }) => {
-  await page.goto('http://localhost:3002/demo-yep');
-  await expect(page.getByRole('heading', { name: 'YEP Demo 2026' })).toBeVisible();
+test('player shell renders the home page and 404s unknown campaign slugs', async ({ page }) => {
+  await page.goto('http://localhost:3002/');
+  await expect(page.getByText('Quét mã QR tại cửa hàng để tham gia.')).toBeVisible();
 
   const res = await page.goto('http://localhost:3002/khong-ton-tai');
   expect(res?.status()).toBe(404);
+  await expect(page.getByText('Không tìm thấy chương trình')).toBeVisible();
 });
