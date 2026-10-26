@@ -15,12 +15,14 @@ import { InfraModule } from './infra/infra.module';
 import { REDIS } from './infra/tokens';
 import { AssetsModule } from './modules/assets/assets.module';
 import { BrandKitsModule } from './modules/brand-kits/brand-kits.module';
+import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { EventsModule } from './modules/events/events.module';
 import { GamesModule } from './modules/games/games.module';
 import { GuestsModule } from './modules/guests/guests.module';
 import { HealthController } from './modules/health/health.controller';
 import { MeController } from './modules/me/me.controller';
 import { OpenApiController } from './modules/openapi/openapi.controller';
+import { PlaysModule } from './modules/plays/plays.module';
 import {
   getPublicJoinDeviceTracker,
   PUBLIC_JOIN_DEVICE_LIMIT_PER_MIN,
@@ -29,6 +31,7 @@ import {
   PublicController,
 } from './modules/public/public.controller';
 import { TemplatesModule } from './modules/templates/templates.module';
+import { VouchersModule } from './modules/vouchers/vouchers.module';
 
 @Module({})
 export class AppModule {
@@ -99,6 +102,9 @@ export class AppModule {
         GuestsModule,
         TemplatesModule,
         GamesModule,
+        CampaignsModule,
+        VouchersModule,
+        PlaysModule,
       ],
       controllers: [HealthController, OpenApiController, PublicController, MeController],
       providers: [

@@ -167,7 +167,7 @@ Theo [ADR-012 §3](../adr/012-campaign-architecture.md):
 
 ## 6. Play engine (trên `apps/api`)
 
-> (đích) Chưa có module `plays` trong API. Luồng dưới đây là thiết kế đã chốt ở [ADR-012 §4](../adr/012-campaign-architecture.md); luồng chi tiết theo request ở [api.md §3](./api.md#3-luồng-chơi-campaign).
+> **Đã có (instant-win):** module `apps/api/src/modules/plays/` cài đường nóng của [ADR-012 §4](../adr/012-campaign-architecture.md) cho campaign (một game/chương trình, ADR-015): `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` và `POST /orgs/:orgId/campaigns/:id/rehearsal-plays`. Ngoài transaction: token người chơi (`SessionGuard`, `auth: 'player'`) phải thuộc đúng chương trình, chỗ móc chống gian lận `checkAntiFraud` (EVT-13, chưa làm), pha tạm dừng/chưa mở/đã kết thúc trả `closed` mà không trừ lượt. Trong một transaction: khoá dòng `players` (tuần tự hoá lượt của một người, giữ giới hạn/người và idempotency theo `requestId`), giành lượt bằng upsert có điều kiện trên `play_counters`, snapshot, `decide()` với `crypto.randomInt` (ghi `rngProof`), trừ kho `UPDATE … WHERE remaining > 0`; khi có ngân sách, người trúng khoá `games` (`FOR NO KEY UPDATE`) rồi đọc lại Σ issued×valueVnd trước khi trừ kho. Thua race → `out_of_stock`/`budget`, không chọn lại. Lịch chạy lấy từ `events.startsAt/endsAt` (End dời `endsAt`). Chạy thử dùng bản nháp, kho riêng (số lượng nháp − award `rehearsal`), không đổi số liệu live. Chưa có: skill (`submit`), `voucher_codes`, `prize_counters`, `session_ver`. Luồng chi tiết theo request ở [api.md §3](./api.md#3-luồng-chơi-campaign).
 
 ### 6.1 Mô hình
 
@@ -261,7 +261,7 @@ Khai báo ở `packages/jobs/src/definitions.ts`; TypeScript buộc mọi job c�
 
 | Mảng | Hiện trạng |
 |---|---|
-| API | Module `assets`, `brand-kits`, `events`, `games`, `guests`, `health`, `me`, `openapi`, `public`, `templates`. Public API mới có `GET /p/:slug` và `POST /p/:slug/join` |
+| API | Module `assets`, `brand-kits`, `campaigns`, `events`, `games`, `guests`, `health`, `me`, `openapi`, `plays`, `public`, `templates`, `vouchers`. Public API: `GET /p/:slug`, `POST /p/:slug/join`, `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` (token người chơi `Authorization: Bearer`); Studio chạy thử `POST /orgs/:orgId/campaigns/:id/rehearsal-plays` |
 | DB | Bảng `clients`, `brand_kits`, `events`, `games`, `game_versions`, `guest_list_entries`, `players`, `consents`, `prizes`, `draw_spins`, `awards`, `assets`, `audit_logs` + bảng Better Auth. Chưa có `plays`, `play_counters`, `voucher_codes` |
 | Core | Prize engine, draw provably-fair, registration/consent, player session: có test, **chưa được API gọi** |
 | Templates | `spin-wheel` |

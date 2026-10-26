@@ -73,6 +73,8 @@ Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sin
 | GET | `/p/{slug}/draws` | **Trang công bố kết quả bốc thăm (đích):** `poolHash`, `seedCommit` theo `spinNo`, người trúng (che bớt thông tin), lần void kèm lý do; `serverSeed` sau khi kết thúc để ai cũng kiểm chứng được |
 | POST | `/p/{slug}/privacy/requests` | Yêu cầu xoá hoặc xuất dữ liệu (PDPL) |
 
+**Đã có (M1, campaign, `playsApi` trong `packages/contracts/src/api/plays.ts`):** `GET /p/{slug}/campaign` trả bản đã phát hành (không lộ xác suất, tồn kho, giá trị; `phase` tính từ `events.startsAt/endsAt/paused`), `POST /p/{slug}/plays` (body `{ requestId, channel?, captchaToken? }`; `requestId` là khoá idempotent theo người chơi thay cho header `Idempotency-Key`, chưa có `gameId` trong path vì M1 một game/chương trình) trả `PlayResult` `{ playId, outcome: win|lose|no_turns|closed, reason, prize, voucher, turnsLeftToday }`, và `GET /p/{slug}/me` (lượt còn lại hôm nay, `nextTurnAt`, voucher của người chơi) thay cho `/me` + `/prizes` ở bảng trên. Cả ba cần token phiên từ `join` (`Authorization: Bearer`); token của chương trình khác → 403. Join từ chối chương trình đã qua `endsAt` (`EVENT_NOT_LIVE`).
+
 ### 2.3 Webhook nhận vào
 
 | Path | Nguồn |
