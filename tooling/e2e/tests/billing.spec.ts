@@ -5,7 +5,7 @@ const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).sli
 
 /** Template gallery → editor → rules that pass pre-flight → open the publish dialog. */
 async function createAndOpenPublish(page: Page, org: string, name: string) {
-  await page.goto(`${org}/campaigns/new`);
+  await page.goto(`${org}/campaigns/new?start=templates`);
   await page
     .getByRole('button', { name: /^Vòng quay may mắn · / })
     .first()
