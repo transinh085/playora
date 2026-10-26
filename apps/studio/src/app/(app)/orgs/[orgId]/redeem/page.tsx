@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
+import { RedemptionUsageBanner } from '@/features/billing/components/usage-banner';
 import { RedeemDesk } from '@/features/builder-lab/components/redeem-desk';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +15,7 @@ export default async function RedeemPage({ params }: { params: Promise<{ orgId: 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title={t('title')} description={t('subtitle')} />
+      <RedemptionUsageBanner orgId={orgId} />
       <Suspense>
         <RedeemDesk orgId={orgId} />
       </Suspense>

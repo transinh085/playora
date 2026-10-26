@@ -21,6 +21,11 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
+import { useInvalidateBilling } from '@/features/billing/api';
+import {
+  isPlanCampaignLimit,
+  PlanCampaignLimitAlert,
+} from '@/features/billing/components/plan-limit';
 import { type Campaign, useCampaignStats, usePublishCampaign } from '../../api';
 import { hasBlockingIssues, type PreflightIssue, preflight } from '../../lib/preflight';
 import { campaignRoutes } from '../../lib/routes';
@@ -67,6 +72,8 @@ export function PublishDialog({
   const publish = usePublishCampaign(orgId, campaign.id);
   const [published, setPublished] = useState<Campaign | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [planLimited, setPlanLimited] = useState(false);
+  const invalidateBilling = useInvalidateBilling();
   const issues = useMemo(() => preflight(campaign), [campaign]);
   const blocking = hasBlockingIssues(issues);
   const fixable = issues.filter((i) => i.fix);
@@ -75,6 +82,7 @@ export function PublishDialog({
     if (open) {
       setPublished(null);
       setPublishError(null);
+      setPlanLimited(false);
     }
   }, [open]);
 
@@ -96,17 +104,21 @@ export function PublishDialog({
 
   const doPublish = async () => {
     setPublishError(null);
+    setPlanLimited(false);
     const saved = await flush();
     if (!saved) return;
     try {
       const result = await publish.mutateAsync();
       setPublished(result);
+      void invalidateBilling();
       message.success(t('published', { version: result.version }));
     } catch (err) {
       const text =
         err instanceof ApiError && tErrors.has(err.code) ? tErrors(err.code) : t('failed');
       setPublishError(text);
-      message.error(text);
+      // The plan limit gets its own alert with a way to the plan page (BIL-02), not a toast.
+      if (isPlanCampaignLimit(err)) setPlanLimited(true);
+      else message.error(text);
     }
   };
 
@@ -155,7 +167,11 @@ export function PublishDialog({
         <PublishSuccess orgId={orgId} campaign={published} />
       ) : (
         <Flex vertical gap={16}>
-          {publishError && <Alert showIcon type="error" title={publishError} />}
+          {planLimited ? (
+            <PlanCampaignLimitAlert orgId={orgId} />
+          ) : (
+            publishError && <Alert showIcon type="error" title={publishError} />
+          )}
           <Alert
             showIcon
             type={blocking ? 'error' : issues.length ? 'warning' : 'success'}

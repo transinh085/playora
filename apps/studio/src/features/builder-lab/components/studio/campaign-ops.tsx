@@ -33,6 +33,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
+import { useCampaignActionError } from '@/features/billing/components/plan-limit';
 import {
   type Campaign,
   useCampaign,
@@ -122,6 +123,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
   const phase = campaignPhase(campaign);
   const routes = campaignRoutes(orgId);
   const resume = useResumeCampaign(orgId);
+  const onActionError = useCampaignActionError(orgId);
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
@@ -143,7 +145,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
           type="primary"
           icon={<Play className="size-4" />}
           loading={resume.isPending}
-          onClick={() => resume.mutate(campaign.id)}
+          onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
         >
           {t('resume')}
         </Button>
@@ -468,6 +470,7 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const update = useUpdateCampaign(orgId, campaign.id);
   const pause = usePauseCampaign(orgId);
   const resume = useResumeCampaign(orgId);
+  const onActionError = useCampaignActionError(orgId);
   const end = useEndCampaign(orgId);
   const remove = useDeleteCampaign(orgId);
   const border = { border: `1px solid ${token.colorBorderSecondary}` };
@@ -501,7 +504,10 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
         <Card variant="borderless" title={t('settings.runTitle')} style={border}>
           <Flex gap={8} wrap align="center">
             {phase === 'paused' ? (
-              <Button icon={<Play className="size-4" />} onClick={() => resume.mutate(campaign.id)}>
+              <Button
+                icon={<Play className="size-4" />}
+                onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
+              >
                 {t('resume')}
               </Button>
             ) : (

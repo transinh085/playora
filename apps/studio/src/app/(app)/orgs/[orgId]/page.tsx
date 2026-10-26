@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/page-header';
+import { RedemptionUsageBanner } from '@/features/billing/components/usage-banner';
 import { CampaignHome } from '@/features/builder-lab/components/studio/campaign-home';
 import { serverApi } from '@/lib/api-server';
 import { isRedeemerOnly } from '@/lib/permissions';
@@ -35,6 +36,7 @@ export default async function OrgHomePage({ params }: { params: Promise<{ orgId:
           </Link>
         }
       />
+      <RedemptionUsageBanner orgId={orgId} />
       <CampaignHome orgId={orgId} />
     </div>
   );
