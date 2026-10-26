@@ -37,6 +37,17 @@ test('builder lab: create from template → set rules → publish → play on a 
   await page.getByRole('textbox', { name: 'Tiêu đề' }).fill('QUAY NGAY');
   await expect(page.getByText('QUAY NGAY').first()).toBeVisible();
 
+  // Customize: right-click an element to duplicate it.
+  await page.locator('.ant-segmented-item', { hasText: 'Tuỳ biến' }).first().click();
+  const layers = page.getByTestId('layer-row');
+  const before = await layers.count();
+  await page.getByTestId('canvas-element-text').first().click({ button: 'right' });
+  await page
+    .getByTestId('canvas-context-menu')
+    .getByRole('menuitem', { name: /Nhân bản/ })
+    .click();
+  await expect(layers).toHaveCount(before + 1);
+
   // Rules: everyone wins, no pacing or opening hours, so the play below is deterministic.
   await page.locator('.ant-segmented-item', { hasText: 'Luật & giải' }).first().click();
   await page.getByRole('radio', { name: /Ai chơi cũng có quà/ }).click({ force: true });

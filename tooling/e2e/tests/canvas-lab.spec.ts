@@ -1,4 +1,33 @@
+import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
+
+/** Menu rows whose label overflows show "…" instead of text; submenus must stay on screen. */
+async function expectMenusReadable(page: Page) {
+  // Polled: submenu popups open with a scale animation, which skews measurements meanwhile.
+  const problems = () =>
+    page.evaluate(() => {
+      const bad: string[] = [];
+      const rows = document.querySelectorAll(
+        '[data-testid="canvas-context-menu"] li[role="menuitem"], .ant-menu-submenu-popup li[role="menuitem"]',
+      );
+      for (const li of rows) {
+        const title = li.querySelector('.ant-menu-title-content');
+        if (!title) continue;
+        const edge =
+          li.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(li).paddingRight);
+        if (title.getBoundingClientRect().right > edge + 0.5)
+          bad.push(`clipped: ${li.textContent}`);
+      }
+      for (const pop of document.querySelectorAll(
+        '.ant-menu-submenu-popup:not(.ant-menu-submenu-hidden)',
+      )) {
+        const r = pop.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) bad.push('submenu off screen');
+      }
+      return bad;
+    });
+  await expect.poll(problems).toEqual([]);
+}
 
 const unique = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
@@ -80,6 +109,8 @@ test('canvas lab: right-click menu adds, duplicates, aligns and deletes elements
   await page.mouse.click(stage.x + 20, stage.y + 20, { button: 'right' });
   await expect(menu).toBeVisible();
   await menu.getByRole('menuitem', { name: 'Thêm phần tử tại đây' }).hover();
+  await expect(page.getByRole('menuitem', { name: 'Chữ', exact: true })).toBeVisible();
+  await expectMenusReadable(page);
   await page.getByRole('menuitem', { name: 'Chữ', exact: true }).click();
   await expect(menu).toBeHidden();
   await expect(layers).toHaveCount(initial + 1);
@@ -87,6 +118,7 @@ test('canvas lab: right-click menu adds, duplicates, aligns and deletes elements
   // Right-click the new element → Duplicate.
   const text = page.getByTestId('canvas-element-text').last();
   await text.click({ button: 'right' });
+  await expectMenusReadable(page);
   await menu.getByRole('menuitem', { name: /Nhân bản/ }).click();
   await expect(layers).toHaveCount(initial + 2);
 

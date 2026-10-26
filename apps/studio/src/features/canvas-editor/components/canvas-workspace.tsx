@@ -71,6 +71,16 @@ import { PropertiesPanel } from './properties-panel';
 import { LayersPanel, ScreensPanel, Toolbox } from './side-panels';
 import { useCanvasLabels } from './use-canvas-labels';
 
+const MENU_WIDTH = 240;
+/** Submenus are portaled to <body>; long ones scroll, and are wide enough that a scrollbar never clips a label. */
+const SUBMENU_POPUP =
+  '[&>.ant-menu]:max-h-[min(480px,70vh)] [&>.ant-menu]:min-w-56 [&>.ant-menu]:overflow-y-auto';
+/** Open submenus beside their item, flipping left/right at the edge and sliding up or down to stay on screen. */
+const SUBMENU_OVERFLOW = { adjustX: 1, shiftY: true };
+const SUBMENU_PLACEMENTS = {
+  rightTop: { points: ['tl', 'tr'], overflow: SUBMENU_OVERFLOW },
+  leftTop: { points: ['tr', 'tl'], overflow: SUBMENU_OVERFLOW },
+};
 /**
  * The free canvas editor (ADR-014) as a controlled component: the parent owns the document
  * (`value` / `onChange`), the workspace owns selection, undo history, zoom and preview. Used by the
@@ -254,37 +264,34 @@ export function CanvasWorkspace({
       return [
         {
           key: 'duplicate',
-          icon: <Copy className="size-4" />,
-          label: (
-            <div className="flex items-center justify-between gap-6">
-              <span>{t('context.duplicate')}</span>
-              <span className="text-xs text-secondary font-mono opacity-60">⌘D</span>
-            </div>
-          ),
+          icon: <Copy className="size-3.5" />,
+          label: t('context.duplicate'),
+          extra: '⌘D',
           disabled: singleton,
           onClick: () => dispatch({ type: 'duplicate', id: targetId }),
         },
         {
           key: 'lock',
-          icon: el.locked ? <Unlock className="size-4" /> : <Lock className="size-4" />,
+          icon: el.locked ? <Unlock className="size-3.5" /> : <Lock className="size-3.5" />,
           label: el.locked ? t('context.unlock') : t('context.lock'),
           onClick: () => dispatch({ type: 'update', id: targetId, patch: { locked: !el.locked } }),
         },
         {
           key: 'hide',
-          icon: el.hidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />,
+          icon: el.hidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />,
           label: el.hidden ? t('context.show') : t('context.hide'),
           onClick: () => dispatch({ type: 'update', id: targetId, patch: { hidden: !el.hidden } }),
         },
         { type: 'divider' },
         {
           key: 'order',
-          icon: <Layers className="size-4" />,
+          icon: <Layers className="size-3.5" />,
           label: t('context.layerOrder'),
+          popupClassName: SUBMENU_POPUP,
           children: [
             {
               key: 'bringFront',
-              icon: <ArrowUpToLine className="size-4" />,
+              icon: <ArrowUpToLine className="size-3.5" />,
               label: t('context.bringFront'),
               disabled: isLast,
               onClick: () =>
@@ -296,21 +303,21 @@ export function CanvasWorkspace({
             },
             {
               key: 'bringForward',
-              icon: <ChevronUp className="size-4" />,
+              icon: <ChevronUp className="size-3.5" />,
               label: t('context.bringForward'),
               disabled: isLast,
               onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: index + 1 }),
             },
             {
               key: 'sendBackward',
-              icon: <ChevronDown className="size-4" />,
+              icon: <ChevronDown className="size-3.5" />,
               label: t('context.sendBackward'),
               disabled: isFirst,
               onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: index - 1 }),
             },
             {
               key: 'sendBack',
-              icon: <ArrowDownToLine className="size-4" />,
+              icon: <ArrowDownToLine className="size-3.5" />,
               label: t('context.sendBack'),
               disabled: isFirst,
               onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: 0 }),
@@ -319,12 +326,13 @@ export function CanvasWorkspace({
         },
         {
           key: 'align',
-          icon: <AlignCenter className="size-4" />,
+          icon: <AlignCenter className="size-3.5" />,
           label: t('context.align'),
+          popupClassName: SUBMENU_POPUP,
           children: [
             {
               key: 'centerH',
-              icon: <AlignHorizontalJustifyCenter className="size-4" />,
+              icon: <AlignHorizontalJustifyCenter className="size-3.5" />,
               label: t('context.centerH'),
               onClick: () =>
                 dispatch({
@@ -335,7 +343,7 @@ export function CanvasWorkspace({
             },
             {
               key: 'centerV',
-              icon: <AlignVerticalJustifyCenter className="size-4" />,
+              icon: <AlignVerticalJustifyCenter className="size-3.5" />,
               label: t('context.centerV'),
               onClick: () =>
                 dispatch({
@@ -346,13 +354,13 @@ export function CanvasWorkspace({
             },
             {
               key: 'alignLeft',
-              icon: <AlignLeft className="size-4" />,
+              icon: <AlignLeft className="size-3.5" />,
               label: t('context.alignLeft'),
               onClick: () => dispatch({ type: 'update', id: targetId, patch: { x: 16 } }),
             },
             {
               key: 'alignRight',
-              icon: <AlignRight className="size-4" />,
+              icon: <AlignRight className="size-3.5" />,
               label: t('context.alignRight'),
               onClick: () =>
                 dispatch({
@@ -363,7 +371,7 @@ export function CanvasWorkspace({
             },
             {
               key: 'fullWidth',
-              icon: <Maximize2 className="size-4" />,
+              icon: <Maximize2 className="size-3.5" />,
               label: t('context.fullWidth'),
               onClick: () =>
                 dispatch({
@@ -378,7 +386,7 @@ export function CanvasWorkspace({
           ? [
               {
                 key: 'resetRotation',
-                icon: <RotateCcw className="size-4" />,
+                icon: <RotateCcw className="size-3.5" />,
                 label: t('context.resetRotation'),
                 onClick: () => dispatch({ type: 'update', id: targetId, patch: { rotation: 0 } }),
               },
@@ -387,13 +395,9 @@ export function CanvasWorkspace({
         { type: 'divider' },
         {
           key: 'delete',
-          icon: <Trash2 className="size-4" />,
-          label: (
-            <div className="flex items-center justify-between gap-6">
-              <span>{t('context.delete')}</span>
-              <span className="text-xs text-secondary font-mono opacity-60">Delete</span>
-            </div>
-          ),
+          icon: <Trash2 className="size-3.5" />,
+          label: t('context.delete'),
+          extra: 'Delete',
           danger: true,
           disabled: singleton,
           onClick: () => dispatch({ type: 'remove', id: targetId }),
@@ -404,8 +408,9 @@ export function CanvasWorkspace({
     return [
       {
         key: 'add',
-        icon: <Plus className="size-4" />,
+        icon: <Plus className="size-3.5" />,
         label: t('context.addElement'),
+        popupClassName: SUBMENU_POPUP,
         children: [
           {
             key: 'content-group',
@@ -414,25 +419,25 @@ export function CanvasWorkspace({
             children: [
               {
                 key: 'add-text',
-                icon: <Type className="size-4" />,
+                icon: <Type className="size-3.5" />,
                 label: t('types.text'),
                 onClick: () => addAtPosition('text'),
               },
               {
                 key: 'add-image',
-                icon: <ImageIcon className="size-4" />,
+                icon: <ImageIcon className="size-3.5" />,
                 label: t('types.image'),
                 onClick: () => addAtPosition('image'),
               },
               {
                 key: 'add-badge',
-                icon: <Award className="size-4" />,
+                icon: <Award className="size-3.5" />,
                 label: t('types.badge'),
                 onClick: () => addAtPosition('badge'),
               },
               {
                 key: 'add-marquee',
-                icon: <Megaphone className="size-4" />,
+                icon: <Megaphone className="size-3.5" />,
                 label: t('types.marquee'),
                 onClick: () => addAtPosition('marquee'),
               },
@@ -445,31 +450,31 @@ export function CanvasWorkspace({
             children: [
               {
                 key: 'add-button',
-                icon: <MousePointerClick className="size-4" />,
+                icon: <MousePointerClick className="size-3.5" />,
                 label: t('types.button'),
                 onClick: () => addAtPosition('button'),
               },
               {
                 key: 'add-countdown',
-                icon: <Clock className="size-4" />,
+                icon: <Clock className="size-3.5" />,
                 label: t('types.countdown'),
                 onClick: () => addAtPosition('countdown'),
               },
               {
                 key: 'add-prizeList',
-                icon: <Gift className="size-4" />,
+                icon: <Gift className="size-3.5" />,
                 label: t('types.prizeList'),
                 onClick: () => addAtPosition('prizeList'),
               },
               {
                 key: 'add-social',
-                icon: <MessageCircle className="size-4" />,
+                icon: <MessageCircle className="size-3.5" />,
                 label: t('types.social'),
                 onClick: () => addAtPosition('social'),
               },
               {
                 key: 'add-audio',
-                icon: <Volume2 className="size-4" />,
+                icon: <Volume2 className="size-3.5" />,
                 label: t('types.audio'),
                 onClick: () => addAtPosition('audio'),
               },
@@ -482,13 +487,13 @@ export function CanvasWorkspace({
             children: [
               {
                 key: 'add-shape',
-                icon: <Shapes className="size-4" />,
+                icon: <Shapes className="size-3.5" />,
                 label: t('types.shape'),
                 onClick: () => addAtPosition('shape'),
               },
               {
                 key: 'add-divider',
-                icon: <Minus className="size-4" />,
+                icon: <Minus className="size-3.5" />,
                 label: t('types.divider'),
                 onClick: () => addAtPosition('divider'),
               },
@@ -499,44 +504,36 @@ export function CanvasWorkspace({
       { type: 'divider' },
       {
         key: 'undo',
-        icon: <Undo2 className="size-4" />,
-        label: (
-          <div className="flex items-center justify-between gap-6">
-            <span>{t('undo')}</span>
-            <span className="text-xs text-secondary font-mono opacity-60">⌘Z</span>
-          </div>
-        ),
+        icon: <Undo2 className="size-3.5" />,
+        label: t('undo'),
+        extra: '⌘Z',
         disabled: !state.past.length,
         onClick: () => dispatch({ type: 'undo' }),
       },
       {
         key: 'redo',
-        icon: <Redo2 className="size-4" />,
-        label: (
-          <div className="flex items-center justify-between gap-6">
-            <span>{t('redo')}</span>
-            <span className="text-xs text-secondary font-mono opacity-60">⇧⌘Z</span>
-          </div>
-        ),
+        icon: <Redo2 className="size-3.5" />,
+        label: t('redo'),
+        extra: '⇧⌘Z',
         disabled: !state.future.length,
         onClick: () => dispatch({ type: 'redo' }),
       },
       { type: 'divider' },
       {
         key: 'fit',
-        icon: <Maximize className="size-4" />,
+        icon: <Maximize className="size-3.5" />,
         label: t('fit'),
         onClick: () => setAutoFit(true),
       },
       {
         key: 'zoomIn',
-        icon: <ZoomIn className="size-4" />,
+        icon: <ZoomIn className="size-3.5" />,
         label: t('zoomIn'),
         onClick: () => setZoomManually(zoom + 0.1),
       },
       {
         key: 'zoomOut',
-        icon: <ZoomOut className="size-4" />,
+        icon: <ZoomOut className="size-3.5" />,
         label: t('zoomOut'),
         onClick: () => setZoomManually(zoom - 0.1),
       },
@@ -545,7 +542,7 @@ export function CanvasWorkspace({
             { type: 'divider' as const },
             {
               key: 'deselect',
-              icon: <X className="size-4" />,
+              icon: <X className="size-3.5" />,
               label: t('context.deselect'),
               onClick: () => dispatch({ type: 'select', id: null }),
             },
@@ -770,7 +767,7 @@ export function CanvasWorkspace({
             left: Math.max(
               10,
               Math.min(
-                (typeof window !== 'undefined' ? window.innerWidth : 1000) - 240,
+                (typeof window !== 'undefined' ? window.innerWidth : 1000) - MENU_WIDTH - 10,
                 menuState.x,
               ),
             ),
@@ -784,12 +781,13 @@ export function CanvasWorkspace({
             background: token.colorBgElevated,
             borderColor: token.colorBorderSecondary,
             boxShadow: token.boxShadowSecondary,
-            minWidth: 200,
+            width: MENU_WIDTH,
           }}
           onContextMenu={(e) => e.preventDefault()}
         >
           <Menu
             mode="vertical"
+            builtinPlacements={SUBMENU_PLACEMENTS}
             items={getMenuItems(menuState)}
             onClick={({ domEvent }) => {
               domEvent.stopPropagation();
