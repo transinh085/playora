@@ -1,4 +1,4 @@
-/** The Form screen's fields (docs/12 §3.1 Identity/Form). Pure so it can be unit-tested. */
+/** The Form screen's fields (docs/product/specs/builder.md §3.1 Identity/Form). Pure so it can be unit-tested. */
 export interface PlayerFormValues {
   name: string;
   phone: string;

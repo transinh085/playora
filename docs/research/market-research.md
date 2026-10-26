@@ -1,6 +1,8 @@
-# 01 — Khảo sát thị trường
+# Khảo sát thị trường
 
 Cập nhật: 23/10/2026 · Phạm vi: Việt Nam là thị trường chính, sau đó Đông Nam Á.
+
+> **Đọc với bối cảnh (26/10/2026):** khảo sát viết cho định hướng v1–v2 (sự kiện, LED, agency). **Số liệu đối thủ, giá và pháp lý vẫn dùng được**; còn các kết luận về phân khúc, định vị "Event Game OS", MVP "YEP Live" và kế hoạch kiểm chứng đã được thay bởi [strategy v4.0](../product/strategy.md) (SME, F&B trước). Kế hoạch phỏng vấn hiện tại: [customer-interview-guide](./customer-interview-guide.md).
 
 ---
 
@@ -9,7 +11,7 @@ Cập nhật: 23/10/2026 · Phạm vi: Việt Nam là thị trường chính, sa
 1. **Nhu cầu có thật và theo mùa.** Sự kiện doanh nghiệp (YEP/tất niên, hội nghị khách hàng, ra mắt sản phẩm, roadshow, booth triển lãm) đều cần "khoảnh khắc tương tác". Hiện phần lớn được giải quyết bằng: (a) agency thuê dev làm game riêng cho từng dự án, hoặc (b) công cụ miễn phí rời rạc như vòng quay online, Kahoot hay Google Form.
 2. **Khoảng trống:** ở Việt Nam chưa có sản phẩm nào gộp được ba mảng: **live game màn hình lớn** (kiểu Hi现场 của Trung Quốc), **minigame H5 trúng thưởng có quản lý giải** (kiểu WOAY hoặc 人人秀), và **white-label cho agency**.
 3. **Đối thủ trực tiếp nhất tại VN là WOAY** (minigame marketing, không có live). Quay số và check-in trên LED đã **bị hàng hoá hoá** (XSPIN, Luck4You, EDC Tech, quaythuong.vn: 0,25–4 triệu đ/sự kiện). Nhóm quiz/poll (Kahoot, Slido, Mentimeter, AhaSlides) giải quyết tương tác nhưng không có game thương hiệu hoá và quản lý giải thưởng.
-4. **Guandayun = 观达云互动**, gần như chắc chắn là đại lý OEM của **凡科互动**. Đây là mô hình "template + form cấu hình + prize engine" cho SME WeChat, big screen chỉ là tính năng phụ. Chi tiết ở [11-game-builder-research.md](./11-game-builder-research.md).
+4. **Guandayun = 观达云互动**, gần như chắc chắn là đại lý OEM của **凡科互动**. Đây là mô hình "template + form cấu hình + prize engine" cho SME WeChat, big screen chỉ là tính năng phụ. Chi tiết ở [11-game-builder-research.md](builder-research.md).
 5. **Định vị đề xuất:** *"Event Game OS cho agency và brand Việt Nam"*. Dựng game sự kiện có thương hiệu trong 30 phút, chạy được 5.000+ người chơi đồng thời, quản lý giải minh bạch, đúng quy định khuyến mại và PDPL.
 
 ---
@@ -94,7 +96,7 @@ Phân khúc **phần mềm game sự kiện** tại VN, chia theo use case:
 
 ### 3.3 Bài học từ mô hình Trung Quốc (Hi现场 / Guandayun–凡科 / 人人秀)
 
-> Phân tích builder chi tiết (editor, prize engine, participation, chống gian lận, giá) ở [11-game-builder-research.md](./11-game-builder-research.md).
+> Phân tích builder chi tiết (editor, prize engine, participation, chống gian lận, giá) ở [11-game-builder-research.md](builder-research.md).
 
 
 - **Màn hình lớn và điện thoại là "combo vàng" ở sự kiện:** quét QR → check-in, rồi lên tường ảnh hoặc chạy chữ, rồi chơi lắc điện thoại (shake race), đếm tiền, kéo co theo đội, cuối cùng quay số trúng thưởng trên LED.
@@ -142,7 +144,7 @@ Phân khúc **phần mềm game sự kiện** tại VN, chia theo use case:
 | 06 – 08 | Hè, family day, team building, khai trương | Team game, minigame booth |
 | 09 – 10 | Trung thu, back-to-school, Black Friday warm-up | Minigame H5, voucher |
 
-> **Hệ quả cho roadmap:** hôm nay là 23/10/2026, mùa YEP 2026 còn khoảng 7 tuần. Nên làm **MVP M1 "YEP Live"** (check-in, quiz live, lắc đua theo đội, quay số minh bạch, dựng bằng builder bản assisted) và vận hành kiểu concierge cho 12–15 sự kiện pilot. Đây là cơ hội học nhanh nhất trong năm (chi tiết ở [00-product-strategy.md](./00-product-strategy.md) và [09-roadmap-plan.md](./09-roadmap-plan.md)).
+> **Hệ quả cho roadmap:** hôm nay là 23/10/2026, mùa YEP 2026 còn khoảng 7 tuần. Nên làm **MVP M1 "YEP Live"** (check-in, quiz live, lắc đua theo đội, quay số minh bạch, dựng bằng builder bản assisted) và vận hành kiểu concierge cho 12–15 sự kiện pilot. Đây là cơ hội học nhanh nhất trong năm (chi tiết ở [00-product-strategy.md](../product/strategy.md) và [09-roadmap-plan.md](../archive/2026-10-24-roadmap-v2.1.md)).
 
 ---
 

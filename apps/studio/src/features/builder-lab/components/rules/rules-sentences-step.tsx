@@ -16,7 +16,7 @@ import type { LabPrize, LabRules } from '../../mock/types';
 const DEFAULT_HOURS = { start: '07:00', end: '22:00' };
 
 /**
- * Step 3: each rule is one sentence with its control inline (docs/15 §4.2). Dates use native
+ * Step 3: each rule is one sentence with its control inline (docs/product/specs/builder.md §4.2). Dates use native
  * `datetime-local`/`time` inputs in antd `Input` (good pickers on phones, no extra date library).
  */
 export function RulesSentencesStep({

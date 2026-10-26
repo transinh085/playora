@@ -83,7 +83,7 @@ export default function DesignSystemPage() {
         <p className="max-w-2xl text-lg text-muted-foreground">
           Studio yên tĩnh trên Ant Design v6 để agency dựng chiến dịch nhanh. Bề mặt người chơi sáng
           như sân khấu, bấm được bằng một ngón và đổi da theo từng sự kiện bằng skin cùng brand kit.
-          Đặc tả đầy đủ ở docs/13-design-system.md.
+          Đặc tả đầy đủ ở docs/engineering/design-system.md.
         </p>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           {[

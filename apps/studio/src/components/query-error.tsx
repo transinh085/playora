@@ -3,7 +3,7 @@
 import { Alert, Button } from 'antd';
 import { useTranslations } from 'next-intl';
 
-/** Inline failure state for a query: pale error Alert with a retry action (docs/13 §5). */
+/** Inline failure state for a query: pale error Alert with a retry action (docs/engineering/design-system.md §5). */
 export function QueryError({ onRetry, title }: { onRetry?: () => void; title?: React.ReactNode }) {
   const t = useTranslations('common');
 

@@ -1,10 +1,12 @@
-# 14 — Phân tích chi tiết Guandayun / 凡科互动: cơ chế game và builder
+# Phân tích chi tiết Guandayun / 凡科互动: cơ chế game và builder
 
-Cập nhật: 25/10/2026 · Bổ sung cho [11-game-builder-research.md](./11-game-builder-research.md) · Đầu vào cho bản chiến lược v3.0 (SME, mobile-first, builder) và [12-builder-spec.md](./12-builder-spec.md)
+Cập nhật: 25/10/2026 · Bổ sung cho [11-game-builder-research.md](builder-research.md) · Đầu vào cho bản chiến lược v3.0 (SME, mobile-first, builder) và [12-builder-spec.md](../product/specs/builder.md)
+
+> **Đọc với bối cảnh (26/10/2026):** đề xuất ở §4 đã được chốt thành [D-05, D-07, D-08, D-10](../product/decisions.md) và đưa vào [specs/builder](../product/specs/builder.md), [specs/prizes-redemption](../product/specs/prizes-redemption.md), [specs/participation](../product/specs/participation.md).
 
 > **Phạm vi sao chép:** Playora được phép sao chép **cơ chế game, cấu trúc editor, các trường cấu hình và mô hình prize/participation**, vì đây là ý tưởng và cách vận hành phổ biến trong ngành. Playora **không** sao chép art, skin, nhân vật, âm thanh, code, câu chữ, tên template hay thương hiệu của 凡科/Guandayun.
 >
-> **Nguồn:** help center của guandayun.com trả HTTP 429 trong suốt phiên khảo sát. Vì Guandayun là OEM của 凡科 ([11 §2.1](./11-game-builder-research.md#21-danh-tính-và-quan-hệ-oem)), chi tiết chủ yếu lấy từ hd.fkw.com. Catalog được parse từ `hd.fkw.com/game.html` ngày 24/10/2026. **[CXM]** = chưa xác minh từ nguồn chính thức.
+> **Nguồn:** help center của guandayun.com trả HTTP 429 trong suốt phiên khảo sát. Vì Guandayun là OEM của 凡科 ([11 §2.1](builder-research.md#21-danh-tính-và-quan-hệ-oem)), chi tiết chủ yếu lấy từ hd.fkw.com. Catalog được parse từ `hd.fkw.com/game.html` ngày 24/10/2026. **[CXM]** = chưa xác minh từ nguồn chính thức.
 
 ---
 
@@ -135,7 +137,7 @@ Cách quyết định thắng: **tổng 中奖率**. Khi đã trúng, giải đ�
 | Preview | QR để chơi thử trên máy thật; **tối đa 20 người chơi thử trước khi publish**, không tính quota | **Nên làm theo** |
 | Publish | Bấm phát hành, hoặc **tự phát hành khi đến giờ bắt đầu**. Gói Free chỉ được 10 lần publish | **Nên làm theo** tự phát hành |
 | Sau publish | Sửa giờ được; **kéo dài sau khi kết thúc mà giữ dữ liệu**; chỉ xoá được khi đã kết thúc | **Nên làm theo** |
-| Version | Không có | Playora giữ GameVersion bất biến ([12 §4.3](./12-builder-spec.md)) |
+| Version | Không có | Playora giữ GameVersion bất biến ([12 §4.3](../product/specs/builder.md)) |
 
 **Trường bị khoá sau publish:** chế độ bốc thăm, chơi theo đội, loại giải, tên giải, cách sinh mã. Thời gian, số lượng và tỉ lệ vẫn sửa trực tiếp được.
 
@@ -161,7 +163,7 @@ Ba loại mã:
 
 Quy tắc mã:
 - **Định dạng:** 6–20 ký tự chữ và số, phân biệt hoa thường, không trùng.
-- **Tạo mã:** tự sinh hoặc import tối đa 5.000 mã/lần. Con số này khác với 50.000 trong [11](./11-game-builder-research.md), cần kiểm lại.
+- **Tạo mã:** tự sinh hoặc import tối đa 5.000 mã/lần. Con số này khác với 50.000 trong [11](builder-research.md), cần kiểm lại.
 - **QR riêng cho từng mã:** quét là vào thẳng, không phải gõ mã. Có xuất QR hàng loạt.
 - **Ứng dụng:** in mã lên bao bì; nhân viên lấy mã qua mini-program.
 
@@ -200,16 +202,16 @@ Giá niêm yết: Free 0 · 铂金 1.298 · 钻石 1.998 · 星钻 2.998 · 集�
 | **3** | **Điều kiện tham gia** | Mã tham gia có QR riêng, **up hoá đơn để được lượt** (duyệt tay ở M2, OCR về sau) | Hợp với SME bán lẻ và FMCG |
 | **4** | **Giữ chân (L3)** | Điểm danh, bốc mỗi ngày, hub điểm thưởng, sưu tầm thẻ (không nhờ bạn bè) | Lý do để SME trả thuê bao. **Cần quyết định** |
 
-### 4.2 Builder: sửa [12-builder-spec.md](./12-builder-spec.md)
+### 4.2 Builder: sửa [12-builder-spec.md](../product/specs/builder.md)
 
-1. **Đặt "cách phát giải" lên đầu tab Giải thưởng**, rồi ẩn hoặc hiện trường theo mode ([§6.2](./12-builder-spec.md)). Giữ tab "Luật và điều kiện" tách riêng như spec hiện tại.
+1. **Đặt "cách phát giải" lên đầu tab Giải thưởng**, rồi ẩn hoặc hiện trường theo mode ([§6.2](../product/specs/builder.md)). Giữ tab "Luật và điều kiện" tách riêng như spec hiện tại.
 2. **Editor mobile-first** thay cho bố cục 3 cột ở §4.1: preview toàn màn hình và bottom sheet. Chụp ảnh sản phẩm rồi tự xoá nền để dùng làm asset.
 3. **Chia sẻ link nháp** cho tối đa N người chơi thử trước khi publish.
 4. **Tự publish khi đến giờ bắt đầu**; **kéo dài sau khi kết thúc mà giữ dữ liệu**; **không cho xoá khi đang chạy** (§12).
 5. **Mã tham gia** (§7): thêm QR riêng cho từng mã và quy tắc "chỉ trừ lượt khi người chơi thực sự chơi"; xác định lại giới hạn import.
 6. **Chống gian lận** (§8): hiện số đã kiểm / đã chặn trên danh sách campaign; gắn cờ kèm lý do trên từng người chơi.
 7. **Đổi quà** (§11): thêm vai trò "chỉ đổi quà" vào `packages/auth` permissions; đổi quà không hoàn tác được và có quy trình xử lý khi đổi nhầm; cập nhật vận chuyển hàng loạt.
-8. **Gói Free:** soạn đầy đủ, khoá theo số người chơi và số lần publish ([02 §3](./02-business-model.md)).
+8. **Gói Free:** soạn đầy đủ, khoá theo số người chơi và số lần publish ([02 §3](../business/business-model.md)).
 
 ### 4.3 Không làm theo
 

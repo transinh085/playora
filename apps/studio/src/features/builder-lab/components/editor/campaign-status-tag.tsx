@@ -5,7 +5,7 @@ import { CircleAlert, CircleCheck, PencilLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { Campaign } from '../../mock/types';
 
-/** Published campaigns keep serving their last version while the draft changes (docs/12 §4.3). */
+/** Published campaigns keep serving their last version while the draft changes (docs/product/specs/builder.md §4.3). */
 export function hasUnpublishedChanges(campaign: Campaign) {
   return (
     campaign.status === 'published' &&
@@ -16,7 +16,7 @@ export function hasUnpublishedChanges(campaign: Campaign) {
 
 const icon = 'mr-1 inline size-3 align-[-2px]';
 
-/** Status tag with an icon (docs/13 §3.4): draft · published vN · published with pending changes. */
+/** Status tag with an icon (docs/engineering/design-system.md §3.4): draft · published vN · published with pending changes. */
 export function CampaignStatusTag({ campaign }: { campaign: Campaign }) {
   const t = useTranslations('builderLab.editor.status');
   if (campaign.status === 'draft') {

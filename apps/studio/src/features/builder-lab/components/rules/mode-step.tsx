@@ -30,7 +30,7 @@ const MODES: {
   { key: 'guaranteed', i18n: 'guaranteed', icon: <Gift className="size-5" />, tone: 'success' },
 ];
 
-/** Step 1: choose HOW prizes are given before anything else (docs/14 §3.2 派奖方式). */
+/** Step 1: choose HOW prizes are given before anything else (docs/research/guandayun-teardown.md §3.2 派奖方式). */
 export function ModeStep({
   rules,
   probabilityPercent,

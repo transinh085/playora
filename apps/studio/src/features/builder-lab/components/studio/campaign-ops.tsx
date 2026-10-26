@@ -58,7 +58,7 @@ const TABS = ['overview', 'share', 'prizes', 'players', 'settings'] as const;
 type TabKey = (typeof TABS)[number];
 
 /**
- * One campaign in "operate" mode (docs/16 §2): numbers, share kit, prizes, players and lifecycle.
+ * One campaign in "operate" mode (docs/product/specs/studio-ux.md §2): numbers, share kit, prizes, players and lifecycle.
  * Design changes happen in the full-screen editor; this page is where the owner comes back daily.
  */
 export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: string }) {
@@ -460,7 +460,7 @@ function PlayersTab({ campaign }: { campaign: Campaign }) {
   );
 }
 
-/** Lifecycle actions (docs/12 §12): pause, end, extend; delete only when nothing is running. */
+/** Lifecycle actions (docs/product/specs/builder.md §6): pause, end, extend; delete only when nothing is running. */
 function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const { token } = theme.useToken();

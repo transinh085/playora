@@ -109,7 +109,7 @@ const STAGE_BOX: Record<TemplateKey, { x: number; y: number; w: number; h: numbe
 };
 
 /**
- * The screens a template ships for a skin, with replaceable slots marked (docs/15 §4.1). Built
+ * The screens a template ships for a skin, with replaceable slots marked (docs/product/specs/builder.md §2.1). Built
  * from the canvas demo layout so editor and lab share one source of defaults.
  */
 export function buildScreens(templateKey: TemplateKey, skinKey: SkinKey): CanvasDoc {
@@ -129,7 +129,7 @@ export function buildScreens(templateKey: TemplateKey, skinKey: SkinKey): Canvas
   patch(cover, 'Đèn lồng trái', { src: presetSrc(deco1) });
   patch(cover, 'Đèn lồng phải', { src: presetSrc(deco1) });
   patch(cover, 'Hoa mai', { src: presetSrc(deco2) });
-  // Shrink-to-fit for the wide display face: ~0.95em per glyph on a 335px line (docs/15 §4.3).
+  // Shrink-to-fit for the wide display face: ~0.95em per glyph on a 335px line (docs/adr/014-free-canvas-screen-editor.md).
   const longest = Math.max(...title.split('\n').map((line) => line.length));
   patch(cover, 'Tiêu đề', {
     content: title,

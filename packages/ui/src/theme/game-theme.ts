@@ -4,7 +4,7 @@ import { font, ink, radius, spotlight, stage, teal, violet } from './tokens';
 /**
  * Runtime theming for game surfaces (player, kiosk).
  *
- * Order of application (docs/12-builder-spec.md §5): template default → skin (`data-skin`) →
+ * Order of application (docs/product/specs/builder.md §5): template default → skin (`data-skin`) →
  * brand kit (`brandKitVars`) → per-slot override. Skins live in styles.css; this module turns a
  * skin + customer's brand kit into both an Ant Design `ThemeConfig` and `--game-*` custom
  * properties, guaranteeing readable text on top of whatever colours the customer picks.

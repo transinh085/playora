@@ -30,7 +30,7 @@ export interface GameWithVersion {
 
 /**
  * Data access for games and game_versions. Every method takes `organizationId` first
- * and filters by it to enforce tenant isolation (docs/05 §8).
+ * and filters by it to enforce tenant isolation (docs/engineering/architecture.md §8).
  */
 @Injectable()
 export class GamesRepository {

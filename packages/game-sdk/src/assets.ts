@@ -52,7 +52,7 @@ function collectConfigSlotOverrides(
 }
 
 /**
- * Resolves asset URLs according to the precedence hierarchy in `docs/12-builder-spec.md` §5:
+ * Resolves asset URLs according to the precedence hierarchy in `docs/product/specs/builder.md` §5:
  * `skin` → `brand kit` (for `brandable: true` image slots) → `config` / `overrides`,
  * translating any asset UUID through the render-time `assets` (`Record<assetId, url>`) map.
  */

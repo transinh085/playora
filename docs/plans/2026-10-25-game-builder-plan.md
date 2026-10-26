@@ -1,6 +1,8 @@
-# 15 — Kế hoạch đưa Game Builder lên mức vượt trội
+# Kế hoạch đưa Game Builder lên mức vượt trội
 
-**Trạng thái:** Đề xuất · 25/10/2026 · Đầu vào: kiểm kê code, nghiên cứu đối thủ (CN/VN/quốc tế), nghiên cứu UX editor và công nghệ canvas · Liên quan: [00](./00-product-strategy.md), [12](./12-builder-spec.md), [14](./14-guandayun-teardown.md), [ADR-012](./adr/012-campaign-architecture.md), [ADR-014](./adr/014-free-canvas-screen-editor.md)
+**Trạng thái:** Đề xuất · 25/10/2026 · Đầu vào: kiểm kê code, nghiên cứu đối thủ (CN/VN/quốc tế), nghiên cứu UX editor và công nghệ canvas · Liên quan: [00](../product/strategy.md), [12](../product/specs/builder.md), [14](../research/guandayun-teardown.md), [ADR-012](../adr/012-campaign-architecture.md), [ADR-014](../adr/014-free-canvas-screen-editor.md)
+
+> **Trạng thái 26/10/2026:** quyết định ở §8 đã chốt: ADR-014 Accepted kèm 6 sửa đổi; Studio desktop-first ([D-12](../product/decisions.md)); vòng lõi P0 trước canvas ([D-18](../product/decisions.md)). Đặc tả ở §4 đã chuyển vào [specs/builder](../product/specs/builder.md); lộ trình P0–P2 ở §5 được thay bởi [roadmap](../product/roadmap.md). Giữ file này làm hồ sơ quyết định và kiểm kê code ngày 25/10; §11 (Builder Lab) vẫn đúng.
 
 ---
 
@@ -186,7 +188,7 @@ Nguồn chi tiết ở §10. Tiếng Trung và tiếng Việt nguồn mỏng; [C
 - Canvas trên điện thoại (chạm chọn, kéo, bottom sheet, thanh trượt cỡ), nhóm/chọn nhiều.
 - UI Prize Simulator; báo cáo theo ngôn ngữ chủ quán; renderer M2 (đập trứng, lật thẻ, lưới 9 ô…).
 
-Song song suốt P0–P2: **phỏng vấn SME (M0)** dùng prototype canvas và màn Sửa nhanh làm vật kiểm chứng giả định A1/A2 ([00 §9](./00-product-strategy.md#9-giả-định-rủi-ro-nhất-và-cách-kiểm-chứng)).
+Song song suốt P0–P2: **phỏng vấn SME (M0)** dùng prototype canvas và màn Sửa nhanh làm vật kiểm chứng giả định A1/A2 ([00 §9](../product/strategy.md#9-giả-định-rủi-ro-nhất)).
 
 ---
 
@@ -233,7 +235,7 @@ Song song suốt P0–P2: **phỏng vấn SME (M0)** dùng prototype canvas và 
 
 ## 10. Nguồn
 
-**Đối thủ:** 易企秀 [App Store](https://apps.apple.com/cn/app/%E6%98%93%E4%BC%81%E7%A7%80-h5%E6%B5%B7%E6%8A%A5%E9%82%80%E8%AF%B7%E5%87%BD%E5%92%8C%E8%A7%86%E9%A2%91%E6%A8%A1%E6%9D%BF%E5%88%B6%E4%BD%9C/id933128780), [eqxiu.com](https://www.eqxiu.com), [aitoollab](https://www.aitoollab.cn/tools/eqxiu/) · 人人秀 [rrx.cn](https://www.rrx.cn), [Zhihu](https://zhuanlan.zhihu.com/p/617341816) · MAKA [ifanr](https://www.ifanr.com/app/576339) · WOAY [woay.vn](https://woay.vn), [bảng giá](https://woay.vn/bang-gia) · [vongquaymayman.icu](https://vongquaymayman.icu/) · Zalo/MISA [misaeshop](https://www.misaeshop.vn/?p=9248) · Drimify [help](https://help.drimify.com/en/article/jzuouc/) · Qualifio [qualifio.com](https://qualifio.com/), [G2](https://www.g2.com/products/qualifio/reviews) · Playable [playable.com](https://playable.com/gamification-platform/) · OptiMonk [so sánh](https://www.optimonk.com/optimonk-vs-wheelio) · Woobox [help AI builder](https://help.woobox.com/articles/creating-a-spin-the-wheel-campaign-with-the-ai-site-builder/) · ShortStack [so sánh](https://www.shortstack.com/compare/woobox/) · Genially [Capterra](https://www.capterra.com/p/10046302/Genially/) · 凡科: [14](./14-guandayun-teardown.md).
+**Đối thủ:** 易企秀 [App Store](https://apps.apple.com/cn/app/%E6%98%93%E4%BC%81%E7%A7%80-h5%E6%B5%B7%E6%8A%A5%E9%82%80%E8%AF%B7%E5%87%BD%E5%92%8C%E8%A7%86%E9%A2%91%E6%A8%A1%E6%9D%BF%E5%88%B6%E4%BD%9C/id933128780), [eqxiu.com](https://www.eqxiu.com), [aitoollab](https://www.aitoollab.cn/tools/eqxiu/) · 人人秀 [rrx.cn](https://www.rrx.cn), [Zhihu](https://zhuanlan.zhihu.com/p/617341816) · MAKA [ifanr](https://www.ifanr.com/app/576339) · WOAY [woay.vn](https://woay.vn), [bảng giá](https://woay.vn/bang-gia) · [vongquaymayman.icu](https://vongquaymayman.icu/) · Zalo/MISA [misaeshop](https://www.misaeshop.vn/?p=9248) · Drimify [help](https://help.drimify.com/en/article/jzuouc/) · Qualifio [qualifio.com](https://qualifio.com/), [G2](https://www.g2.com/products/qualifio/reviews) · Playable [playable.com](https://playable.com/gamification-platform/) · OptiMonk [so sánh](https://www.optimonk.com/optimonk-vs-wheelio) · Woobox [help AI builder](https://help.woobox.com/articles/creating-a-spin-the-wheel-campaign-with-the-ai-site-builder/) · ShortStack [so sánh](https://www.shortstack.com/compare/woobox/) · Genially [Capterra](https://www.capterra.com/p/10046302/Genially/) · 凡科: [14](../research/guandayun-teardown.md).
 
 **UX editor:** Canva [brand template locks](https://www.canva.com/help/brand-template-locks/), [mobile app](https://www.canva.com/help/navigate-canva-mobile-app/), [Magic Design](https://www.canva.com/magic-design/), [brand voice](https://www.canva.com/help/brand-voice/) · CapCut [replaceable clips](https://www.capcut.com/help/how-to-set-replaceable-material-clips) · Shopify [blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks) · Framer [absolute positioning](https://framer.university/blog/why-framer-experts-avoid-using-absolute-positioning) · Gamma [smart layouts](https://gamma.app/explore/content/guides/create-professionally-designed-slides-without-manual-formatting) · H5 co giãn [cnblogs](https://www.cnblogs.com/xwwin/p/5778380.html), [juejin](https://juejin.cn/post/6844903576658001933) · MDN [text-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-fit).
 

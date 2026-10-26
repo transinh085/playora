@@ -20,7 +20,7 @@ export type LoopAnimation = 'none' | 'pulse' | 'wiggle' | 'float';
 export type ButtonAction = 'start' | 'rules' | 'link' | 'zalo' | 'phone' | 'next';
 
 /**
- * Replaceable content a template exposes to "Quick edit" (docs/15 §4.2). Elements sharing a slot
+ * Replaceable content a template exposes to "Quick edit" (docs/product/specs/builder.md §4.2). Elements sharing a slot
  * across screens are edited together: change the logo once, every screen follows.
  */
 export type SlotKey = 'logo' | 'productPhoto' | 'title' | 'promoText' | 'cta';

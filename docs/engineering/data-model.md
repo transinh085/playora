@@ -1,17 +1,25 @@
-# 06 — Mô hình dữ liệu (PostgreSQL + Drizzle)
+# Mô hình dữ liệu (PostgreSQL + Drizzle)
 
-Cập nhật: 24/10/2026 · v2.1: bỏ bảng live (xem [ADR-011](./adr/011-remove-live-engine.md))
+Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [ADR-003](../adr/003-drizzle-postgres.md), [ADR-012 §5](../adr/012-campaign-architecture.md), [product/specs/builder.md](../product/specs/builder.md)
 
----
+Nguồn chân lý là code ở `packages/db/src/schema/*` và migration đã commit ở `packages/db/drizzle/`. Tài liệu này mô tả **mô hình đích**; bảng nào chưa có trong code được đánh dấu "(đích)" ở bảng dưới.
 
-> Bổ sung từ nghiên cứu builder: các bảng `skins`, `participation_codes`, `channels`, `redeem_points`, `prize_moments`, `org_templates`, `logic_webhooks` được liệt kê ở [12-builder-spec §15](./12-builder-spec.md#15-thay-đổi-dữ-liệu-so-với-06-data-modelmd).
+| Nhóm | Đã có trong schema (26/10/2026) | (đích) |
+|---|---|---|
+| Auth (Better Auth) | `user`, `session`, `account`, `verification`, `organization`, `member`, `invitation` | |
+| Tổ chức, thương hiệu | `clients`, `brand_kits`, `assets` | |
+| Chương trình | `events`, `games`, `game_versions` | cột `schedule`, `participation`, `anti_fraud` trên `events` |
+| Người chơi | `guest_list_entries`, `players`, `consents` | `players.session_ver`, `form_submissions` |
+| Giải | `prizes`, `draw_spins`, `awards` | `voucher_codes`, `plays`, `play_counters`, `prize_counters`, `prizes.rules` |
+| Vận hành | `audit_logs` | billing (`subscriptions`, `payments`), `analytics_events`, webhook, api key |
+| Builder mở rộng | | `skins`, `participation_codes`, `channels`, `redeem_points`, `prize_moments`, `org_templates`, `logic_webhooks` (xem [product/specs/builder.md](../product/specs/builder.md)) |
 
-> **v2.1: còn phải gỡ trong code** (chore `remove live engine`, [09](./09-roadmap-plan.md) story 1.0): bảng `live_rounds`, `round_scores`, `event_screens`; enum `round_status`, `event_mode` (chỉ còn campaign); cột `draw_spins.round_id`. Gỡ bằng **migration drop mới** (không sửa migration cũ). Lưu ý: hiện `prizes`, `draw_spins`, `awards` đang nằm trong `packages/db/src/schema/live.ts`; phải **chuyển sang `prizes.ts`**, không xoá. Tài liệu dưới đây mô tả trạng thái đích.
+Builder Lab hiện lưu chương trình ở backend giả (localStorage); khi làm API thật, cách ánh xạ Campaign vào các bảng trên sẽ được chốt bằng ADR.
 
 ## 1. Quy ước
 
 - **ID:** UUIDv7, sinh ở app (`uuidv7()`), sắp theo thời gian nên thân thiện với index. ID công khai dạng ngắn (slug, mã) dùng cột riêng.
-- **Multi-tenant:** mọi bảng nghiệp vụ có `organization_id` và index bắt đầu bằng cột này. Repository bắt buộc nhận `orgId`.
+- **Multi-tenant:** mọi bảng nghiệp vụ có `organization_id` (kiểu `text`, FK tới `organization.id` vì Better Auth dùng text id) và index bắt đầu bằng cột này. Repository bắt buộc nhận `organizationId` đầu tiên.
 - **Thời gian:** `timestamptz`; mọi bảng có `created_at`, bảng sửa được có thêm `updated_at`.
 - **Xoá:** soft delete (`deleted_at`) cho event, game, asset. PII bị xoá cứng hoặc ẩn danh theo retention.
 - **JSONB** cho cấu hình template (đã validate bằng zod trước khi ghi), không dùng cho dữ liệu cần query nhiều.
@@ -34,7 +42,7 @@ organization ─┬─< member >── user                      (Better Auth)
                          │           └─< play ──o award
                          ├─< game ─┬─< game_version
                          │         └─< prize ─┬─< voucher_code
-                         │                    └─< draw_spin ─< award   (bốc thăm cuối chương trình, M2)
+                         │                    └─< draw_spin ─< award   (bốc thăm cuối chương trình)
                          └─< analytics_event (partitioned)
 audit_log, webhook_endpoint, webhook_delivery, api_key
 ```
@@ -47,11 +55,13 @@ audit_log, webhook_endpoint, webhook_delivery, api_key
 
 ```ts
 // packages/db/src/schema/_shared.ts
-import { timestamp, uuid } from 'drizzle-orm/pg-core';
+import { text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { uuidv7 } from 'uuidv7';
+import { organization } from './auth';
 
 export const id = () => uuid().primaryKey().$defaultFn(() => uuidv7());
-export const orgId = () => uuid().notNull();          // FK tới organization.id (định nghĩa ở từng bảng)
+/** Better Auth dùng text id, nên khoá tenant là text. */
+export const orgId = () => text().notNull().references(() => organization.id, { onDelete: 'cascade' });
 export const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
@@ -65,10 +75,12 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 export const eventStatus   = pgEnum('event_status', ['draft', 'scheduled', 'live', 'ended', 'archived']);
 export const identityMode  = pgEnum('identity_mode', ['anonymous', 'guest_list', 'form_only', 'phone_otp', 'email_otp', 'zalo']);
 export const gameStatus    = pgEnum('game_status', ['draft', 'published', 'disabled']);
-export const prizeType     = pgEnum('prize_type', ['physical', 'voucher_code', 'digital', 'no_prize']);
+export const prizeType     = pgEnum('prize_type', ['physical', 'voucher_code', 'e_gift', 'digital', 'points', 'consolation', 'no_prize']);
 export const awardStatus   = pgEnum('award_status', ['issued', 'notified', 'redeemed', 'void']);
-export const playStatus    = pgEnum('play_status', ['started', 'completed', 'rejected', 'expired']);
-export const dataEnv       = pgEnum('data_env', ['live', 'rehearsal']);   // 'live' = dữ liệu thật, không liên quan live engine
+export const playStatus    = pgEnum('play_status', ['started', 'completed', 'rejected', 'expired']);   // (đích)
+export const dataEnv       = pgEnum('data_env', ['live', 'rehearsal']);   // 'live' = dữ liệu thật, 'rehearsal' = chạy thử
+export const assetKind     = pgEnum('asset_kind', ['image', 'audio', 'video']);
+export const assetStatus   = pgEnum('asset_status', ['pending', 'ready', 'failed']);
 ```
 
 ```ts
@@ -281,7 +293,7 @@ export const awards = pgTable('awards', {
 ```
 
 ```ts
-// packages/db/src/schema/prizes.ts (tiếp) — bốc thăm cuối chương trình (PRZ-02, M2)
+// packages/db/src/schema/prizes.ts (tiếp) — bốc thăm cuối chương trình (PRZ-02)
 // Pool được chốt (snapshot, sắp theo player_id) trước khi commit; mỗi lần quay là một dòng.
 export const drawSpins = pgTable('draw_spins', {
   id: id(),
@@ -302,7 +314,8 @@ export const drawSpins = pgTable('draw_spins', {
 ```
 
 ```ts
-// packages/db/src/schema/billing.ts (rút gọn)
+// (đích) packages/db/src/schema/billing.ts (rút gọn). Gói và giới hạn theo business/business-model.md;
+// event_passes chỉ cần nếu giữ cách bán theo từng chương trình.
 export const subscriptions = pgTable('subscriptions', {
   id: id(), organizationId: orgId(),
   plan: text().notNull(),                         // 'pro' | 'agency' | 'enterprise'
@@ -389,7 +402,8 @@ Ghi theo batch: API đẩy vào Redis stream `analytics`, worker gom 500 dòng h
 
 ## 6. Migration và seed
 
-- `packages/db/drizzle.config.ts` dùng `casing: 'snake_case'`, schema là `./src/schema/*`, migrations ở `./migrations`.
+- `packages/db/drizzle.config.ts` dùng `casing: 'snake_case'`, schema là `./src/schema/*`, migration SQL sinh vào `packages/db/drizzle/` (không sửa tay).
 - Quy trình: sửa schema → `bun run db:generate` → review SQL trong PR → `bun run db:migrate` (CI chạy trên staging, sau đó production trước khi deploy app).
-- Migration phải **backward compatible** với bản app đang chạy (expand → migrate data → contract), vì không có downtime trong mùa sự kiện.
-- `bun run db:seed` tạo org demo, 1 campaign với 4 minigame M1, guest list 500 người giả và giải mẫu.
+- Migration phải **backward compatible** với bản app đang chạy (expand → migrate data → contract), vì không được dừng khi có chương trình đang chạy.
+- Nhiều nhánh cùng thêm migration thì phải đánh số lại nhánh merge sau (AGENTS.md).
+- `bun run db:seed` tạo org demo, sự kiện `demo-yep` (danh tính `guest_list`) và 500 khách mời giả. Seed sẽ được làm lại khi có API Campaign thật.

@@ -2,7 +2,7 @@ import type { LabPrize, LabRules } from '../mock/types';
 import { campaignDays, formatVnd, toPercent } from './rules-format';
 
 /**
- * Plain-language view of the prize rules (docs/15 §4.2: "mỗi luật là một câu"). Returns i18n keys
+ * Plain-language view of the prize rules (docs/product/specs/builder.md §4.2: "mỗi luật là một câu"). Returns i18n keys
  * under `builderLab.rules.summary.*` plus their ICU values, so it stays pure and testable.
  */
 

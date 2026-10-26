@@ -14,7 +14,7 @@ const LOOK: Record<CampaignPhase, { color?: string; Icon: typeof Clock }> = {
   ended: { Icon: CircleStop },
 };
 
-/** Lifecycle tag with an icon (docs/13 §3.4): colour is never the only signal. */
+/** Lifecycle tag with an icon (docs/engineering/design-system.md §3.4): colour is never the only signal. */
 export function PhaseTag({ phase }: { phase: CampaignPhase }) {
   const t = useTranslations('campaigns.phase');
   const { color, Icon } = LOOK[phase];

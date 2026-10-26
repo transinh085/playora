@@ -13,7 +13,7 @@ import type {
 } from './types';
 
 /**
- * Mock of the future API (docs/15 §5 P0). Every function is async and shaped like an endpoint so
+ * Mock of the future API (docs/product/roadmap.md P0). Every function is async and shaped like an endpoint so
  * the UI already handles loading and errors. The prize decision runs the real engine from
  * `@playora/core/prize`; only storage is fake. The server-decides rule still holds: UI code never
  * picks an outcome, it asks `startPlay`.
@@ -113,7 +113,7 @@ export async function updateCampaign(
   return wait(updated);
 }
 
-/** A running campaign must be paused or ended first (docs/12 §12). */
+/** A running campaign must be paused or ended first (docs/product/specs/builder.md §6). */
 export async function deleteCampaign(id: string): Promise<void> {
   const phase = campaignPhase(findCampaign(id));
   if (phase === 'live' || phase === 'scheduled') throw new LabApiError('CAMPAIGN_RUNNING');
@@ -196,7 +196,7 @@ export async function listCampaignVouchers(campaignId: string): Promise<Voucher[
 // ── Prize engine bridge ──────────────────────────────────────────────────────────
 
 /**
- * Maps lab rules to the engine's `PrizeRules`. Rehearsal (draft test link, docs/12 §4.1) ignores
+ * Maps lab rules to the engine's `PrizeRules`. Rehearsal (draft test link, docs/product/specs/builder.md §4.1) ignores
  * the schedule and pacing so testers always get a real roll.
  */
 export function toEngineRules(campaign: Campaign, rehearsal: boolean): PrizeRulesInput {
@@ -379,7 +379,7 @@ export async function lookupVoucher(code: string) {
   });
 }
 
-/** Redeeming is final, like 凡科's 核销 (docs/14 §3.4). */
+/** Redeeming is final, like 凡科's 核销 (docs/research/guandayun-teardown.md §3.4). */
 export async function redeemVoucher(code: string): Promise<Voucher> {
   const voucher = updateDb((db) => {
     const v = db.vouchers.find((x) => x.code === code.trim().toUpperCase());
@@ -423,7 +423,7 @@ export const CAFE_TRAFFIC_SHAPE = [
   0.04, 0.03, 0.02, 0.01, 0,
 ];
 
-/** "If N customers play each day, what happens to my prizes?" (docs/12 §6.5). */
+/** "If N customers play each day, what happens to my prizes?" (docs/product/specs/prizes-redemption.md §5). */
 export function simulateCampaign(
   campaign: Campaign,
   input: { playersPerDay: number; days?: number },

@@ -25,7 +25,7 @@ export type EventPatch = Partial<
 
 /**
  * Data access for events. Every method takes `organizationId` first and filters by it:
- * tenant isolation is enforced here, not only in guards (docs/05 §8).
+ * tenant isolation is enforced here, not only in guards (docs/engineering/architecture.md §8).
  */
 @Injectable()
 export class EventsRepository {

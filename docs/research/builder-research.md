@@ -1,6 +1,8 @@
-# 11 — Nghiên cứu chuyên sâu: Game Builder (Guandayun và thị trường)
+# Nghiên cứu chuyên sâu: Game Builder (Guandayun và thị trường)
 
-Cập nhật: 23/10/2026 · Phạm vi: Trung Quốc (gồm Guandayun), quốc tế, Việt Nam · Tài liệu này là đầu vào cho [12-builder-spec.md](./12-builder-spec.md)
+Cập nhật: 23/10/2026 · Phạm vi: Trung Quốc (gồm Guandayun), quốc tế, Việt Nam · Tài liệu này là đầu vào cho [12-builder-spec.md](../product/specs/builder.md)
+
+> **Đọc với bối cảnh (26/10/2026):** nghiên cứu đầu vào, không ràng buộc. Kết luận đang áp dụng nằm ở [specs/builder](../product/specs/builder.md) và [strategy](../product/strategy.md); các đề xuất về agency, live/LED và giá theo campaign đã bị thay.
 
 > **Quy ước:** **[CXM]** = chưa xác minh từ nguồn chính thức. Giá trích từ trang công khai lúc khảo sát (10/2026). Tỷ giá tham chiếu: 1 CNY ≈ 3.650 đ, 1 USD ≈ 26.000 đ, 1 EUR ≈ 28.000 đ.
 
@@ -229,7 +231,7 @@ API trả phí gồm: nhúng game vào web/app/mini-program/Douyin; **tự đị
 **Kết luận kiến trúc cho Playora:**
 - Kết hợp **mẫu 1, 2 và 6** dưới một **Game SDK** chung.
 - Prize engine, participation và data là **dịch vụ nền tảng dùng chung** cho cả game async lẫn live.
-- Template chỉ khai báo schema, asset slot và logic riêng. Đặc tả chi tiết ở [12-builder-spec.md](./12-builder-spec.md).
+- Template chỉ khai báo schema, asset slot và logic riêng. Đặc tả chi tiết ở [12-builder-spec.md](../product/specs/builder.md).
 
 ---
 
@@ -244,7 +246,7 @@ API trả phí gồm: nhúng game vào web/app/mini-program/Douyin; **tự đị
 | Bỏ logo, white-label, custom domain luôn ở bậc cao | Giữ nguyên |
 | Bán lẻ theo buổi và tính năng (Hi现场, 趣现场) | Add-on theo sự kiện (operator, theme đặc biệt, game "wow") |
 
-Bảng giá cập nhật nằm ở [02-business-model.md §3](./02-business-model.md#3-bảng-giá-đề-xuất-gđ).
+Bảng giá cập nhật nằm ở [02-business-model.md §3](../business/business-model.md#3-giá-gđ).
 
 ---
 

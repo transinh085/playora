@@ -42,7 +42,7 @@ type Attention = {
 };
 
 /**
- * Home (docs/16 §3): what needs the owner today, how far setup is, and the campaigns that matter
+ * Home (docs/product/specs/studio-ux.md §3): what needs the owner today, how far setup is, and the campaigns that matter
  * now. Every row links to the screen that resolves it.
  */
 export function CampaignHome({ orgId }: { orgId: string }) {

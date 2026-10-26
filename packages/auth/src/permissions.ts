@@ -2,7 +2,7 @@ import { createAccessControl } from 'better-auth/plugins/access';
 import { adminAc, defaultStatements, ownerAc } from 'better-auth/plugins/organization/access';
 
 /**
- * Organization RBAC (docs/prd.md ORG-02). Better Auth enforces these on its own org endpoints
+ * Organization RBAC (docs/product/prd.md ORG-02). Better Auth enforces these on its own org endpoints
  * (invite, change role…); the API reuses the same roles through `authorize()`.
  */
 export const statements = {

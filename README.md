@@ -1,8 +1,8 @@
 # Playora
 
-> Nền tảng dựng và vận hành game tương tác _tại sự kiện_: sân khấu LED, điện thoại khán giả, booth. **"Cả hội trường cùng chơi."**
+> Minigame có thưởng giúp quán nhỏ kéo khách tới và giữ khách quay lại: dựng trong vài phút, giải không phát sai, đổi quà tại quầy, báo cáo bằng kết quả. **"Minigame kéo khách về quán."**
 
-Tài liệu sản phẩm và kỹ thuật: [`docs/`](./docs/README.md). Bắt đầu từ [`docs/00-product-strategy.md`](./docs/00-product-strategy.md).
+Tài liệu sản phẩm và kỹ thuật: [`docs/`](./docs/README.md). Bắt đầu từ [`docs/product/strategy.md`](./docs/product/strategy.md); hướng dẫn cho AI agent ở [`AGENTS.md`](./AGENTS.md).
 
 ## Yêu cầu
 
@@ -42,15 +42,15 @@ bun run db:generate     # sinh migration SQL từ schema Drizzle (review trướ
 bun --cwd packages/auth run generate:schema   # sinh lại bảng Better Auth khi đổi plugin
 ```
 
-Thêm tính năng mới: làm theo [`docs/10-dev-setup-conventions.md` §3](./docs/10-dev-setup-conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games). Module `events` là mẫu chuẩn từ contract đến API, test và Studio.
+Thêm tính năng mới: làm theo [`docs/engineering/conventions.md` §3](./docs/engineering/conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games). Module `events` là mẫu chuẩn từ contract đến API, test và Studio.
 
 ## Cấu trúc
 
 ```
 apps/       web · studio · play (Next.js 16)  |  api · worker (NestJS 12 trên Bun)
 packages/   contracts (zod) · api-client · db (Drizzle) · auth (Better Auth + RBAC) · jobs (BullMQ)
-            core · game-sdk · ui (shadcn) · i18n · env · tsconfig
+            core · game-sdk · templates · ui (antd) · i18n · env · tsconfig
 tooling/    e2e (Playwright) · loadtest · scripts
 infra/      compose (dev) · docker (Dockerfile.nest, Dockerfile.next)
-docs/       sản phẩm, kiến trúc, ADR
+docs/       product · business · research · engineering · operations · adr (xem docs/README.md)
 ```

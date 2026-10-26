@@ -4,7 +4,7 @@ import { Card, theme } from 'antd';
 
 /**
  * Bordered card that holds a list page's table flush to its edges, with an optional toolbar
- * (search, filters, bulk actions) above it. After games-vt's TableCard (docs/13 §5).
+ * (search, filters, bulk actions) above it. After games-vt's TableCard (docs/engineering/design-system.md §5).
  */
 export function TableCard({
   toolbar,

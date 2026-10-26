@@ -32,10 +32,10 @@ interface Redemption {
 }
 
 /**
- * Staff redemption desk (docs/14 §3.4 核销): type or scan the customer's code, check it, then
+ * Staff redemption desk (docs/research/guandayun-teardown.md §3.4 核销): type or scan the customer's code, check it, then
  * confirm. Redeeming is final, so it always goes through a confirm dialog.
  */
-/** Counter screen for staff (docs/12 §11), inside the app shell; works one-handed on a phone. */
+/** Counter screen for staff (docs/product/specs/prizes-redemption.md §6), inside the app shell; works one-handed on a phone. */
 export function RedeemDesk() {
   useLabSync();
   const t = useTranslations('builderLab.redeem');

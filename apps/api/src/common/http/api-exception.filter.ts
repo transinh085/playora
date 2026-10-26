@@ -19,7 +19,7 @@ const statusToCode: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.TOO_MANY_REQUESTS]: ErrorCode.RATE_LIMITED,
 };
 
-/** Every error leaves the API as `{ error: { code, message, details?, requestId } }` (docs/07 §1). */
+/** Every error leaves the API as `{ error: { code, message, details?, requestId } }` (docs/engineering/api.md §1). */
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ApiExceptionFilter.name);

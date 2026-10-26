@@ -26,7 +26,7 @@ test('sign up → create organization → create event', async ({ page }) => {
   // New organizations land on Home with the getting-started checklist.
   await expect(page.getByTestId('home-checklist')).toBeVisible();
   await expect(page.getByTestId('home-checklist-campaign')).toHaveAttribute('data-done', 'false');
-  // The legacy event pages are no longer in the sidebar (docs/16); open them by URL.
+  // The legacy event pages are no longer in the sidebar (docs/product/specs/studio-ux.md); open them by URL.
   await page.goto(`${new URL(page.url()).pathname}/events`);
   await expect(page).toHaveURL(/\/orgs\/[^/]+\/events$/);
   await expect(page.getByText('Chưa có chương trình nào')).toBeVisible();

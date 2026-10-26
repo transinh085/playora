@@ -40,7 +40,7 @@ import { PLAY_URL } from '@/lib/env';
 import { useEvent } from '../api';
 
 /**
- * Campaign overview (docs/16 §2, "Vận hành"): what is still missing before guests can play,
+ * Campaign overview (docs/product/specs/studio-ux.md §2, "Vận hành"): what is still missing before guests can play,
  * the game itself, and the link/QR to share. Every gap links to the place that fixes it.
  */
 export function EventOverview({ orgId, eventId }: { orgId: string; eventId: string }) {

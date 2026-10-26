@@ -41,7 +41,7 @@ import { type DraftPatch, type SaveState, useCampaignDraft } from './editor/use-
 import { QuickEditPanel } from './quick-edit/quick-edit-panel';
 import { RulesPrizesPanel } from './rules-prizes-panel';
 
-/** The three-mode builder (docs/15 §4.2) over one campaign draft, autosaved. */
+/** The three-mode builder (docs/product/specs/builder.md §4.2) over one campaign draft, autosaved. */
 export function BuilderEditor({
   orgId,
   campaignId,

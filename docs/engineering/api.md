@@ -1,13 +1,17 @@
-# 07 — API & Realtime
+# API
 
-Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đã bỏ (§4)
+Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [architecture.md](./architecture.md), [conventions.md §3–4](./conventions.md#3-quy-trình-thêm-một-tính-năng-ví-dụ-games), [ADR-008](../adr/008-contract-first-api.md), [ADR-012](../adr/012-campaign-architecture.md)
+
+Nguồn chân lý là contract trong `packages/contracts/src/api/*` (OpenAPI sinh lúc chạy tại `/v1/openapi.json`). Tài liệu này mô tả quy ước và **API đích**; route chưa có trong code được đánh dấu "(đích)". Không còn WebSocket/realtime ([ADR-011](../adr/011-remove-live-engine.md)).
+
+**Đã có (26/10/2026):** `/me/orgs`; `/orgs/:orgId/events[/:eventId]`; `/orgs/:orgId/events/:eventId/games` (+ `reorder`); `/orgs/:orgId/games/:gameId` (+ `publish`, `versions`); `/orgs/:orgId/events/:eventId/guests/**`; `/orgs/:orgId/brand-kits/**`; `/orgs/:orgId/assets/**`; `/templates`; public `/p/:slug`, `/p/:slug/join`; `/health`, `/health/ready`.
 
 ---
 
 ## 1. Quy ước REST
 
 - Base URL: `https://api.playora.vn/v1`. OpenAPI tại `/v1/openapi.json` (sinh từ zod contracts).
-- Auth: organizer dùng cookie session (Better Auth); player dùng `Authorization: Bearer <playerToken>`; public API (M4) dùng `X-Api-Key`.
+- Auth: organizer dùng cookie session (Better Auth); người chơi dùng `Authorization: Bearer <token phiên>` (ký HMAC, [architecture.md §8](./architecture.md#8-xác-thực-và-phân-quyền)); public API (đích) dùng `X-Api-Key`.
 - Org scope: route Studio có dạng `/v1/orgs/{orgId}/...`. Guard kiểm tra membership và role.
 - Lỗi theo dạng thống nhất:
 
@@ -15,15 +19,17 @@ Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đ
 { "error": { "code": "PRIZE_OUT_OF_STOCK", "message": "…", "details": {} , "requestId": "…" } }
 ```
 
-- Idempotency: header `Idempotency-Key` cho các POST có side-effect tài chính hoặc giải thưởng (draw, award, payment). Lưu trong Redis 24 h.
+- Idempotency: header `Idempotency-Key` cho các POST có side-effect tài chính hoặc giải thưởng (draw, award, payment). Lưu trong Valkey 24 h; lượt chơi còn có `client_request_id` unique trong DB.
 - Phân trang: cursor-based `?cursor=&limit=` (mặc định 50, tối đa 200).
-- Rate limit (Redis, sliding window): player 30 req/10 s/token, join 10 req/phút/IP (nới cho NAT văn phòng/booth bằng cách kết hợp deviceId), Studio 300 req/phút/user.
+- Rate limit: hiện có `ThrottlerGuard` theo IP trên Valkey (`RedisThrottlerStorage`). Đích `[GĐ]`: người chơi 30 req/10 s/token, join 10 req/phút/IP (nới cho NAT quán/văn phòng bằng cách kết hợp deviceId), Studio 300 req/phút/user.
 
 ---
 
 ## 2. Endpoint chính
 
 ### 2.1 Studio (organizer)
+
+> UI gọi đối tượng chính là **Chương trình** (Campaign); API và DB giữ tên `events`. Contract cho Campaign của Builder Lab (`campaigns`/`plays`/`vouchers`/`stats`) sẽ thay hoặc bọc một phần bảng dưới, chốt bằng ADR khi làm API thật.
 
 | Method | Path | Mô tả | Role tối thiểu |
 |---|---|---|---|
@@ -34,7 +40,7 @@ Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đ
 | GET/POST | `/orgs/{orgId}/events` | Danh sách / tạo event | viewer / editor |
 | GET/PATCH/DELETE | `/orgs/{orgId}/events/{eventId}` | Chi tiết / sửa / xoá mềm | viewer / editor / admin |
 | POST | `/orgs/{orgId}/events/{eventId}/clone` | Nhân bản | editor |
-| POST | `/orgs/{orgId}/events/{eventId}/guest-list/import` | Import CSV/XLSX (async job) | editor |
+| POST | `/orgs/{orgId}/events/{eventId}/guests/import` | Import CSV/XLSX khách mời (có `guests/preview` trước) | editor |
 | GET | `/templates` | Danh sách template khả dụng theo gói | viewer |
 | POST | `/orgs/{orgId}/events/{eventId}/games` | Thêm game từ template | editor |
 | PATCH | `/orgs/{orgId}/games/{gameId}` | Sửa draft config (validate theo `configSchema`) | editor |
@@ -42,7 +48,7 @@ Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đ
 | CRUD | `/orgs/{orgId}/games/{gameId}/prizes` | Giải thưởng | editor |
 | POST | `/orgs/{orgId}/prizes/{prizeId}/vouchers/import` | Import mã voucher | editor |
 | POST | `/orgs/{orgId}/events/{eventId}/rehearsal/{start\|reset}` | Chạy thử campaign + bot (không trừ kho thật) | operator |
-| POST | `/orgs/{orgId}/events/{eventId}/draws` | **Bốc thăm cuối chương trình (M2):** chốt pool theo bộ lọc AND/OR → `{ drawId, poolSize, poolHash }` | operator |
+| POST | `/orgs/{orgId}/events/{eventId}/draws` | **Bốc thăm cuối chương trình (đích):** chốt pool theo bộ lọc AND/OR → `{ drawId, poolSize, poolHash }` | operator |
 | POST | `/orgs/{orgId}/draws/{drawId}/spins` | Commit một lần quay: `seedCommit = sha256(serverSeed ‖ poolHash ‖ spinNo)` công bố trên trang kết quả **trước** khi reveal | operator |
 | POST | `/orgs/{orgId}/draws/{drawId}/spins/{spinId}/reveal` | Reveal: server chọn người trúng, ghi `draw_spins` + `awards` trong 1 transaction | operator |
 | POST | `/orgs/{orgId}/draws/{drawId}/spins/{spinId}/void` | Huỷ kết quả có lý do (ghi log, không xoá, `spinNo` tăng) | operator |
@@ -58,13 +64,13 @@ Cập nhật: 24/10/2026 · v2.1: chỉ còn REST/public API; phần realtime đ
 |---|---|---|
 | GET | `/p/{slug}` | Thông tin event công khai: brand, games (versionId, templateKey@version), identity rule, form |
 | POST | `/p/{slug}/otp` | Gửi OTP (phone/email) |
-| POST | `/p/{slug}/join` | Tham gia: identity + form + consents → `playerToken`, `player` |
+| POST | `/p/{slug}/join` | Tham gia: identity + form + consents → token phiên, `player` |
 | GET | `/p/{slug}/me` | Trạng thái người chơi: lượt còn lại, giải đã trúng |
-| POST | `/p/{slug}/games/{gameId}/plays` | **Instant:** một lần gọi = một lượt; server kiểm điều kiện, quyết định giải, trừ kho → `{ playId, outcome, display, remaining }`. **Skill:** bắt đầu lượt → `{ playId, startedAt, seed }`. Header `Idempotency-Key` bắt buộc ([ADR-012 §4](./adr/012-campaign-architecture.md)) |
+| POST | `/p/{slug}/games/{gameId}/plays` | **Instant:** một lần gọi = một lượt; server kiểm điều kiện, quyết định giải, trừ kho → `{ playId, outcome, display, remaining }`. **Skill:** bắt đầu lượt → `{ playId, startedAt, seed }`. Header `Idempotency-Key` bắt buộc ([ADR-012 §4](../adr/012-campaign-architecture.md)) |
 | POST | `/p/{slug}/games/{gameId}/plays/{playId}/submit` | **Skill:** gửi điểm + telemetry → validate → `{ outcome, display, score }` |
-| GET | `/p/{slug}/games/{gameId}/leaderboard` | Leaderboard (skill, M2) |
+| GET | `/p/{slug}/games/{gameId}/leaderboard` | Leaderboard (skill, đích) |
 | GET | `/p/{slug}/prizes` | "Quà của tôi": giải + mã voucher + QR đổi quà |
-| GET | `/p/{slug}/draws` | **Trang công bố kết quả bốc thăm (M2):** `poolHash`, `seedCommit` theo `spinNo`, người trúng (che bớt thông tin), lần void kèm lý do; `serverSeed` sau khi kết thúc để ai cũng kiểm chứng được |
+| GET | `/p/{slug}/draws` | **Trang công bố kết quả bốc thăm (đích):** `poolHash`, `seedCommit` theo `spinNo`, người trúng (che bớt thông tin), lần void kèm lý do; `serverSeed` sau khi kết thúc để ai cũng kiểm chứng được |
 | POST | `/p/{slug}/privacy/requests` | Yêu cầu xoá hoặc xuất dữ liệu (PDPL) |
 
 ### 2.3 Webhook nhận vào
@@ -107,18 +113,12 @@ Player                       API                                   Postgres
 
 ---
 
-## 4. Realtime protocol (Socket.IO)
+## 4. Contracts dùng chung (ví dụ)
 
-Bỏ ở v2.1 (không còn Host/Screen/live engine; xem [ADR-011](./adr/011-remove-live-engine.md)). Code cũ (`packages/contracts/src/ws.ts`, `apps/realtime`, `packages/realtime-client`) lưu ở tag `archive/live-engine` và **còn phải gỡ khỏi `main`** ([09](./09-roadmap-plan.md) story 1.0).
-
----
-
-## 5. Contracts dùng chung (ví dụ)
-
-Mọi endpoint khai báo bằng `defineRoute` trong `packages/contracts/src/api/<feature>.ts` ([ADR-008](./adr/008-contract-first-api.md)); controller chỉ dùng `@Route(contract)` + `@Args()`.
+Mọi endpoint khai báo bằng `defineRoute` trong `packages/contracts/src/api/<feature>.ts` ([ADR-008](../adr/008-contract-first-api.md)); controller chỉ dùng `@Route(contract)` + `@Args()`.
 
 ```ts
-// packages/contracts/src/api/draws.ts (M2)
+// packages/contracts/src/api/draws.ts (đích)
 export const spinDraw = defineRoute({
   method: 'POST',
   path: '/orgs/:orgId/draws/:drawId/spins',
@@ -142,7 +142,7 @@ export const voidSpin = defineRoute({
 
 ---
 
-## 6. Webhook gửi ra (M4)
+## 5. Webhook gửi ra (đích)
 
 - Event: `player.registered`, `play.completed`, `prize.awarded`, `prize.redeemed`, `event.ended`.
 - Header `Playora-Signature: t=<ts>,v1=<HMAC_SHA256(secret, ts + "." + body)>`; retry theo lũy thừa trong 24 h.

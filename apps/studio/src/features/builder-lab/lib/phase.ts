@@ -1,7 +1,7 @@
 import type { Campaign } from '../mock/types';
 
 /**
- * Where a campaign is in its life (docs/12 §12), derived from publish state, pause and the
+ * Where a campaign is in its life (docs/product/specs/builder.md §6), derived from publish state, pause and the
  * schedule in its rules instead of being picked by hand.
  */
 export type CampaignPhase = 'draft' | 'scheduled' | 'live' | 'paused' | 'ended';

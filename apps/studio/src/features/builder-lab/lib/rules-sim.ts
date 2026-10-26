@@ -2,7 +2,7 @@ import type { SimulationResult } from '@playora/core/prize';
 import type { LabPrize, LabRules } from '../mock/types';
 
 /**
- * Turns a `SimulationResult` (docs/12 §6.5) into what a shop owner reads: totals, per-day bars,
+ * Turns a `SimulationResult` (docs/product/specs/prizes-redemption.md §5) into what a shop owner reads: totals, per-day bars,
  * when stock runs out, and plain-language warnings with suggestions. Pure; the panel renders it.
  */
 

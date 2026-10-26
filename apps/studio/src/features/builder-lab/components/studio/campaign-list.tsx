@@ -50,7 +50,7 @@ const PHASES: CampaignPhase[] = ['live', 'scheduled', 'draft', 'paused', 'ended'
 type ViewMode = 'table' | 'grid';
 
 /**
- * All campaigns of the organization (docs/16 §3): what is running and how it is doing.
+ * All campaigns of the organization (docs/product/specs/studio-ux.md §3): what is running and how it is doing.
  * Supports both Table View (dense data) and Grid Card View (visual cover preview).
  */
 export function CampaignList({ orgId }: { orgId: string }) {
