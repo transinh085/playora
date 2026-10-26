@@ -50,11 +50,11 @@ API=http://localhost:4100 bun tooling/loadtest/seed-campaign.ts   # prints the s
 BASE_URL=http://localhost:4100 SLUG=<slug> k6 run tooling/loadtest/play.js
 ```
 
-| Metric | Result | Target |
-|---|---|---|
-| Plays | 29,949 in 60 s (499/s), 6,069 players | 500/s |
-| p95 play latency | 150 ms (median 11 ms, max 353 ms) | < 200 ms |
-| Failed requests | 0 / 36,018 | < 0.1% |
-| Stock ledger after the run | p1: 4,919 issued = 4,919 awards = 4,919 wins, remaining 95,081; p2: 1,007 = 1,007 = 1,007, remaining 18,993 | 0 drift |
+| Metric                     | Result                                                                                                      | Target   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| Plays                      | 29,949 in 60 s (499/s), 6,069 players                                                                       | 500/s    |
+| p95 play latency           | 150 ms (median 11 ms, max 353 ms)                                                                           | < 200 ms |
+| Failed requests            | 0 / 36,018                                                                                                  | < 0.1%   |
+| Stock ledger after the run | p1: 4,919 issued = 4,919 awards = 4,919 wins, remaining 95,081; p2: 1,007 = 1,007 = 1,007, remaining 18,993 | 0 drift  |
 
 Gate P0 load criterion met on a single node; repeat on the production VM before the pilot (runbook checklist).
