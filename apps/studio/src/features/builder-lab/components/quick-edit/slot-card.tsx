@@ -12,6 +12,10 @@ const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 /** Keys of `IMAGE_PRESETS` that have a translated name. */
 type PresetKey =
   | 'logo'
+  | 'trophy'
+  | 'fire'
+  | 'diamond'
+  | 'ribbon'
   | 'apricot'
   | 'envelope'
   | 'lantern'

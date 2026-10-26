@@ -60,7 +60,6 @@ export function ModeStep({
               role="radio"
               aria-checked={selected}
               tabIndex={0}
-              hoverable
               onClick={() => onChange({ mode: mode.key })}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {

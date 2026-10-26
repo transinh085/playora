@@ -16,6 +16,7 @@ export type ColorValue = `brand.${BrandColorKey}` | `#${string}`;
 export type BrandColorKey = 'primary' | 'accent' | 'background' | 'text' | 'surface';
 
 export type EnterAnimation = 'none' | 'fade' | 'slideUp' | 'zoom' | 'bounce';
+export type LoopAnimation = 'none' | 'pulse' | 'wiggle' | 'float';
 export type ButtonAction = 'start' | 'rules' | 'link' | 'zalo' | 'phone' | 'next';
 
 /**
@@ -37,7 +38,11 @@ interface BaseElement {
   opacity: number;
   locked: boolean;
   hidden: boolean;
-  animation: { enter: EnterAnimation; delayMs: number };
+  animation: {
+    enter: EnterAnimation;
+    delayMs: number;
+    loop?: LoopAnimation;
+  };
 }
 
 export interface TextElement extends BaseElement {
@@ -49,6 +54,9 @@ export interface TextElement extends BaseElement {
   color: ColorValue;
   align: 'left' | 'center' | 'right';
   lineHeight: number;
+  letterSpacing?: number;
+  textShadow?: 'none' | 'soft' | 'retro3d' | 'glow' | 'outline';
+  textTransform?: 'none' | 'uppercase' | 'capitalize';
 }
 
 export interface ImageElement extends BaseElement {
@@ -56,38 +64,104 @@ export interface ImageElement extends BaseElement {
   src: string;
   fit: 'cover' | 'contain';
   radius: number;
+  shadow?: 'none' | 'soft' | 'strong' | 'glow';
+  borderWidth?: number;
+  borderColor?: ColorValue;
 }
 
 export interface ButtonElement extends BaseElement {
   type: 'button';
   label: string;
   action: ButtonAction;
+  actionTarget?: string;
+  variant?: 'game3d' | 'flat' | 'glow' | 'gradient';
+  icon?: 'none' | 'zap' | 'gift' | 'pointer' | 'arrow' | 'star';
   background: ColorValue;
   color: ColorValue;
   radius: number;
   fontSize: number;
+  letterSpacing?: number;
 }
 
 export interface ShapeElement extends BaseElement {
   type: 'shape';
-  shape: 'rect' | 'ellipse';
+  shape: 'rect' | 'ellipse' | 'pill' | 'ribbon' | 'card';
   fill: ColorValue;
+  fillGradientTo?: ColorValue;
   radius: number;
   borderWidth: number;
   borderColor: ColorValue;
+  shadow?: 'none' | 'soft' | 'card' | 'glow';
 }
 
 export interface CountdownElement extends BaseElement {
   type: 'countdown';
+  variant?: 'cards' | 'pill' | 'minimal';
+  title?: string;
   color: ColorValue;
   background: ColorValue;
+  showDays?: boolean;
+  showSeconds?: boolean;
 }
 
 export interface PrizeListElement extends BaseElement {
   type: 'prizeList';
   layout: 'grid' | 'list';
+  title?: string;
   showRemaining: boolean;
   color: ColorValue;
+  cardBackground?: ColorValue;
+  cardBorder?: boolean;
+}
+
+export interface BadgeElement extends BaseElement {
+  type: 'badge';
+  text: string;
+  variant: 'filled' | 'outline' | 'gradient';
+  icon: 'none' | 'flame' | 'gift' | 'sparkles' | 'trophy' | 'zap' | 'star';
+  color: ColorValue;
+  background: ColorValue;
+  borderColor?: ColorValue;
+  radius: number;
+  fontSize: number;
+  pulse?: boolean;
+}
+
+export interface MarqueeElement extends BaseElement {
+  type: 'marquee';
+  text: string;
+  speed: 'slow' | 'normal' | 'fast';
+  icon: 'megaphone' | 'trophy' | 'sparkles' | 'flame';
+  color: ColorValue;
+  background: ColorValue;
+  radius: number;
+  fontSize: number;
+}
+
+export interface DividerElement extends BaseElement {
+  type: 'divider';
+  style: 'solid' | 'dashed' | 'dotted' | 'gradient' | 'ornament';
+  ornament: 'none' | 'star' | 'diamond' | 'flower';
+  color: ColorValue;
+  thickness: number;
+}
+
+export interface AudioElement extends BaseElement {
+  type: 'audio';
+  color: ColorValue;
+  background: ColorValue;
+  label?: string;
+  radius: number;
+}
+
+export interface SocialElement extends BaseElement {
+  type: 'social';
+  channel: 'zalo' | 'phone' | 'facebook' | 'website';
+  label: string;
+  url?: string;
+  color: ColorValue;
+  background: ColorValue;
+  radius: number;
 }
 
 export interface GameStageElement extends BaseElement {
@@ -103,9 +177,14 @@ export type CanvasElement =
   | TextElement
   | ImageElement
   | ButtonElement
+  | BadgeElement
+  | MarqueeElement
   | ShapeElement
+  | DividerElement
   | CountdownElement
   | PrizeListElement
+  | AudioElement
+  | SocialElement
   | GameStageElement
   | FormElement;
 
@@ -116,9 +195,14 @@ export const ADDABLE_TYPES = [
   'text',
   'image',
   'button',
+  'badge',
+  'marquee',
   'shape',
+  'divider',
   'countdown',
   'prizeList',
+  'audio',
+  'social',
 ] as const;
 export type AddableType = (typeof ADDABLE_TYPES)[number];
 
@@ -204,10 +288,83 @@ export function createElement(
         borderWidth: 0,
         borderColor: 'brand.accent',
       };
+    case 'badge':
+      return {
+        ...at(180, 36),
+        type,
+        text: '🔥 100% TRÚNG QUÀ',
+        variant: 'filled',
+        icon: 'flame',
+        color: 'brand.primary',
+        background: 'brand.accent',
+        borderColor: 'brand.accent',
+        radius: 18,
+        fontSize: 13,
+        pulse: true,
+      };
+    case 'marquee':
+      return {
+        ...at(340, 32),
+        type,
+        text: '🎉 098****123 vừa trúng iPhone 16  •  🎁 Minh Anh vừa nhận Voucher 100K  •  ⭐ 091****890 vừa trúng Ly sứ',
+        speed: 'normal',
+        icon: 'megaphone',
+        color: 'brand.text',
+        background: 'brand.surface',
+        radius: 16,
+        fontSize: 12,
+      };
+    case 'divider':
+      return {
+        ...at(280, 24),
+        type,
+        style: 'ornament',
+        ornament: 'star',
+        color: 'brand.accent',
+        thickness: 2,
+      };
+    case 'audio':
+      return {
+        ...at(44, 44),
+        type,
+        color: 'brand.primary',
+        background: 'brand.accent',
+        label: '',
+        radius: 22,
+      };
+    case 'social':
+      return {
+        ...at(220, 42),
+        type,
+        channel: 'zalo',
+        label: 'Liên hệ qua Zalo OA',
+        url: '',
+        color: '#ffffff',
+        background: '#0068ff',
+        radius: 21,
+      };
     case 'countdown':
-      return { ...at(260, 64), type, color: 'brand.text', background: 'brand.surface' };
+      return {
+        ...at(280, 68),
+        type,
+        variant: 'cards',
+        title: 'ƯU ĐÃI KẾT THÚC SAU',
+        color: 'brand.text',
+        background: 'brand.surface',
+        showDays: true,
+        showSeconds: true,
+      };
     case 'prizeList':
-      return { ...at(327, 120), type, layout: 'grid', showRemaining: true, color: 'brand.text' };
+      return {
+        ...at(327, 130),
+        type,
+        layout: 'grid',
+        title: 'GIẢI THƯỞNG HẤP DẪN',
+        showRemaining: true,
+        color: 'brand.text',
+        cardBackground: 'brand.surface',
+        cardBorder: true,
+      };
   }
 }
 
@@ -220,6 +377,30 @@ export const IMAGE_PRESETS: { key: string; src: string }[] = [
     key: 'logo',
     src: svg(
       '<circle cx="50" cy="50" r="46" fill="#fff8e1" stroke="#f5b301" stroke-width="4"/><text x="50" y="44" text-anchor="middle" font-family="Georgia" font-size="16" font-weight="700" fill="#7a1d12">CÀ PHÊ</text><text x="50" y="66" text-anchor="middle" font-family="Georgia" font-size="20" font-weight="700" fill="#7a1d12">MỘC</text>',
+    ),
+  },
+  {
+    key: 'trophy',
+    src: svg(
+      '<path d="M28 20 h44 v28 a22 22 0 0 1 -44 0 Z" fill="#ffd43b" stroke="#f59f00" stroke-width="4"/><path d="M28 28 h-10 a8 8 0 0 0 0 16 h10 M72 28 h10 a8 8 0 0 1 0 16 h-10" fill="none" stroke="#f59f00" stroke-width="4"/><path d="M44 48 v18 h12 v-18 M32 66 h36 v10 h-36 Z" fill="#ffd43b" stroke="#f59f00" stroke-width="3"/>',
+    ),
+  },
+  {
+    key: 'fire',
+    src: svg(
+      '<path d="M50 12 C55 28 72 38 72 58 C72 74 62 86 50 86 C38 86 28 74 28 58 C28 42 42 32 45 22 C46 26 48 30 52 30 C52 24 50 16 50 12 Z" fill="#ff922b"/><path d="M50 42 C54 50 62 56 62 66 C62 74 56 80 50 80 C44 80 38 74 38 66 C38 56 46 50 50 42 Z" fill="#ffd43b"/>',
+    ),
+  },
+  {
+    key: 'diamond',
+    src: svg(
+      '<polygon points="50,15 85,42 50,85 15,42" fill="#74c0fc" stroke="#1c7ed6" stroke-width="3"/><polygon points="50,15 68,42 50,85 32,42" fill="#a5d8ff"/><line x1="15" y1="42" x2="85" y2="42" stroke="#1c7ed6" stroke-width="2"/>',
+    ),
+  },
+  {
+    key: 'ribbon',
+    src: svg(
+      '<path d="M20 30 L50 18 L80 30 L80 75 L50 60 L20 75 Z" fill="#e03131"/><circle cx="50" cy="38" r="14" fill="#ffd43b"/><text x="50" y="44" text-anchor="middle" font-size="16" font-weight="900" fill="#c92a2a">★</text>',
     ),
   },
   {

@@ -77,7 +77,11 @@ export function useUpdateCampaign(id: string) {
         current ? { ...current, ...patch } : current,
       );
     },
-    onSuccess: (campaign) => client.setQueryData(keys.campaign(id), campaign),
+    onSuccess: (campaign) => {
+      client.setQueryData(keys.campaign(id), campaign);
+      // Lists show the name and status; mark them stale without refetching the editor's own query.
+      void client.invalidateQueries({ queryKey: ['builder-lab', 'campaigns'] });
+    },
   });
 }
 

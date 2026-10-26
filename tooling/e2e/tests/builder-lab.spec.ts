@@ -22,14 +22,31 @@ test('builder lab: create from template → set rules → publish → play on a 
   await page.goto(`${org}/campaigns/new`);
 
   // Template gallery → new campaign.
-  await page.getByText('Vòng quay may mắn').first().click();
+  await page
+    .getByRole('button', { name: /^Vòng quay may mắn · / })
+    .first()
+    .click();
   await page.getByRole('textbox', { name: 'Tên chương trình' }).fill('Vòng quay e2e');
-  await page.getByRole('button', { name: 'Tạo chương trình', exact: true }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Tạo chương trình', exact: true })
+    .click();
   await expect(page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}\/edit$/);
 
   // Quick edit: the title slot drives the preview.
   await page.getByRole('textbox', { name: 'Tiêu đề' }).fill('QUAY NGAY');
   await expect(page.getByText('QUAY NGAY').first()).toBeVisible();
+
+  // Customize: right-click an element to duplicate it.
+  await page.locator('.ant-segmented-item', { hasText: 'Tuỳ biến' }).first().click();
+  const layers = page.getByTestId('layer-row');
+  const before = await layers.count();
+  await page.getByTestId('canvas-element-text').first().click({ button: 'right' });
+  await page
+    .getByTestId('canvas-context-menu')
+    .getByRole('menuitem', { name: /Nhân bản/ })
+    .click();
+  await expect(layers).toHaveCount(before + 1);
 
   // Rules: everyone wins, no pacing or opening hours, so the play below is deterministic.
   await page.locator('.ant-segmented-item', { hasText: 'Luật & giải' }).first().click();

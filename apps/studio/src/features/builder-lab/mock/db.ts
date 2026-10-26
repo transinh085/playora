@@ -12,7 +12,6 @@ export interface LabDb {
 
 const KEY = 'playora.builderLab.v1';
 const EMPTY: LabDb = { campaigns: [], plays: [], vouchers: [] };
-const listeners = new Set<() => void>();
 
 export function readDb(): LabDb {
   try {
@@ -29,7 +28,6 @@ export function writeDb(db: LabDb) {
   } catch {
     // Quota or private mode: the lab keeps working for this page view only.
   }
-  for (const listener of listeners) listener();
 }
 
 /** Applies `change` to a fresh copy of the db and saves it. */
@@ -40,15 +38,17 @@ export function updateDb<T>(change: (db: LabDb) => T): T {
   return result;
 }
 
-/** Notified on local writes and on writes from other tabs. */
+/**
+ * Notified on writes from other tabs (player, staff). Same-tab writes go through mutations, which
+ * update or invalidate their own queries; refetching everything on each autosave made the editor
+ * hitch.
+ */
 export function subscribeDb(listener: () => void): () => void {
-  listeners.add(listener);
   const onStorage = (e: StorageEvent) => {
     if (e.key === KEY) listener();
   };
   window.addEventListener('storage', onStorage);
   return () => {
-    listeners.delete(listener);
     window.removeEventListener('storage', onStorage);
   };
 }

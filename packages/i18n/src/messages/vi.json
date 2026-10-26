@@ -421,6 +421,11 @@
     "add": "Thêm phần tử",
     "addHint": "Kéo vào canvas hoặc bấm để thêm vào giữa màn",
     "artboardHeight": "Kéo để đổi chiều cao màn",
+    "toolboxCategories": {
+      "content": "Nội dung & Thông tin",
+      "interactive": "Tương tác & Quà tặng",
+      "decor": "Bố cục & Trang trí"
+    },
     "screenNames": {
       "cover": "Trang bìa",
       "form": "Biểu mẫu",
@@ -432,9 +437,14 @@
       "text": "Chữ",
       "image": "Ảnh",
       "button": "Nút",
-      "shape": "Hình",
+      "badge": "Huy hiệu",
+      "marquee": "Băng tin chạy",
+      "shape": "Hình khối",
+      "divider": "Đường phân cách",
       "countdown": "Đếm ngược",
       "prizeList": "Danh sách quà",
+      "audio": "Âm thanh",
+      "social": "Kênh liên hệ",
       "gameStage": "Khu vực game",
       "form": "Biểu mẫu"
     },
@@ -444,6 +454,28 @@
     "show": "Hiện",
     "lock": "Khoá",
     "unlock": "Mở khoá",
+    "context": {
+      "duplicate": "Nhân bản",
+      "lock": "Khoá vị trí",
+      "unlock": "Mở khoá",
+      "hide": "Ẩn lớp",
+      "show": "Hiện lớp",
+      "layerOrder": "Thứ tự hiển thị",
+      "bringFront": "Đưa lên trên cùng",
+      "bringForward": "Đưa lên một lớp",
+      "sendBackward": "Đưa xuống một lớp",
+      "sendBack": "Đưa xuống dưới cùng",
+      "align": "Căn lề nhanh",
+      "centerH": "Căn giữa ngang",
+      "centerV": "Căn giữa dọc",
+      "alignLeft": "Căn lề trái",
+      "alignRight": "Căn lề phải",
+      "fullWidth": "Tràn viền màn hình (375px)",
+      "resetRotation": "Đặt lại góc xoay (0°)",
+      "delete": "Xoá",
+      "addElement": "Thêm phần tử tại đây",
+      "deselect": "Bỏ chọn"
+    },
     "props": {
       "screen": "Thuộc tính màn",
       "screenHint": "Chọn một phần tử trên canvas để chỉnh. Phím tắt: Delete xoá, mũi tên dịch 1 px (Shift: 10 px), ⌘Z hoàn tác, ⌘D nhân bản, Esc bỏ chọn.",
@@ -459,6 +491,12 @@
       "h": "Cao",
       "rotation": "Xoay",
       "opacity": "Độ mờ",
+      "alignCenterH": "Căn giữa ngang",
+      "alignCenterV": "Căn giữa dọc",
+      "alignLeft": "Căn mép trái",
+      "alignRight": "Căn mép phải",
+      "fullWidth": "Tràn viền chiều rộng (375px)",
+      "insertVariable": "Chèn biến",
       "content": "Nội dung",
       "contentHint": "Dùng biến: '{prize.name}', '{player.name}', '{event.name}'",
       "font": "Font",
@@ -472,11 +510,36 @@
       "color": "Màu",
       "align": "Căn lề",
       "lineHeight": "Giãn dòng",
+      "letterSpacing": "Khoảng cách chữ",
+      "textEffect": "Hiệu ứng chữ",
+      "textEffects": {
+        "none": "Không",
+        "soft": "Bóng mềm",
+        "retro3d": "3D Nổi khối",
+        "glow": "Phát sáng",
+        "outline": "Viền đen"
+      },
+      "textTransform": "Kiểu chữ",
+      "transforms": {
+        "none": "Mặc định",
+        "uppercase": "IN HOA",
+        "capitalize": "Viết hoa đầu từ"
+      },
       "image": "Hình ảnh",
+      "imageUrl": "Đường dẫn ảnh",
+      "imageUrlPlaceholder": "Dán URL ảnh (https://...)",
       "fit": "Cách hiển thị",
       "fitCover": "Phủ kín",
       "fitContain": "Vừa khung",
       "radius": "Bo góc",
+      "boxShadow": "Đổ bóng",
+      "shadows": {
+        "none": "Không",
+        "soft": "Mềm",
+        "strong": "Đậm",
+        "glow": "Phát sáng",
+        "card": "Khối thẻ"
+      },
       "label": "Nhãn",
       "action": "Hành động",
       "actions": {
@@ -487,18 +550,118 @@
         "phone": "Gọi điện",
         "next": "Sang màn tiếp"
       },
+      "actionTarget": "Đích đến hành động",
+      "actionTargetHint": "Nhập liên kết (https://...), số điện thoại hoặc link Zalo",
+      "buttonStyle": "Kiểu nút bấm",
+      "buttonStyles": {
+        "game3d": "Game 3D",
+        "flat": "Phẳng",
+        "glow": "Phát sáng",
+        "gradient": "Chuyển màu"
+      },
+      "buttonIcon": "Biểu tượng",
+      "buttonIcons": {
+        "none": "Không",
+        "zap": "Tia sét ⚡",
+        "gift": "Hộp quà 🎁",
+        "pointer": "Bàn tay 👉",
+        "arrow": "Mũi tên ➔",
+        "star": "Ngôi sao ⭐"
+      },
       "fill": "Màu nền",
       "textColor": "Màu chữ",
       "shape": "Kiểu hình",
       "rect": "Chữ nhật",
       "ellipse": "Elip",
+      "shapeStyles": {
+        "pill": "Viên nang",
+        "card": "Thẻ bo góc"
+      },
+      "fillGradient": "Chuyển màu nền",
       "border": "Độ dày viền",
       "borderColor": "Màu viền",
+      "badgeText": "Nội dung huy hiệu",
+      "badgeVariant": "Kiểu huy hiệu",
+      "badgeVariants": {
+        "filled": "Tô đặc",
+        "outline": "Viền rỗng",
+        "gradient": "Chuyển sắc"
+      },
+      "badgeIcon": "Biểu tượng huy hiệu",
+      "badgeIcons": {
+        "none": "Không",
+        "flame": "Ngọn lửa 🔥",
+        "gift": "Hộp quà 🎁",
+        "sparkles": "Lấp lánh ✨",
+        "trophy": "Cúp vàng 🏆",
+        "zap": "Tia sét ⚡",
+        "star": "Ngôi sao ⭐"
+      },
+      "pulseEffect": "Nhấp nháy thu hút",
+      "marqueeText": "Nội dung tin chạy",
+      "marqueeSpeed": "Tốc độ tin chạy",
+      "marqueeIcon": "Biểu tượng",
+      "marqueeIcons": {
+        "megaphone": "Loa thông báo",
+        "trophy": "Cúp vàng",
+        "sparkles": "Lấp lánh",
+        "flame": "Ngọn lửa"
+      },
+      "speeds": {
+        "slow": "Chậm",
+        "normal": "Vừa",
+        "fast": "Nhanh"
+      },
+      "dividerStyle": "Kiểu đường kẻ",
+      "dividerStyles": {
+        "solid": "Nét liền",
+        "dashed": "Nét đứt",
+        "dotted": "Chấm bi",
+        "gradient": "Chuyển sắc",
+        "ornament": "Họa tiết hoa văn"
+      },
+      "ornament": "Họa tiết trung tâm",
+      "ornaments": {
+        "none": "Không",
+        "star": "Ngôi sao ⭐",
+        "diamond": "Kim cương 💎",
+        "flower": "Bông hoa 🌸"
+      },
+      "thickness": "Độ dày",
+      "audioLabel": "Nhãn nút âm thanh",
+      "socialChannel": "Kênh liên hệ",
+      "socialChannels": {
+        "zalo": "Zalo OA",
+        "phone": "Hotline",
+        "facebook": "Facebook",
+        "website": "Website"
+      },
+      "socialUrl": "Đường dẫn / Số điện thoại",
+      "countdownTitle": "Tiêu đề đếm ngược",
+      "countdownVariant": "Kiểu đếm ngược",
+      "countdownVariants": {
+        "cards": "Ô số lật (Cards)",
+        "pill": "Thanh ngang (Pill)",
+        "minimal": "Chữ số gọn (Minimal)"
+      },
+      "showDays": "Hiện ngày",
+      "showSeconds": "Hiện giây",
+      "prizeListTitle": "Tiêu đề danh sách quà",
+      "cardBorder": "Viền thẻ quà",
+      "cardBackground": "Nền thẻ quà",
       "prizeLayout": "Bố cục",
       "grid": "Lưới",
       "list": "Danh sách",
       "showRemaining": "Hiện số quà còn lại",
-      "animation": "Hiệu ứng xuất hiện",
+      "animation": "Hiệu ứng",
+      "animationEnter": "Xuất hiện",
+      "loopAnimation": "Lặp liên tục",
+      "loopAnimations": {
+        "none": "Không",
+        "pulse": "Nhịp tim (Pulse)",
+        "wiggle": "Lắc lư (Wiggle)",
+        "float": "Lơ lửng (Float)"
+      },
       "delay": "Trễ (ms)",
       "animations": {
         "none": "Không",
@@ -843,6 +1006,14 @@
       "namePlaceholder": "Tên chương trình, ví dụ: Vòng quay Tết – Cà phê Mộc",
       "pickFirst": "Chọn một mẫu ở trên trước",
       "createButton": "Tạo chương trình",
+      "mechanicsLabel": "Cơ chế",
+      "occasionsLabel": "Dịp",
+      "useTemplate": "Dùng mẫu này",
+      "modalTitle": "Khởi tạo chương trình mới",
+      "modalSubtitle": "Thiết lập thông tin cơ bản để bắt đầu soạn thảo.",
+      "brandKitLabel": "Bộ thương hiệu",
+      "defaultBrandKit": "Bộ thương hiệu mặc định",
+      "startDesigning": "Bắt đầu thiết kế",
       "list": {
         "title": "Chương trình của bạn",
         "count": "{count} chương trình",
@@ -867,6 +1038,8 @@
       "rehearse": "Chơi thử",
       "publish": "Publish",
       "customizeNarrow": "Chế độ Tuỳ biến dùng tốt nhất trên màn hình rộng. Trên điện thoại hãy dùng Sửa nhanh.",
+      "liveGamePreview": "Xem trước trò chơi",
+      "liveGamePreviewHint": "Cơ chế trò chơi cập nhật thời gian thực khi sửa quà",
       "modes": {
         "quick": "Sửa nhanh",
         "customize": "Tuỳ biến",
@@ -906,6 +1079,10 @@
       "stickers": "Hoặc chọn hình có sẵn",
       "presets": {
         "logo": "Logo mẫu",
+        "trophy": "Cúp vàng",
+        "fire": "Ngọn lửa",
+        "diamond": "Kim cương",
+        "ribbon": "Ruy băng",
         "apricot": "Hoa mai",
         "envelope": "Bao lì xì",
         "lantern": "Đèn lồng",
@@ -995,6 +1172,16 @@
     "noMatch": "Không có chương trình nào khớp bộ lọc.",
     "empty": "Chưa có chương trình nào.",
     "edit": "Sửa thiết kế",
+    "viewGrid": "Xem dạng thẻ",
+    "viewTable": "Xem dạng bảng",
+    "openOps": "Xem vận hành",
+    "copyLink": "Sao chép link",
+    "linkCopied": "Đã sao chép link",
+    "emptyTitle": "Chưa có chương trình nào",
+    "emptySubtitle": "Chọn một mẫu minigame từ kho mẫu để tạo chương trình đầu tiên.",
+    "noMatchTitle": "Không tìm thấy chương trình phù hợp",
+    "noMatchSubtitle": "Thử đổi từ khóa tìm kiếm hoặc lọc theo trạng thái khác.",
+    "clearFilters": "Xóa bộ lọc",
     "columns": {
       "name": "Chương trình",
       "status": "Trạng thái",
@@ -1083,6 +1270,17 @@
     "home": {
       "title": "Trang chủ",
       "subtitle": "Việc cần làm hôm nay và các chương trình của bạn.",
+      "metrics": {
+        "liveCampaigns": "Chiến dịch đang chạy",
+        "liveCampaignsSubtext": "{count} bản nháp & lên lịch",
+        "totalPlays": "Tổng lượt chơi",
+        "totalPlaysSubtext": "Toàn bộ chiến dịch",
+        "prizesIssued": "Quà đã trao",
+        "prizesIssuedSubtext": "Đã đổi hoặc đang giữ mã",
+        "attentionNeeded": "Cần xử lý",
+        "attentionNeededSubtext": "{count} vấn đề cần kiểm tra",
+        "allGood": "Mọi thứ đang ổn định"
+      },
       "gettingStarted": "Bắt đầu với Playora",
       "steps": {
         "brand": "Thêm logo và màu của quán",

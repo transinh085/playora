@@ -2,6 +2,7 @@
 
 import { Button, Flex, Menu, Tooltip, Typography, theme } from 'antd';
 import {
+  Award,
   ClipboardList,
   Clock,
   Eye,
@@ -13,33 +14,36 @@ import {
   Home,
   ImageIcon,
   Lock,
+  Megaphone,
+  MessageCircle,
+  Minus,
   MousePointerClick,
   Shapes,
   Trophy,
   Type,
   Unlock,
+  Volume2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type Dispatch, useState } from 'react';
+import { type Dispatch, memo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { IconTile } from '@/components/icon-tile';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
-import {
-  ADDABLE_TYPES,
-  type AddableType,
-  type ElementType,
-  SCREEN_KEYS,
-  type ScreenKey,
-} from '../lib/model';
+import { type AddableType, type ElementType, SCREEN_KEYS, type ScreenKey } from '../lib/model';
 import { TOOLBOX_MIME } from './editor-canvas';
 
 export const TYPE_ICONS: Record<ElementType, typeof Type> = {
   text: Type,
   image: ImageIcon,
   button: MousePointerClick,
+  badge: Award,
+  marquee: Megaphone,
   shape: Shapes,
+  divider: Minus,
   countdown: Clock,
   prizeList: Gift,
+  audio: Volume2,
+  social: MessageCircle,
   gameStage: Gamepad2,
   form: ClipboardList,
 };
@@ -52,7 +56,16 @@ const SCREEN_ICONS: Record<ScreenKey, typeof Home> = {
   resultLose: Frown,
 };
 
-export function ScreensPanel({
+const TOOLBOX_GROUPS: {
+  category: 'content' | 'interactive' | 'decor';
+  types: AddableType[];
+}[] = [
+  { category: 'content', types: ['text', 'image', 'badge', 'marquee'] },
+  { category: 'interactive', types: ['button', 'countdown', 'prizeList', 'social', 'audio'] },
+  { category: 'decor', types: ['shape', 'divider'] },
+];
+
+function ScreensPanelView({
   state,
   dispatch,
 }: {
@@ -77,40 +90,51 @@ export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
   const t = useTranslations('canvasLab');
   const { token } = theme.useToken();
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {ADDABLE_TYPES.map((type) => {
-        const Icon = TYPE_ICONS[type];
-        return (
-          <Tooltip key={type} title={t('addHint')}>
-            <button
-              type="button"
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData(TOOLBOX_MIME, type);
-                e.dataTransfer.effectAllowed = 'copy';
-              }}
-              onClick={() => onAdd(type)}
-              data-testid={`toolbox-${type}`}
-              className="flex cursor-grab flex-col items-center gap-1 p-2"
-              style={{
-                border: `1px solid ${token.colorBorderSecondary}`,
-                borderRadius: token.borderRadius,
-                background: token.colorBgContainer,
-              }}
-            >
-              <IconTile size={32}>
-                <Icon className="size-4" />
-              </IconTile>
-              <Caption>{t(`types.${type}`)}</Caption>
-            </button>
-          </Tooltip>
-        );
-      })}
-    </div>
+    <Flex vertical gap={12}>
+      {TOOLBOX_GROUPS.map((group) => (
+        <div key={group.category} className="flex flex-col gap-1.5">
+          <Caption className="text-xs uppercase tracking-wider opacity-60 font-semibold">
+            {t(`toolboxCategories.${group.category}`)}
+          </Caption>
+          <div className="grid grid-cols-3 gap-2">
+            {group.types.map((type) => {
+              const Icon = TYPE_ICONS[type];
+              return (
+                <Tooltip key={type} title={t('addHint')}>
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(TOOLBOX_MIME, type);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    onClick={() => onAdd(type)}
+                    data-testid={`toolbox-${type}`}
+                    className="flex cursor-grab flex-col items-center gap-1 p-2 text-center transition-colors hover:border-primary"
+                    style={{
+                      border: `1px solid ${token.colorBorderSecondary}`,
+                      borderRadius: token.borderRadius,
+                      background: token.colorBgContainer,
+                    }}
+                  >
+                    <IconTile size={28}>
+                      <Icon className="size-3.5" />
+                    </IconTile>
+                    <span className="text-[11px] leading-tight line-clamp-1">
+                      {t(`types.${type}`)}
+                    </span>
+                  </button>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </Flex>
   );
 }
 
-export function LayersPanel({
+function LayersPanelView({
   state,
   dispatch,
 }: {
@@ -207,3 +231,9 @@ export function LayersPanel({
     </Flex>
   );
 }
+
+/** Memoized: re-renders only when the editor state changes, not on zoom or parent sync. */
+export const ScreensPanel = memo(ScreensPanelView);
+
+/** Memoized: re-renders only when the editor state changes, not on zoom or parent sync. */
+export const LayersPanel = memo(LayersPanelView);

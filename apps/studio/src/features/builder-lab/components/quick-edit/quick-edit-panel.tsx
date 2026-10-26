@@ -140,7 +140,6 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
         return (
           <Card
             key={skin.key}
-            hoverable
             variant="borderless"
             onClick={() => onPick(skin.key)}
             data-testid={`skin-${skin.key}`}
