@@ -98,7 +98,7 @@ function campaignBody(slug: string) {
     slug,
     playbook: 'tet_traffic',
     templateKey: 'spin-wheel',
-    skinKey: 'tet-fortune',
+    skinKey: 'tet',
     brand: {
       primary: '#D7263D',
       accent: '#F4B400',
@@ -230,14 +230,14 @@ test('outcome Overview and one-page report reflect redeemed visit (`Khách tới
   await expect(page).toHaveURL(/\/orgs\/[^/]+$/);
 
   await page.goto(`/orgs/${orgId}/campaigns/${campaignId}`);
-  await expect(page.getByTestId('playbook-highlight')).toContainText('Tăng khách dịp Tết');
+  await expect(page.getByTestId('playbook-highlight')).toContainText('Đông khách hơn dịp Tết');
 
   const overviewVisits = page.getByTestId('metric-visits');
   await expect(overviewVisits).toContainText('Khách tới quầy');
   await expect(overviewVisits).toContainText('1');
 
-  await expect(page.getByTestId('metric-prize-cost')).toContainText('20.000 ₫ / 500.000 ₫');
-  await expect(page.getByTestId('metric-cost-per-visit')).toContainText('20.000 ₫');
+  await expect(page.getByTestId('metric-prize-cost')).toContainText('20.000 đ / 500.000 đ');
+  await expect(page.getByTestId('metric-cost-per-visit')).toContainText('20.000 đ');
   await expect(page.getByTestId('daily-outcome-chart')).toBeVisible();
   await expect(page.getByTestId('channel-table')).toContainText('QR tại bàn');
   await expect(page.getByTestId('prize-stock')).toContainText('Ly cà phê muối');
