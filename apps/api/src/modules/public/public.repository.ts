@@ -115,6 +115,27 @@ export class PublicRepository {
     return row;
   }
 
+  /** Lookup by the HMAC of the normalised phone (players.phone_hash), never by plaintext. */
+  async findPlayerByPhoneHash(
+    organizationId: string,
+    eventId: string,
+    phoneHash: string,
+    tx: DbOrTx = this.db,
+  ): Promise<PlayerRow | undefined> {
+    const [row] = await tx
+      .select()
+      .from(players)
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'live'),
+          eq(players.phoneHash, phoneHash),
+        ),
+      );
+    return row;
+  }
+
   async insertPlayer(
     organizationId: string,
     data: NewPlayer,
@@ -131,7 +152,10 @@ export class PublicRepository {
     organizationId: string,
     playerId: string,
     patch: Partial<
-      Pick<PlayerRow, 'displayName' | 'team' | 'checkedInAt' | 'deviceId' | 'formData'>
+      Pick<
+        PlayerRow,
+        'displayName' | 'team' | 'checkedInAt' | 'deviceId' | 'formData' | 'phoneEnc' | 'phoneHash'
+      >
     >,
     tx: DbOrTx = this.db,
   ): Promise<PlayerRow> {

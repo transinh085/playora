@@ -26,6 +26,7 @@ import { PLAYER_SESSION_TTL_S, signPlayerSession } from '@playora/core/session';
 import type { ApiEnv } from '@playora/env';
 import { AntiFraudService, antiFraudLevelOf } from '../../common/anti-fraud/anti-fraud.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
+import { PiiService } from '../../common/pii/pii.service';
 import { ENV } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
 import { type PlayerRow, PublicRepository } from './public.repository';
@@ -44,6 +45,7 @@ export class PublicService {
     private readonly assets: AssetsService,
     @Inject(ENV) private readonly env: ApiEnv,
     private readonly antiFraud: AntiFraudService,
+    private readonly pii: PiiService,
   ) {}
 
   private async resolveBrandKit(
@@ -121,6 +123,9 @@ export class PublicService {
       });
     }
     const { consentsMap, formData } = validation;
+    // The phone never goes into formData: it is stored encrypted, looked up by its HMAC.
+    const phone = validation.phone ? this.pii.protectPhone(validation.phone) : null;
+    const phoneFieldKey = formConfig.fields.find((f) => f.type === 'phone')?.key ?? 'phone';
 
     const orgId = event.organizationId;
     const eventId = event.id;
@@ -185,6 +190,24 @@ export class PublicService {
           existing = await this.repo.findPlayerByDeviceId(orgId, eventId, cleanDeviceId, tx);
         }
 
+        /*
+         * One phone = one player per campaign (unique (event, env, phone_hash)). A phone already
+         * held by another player (another device or guest code) is refused like a guest code used
+         * on another device: phones are not verified (no OTP yet), so handing that player's
+         * session — and its vouchers — to whoever types the number would be a takeover.
+         */
+        if (phone) {
+          const owner = await this.repo.findPlayerByPhoneHash(orgId, eventId, phone.phoneHash, tx);
+          if (owner && owner.id !== existing?.id) {
+            throw new ConflictException({
+              code: ErrorCode.CONFLICT,
+              message:
+                'Số điện thoại này đã được dùng để tham gia trên thiết bị khác. Vui lòng liên hệ ban tổ chức nếu cần hỗ trợ.',
+              details: { field: `fields.${phoneFieldKey}` },
+            });
+          }
+        }
+
         const now = new Date();
         let playerRow: PlayerRow;
 
@@ -200,9 +223,11 @@ export class PublicService {
             formFields: formConfig.fields,
             now,
           });
-          playerRow = patch
-            ? await this.repo.updatePlayer(orgId, existing.id, patch, tx)
-            : existing;
+          const phonePatch = phone && existing.phoneHash !== phone.phoneHash ? phone : null;
+          playerRow =
+            patch || phonePatch
+              ? await this.repo.updatePlayer(orgId, existing.id, { ...patch, ...phonePatch }, tx)
+              : existing;
         } else {
           const liveCount = await this.repo.countLivePlayers(orgId, eventId, tx);
           if (liveCount >= event.playerLimit) {
@@ -222,6 +247,8 @@ export class PublicService {
               deviceId: cleanDeviceId,
               team,
               formData,
+              phoneEnc: phone?.phoneEnc ?? null,
+              phoneHash: phone?.phoneHash ?? null,
               checkedInAt: now,
             },
             tx,

@@ -5,6 +5,7 @@ import type { Database } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
 import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { Args, Route } from '../../common/contract/route.decorator';
+import { PiiService } from '../../common/pii/pii.service';
 import { DB, ENV } from '../../infra/tokens';
 import { AssetsService } from '../assets/assets.service';
 import { PublicRepository } from './public.repository';
@@ -41,8 +42,9 @@ export class PublicController {
     @Inject(ENV) env: ApiEnv,
     assets: AssetsService,
     antiFraud: AntiFraudService,
+    pii: PiiService,
   ) {
-    this.publicService = new PublicService(new PublicRepository(db), assets, env, antiFraud);
+    this.publicService = new PublicService(new PublicRepository(db), assets, env, antiFraud, pii);
   }
 
   @Route(publicApi.event)

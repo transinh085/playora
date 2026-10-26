@@ -9,10 +9,13 @@ import {
   guestsApi,
   publicApi,
 } from '@playora/contracts';
+import { hashLookup } from '@playora/core/pii';
 import { PLAYER_SESSION_TTL_S, verifyPlayerSession } from '@playora/core/session';
 import { type Database, schema } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
 import { eq } from 'drizzle-orm';
+import { encryptPlayerPhones } from '../src/common/pii/encrypt-player-phones';
+import { PiiService, piiKeysFromEnv } from '../src/common/pii/pii.service';
 import { DB, ENV } from '../src/infra/tokens';
 import { createOrg, createTestApp, signUp, type TestApp, uniqueSlug } from './create-test-app';
 
@@ -40,6 +43,9 @@ beforeAll(async () => {
 });
 
 afterAll(() => t?.close());
+
+const pii = () => t.app.get(PiiService);
+const piiKeys = () => piiKeysFromEnv(env);
 
 async function expectApiError(promise: Promise<unknown>, status: number, code: ErrorCode) {
   const err = await promise.then(
@@ -540,12 +546,16 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       .where(eq(schema.players.id, joined.player.id));
     expect(playerRowBefore?.formData).toEqual({
       full_name: 'Trần Thị B',
-      phone: '0901234567',
       email: 'b.tran@example.com',
       dept: 'Kỹ thuật',
       vip: true,
       note: 'A'.repeat(500),
     });
+    // The phone is stored encrypted (normalised to 84…) with its HMAC lookup hash, never in clear.
+    expect(playerRowBefore?.phoneEnc).toMatch(/^v1:[\w-]+:[\w-]+:[\w-]+$/);
+    expect(playerRowBefore?.phoneEnc).not.toContain('901234567');
+    expect(pii().decrypt(playerRowBefore?.phoneEnc ?? '')).toBe('84901234567');
+    expect(playerRowBefore?.phoneHash).toBe(hashLookup('84901234567', piiKeys().hmacKey));
 
     // Verify consents rows in DB
     const consentRows = await db
@@ -600,7 +610,6 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       .where(eq(schema.players.id, joined.player.id));
     expect(playerRowAfter?.formData).toEqual({
       full_name: 'Trần Thị B',
-      phone: '0901234567',
       email: 'b.tran@example.com',
       dept: 'Sản phẩm',
       vip: true,
@@ -840,4 +849,158 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
     },
     { timeout: 30_000 },
   );
+
+  test('phone PII: stored encrypted + HMAC-hashed (never in formData), one phone = one player per event, 409 on another device', async () => {
+    const api = t.client(alice);
+    const createPhoneEvent = async (prefix: string) => {
+      const slug = uniqueSlug(prefix);
+      const event = await api.call(eventsApi.create, {
+        params: { orgId: aliceOrg },
+        body: { name: 'Phone Event', slug },
+      });
+      await api.call(eventsApi.update, {
+        params: { orgId: aliceOrg, eventId: event.id },
+        body: {
+          status: 'live',
+          identity: 'form_only',
+          registrationForm: {
+            fields: [
+              { key: 'name', type: 'text', label: { vi: 'Họ tên' }, required: true },
+              { key: 'mobile', type: 'phone', label: { vi: 'SĐT' }, required: true },
+            ],
+            consents: [],
+          },
+        },
+      });
+      return { slug, eventId: event.id };
+    };
+    const { slug, eventId } = await createPhoneEvent('pii');
+    const publicClient = t.client();
+    const devA = uniqueSlug('dev-pii-a');
+    const devB = uniqueSlug('dev-pii-b');
+    const devC = uniqueSlug('dev-pii-c');
+    const join = (deviceId: string, mobile: string, s = slug) =>
+      publicClient.call(publicApi.join, {
+        params: { slug: s },
+        body: { deviceId, fields: { name: 'Lan', mobile } },
+      });
+    const rowOf = async (playerId: string) => {
+      const [row] = await db.select().from(schema.players).where(eq(schema.players.id, playerId));
+      return row;
+    };
+
+    const first = await join(devA, '0912 345 678');
+    const row = await rowOf(first.player.id);
+    expect(row?.formData).toEqual({ name: 'Lan' });
+    expect(JSON.stringify(row)).not.toContain('345678');
+    expect(row?.phoneEnc?.startsWith('v1:')).toBe(true);
+    expect(pii().decrypt(row?.phoneEnc ?? '')).toBe('84912345678');
+    expect(row?.phoneHash).toBe(hashLookup('84912345678', piiKeys().hmacKey));
+
+    // Same device, same number in another spelling → same player, nothing re-encrypted.
+    const again = await join(devA, '+84 912-345-678');
+    expect(again.player.id).toBe(first.player.id);
+    expect((await rowOf(first.player.id))?.phoneEnc).toBe(row?.phoneEnc ?? '');
+
+    // Same number on another device → 409, no second player (phones are not verified: no takeover).
+    const err = await join(devB, '84912345678').then(
+      () => undefined,
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ status: 409, code: ErrorCode.CONFLICT });
+    expect((err as ApiError).details).toMatchObject({ field: 'fields.mobile' });
+    const inEvent = await db
+      .select({ id: schema.players.id })
+      .from(schema.players)
+      .where(eq(schema.players.eventId, eventId));
+    expect(inEvent).toHaveLength(1);
+
+    // Device A changes its number → the hash follows; the old number is free again.
+    await join(devA, '0987 654 321');
+    const changed = await rowOf(first.player.id);
+    expect(pii().decrypt(changed?.phoneEnc ?? '')).toBe('84987654321');
+    expect(changed?.phoneHash).toBe(hashLookup('84987654321', piiKeys().hmacKey));
+    const b = await join(devB, '0912345678');
+    expect(b.player.id).not.toBe(first.player.id);
+
+    // Two new devices racing on one new number: exactly one wins.
+    const race = await Promise.allSettled([
+      join(devC, '0933000111'),
+      join(uniqueSlug('dev-pii-d'), '0933000111'),
+    ]);
+    expect(race.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const lost = race.find((r) => r.status === 'rejected') as PromiseRejectedResult;
+    expect(lost.reason).toMatchObject({ status: 409, code: ErrorCode.CONFLICT });
+
+    // The same number in another event is another player.
+    const other = await createPhoneEvent('pii-other');
+    const elsewhere = await join(devA, '0987654321', other.slug);
+    expect(elsewhere.player.id).not.toBe(first.player.id);
+  });
+  test('encrypt-player-phones script: moves legacy plaintext phones out of formData, idempotent', async () => {
+    const api = t.client(alice);
+    const event = await api.call(eventsApi.create, {
+      params: { orgId: aliceOrg },
+      body: { name: 'Legacy Phones', slug: uniqueSlug('legacy') },
+    });
+    await api.call(eventsApi.update, {
+      params: { orgId: aliceOrg, eventId: event.id },
+      body: {
+        identity: 'form_only',
+        registrationForm: {
+          fields: [
+            { key: 'name', type: 'text', label: { vi: 'Họ tên' }, required: true },
+            { key: 'sdt', type: 'phone', label: { vi: 'SĐT' }, required: true },
+          ],
+          consents: [],
+        },
+      },
+    });
+    const legacy = (deviceId: string, formData: Record<string, string>) => ({
+      organizationId: aliceOrg,
+      eventId: event.id,
+      deviceId: uniqueSlug(deviceId),
+      displayName: 'Legacy',
+      formData,
+    });
+    const inserted = await db
+      .insert(schema.players)
+      .values([
+        legacy('leg-a', { name: 'A', sdt: '0901 111 222' }),
+        legacy('leg-b', { name: 'B', sdt: '+84901111222' }),
+        legacy('leg-c', { name: 'C', phone: '0902 333 444' }),
+        legacy('leg-d', { name: 'D', sdt: '--' }),
+        legacy('leg-e', { name: 'E' }),
+      ])
+      .returning({ id: schema.players.id });
+    const ids = inserted.map((r) => r.id);
+
+    const dry = await encryptPlayerPhones(db, piiKeys(), { dryRun: true, eventIds: [event.id] });
+    expect(dry).toEqual({ scanned: 4, encrypted: 2, duplicates: 1, alreadyHashed: 0, unusable: 1 });
+    const res = await encryptPlayerPhones(db, piiKeys(), { eventIds: [event.id] });
+    expect(res).toEqual(dry);
+
+    const rows = await db.select().from(schema.players).where(eq(schema.players.eventId, event.id));
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const [a, b, c, d, e] = ids.map((id) => byId.get(id));
+    expect(a?.formData).toEqual({ name: 'A' });
+    expect(pii().decrypt(a?.phoneEnc ?? '')).toBe('84901111222');
+    expect(a?.phoneHash).toBe(hashLookup('84901111222', piiKeys().hmacKey));
+    // Same number twice: the second keeps it encrypted but without the unique hash.
+    expect(b?.formData).toEqual({ name: 'B' });
+    expect(pii().decrypt(b?.phoneEnc ?? '')).toBe('84901111222');
+    expect(b?.phoneHash).toBeNull();
+    expect(c?.formData).toEqual({ name: 'C' });
+    expect(pii().decrypt(c?.phoneEnc ?? '')).toBe('84902333444');
+    expect(d?.formData).toEqual({ name: 'D' });
+    expect(d?.phoneEnc).toBeNull();
+    expect(e?.formData).toEqual({ name: 'E' });
+    expect(e?.phoneEnc).toBeNull();
+    expect(JSON.stringify(rows)).not.toMatch(/901 ?111|902 ?333/);
+
+    // Second run: nothing left to do.
+    const again = await encryptPlayerPhones(db, piiKeys(), { eventIds: [event.id] });
+    expect(again.scanned).toBe(0);
+  });
 });

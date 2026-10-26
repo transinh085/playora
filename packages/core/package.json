@@ -9,6 +9,7 @@
     "./billing": "./src/billing/index.ts",
     "./compliance": "./src/compliance/index.ts",
     "./draw": "./src/draw/index.ts",
+    "./pii": "./src/pii/index.ts",
     "./prize": "./src/prize/index.ts",
     "./registration": "./src/registration/index.ts",
     "./registration/validate": "./src/registration/validate.ts",

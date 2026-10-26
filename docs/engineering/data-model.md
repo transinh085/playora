@@ -182,8 +182,9 @@ export const players = pgTable('players', {
   env: dataEnv().notNull().default('live'),
   guestListEntryId: uuid().references(() => guestListEntries.id),
   displayName: text(),
-  phoneE164Enc: text(),                           // mã hoá ứng dụng (AES-GCM, key theo org)
-  phoneHash: text(),                              // HMAC để tra trùng / giới hạn lượt
+  phoneEnc: text(),                               // AES-256-GCM `v1:<iv>:<ct>:<tag>` của SĐT dạng 84… (security.md §3)
+  phoneHash: text(),                              // HMAC-SHA256 của SĐT dạng 84…: tra trùng / giới hạn lượt
+  formData: jsonb().notNull().default({}),        // câu trả lời form KHÔNG nhạy cảm — SĐT không bao giờ nằm ở đây
   emailEnc: text(),
   emailHash: text(),
   zaloId: text(),
@@ -194,8 +195,8 @@ export const players = pgTable('players', {
   ...timestamps,
 }, (t) => [
   index().on(t.eventId, t.env),
-  uniqueIndex().on(t.eventId, t.phoneHash),
-  uniqueIndex().on(t.eventId, t.guestListEntryId),
+  uniqueIndex().on(t.eventId, t.env, t.phoneHash),   // một SĐT = một người chơi mỗi chương trình
+  uniqueIndex().on(t.eventId, t.env, t.guestListEntryId),
 ]);
 
 export const consents = pgTable('consents', {

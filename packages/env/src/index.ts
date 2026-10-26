@@ -44,6 +44,62 @@ function refineProductionS3<
   }
 }
 
+export const DEV_DEFAULT_PII_ENCRYPTION_KEY = 'cGxheW9yYS1kZXYtcGlpLWVuY3J5cHRpb24ta2V5ISE=';
+export const DEV_DEFAULT_PII_HMAC_KEY = 'cGxheW9yYS1kZXYtcGlpLWhtYWMta2V5LTAwMDAwMDA=';
+
+const BASE64_REGEX = /^[A-Za-z0-9+/_-]+={0,2}$/;
+const base64Bytes = (v: string) => (BASE64_REGEX.test(v) ? Buffer.from(v, 'base64').length : 0);
+
+/**
+ * Application-level PII encryption (`@playora/core/pii`, docs/engineering/security.md §3).
+ * Generate each key with `openssl rand -base64 32`. Production rejects the dev defaults.
+ */
+const piiEnv = {
+  /** AES-256-GCM key for players.phone_enc: base64 of exactly 32 bytes. */
+  PII_ENCRYPTION_KEY: z
+    .string()
+    .trim()
+    .default(DEV_DEFAULT_PII_ENCRYPTION_KEY)
+    .refine((v) => base64Bytes(v) === 32, 'PII_ENCRYPTION_KEY must be base64 of 32 bytes'),
+  /** Id written in front of new ciphertexts (`v1:…`); change it together with the key. */
+  PII_ENCRYPTION_KEY_ID: z
+    .string()
+    .regex(/^[a-z0-9]{1,16}$/)
+    .default('v1'),
+  /** Older keys still needed to decrypt existing rows after a rotation: `v1:base64,v2:base64`. */
+  PII_ENCRYPTION_PREVIOUS_KEYS: optionalString,
+  /** HMAC-SHA256 key for lookup hashes (players.phone_hash): base64, at least 32 bytes. */
+  PII_HMAC_KEY: z
+    .string()
+    .trim()
+    .default(DEV_DEFAULT_PII_HMAC_KEY)
+    .refine((v) => base64Bytes(v) >= 32, 'PII_HMAC_KEY must be base64 of at least 32 bytes'),
+};
+
+function refineProductionPii<
+  T extends {
+    NODE_ENV: 'development' | 'test' | 'production';
+    PII_ENCRYPTION_KEY: string;
+    PII_HMAC_KEY: string;
+  },
+>(data: T, ctx: z.RefinementCtx) {
+  if (data.NODE_ENV !== 'production') return;
+  if (data.PII_ENCRYPTION_KEY === DEV_DEFAULT_PII_ENCRYPTION_KEY) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['PII_ENCRYPTION_KEY'],
+      message: 'PII_ENCRYPTION_KEY must not use the dev default in production',
+    });
+  }
+  if (data.PII_HMAC_KEY === DEV_DEFAULT_PII_HMAC_KEY) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['PII_HMAC_KEY'],
+      message: 'PII_HMAC_KEY must not use the dev default in production',
+    });
+  }
+}
+
 /** Signs and verifies player session tokens — see @playora/core/session. */
 const playerSessionEnv = {
   PLAYER_SESSION_SECRET: z.string().min(32),
@@ -101,8 +157,12 @@ export const apiEnvSchema = z
       ),
     ...s3Env,
     ...playerSessionEnv,
+    ...piiEnv,
   })
-  .superRefine(refineProductionS3);
+  .superRefine((data, ctx) => {
+    refineProductionS3(data, ctx);
+    refineProductionPii(data, ctx);
+  });
 
 export const workerEnvSchema = z
   .object({

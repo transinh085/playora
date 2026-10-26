@@ -1,6 +1,6 @@
 # Runbook vận hành
 
-Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [environments-deploy.md](./environments-deploy.md), [engineering/security.md](../engineering/security.md), [engineering/architecture.md §11](../engineering/architecture.md#11-observability-đích), [business/compliance.md](../business/compliance.md)
+Cập nhật: 27/10/2026 · Owner: Tech Lead (founder) · Liên quan: [environments-deploy.md](./environments-deploy.md), [engineering/security.md](../engineering/security.md), [engineering/architecture.md §11](../engineering/architecture.md#11-observability-đích), [business/compliance.md](../business/compliance.md)
 
 Viết cho **một người** vừa code vừa trực. Mục tiêu: chương trình của khách không phát sai giải, và khi có sự cố thì biết làm gì trong 5 phút đầu. Nhiều bước ở đây phụ thuộc dashboard và alert chưa có (đích); trước khi có, kiểm tra bằng truy vấn SQL và log.
 
@@ -59,6 +59,18 @@ Nguyên tắc chung: **ưu tiên không phát sai giải hơn là giữ game ch�
 - [ ] **Diễn tập khôi phục (`restore drill`):** chạy `TARGET_DATABASE_URL=<db-drill> RESTORE_CONFIRM=yes ./infra/scripts/restore.sh <latest-dump>`, kiểm tra số dòng `events`, `prizes`, `awards`, `voucher_codes` khớp và ghi thời gian khôi phục thực tế (RTO: `___ giây`, ngày diễn tập: `___/___/2026`).
 - [ ] **Uptime monitor:** đã cấu hình kiểm tra định kỳ (mỗi 60 giây) cho `https://api.playora.vn/v1/health/ready` (kỳ vọng HTTP 200 và `"status":"ok"`), `https://studio.playora.vn/login`, `https://play.playora.vn` và `https://playora.vn`.
 - [ ] **Kênh cảnh báo (`alert channel`):** cảnh báo khi `/v1/health/ready` lỗi liên tiếp ≥ 2 lần, chứng chỉ TLS sắp hết hạn, lỗi 5xx hoặc độ trễ tăng cao đã gửi thử thành công về điện thoại founder (Telegram / Zalo / cuộc gọi khẩn).
+
+### 3.3 Mã hoá SĐT người chơi: khoá PII và dữ liệu cũ
+
+- **Khoá:** sinh `PII_ENCRYPTION_KEY` và `PII_HMAC_KEY` bằng `openssl rand -base64 32` (mỗi khoá một lần chạy), lưu trong `infra/env/.env.prod`/secret manager **và** một bản trong kho mật khẩu của founder — mất `PII_ENCRYPTION_KEY` là mất mọi SĐT đã lưu. Không commit. API production từ chối khởi động nếu thiếu hoặc dùng khoá dev ([engineering/security.md §3](../engineering/security.md#3-mã-hoá-và-tra-cứu-pii)).
+- **Dữ liệu cũ:** trước bản sửa này, SĐT nằm dạng rõ trong `players.form_data`. Chạy một lần trên mỗi DB có dữ liệu cũ (dev, staging; production nếu đã có người chơi) — script idempotent, chạy lại chỉ còn `scanned: 0`:
+
+  ```bash
+  bun run --cwd apps/api pii:encrypt-phones -- --dry-run   # chỉ đếm
+  bun run --cwd apps/api pii:encrypt-phones                # áp dụng
+  ```
+
+  Script dùng `DATABASE_URL` và khoá `PII_*` của môi trường đó (`.env`), xử lý từng chương trình trong một transaction: lấy trường kiểu `phone` của form (và khoá `phone`), chuẩn hoá về `84…`, ghi `phone_enc` + `phone_hash`, xoá SĐT khỏi `form_data`. Số trùng trong cùng chương trình (người chơi cũ cùng số): người chơi cũ nhất giữ `phone_hash`, người sau chỉ có `phone_enc` (`duplicates`). Giá trị không có chữ số bị bỏ (`unusable`). Trên production: sau khi backup, chạy với env production từ máy truy cập được DB (`cd apps/api && bun --env-file=../../infra/env/.env.prod scripts/encrypt-player-phones.ts --dry-run`, rồi bỏ `--dry-run`).
 
 Checklist pháp lý tương ứng: [business/compliance.md §5](../business/compliance.md#5-checklist-pháp-lý-trước-chương-trình-thật-đầu-tiên).
 
