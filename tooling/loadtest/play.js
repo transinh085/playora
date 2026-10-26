@@ -57,6 +57,12 @@ function uuidv4() {
 // Per-VU session token cache; cleared when a player exhausts daily turns.
 let playerToken = null;
 
+/**
+ * Each VU poses as its own client IP. Start the API with TRUST_PROXY=1 so per-IP limits apply
+ * per VU, as they would behind Cloudflare with real guests.
+ */
+const clientIp = () => `10.${(__VU >> 16) & 255}.${(__VU >> 8) & 255}.${__VU & 255}`;
+
 function joinCampaign() {
   const deviceId = `k6-vu-${__VU}-${uuidv4()}`;
   const phoneSuffix = String(10000000 + ((__VU * 9973 + __ITER) % 90000000)).slice(0, 8);
@@ -77,7 +83,7 @@ function joinCampaign() {
   });
 
   const res = http.post(`${BASE_URL}/v1/p/${encodeURIComponent(SLUG)}/join`, payload, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': clientIp() },
     tags: { endpoint: 'join' },
   });
 
@@ -113,6 +119,7 @@ export default function () {
   const playRes = http.post(`${BASE_URL}/v1/p/${encodeURIComponent(SLUG)}/plays`, playPayload, {
     headers: {
       'Content-Type': 'application/json',
+      'X-Forwarded-For': clientIp(),
       Authorization: `Bearer ${playerToken}`,
     },
     tags: { endpoint: 'play' },
