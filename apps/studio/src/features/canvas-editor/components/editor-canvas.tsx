@@ -1,7 +1,7 @@
 'use client';
 
 import { Tag, theme } from 'antd';
-import { type Dispatch, useCallback, useEffect, useRef, useState } from 'react';
+import { type Dispatch, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
 import {
   type Box,
@@ -15,6 +15,7 @@ import {
   type AddableType,
   ARTBOARD_WIDTH,
   type BrandPalette,
+  type CanvasElement,
   type GameStageElement,
   MAX_ARTBOARD_HEIGHT,
   MIN_ARTBOARD_HEIGHT,
@@ -25,7 +26,15 @@ import { type CanvasLabels, type CanvasPrize, CanvasScreen } from './canvas-scre
 export const TOOLBOX_MIME = 'application/x-playora-canvas-element';
 
 type Gesture =
-  | { kind: 'move'; id: string; x0: number; y0: number; box: Box; others: Box[]; started: boolean }
+  | {
+      kind: 'move';
+      id: string;
+      x0: number;
+      y0: number;
+      box: Box;
+      targets: ReturnType<typeof snapTargets>;
+      started: boolean;
+    }
   | {
       kind: 'resize';
       id: string;
@@ -61,6 +70,17 @@ const CURSORS: Record<string, string> = {
 
 const toBox = ({ x, y, w, h, rotation }: Box): Box => ({ x, y, w, h, rotation });
 
+/** What a gesture in progress shows; committed to the document once, on pointer up. */
+type Live = { id: string; patch: Partial<Box> } | { height: number };
+interface LiveView {
+  live: Live | null;
+  guides: Guide[];
+  badge: string | null;
+}
+const IDLE: LiveView = { live: null, guides: [], badge: null };
+/** Arrow-key nudges on one element within this window are one undo step. */
+const NUDGE_COALESCE_MS = 800;
+
 export function EditorCanvas({
   state,
   dispatch,
@@ -90,12 +110,28 @@ export function EditorCanvas({
   onContextMenu?: (e: React.MouseEvent, id: string | null) => void;
 }) {
   const { token } = theme.useToken();
-  const screen = currentScreen(state);
+  const committed = currentScreen(state);
   const artboardRef = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
-  const [guides, setGuides] = useState<Guide[]>([]);
-  const [badge, setBadge] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // Gestures render locally, at most once per animation frame, without touching the document:
+  // panels, layers and the builder around the canvas stay still while the pointer moves.
+  const [view, setView] = useState<LiveView>(IDLE);
+  const pendingView = useRef<LiveView>(IDLE);
+  const frameRequest = useRef(0);
+  const lastNudge = useRef({ id: '', at: 0 });
+  const { live, guides, badge } = view;
+
+  const screen = useMemo(() => {
+    if (!live) return committed;
+    if ('height' in live) return { ...committed, height: live.height };
+    return {
+      ...committed,
+      elements: committed.elements.map((e) =>
+        e.id === live.id ? ({ ...e, ...live.patch } as CanvasElement) : e,
+      ),
+    };
+  }, [committed, live]);
+  const runtime = useMemo(() => ({ renderStage, prizes }), [renderStage, prizes]);
 
   // Latest values for the window listeners, which are bound once.
   const latest = useRef({ state, zoom, dispatch });
@@ -108,25 +144,31 @@ export function EditorCanvas({
   }, []);
 
   useEffect(() => {
+    function show(next: LiveView) {
+      pendingView.current = next;
+      if (frameRequest.current) return;
+      frameRequest.current = requestAnimationFrame(() => {
+        frameRequest.current = 0;
+        setView(pendingView.current);
+      });
+    }
+
     function onMove(e: PointerEvent) {
       const g = gesture.current;
       if (!g) return;
-      const { zoom: z, dispatch: send, state: s } = latest.current;
-      const coalesce = g.started;
+      const z = latest.current.zoom;
       g.started = true;
 
       if (g.kind === 'move') {
         const dx = (e.clientX - g.x0) / z;
         const dy = (e.clientY - g.y0) / z;
-        const height = currentScreen(s).height;
         const { box, guides: lines } = e.altKey
           ? {
               box: { ...g.box, x: Math.round(g.box.x + dx), y: Math.round(g.box.y + dy) },
               guides: [],
             }
-          : moveWithSnap(g.box, dx, dy, snapTargets(ARTBOARD_WIDTH, height, g.others));
-        setGuides(lines);
-        send({ type: 'update', id: g.id, patch: { x: box.x, y: box.y }, coalesce });
+          : moveWithSnap(g.box, dx, dy, g.targets);
+        show({ live: { id: g.id, patch: { x: box.x, y: box.y } }, guides: lines, badge: null });
       } else if (g.kind === 'resize') {
         const box = resizeBox(
           g.box,
@@ -135,35 +177,44 @@ export function EditorCanvas({
           (e.clientY - g.y0) / z,
           e.shiftKey,
         );
-        setBadge(`${box.w} × ${box.h}`);
-        send({
-          type: 'update',
-          id: g.id,
-          patch: { x: box.x, y: box.y, w: box.w, h: box.h },
-          coalesce,
+        show({
+          live: { id: g.id, patch: { x: box.x, y: box.y, w: box.w, h: box.h } },
+          guides: [],
+          badge: `${box.w} × ${box.h}`,
         });
       } else if (g.kind === 'rotate') {
         const p = toArtboard(e.clientX, e.clientY);
         const rotation = rotationFromPointer(g.box, p.x, p.y, e.shiftKey ? 15 : undefined);
-        setBadge(`${rotation}°`);
-        send({ type: 'update', id: g.id, patch: { rotation }, coalesce });
+        show({ live: { id: g.id, patch: { rotation } }, guides: [], badge: `${rotation}°` });
       } else {
         const next = Math.round(g.height + (e.clientY - g.y0) / z);
         const height = Math.max(MIN_ARTBOARD_HEIGHT, Math.min(MAX_ARTBOARD_HEIGHT, next));
-        setBadge(`${ARTBOARD_WIDTH} × ${height}`);
-        send({ type: 'updateScreen', patch: { height }, coalesce });
+        show({ live: { height }, guides: [], badge: `${ARTBOARD_WIDTH} × ${height}` });
       }
     }
+
     function onUp() {
+      const g = gesture.current;
       gesture.current = null;
-      setGuides([]);
-      setBadge(null);
+      if (!g) return;
+      cancelAnimationFrame(frameRequest.current);
+      frameRequest.current = 0;
+      const { live: last } = pendingView.current;
+      pendingView.current = IDLE;
+      setView(IDLE);
+      if (!g.started || !last) return;
+      // One gesture = one document change = one undo step.
+      const send = latest.current.dispatch;
+      if ('height' in last) send({ type: 'updateScreen', patch: { height: last.height } });
+      else send({ type: 'update', id: last.id, patch: last.patch });
     }
+
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      cancelAnimationFrame(frameRequest.current);
     };
   }, [toArtboard]);
 
@@ -201,10 +252,15 @@ export function EditorCanvas({
         const step = e.shiftKey ? 10 : 1;
         const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
         const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+        const now = performance.now();
+        const coalesce =
+          lastNudge.current.id === selected.id && now - lastNudge.current.at < NUDGE_COALESCE_MS;
+        lastNudge.current = { id: selected.id, at: now };
         send({
           type: 'update',
           id: selected.id,
           patch: { x: selected.x + dx, y: selected.y + dy },
+          coalesce,
         });
       }
     }
@@ -249,7 +305,8 @@ export function EditorCanvas({
         scale={zoom}
         labels={labels}
         animate={preview ? replay : undefined}
-        runtime={{ renderStage, prizes }}
+        still={!preview}
+        runtime={runtime}
       />
 
       {!preview && (
@@ -257,6 +314,7 @@ export function EditorCanvas({
         // biome-ignore lint/a11y/noStaticElementInteractions: interaction canvas surface with click-to-deselect and context menu
         <div
           className="absolute inset-0"
+          style={{ ['--canvas-hover' as string]: token.colorPrimaryBorder }}
           onPointerDown={() => dispatch({ type: 'select', id: null })}
           onContextMenu={(e) => onContextMenu?.(e, null)}
           role="presentation"
@@ -267,16 +325,8 @@ export function EditorCanvas({
               <div
                 key={el.id}
                 data-testid={`canvas-element-${el.type}`}
-                style={{
-                  ...frame(el),
-                  cursor: el.locked ? 'default' : 'move',
-                  outline:
-                    hoveredId === el.id && el.id !== state.selectedId
-                      ? `1px solid ${token.colorPrimaryBorder}`
-                      : undefined,
-                }}
-                onPointerEnter={() => setHoveredId(el.id)}
-                onPointerLeave={() => setHoveredId((h) => (h === el.id ? null : h))}
+                className="hover:outline hover:outline-(--canvas-hover)"
+                style={{ ...frame(el), cursor: el.locked ? 'default' : 'move' }}
                 onContextMenu={(e) => onContextMenu?.(e, el.id)}
                 onPointerDown={(e) => {
                   if (e.button === 2) return;
@@ -289,7 +339,11 @@ export function EditorCanvas({
                     x0: e.clientX,
                     y0: e.clientY,
                     box: toBox(el),
-                    others: screen.elements.filter((o) => o.id !== el.id && !o.hidden).map(toBox),
+                    targets: snapTargets(
+                      ARTBOARD_WIDTH,
+                      screen.height,
+                      screen.elements.filter((o) => o.id !== el.id && !o.hidden).map(toBox),
+                    ),
                     started: false,
                   };
                 }}

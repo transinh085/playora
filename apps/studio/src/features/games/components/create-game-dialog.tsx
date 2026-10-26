@@ -115,7 +115,6 @@ export function CreateGameDialog({
                   <Card
                     key={tpl.id}
                     size="small"
-                    hoverable
                     data-testid={`template-card-${tpl.id}`}
                     onClick={() => handleSelectTemplate(tpl)}
                     style={isSelected ? { borderColor: token.colorPrimary } : undefined}

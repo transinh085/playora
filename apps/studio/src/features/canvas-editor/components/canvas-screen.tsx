@@ -15,7 +15,7 @@ import {
   Volume2,
   Zap,
 } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { memo, type ReactNode, useEffect, useState } from 'react';
 import {
   ARTBOARD_WIDTH,
   type BrandPalette,
@@ -67,12 +67,13 @@ export interface CanvasRuntime {
   variables?: Partial<Record<'prize.name' | 'player.name' | 'event.name', string>>;
 }
 
-export function CanvasScreen({
+export const CanvasScreen = memo(function CanvasScreen({
   screen,
   brand,
   scale,
   labels,
   animate,
+  still = false,
   runtime,
 }: {
   screen: ScreenDoc;
@@ -81,6 +82,8 @@ export function CanvasScreen({
   labels: CanvasLabels;
   /** Change this value to replay enter animations; undefined disables them. */
   animate?: number;
+  /** Editing surface: freeze loop animations so the artboard does not repaint every frame. */
+  still?: boolean;
   runtime?: CanvasRuntime;
 }) {
   const { background } = screen;
@@ -89,6 +92,7 @@ export function CanvasScreen({
 
   return (
     <div
+      data-canvas-still={still || undefined}
       style={{
         width: ARTBOARD_WIDTH * scale,
         height: screen.height * scale,
@@ -110,50 +114,76 @@ export function CanvasScreen({
       >
         {screen.elements.map((element) =>
           element.hidden ? null : (
-            <div
+            <ElementNode
               key={element.id}
-              style={{
-                position: 'absolute',
-                left: element.x,
-                top: element.y,
-                width: element.w,
-                height: element.h,
-                transform: `rotate(${element.rotation}deg)`,
-                opacity: element.opacity,
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  animation:
-                    animate !== undefined && element.animation.enter !== 'none'
-                      ? `canvas-${element.animation.enter} 600ms cubic-bezier(.2,.8,.2,1) ${element.animation.delayMs}ms both`
-                      : undefined,
-                }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    animation:
-                      element.animation.loop && element.animation.loop !== 'none'
-                        ? `canvas-loop-${element.animation.loop} 2.5s ease-in-out infinite`
-                        : undefined,
-                  }}
-                >
-                  <ElementView element={element} brand={brand} labels={labels} runtime={runtime} />
-                </div>
-              </div>
-            </div>
+              element={element}
+              brand={brand}
+              labels={labels}
+              runtime={runtime}
+              animate={animate !== undefined}
+            />
           ),
         )}
       </div>
     </div>
   );
-}
+});
+
+/** One positioned element. Memoized: the editor keeps unchanged elements' identity, so a drag only re-renders the dragged one. */
+const ElementNode = memo(function ElementNode({
+  element,
+  brand,
+  labels,
+  runtime,
+  animate,
+}: {
+  element: CanvasElement;
+  brand: BrandPalette;
+  labels: CanvasLabels;
+  runtime?: CanvasRuntime;
+  animate: boolean;
+}) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: element.x,
+        top: element.y,
+        width: element.w,
+        height: element.h,
+        transform: `rotate(${element.rotation}deg)`,
+        opacity: element.opacity,
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          animation:
+            animate && element.animation.enter !== 'none'
+              ? `canvas-${element.animation.enter} 600ms cubic-bezier(.2,.8,.2,1) ${element.animation.delayMs}ms both`
+              : undefined,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            animation:
+              element.animation.loop && element.animation.loop !== 'none'
+                ? `canvas-loop-${element.animation.loop} 2.5s ease-in-out infinite`
+                : undefined,
+          }}
+        >
+          <ElementView element={element} brand={brand} labels={labels} runtime={runtime} />
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const KEYFRAMES = `
+[data-canvas-still] * { animation-play-state: paused !important; }
 @keyframes canvas-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes canvas-slideUp { from { opacity: 0; transform: translateY(24px) } to { opacity: 1; transform: none } }
 @keyframes canvas-zoom { from { opacity: 0; transform: scale(.6) } to { opacity: 1; transform: none } }

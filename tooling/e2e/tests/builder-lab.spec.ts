@@ -22,9 +22,15 @@ test('builder lab: create from template → set rules → publish → play on a 
   await page.goto(`${org}/campaigns/new`);
 
   // Template gallery → new campaign.
-  await page.getByText('Vòng quay may mắn').first().click();
+  await page
+    .getByRole('button', { name: /^Vòng quay may mắn · / })
+    .first()
+    .click();
   await page.getByRole('textbox', { name: 'Tên chương trình' }).fill('Vòng quay e2e');
-  await page.getByRole('button', { name: 'Tạo chương trình', exact: true }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Tạo chương trình', exact: true })
+    .click();
   await expect(page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}\/edit$/);
 
   // Quick edit: the title slot drives the preview.

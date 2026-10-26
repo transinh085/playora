@@ -25,7 +25,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type Dispatch, useState } from 'react';
+import { type Dispatch, memo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { IconTile } from '@/components/icon-tile';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
@@ -65,7 +65,7 @@ const TOOLBOX_GROUPS: {
   { category: 'decor', types: ['shape', 'divider'] },
 ];
 
-export function ScreensPanel({
+function ScreensPanelView({
   state,
   dispatch,
 }: {
@@ -134,7 +134,7 @@ export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
   );
 }
 
-export function LayersPanel({
+function LayersPanelView({
   state,
   dispatch,
 }: {
@@ -231,3 +231,9 @@ export function LayersPanel({
     </Flex>
   );
 }
+
+/** Memoized: re-renders only when the editor state changes, not on zoom or parent sync. */
+export const ScreensPanel = memo(ScreensPanelView);
+
+/** Memoized: re-renders only when the editor state changes, not on zoom or parent sync. */
+export const LayersPanel = memo(LayersPanelView);

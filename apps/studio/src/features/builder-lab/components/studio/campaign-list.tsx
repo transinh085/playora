@@ -307,7 +307,6 @@ function CampaignGridCard({
 
   return (
     <Card
-      hoverable
       variant="borderless"
       style={{
         border: `1px solid ${token.colorBorderSecondary}`,

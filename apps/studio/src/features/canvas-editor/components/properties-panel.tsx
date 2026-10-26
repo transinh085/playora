@@ -29,7 +29,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { type Dispatch, type ReactNode, useRef } from 'react';
+import { type Dispatch, memo, type ReactNode, useRef } from 'react';
 import { Caption } from '@/components/caption';
 import {
   currentScreen,
@@ -161,7 +161,7 @@ function ColorField({
   );
 }
 
-export function PropertiesPanel({
+function PropertiesPanelView({
   state,
   dispatch,
   brand,
@@ -1194,3 +1194,6 @@ function PresetTile({
     </button>
   );
 }
+
+/** Memoized: re-renders only when the editor state changes, not on zoom or parent sync. */
+export const PropertiesPanel = memo(PropertiesPanelView);

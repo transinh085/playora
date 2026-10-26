@@ -2,6 +2,7 @@
 
 import { Alert, Grid } from 'antd';
 import { useTranslations } from 'next-intl';
+import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
 import type { Campaign } from '../../mock/types';
 import { CampaignStage } from './phone-preview';
@@ -18,6 +19,13 @@ export function CustomizeMode({
 }) {
   const t = useTranslations('builderLab.editor');
   const wide = Grid.useBreakpoint().lg ?? true;
+  // Stable between autosaves that only touch the screens, so the canvas does not redraw the stage.
+  const { templateKey, brand, prizes } = campaign;
+  const renderStage = useCallback(
+    () => <CampaignStage campaign={{ templateKey, brand, prizes }} />,
+    [templateKey, brand, prizes],
+  );
+  const canvasPrizes = useMemo(() => toCanvasPrizes({ prizes }), [prizes]);
 
   return (
     <div className="flex h-full flex-col">
@@ -27,9 +35,9 @@ export function CustomizeMode({
           <CanvasWorkspace
             value={campaign.screens}
             onChange={(screens) => onChange({ screens })}
-            brand={campaign.brand}
-            renderStage={() => <CampaignStage campaign={campaign} />}
-            prizes={toCanvasPrizes(campaign)}
+            brand={brand}
+            renderStage={renderStage}
+            prizes={canvasPrizes}
             hideHeader={true}
           />
         </div>

@@ -10,7 +10,11 @@ import { FitScreen } from './fit-screen';
 import { toCanvasPrizes } from './to-canvas-prizes';
 
 /** The idle mechanism for a campaign, drawn inside its game stage. */
-export function CampaignStage({ campaign }: { campaign: Campaign }) {
+export function CampaignStage({
+  campaign,
+}: {
+  campaign: Pick<Campaign, 'templateKey' | 'brand' | 'prizes'>;
+}) {
   return (
     <Mechanism
       mechanism={getTemplate(campaign.templateKey).mechanism}

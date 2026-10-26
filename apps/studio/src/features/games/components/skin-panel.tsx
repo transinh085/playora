@@ -36,7 +36,6 @@ export function SkinPanel({
               <Card
                 key={skin.key}
                 size="small"
-                hoverable
                 data-testid={`skin-option-${skin.key}`}
                 onClick={() => onChangeSkinKey(skin.key)}
                 style={isSelected ? { borderColor: token.colorPrimary } : undefined}

@@ -196,7 +196,9 @@ export function CanvasWorkspace({
   useEffect(() => {
     if (!menuState) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (menuRef.current?.contains(e.target as Node)) return;
+      const target = e.target as Element;
+      // Submenus (add element, layer order, align) are portaled to <body>, outside menuRef.
+      if (menuRef.current?.contains(target) || target.closest?.('.ant-menu-submenu-popup')) return;
       setMenuState(null);
     };
     const onKeyDown = (e: KeyboardEvent) => {

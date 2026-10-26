@@ -170,7 +170,6 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               return (
                 <Card
                   key={key}
-                  hoverable
                   variant="borderless"
                   onClick={() => pick(c, true)}
                   role="button"

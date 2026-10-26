@@ -1079,6 +1079,10 @@
       "stickers": "Or pick a built-in image",
       "presets": {
         "logo": "Sample logo",
+        "trophy": "Trophy",
+        "fire": "Flame",
+        "diamond": "Diamond",
+        "ribbon": "Ribbon",
         "apricot": "Apricot blossom",
         "envelope": "Red envelope",
         "lantern": "Lantern",
