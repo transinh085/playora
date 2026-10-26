@@ -32,6 +32,7 @@ docs/
 │   ├── data-model.md, api.md
 │   ├── conventions.md      quy trình thêm tính năng, quy tắc code, test
 │   ├── design-system.md    token, Studio look, game UI
+│   ├── builder-components.md  thành phần builder, 4 tầng tuỳ biến, yêu cầu GB-*
 │   └── security.md         chống gian lận, bảo mật ứng dụng
 ├── operations/         TRIỂN KHAI & VẬN HÀNH
 │   ├── environments-deploy.md  môi trường, CI/CD, Docker, backup
