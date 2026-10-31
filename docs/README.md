@@ -2,7 +2,7 @@
 
 > **Playora** giúp quán nhỏ kéo khách tới và giữ khách quay lại bằng minigame có thưởng mang đúng sản phẩm của quán: dựng trong vài phút, giải không bao giờ phát sai, đổi quà tại quầy, báo lại bằng kết quả kinh doanh. Builder là lõi; kết quả là thứ để bán.
 
-Cập nhật: 26/10/2026 · Chiến lược **v4.0** · Giai đoạn hiện tại: **M0 + P0 vòng lõi** ([roadmap](./product/roadmap.md))
+Cập nhật: 31/10/2026 · Chiến lược **v4.1** · PRD **v4.3** · Giai đoạn hiện tại: **M0 + M1** — P0, P1 đã xong trong code; đang làm P2 sẵn sàng pilot ([roadmap](./product/roadmap.md))
 
 ## Cấu trúc
 
@@ -49,7 +49,7 @@ docs/
 | Mới vào dự án, nhà đầu tư | [strategy](./product/strategy.md) → [business-model](./business/business-model.md) → [roadmap](./product/roadmap.md) |
 | Làm sản phẩm, thiết kế | [strategy](./product/strategy.md) → [prd](./product/prd.md) → [specs/](./product/specs/) → [design-system](./engineering/design-system.md) |
 | Developer, AI agent | [AGENTS.md](../AGENTS.md) → [conventions](./engineering/conventions.md) → [architecture](./engineering/architecture.md) → spec của tính năng đang làm → [adr/](./adr/README.md) |
-| Vận hành pilot | [runbook](./operations/runbook.md) → [specs/prizes-redemption §6](./product/specs/prizes-redemption.md#6-đổi-quà-tại-quầy) → [compliance](./business/compliance.md) |
+| Vận hành pilot | [runbook](./operations/runbook.md) → [specs/prizes-redemption §6](./product/specs/prizes-redemption.md#6-đổi-quà-tại-quầy) → [ADR-017 máy quầy](./adr/017-counter-device-pairing.md) → [compliance](./business/compliance.md) |
 
 ## Thứ tự ưu tiên khi mâu thuẫn
 

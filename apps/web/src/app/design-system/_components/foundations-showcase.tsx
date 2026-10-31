@@ -1,0 +1,467 @@
+'use client';
+
+import { Badge } from '@playora/ui/components/badge';
+import { Card } from '@playora/ui/components/card';
+import {
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  QrCode,
+  Sparkles,
+  Store,
+  TicketCheck,
+  TrendingUp,
+} from 'lucide-react';
+import { ColorPair } from './color-pair';
+
+const COLOR_ROLES = [
+  {
+    name: 'Canvas / Ground',
+    role: 'Nền trang Studio & Quầy đổi quà',
+    bg: 'background',
+    fg: 'foreground',
+  },
+  {
+    name: 'Card Surface',
+    role: 'Thẻ số liệu, bảng, khung thiết lập',
+    bg: 'card',
+    fg: 'card-foreground',
+  },
+  {
+    name: 'Floating Popover',
+    role: 'Dialog, Sheet, Dropdown, Popover',
+    bg: 'popover',
+    fg: 'popover-foreground',
+  },
+  {
+    name: 'Primary Brand (Teal)',
+    role: 'CTA chính duy nhất trên mỗi màn hình',
+    bg: 'primary',
+    fg: 'primary-foreground',
+  },
+  {
+    name: 'Secondary Surface',
+    role: 'Nút phụ, chip lọc, nền tab',
+    bg: 'secondary',
+    fg: 'secondary-foreground',
+  },
+  {
+    name: 'Muted Subtext',
+    role: 'Nhãn phụ, chú thích, placeholder',
+    bg: 'muted',
+    fg: 'muted-foreground',
+  },
+  {
+    name: 'Success (Đổi được)',
+    role: 'Xác nhận trao quà, kiểm tra hợp lệ',
+    bg: 'success',
+    fg: 'success-foreground',
+  },
+  {
+    name: 'Warning (Cần xử lý)',
+    role: 'Quà còn < 20%, cảnh báo pre-flight',
+    bg: 'warning',
+    fg: 'warning-foreground',
+  },
+  {
+    name: 'Info (Đã lên lịch)',
+    role: 'Gợi ý nhịp phát quà, trạng thái chờ',
+    bg: 'info',
+    fg: 'info-foreground',
+  },
+  {
+    name: 'Live (Đang chạy)',
+    role: 'Chiến dịch đang mở nhận khách thật',
+    bg: 'live',
+    fg: 'live-foreground',
+  },
+  {
+    name: 'Destructive (Lỗi / Chặn)',
+    role: 'Mã đã đổi, vượt ngân sách, xoá',
+    bg: 'destructive',
+    fg: 'destructive-foreground',
+  },
+  {
+    name: 'Sidebar Shell',
+    role: 'Khung điều hướng trái của Studio',
+    bg: 'sidebar',
+    fg: 'sidebar-foreground',
+  },
+] as const;
+
+const SCALES = [
+  {
+    name: 'teal',
+    note: 'Thương hiệu (hue 192): chỉ dùng cho CTA chính, link, focus ring, mục đang chọn',
+    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+  },
+  {
+    name: 'ink',
+    note: 'Neutral xám lạnh (hue 255, chroma ≤ 0.017): gánh 90% bề mặt Studio yên tĩnh',
+    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
+  },
+  {
+    name: 'spotlight',
+    note: 'Vàng ánh đèn (hue 75–85): nút quay thưởng, giải đặc biệt, huy hiệu nổi bật',
+    steps: [300, 400, 500, 600],
+  },
+  {
+    name: 'stage',
+    note: 'Nền đêm sâu (hue 292): dành cho các skin tối và hộp quà bí ẩn',
+    steps: [800, 900, 950],
+  },
+] as const;
+
+const WHEEL_COLORS = [
+  { n: 1, label: 'Đỏ cam · Giải Đặc Biệt' },
+  { n: 2, label: 'Xanh dương · Mua 1 Tặng 1' },
+  { n: 3, label: 'Vàng tươi · Topping miễn phí' },
+  { n: 4, label: 'Xanh ngọc · Up size L' },
+  { n: 5, label: 'Tím · Giảm 15.000đ' },
+  { n: 6, label: 'Xanh băng · Thêm trân châu' },
+  { n: 7, label: 'Cam hổ phách · Túi vải Tết' },
+  { n: 8, label: 'Hồng đào · Chúc may mắn' },
+] as const;
+
+const TYPE_SPECIMENS = [
+  {
+    token: 'type-display-lg',
+    spec: 'Unbounded · clamp(32–52px) / 1.15 · 700 · -0.022em',
+    use: 'Hero landing, tiêu đề màn Bìa game, thông báo ĐỔI ĐƯỢC tại quầy',
+    sample: 'Kéo khách về quán dịp Tết',
+  },
+  {
+    token: 'type-display-md',
+    spec: 'Unbounded · clamp(24–36px) / 1.2 · 700 · -0.018em',
+    use: 'Tên giải thưởng trúng, đếm ngược, tiêu đề khối lớn',
+    sample: 'Trúng 1 Ly Trà Sữa Ô Long Kem Phô Mai!',
+  },
+  {
+    token: 'type-page-title',
+    spec: 'Sans · 20px / 1.35 · 700 · -0.015em',
+    use: 'PageHeader trên mọi trang Studio (Danh sách chương trình, Tổng quan)',
+    sample: 'Vòng quay Lộc Xuân Trà Sữa Hà · Tết 2027',
+  },
+  {
+    token: 'type-section-title',
+    spec: 'Sans · 16px / 1.4 · 600 · -0.01em',
+    use: 'CardTitle, DialogTitle, tiêu đề bước trong Luật & Giải',
+    sample: 'Hiệu quả kinh doanh & Nhịp phát quà hôm nay',
+  },
+  {
+    token: 'type-metric',
+    spec: 'Sans · 26px / 1.2 · 700 · tabular-nums',
+    use: 'Số liệu chính trong MetricCard (Khách tới quầy, Chi phí quà)',
+    sample: '312 khách · 1.420.000 ₫ (71%)',
+  },
+  {
+    token: 'type-body',
+    spec: 'Sans · 14px / 1.5 · 400',
+    use: 'Nội dung mặc định, dòng bảng, câu luật tự nhiên, nhãn form',
+    sample: 'Với ngân sách 2.000.000đ, bạn phát được khoảng 400 phần quà trong 20 ngày.',
+  },
+  {
+    token: 'type-caption',
+    spec: 'Sans · 12px / 1.4 · 400',
+    use: 'Chú thích dưới trường nhập, mốc so sánh ước tính, thời gian cập nhật',
+    sample: 'Ước tính theo mốc 120 khách/ngày thường bạn nhập · Cập nhật 2 phút trước',
+  },
+  {
+    token: 'type-code-voucher',
+    spec: 'Mono · 22px / 1.2 · 700 · +0.16em · tabular-nums',
+    use: 'Mã đổi quà 6 ký tự trên màn Trúng thưởng và Quầy đổi quà',
+    sample: 'PL94K7',
+  },
+] as const;
+
+const RADIUS_STEPS = [
+  {
+    token: '--radius-sm',
+    cls: 'rounded-sm',
+    val: '6px',
+    usedBy: 'Checkbox, chấm chỉ báo nhỏ',
+  },
+  {
+    token: '--radius-lg',
+    cls: 'rounded-lg',
+    val: '8px',
+    usedBy:
+      'Thành phần con bên trong (TabsTrigger, SelectItem, DropdownMenuItem, Tooltip, Button xs)',
+  },
+  {
+    token: '--radius-xl',
+    cls: 'rounded-xl',
+    val: '12px',
+    usedBy:
+      'Thống nhất mọi Control & Menu: Button, Input, Select, Textarea, TabsList, Popover, Alert, IconTile',
+  },
+  {
+    token: '--radius-2xl',
+    cls: 'rounded-2xl',
+    val: '16px',
+    usedBy:
+      'Khung chứa chính (Concentric Container): Card, TableCard, MetricCard, Dialog, AlertDialog',
+  },
+  {
+    token: '--radius-3xl',
+    cls: 'rounded-3xl',
+    val: '24px',
+    usedBy: 'Khung giả lập điện thoại (Player / Quầy đổi quà)',
+  },
+  {
+    token: '--radius-4xl',
+    cls: 'rounded-full',
+    val: '9999px',
+    usedBy: 'Chỉ dùng cho chỉ báo: Badge trạng thái, Switch, Avatar, Progress, Slider',
+  },
+] as const;
+
+const ELEVATION_STEPS = [
+  {
+    name: 'Flat Canvas',
+    cls: 'bg-background border border-border/60',
+    token: 'none',
+    usedBy: 'Nền trang Studio (--background), vùng trống quanh bàn làm việc',
+  },
+  {
+    name: 'Subtle Card (shadow-xs)',
+    cls: 'bg-card border border-border/80 shadow-xs',
+    token: '--shadow-xs',
+    usedBy: 'Card, MetricCard, TableCard, Input, Button outline',
+  },
+  {
+    name: 'Interactive Hover (shadow-md)',
+    cls: 'bg-card border border-border/80 shadow-md',
+    token: '--shadow-md',
+    usedBy: 'Thẻ Playbook khi di chuột, Popover, DropdownMenu, SelectContent',
+  },
+  {
+    name: 'Modal & Floating Chrome (shadow-lg)',
+    cls: 'bg-popover border border-border/80 shadow-lg',
+    token: '--shadow-lg',
+    usedBy: 'Dialog Phát hành, Sheet chi tiết, khung điện thoại Builder',
+  },
+  {
+    name: 'Luma Glass (luma-glass)',
+    cls: 'luma-glass border border-border/80 shadow-sm',
+    token: 'backdrop-blur(12px)',
+    usedBy: 'Thanh công cụ nổi trên Canvas Builder, Header dính trên điện thoại',
+  },
+] as const;
+
+export function FoundationsShowcase() {
+  return (
+    <div className="grid gap-12">
+      {/* 1. Color Roles with live WCAG contrast */}
+      <div className="grid gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-base font-semibold text-foreground">
+            1. Vai trò màu ngữ nghĩa & Độ tương phản trực tiếp (WCAG 2.1)
+          </h3>
+          <span className="text-xs text-muted-foreground">
+            Tự động đo lại khi bấm nút Chế độ Sáng / Tối trên thanh đầu trang
+          </span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {COLOR_ROLES.map((pair) => (
+            <ColorPair
+              key={pair.name}
+              name={pair.name}
+              role={pair.role}
+              background={pair.bg}
+              foreground={pair.fg}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 2. Primitive OKLCH Scales */}
+      <div className="grid gap-5">
+        <div className="grid gap-1">
+          <h3 className="text-base font-semibold text-foreground">
+            2. Thang màu gốc OKLCH (Primitives & Categorical)
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Đồng nhất độ sáng cảm nhận (perceptual lightness). Component tính năng không gọi trực
+            tiếp biến gốc mà đi qua tầng ngữ nghĩa hoặc <code className="font-mono">--game-*</code>.
+          </p>
+        </div>
+        <div className="grid gap-4">
+          {SCALES.map((scale) => (
+            <div key={scale.name} className="grid gap-2">
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="font-mono text-xs font-semibold text-foreground">
+                  --{scale.name}-*
+                </span>
+                <span className="text-xs text-muted-foreground">{scale.note}</span>
+              </div>
+              <div className="flex overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+                {scale.steps.map((step) => (
+                  <div key={step} className="min-w-0 flex-1">
+                    <div className="h-12" style={{ background: `var(--${scale.name}-${step})` }} />
+                    <div className="truncate px-2 py-1 font-mono text-[11px] text-muted-foreground tabular-nums">
+                      {step}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="grid gap-2">
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className="font-mono text-xs font-semibold text-foreground">--team-1…8</span>
+              <span className="text-xs text-muted-foreground">
+                8 màu múi vòng quay / phân loại quà mặc định — luôn đi kèm nhãn chữ hoặc biểu tượng.
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
+              {WHEEL_COLORS.map((item) => (
+                <div
+                  key={item.n}
+                  className="flex flex-col justify-between rounded-2xl border border-black/10 p-3 text-xs font-semibold text-stage shadow-xs"
+                  style={{ background: `var(--team-${item.n})` }}
+                >
+                  <span className="font-mono text-[11px] opacity-75">--team-{item.n}</span>
+                  <span className="mt-2 leading-tight">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Typography Specimen */}
+      <div className="grid gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="grid gap-1">
+            <h3 className="text-base font-semibold text-foreground">
+              3. Thang chữ & Kiểm thử dấu tiếng Việt (Typography Specimen)
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Kết hợp <strong>Unbounded</strong> cho khoảnh khắc trình diễn/trúng thưởng và{' '}
+              <strong>Be Vietnam Pro / Google Sans</strong> cho bàn làm việc mật độ cao.
+            </p>
+          </div>
+          <Badge variant="outline" className="font-mono text-xs">
+            Kiểm dấu: Ầ Ẩ Ẫ Ậ Ắ Ặ Ữ Ỹ ổ ợ ự Đ ₫
+          </Badge>
+        </div>
+
+        <Card className="overflow-hidden p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border/80 bg-muted/50 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Token utility</th>
+                  <th className="px-4 py-3 font-medium">Thông số kỹ thuật</th>
+                  <th className="px-4 py-3 font-medium">Ngữ cảnh sử dụng (PRD)</th>
+                  <th className="px-4 py-3 font-medium">Mẫu hiển thị thực tế</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {TYPE_SPECIMENS.map((row) => (
+                  <tr key={row.token} className="hover:bg-muted/30">
+                    <td className="px-4 py-3.5 align-middle font-mono text-xs font-medium text-primary whitespace-nowrap">
+                      .{row.token}
+                    </td>
+                    <td className="px-4 py-3.5 align-middle font-mono text-xs text-muted-foreground whitespace-nowrap">
+                      {row.spec}
+                    </td>
+                    <td className="max-w-xs px-4 py-3.5 align-middle text-xs text-muted-foreground">
+                      {row.use}
+                    </td>
+                    <td className="px-4 py-3.5 align-middle">
+                      <span className={`${row.token} block truncate max-w-md text-foreground`}>
+                        {row.sample}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      {/* 4. Radius, Elevation & Icons */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid content-start gap-3">
+          <h3 className="text-base font-semibold text-foreground">
+            4. Hình khối bo góc (Luma Radius Scale)
+          </h3>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {RADIUS_STEPS.map((r) => (
+              <div
+                key={r.token}
+                className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-3.5 shadow-xs"
+              >
+                <div
+                  className={`size-12 shrink-0 border-2 border-primary bg-primary/10 ${r.cls}`}
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-foreground">{r.cls}</span>
+                    <span className="font-mono text-[11px] text-muted-foreground">({r.val})</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.usedBy}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid content-start gap-3">
+          <h3 className="text-base font-semibold text-foreground">
+            5. Độ nổi phân tầng & Kính mờ (Elevation & Glass)
+          </h3>
+          <div className="grid gap-2.5">
+            {ELEVATION_STEPS.map((e) => (
+              <div
+                key={e.name}
+                className={`flex items-center justify-between gap-4 rounded-2xl p-3.5 ${e.cls}`}
+              >
+                <div>
+                  <span className="text-xs font-semibold text-foreground">{e.name}</span>
+                  <p className="text-xs text-muted-foreground">{e.usedBy}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
+                  {e.token}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-2 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-foreground">
+                Hệ biểu tượng (Lucide Icons · 16px trong nút/nhãn, 20px trong IconTile)
+              </span>
+              <span className="font-mono text-[11px] text-muted-foreground">lucide-react</span>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-foreground">
+              {[
+                { Icon: Sparkles, label: 'Playbook' },
+                { Icon: CalendarDays, label: 'Chương trình' },
+                { Icon: TicketCheck, label: 'Đổi quà' },
+                { Icon: Store, label: 'Máy quầy' },
+                { Icon: QrCode, label: 'QR Standee' },
+                { Icon: TrendingUp, label: 'Kết quả' },
+                { Icon: CheckCircle2, label: 'Đạt chuẩn' },
+                { Icon: AlertTriangle, label: 'Cảnh báo' },
+              ].map(({ Icon, label }) => (
+                <div
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5 text-xs"
+                >
+                  <Icon className="size-4 text-primary" />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

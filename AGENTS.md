@@ -14,7 +14,7 @@ Docs (Vietnamese) live in `docs/`, split by kind — start at `docs/README.md`:
 | `docs/business/`                                 | business model, legal compliance                                                                        | Yes      |
 | `docs/engineering/`                              | architecture, data model, API, conventions, design system, security                                     | Yes      |
 | `docs/operations/`                               | environments/deploy, runbook                                                                            | Yes      |
-| `docs/adr/`                                      | architecture decisions (template: `000-template.md`)                                                    | Yes      |
+| `docs/adr/`                                      | architecture decisions (template: `000-template.md`; Proposed ADRs are not binding until accepted)      | Yes      |
 | `docs/research/`, `docs/plans/`, `docs/archive/` | inputs, dated plans, superseded docs                                                                    | No       |
 
 Read `docs/engineering/conventions.md` §3 before adding a feature, and the spec in `docs/product/specs/` for the area you touch.
@@ -57,7 +57,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun run --cwd packages/auth generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
-- UI: use shadcn/ui components from `@playora/ui/components` and helpers from `@playora/ui/{providers,theme,form,game}` (ADR-016); toast via `sonner` (`toast.*`); luma style aesthetics with pill-shaped buttons (`rounded-full`) and soft cards (`rounded-2xl`).
+- UI: use shadcn/ui components from `@playora/ui/components` and helpers from `@playora/ui/{providers,theme,form,game}` (ADR-016); toast via `sonner` (`toast.*`); luma style aesthetics with unified control radius (`rounded-xl` for buttons, inputs, selects) and soft cards (`rounded-2xl`).
 - Before any UI work, read `docs/engineering/design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 
@@ -90,13 +90,14 @@ Several agents may work at once, each in its own Orca worktree (setup: `orca.yam
 
 ## Where things are
 
-| Need                                      | Look at                                                                          |
-| ----------------------------------------- | -------------------------------------------------------------------------------- |
-| Reference backend module                  | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`              |
-| Reference Studio page                     | `apps/studio/src/app/(app)/orgs/[orgId]/brand-kits/` + `features/brand-kits/`    |
-| Request pipeline (guards, filters)        | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`          |
-| Game template interfaces                  | `packages/game-sdk/src/index.ts`, `docs/product/specs/{game-catalog,builder}.md` |
-| Background jobs                           | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                |
-| Decisions and their reasons               | `docs/adr/` (technical), `docs/product/decisions.md` (product)                   |
-| What to build next and why                | `docs/product/roadmap.md`, `docs/product/prd.md` (status column)                 |
-| Campaign builder prototype (mock backend) | `apps/studio/src/features/builder-lab/` (`mock/api.ts` mirrors the planned API)  |
+| Need                                            | Look at                                                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Reference backend module                        | `apps/api/src/modules/events/` + `apps/api/test/events.e2e.test.ts`                                                                   |
+| Reference Studio page                           | `apps/studio/src/app/(app)/orgs/[orgId]/brand-kits/` + `features/brand-kits/`                                                         |
+| Request pipeline (guards, filters)              | `apps/api/src/app.module.ts`, `apps/api/src/bootstrap/configure-app.ts`                                                               |
+| Game template interfaces                        | `packages/game-sdk/src/index.ts`, `docs/product/specs/{game-catalog,builder}.md`                                                      |
+| Background jobs                                 | `packages/jobs/src/definitions.ts`, `apps/worker/src/processors/`                                                                     |
+| Decisions and their reasons                     | `docs/adr/` (technical), `docs/product/decisions.md` (product)                                                                        |
+| What to build next and why                      | `docs/product/roadmap.md`, `docs/product/prd.md` (status column)                                                                      |
+| Campaign builder, ops and counter (Studio flow) | `apps/studio/src/features/builder-lab/` (`api.ts` hooks over `campaignsApi`/`vouchersApi`) + `docs/engineering/builder-components.md` |
+| Plan limits and billing                         | `packages/core/src/billing/plans.ts`, `apps/api/src/modules/billing/`, `docs/product/decisions.md` (`D-20`/`D-23`)                    |

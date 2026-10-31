@@ -35,11 +35,11 @@ export function EmptyState({
   const actionButton =
     actionText &&
     (actionHref ? (
-      <Button asChild className="rounded-full shadow-xs">
+      <Button asChild className="shadow-xs">
         <Link href={actionHref as Route}>{actionText}</Link>
       </Button>
     ) : onAction ? (
-      <Button className="rounded-full shadow-xs" onClick={onAction}>
+      <Button className="shadow-xs" onClick={onAction}>
         {actionText}
       </Button>
     ) : null);

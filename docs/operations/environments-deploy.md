@@ -105,7 +105,7 @@ docker build -f infra/docker/Dockerfile.next --build-arg APP=@playora/play --bui
 ## 6. Biến môi trường và bí mật
 
 - Schema env theo app ở `packages/env` (zod); app crash ngay khi thiếu biến.
-- Bản mẫu đầy đủ cho production nằm ở **`infra/env/prod.env.example`** (kèm chú thích từng biến và đánh dấu `[SECRET]`): `DATABASE_URL`, `DATABASE_POOL_MAX`, `REDIS_URL`, `API_PORT`, `API_PUBLIC_URL`, `PLAY_URL`, `STUDIO_ORIGINS`, `COOKIE_DOMAIN` (`.playora.vn`), `TRUST_PROXY` (`2`), `BETTER_AUTH_SECRET`, `PLAYER_SESSION_SECRET`, `WORKER_HEALTH_PORT`, `S3_*`, `SMTP_*`, `GOOGLE_CLIENT_*`, `NEXT_PUBLIC_*`, và `BACKUP_S3_*`.
+- Bản mẫu đầy đủ cho production nằm ở **`infra/env/prod.env.example`** (kèm chú thích từng biến và đánh dấu `[SECRET]`): `DATABASE_URL`, `DATABASE_POOL_MAX`, `REDIS_URL`, `API_PORT`, `API_PUBLIC_URL`, `PLAY_URL`, `STUDIO_ORIGINS`, `COOKIE_DOMAIN` (`.playora.vn`), `TRUST_PROXY` (`2`), `BETTER_AUTH_SECRET`, `PLAYER_SESSION_SECRET`, `PII_ENCRYPTION_KEY`, `PII_ENCRYPTION_KEY_ID`, `PII_HMAC_KEY`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `PLATFORM_ADMIN_EMAILS`, `WORKER_HEALTH_PORT`, `S3_*`, `SMTP_*`, `GOOGLE_CLIENT_*`, `NEXT_PUBLIC_*`, và `BACKUP_S3_*`.
 - Production bắt buộc secret tường minh; app từ chối thông tin S3 mặc định của dev (`playora`/`playora123`).
 - File `/opt/playora/infra/env/.env.prod` trên VM đặt quyền `0600`, không bao giờ commit vào git. Xoay `BETTER_AUTH_SECRET`, `PLAYER_SESSION_SECRET` khi nghi lộ (xoay `PLAYER_SESSION_SECRET` làm mọi người chơi phải join lại).
 
@@ -122,4 +122,4 @@ docker build -f infra/docker/Dockerfile.next --build-arg APP=@playora/play --bui
 
 ## 8. Cửa sổ đóng băng (freeze window)
 
-Không deploy production từ **2 giờ trước đến 1 giờ sau** các mốc được đánh dấu quan trọng (`events.is_critical`): giờ mở chương trình lớn, giờ bốc thăm cuối chương trình. Hotfix trong cửa sổ này chỉ khi đang phát sai giải hoặc sập, và phải ghi lại trong runbook.
+Không deploy production từ **2 giờ trước đến 1 giờ sau** các mốc được đánh dấu quan trọng (`events.is_critical`, hiện chỉ đặt được bằng SQL; chưa có trong Studio/API): giờ mở chương trình lớn, giờ bốc thăm cuối chương trình. Hotfix trong cửa sổ này chỉ khi đang phát sai giải hoặc sập, và phải ghi lại trong runbook.

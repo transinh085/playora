@@ -20,7 +20,7 @@ export function QueryError({ onRetry, title }: { onRetry?: () => void; title?: R
         <AlertTitle className="m-0 text-sm font-medium">{title ?? t('unknownError')}</AlertTitle>
       </div>
       {onRetry && (
-        <Button size="sm" variant="outline" className="rounded-full shrink-0" onClick={onRetry}>
+        <Button size="sm" variant="outline" className="shrink-0" onClick={onRetry}>
           {t('retry')}
         </Button>
       )}

@@ -1,6 +1,6 @@
 # Tuân thủ pháp lý: dữ liệu cá nhân, khuyến mại, hoá đơn
 
-Cập nhật: 26/10/2026 · Owner: Founder · Liên quan: [engineering/security.md](../engineering/security.md), [product/prd.md](../product/prd.md), [product/specs/prizes-redemption.md](../product/specs/prizes-redemption.md), [product/specs/participation.md](../product/specs/participation.md)
+Cập nhật: 31/10/2026 · Owner: Founder · Liên quan: [engineering/security.md](../engineering/security.md), [product/prd.md](../product/prd.md), [product/specs/prizes-redemption.md](../product/specs/prizes-redemption.md), [product/specs/participation.md](../product/specs/participation.md)
 
 > ⚠️ Đây là tóm tắt để định hướng sản phẩm, **không phải tư vấn pháp lý**. Cần luật sư xác nhận trước khi chạy chương trình có thưởng thương mại đầu tiên (ngân sách tư vấn ≤ 30 triệu đ `[GĐ]`).
 
@@ -22,14 +22,15 @@ Nguồn: [LuatVietnam](https://luatvietnam.vn/dan-su/luat-bao-ve-du-lieu-ca-nhan
 
 | Yêu cầu | Tính năng |
 |---|---|
-| Đồng ý rõ ràng, tách theo mục đích | Consent tách ô: tham gia (bắt buộc), marketing (tuỳ chọn), chia sẻ cho brand (tuỳ chọn); không tick sẵn; lưu `textVersion` và `textHash` |
+| Đồng ý rõ ràng, tách theo mục đích | Consent tách ô: tham gia và nhận quà (bắt buộc), nhận tin khuyến mãi từ quán (tuỳ chọn); "chia sẻ cho brand" là đích (persona nhãn hàng, sau Gate M3); không tick sẵn; lưu `textVersion` và `textHash` |
 | Thông báo xử lý dữ liệu | Mẫu thông báo bằng tiếng Việt, organizer chỉnh được, có link chính sách |
-| Quyền chủ thể dữ liệu | `POST /p/{slug}/privacy/requests` (xem, xoá, rút consent); organizer xử lý trong Studio; SLA hiển thị |
+| Quyền chủ thể dữ liệu | `POST /p/{slug}/privacy/requests` (xem, xoá, rút consent; đích, CMP-01 M2); organizer xử lý trong Studio; SLA hiển thị |
 | Tối thiểu hoá | Form mặc định chỉ có tên và SĐT; cảnh báo khi thêm field nhạy cảm |
-| Hạn lưu trữ | Mặc định 12 tháng sau event, cấu hình được; job `retention` ẩn danh hoá |
+| Hạn lưu trữ | Mặc định 12 tháng sau event, cấu hình được; job `retention` ẩn danh hoá (đích, CMP-02 M2) |
 | Dữ liệu nhạy cảm | **Không** hỗ trợ sinh trắc học (face check-in) trong v1 |
 | Chuyển dữ liệu ra nước ngoài | Ưu tiên lưu trữ tại VN ([operations/environments-deploy.md](../operations/environments-deploy.md)); nếu dùng dịch vụ nước ngoài (email, Sentry…) thì không gửi PII, scrub dữ liệu |
-| Ghi nhận xử lý | Audit log export; nhật ký truy cập PII |
+| Ghi nhận xử lý | Nhật ký truy cập PII: mỗi lần tra theo SĐT ở quầy (PRZ-15) và khôi phục mã (PRZ-16) ghi audit (M1 Must); export audit log là đích (ORG-06) |
+| Dùng SĐT để trao quà | Tra mã theo SĐT ở quầy và khôi phục "Quà của tôi" nằm trong mục đích "tham gia và nhận quà" (consent bắt buộc); không hiện SĐT cho nhân viên/máy quầy; ghi rõ trong thông báo xử lý dữ liệu ([D-25](../product/decisions.md)) |
 | Doanh nghiệp nhỏ/khởi nghiệp | Luật cho phép lựa chọn chưa áp dụng một số điều trong 5 năm (trừ dữ liệu nhạy cảm hoặc số lượng lớn chủ thể). **Không dựa vào ngoại lệ này** vì Playora xử lý dữ liệu số lượng lớn cho khách |
 
 ---
@@ -73,21 +74,24 @@ Pháp lý là nỗi lo thật của chủ quán nhưng đối thủ ít quan tâ
 | Nghĩa vụ của chủ quán | Tính năng Playora | Yêu cầu PRD |
 |---|---|---|
 | Consent tách mục đích, lưu bằng chứng | Form có ô consent tách mục đích, không tick sẵn; lưu `textVersion`/`textHash` (`consents`) | EVT-05 |
-| Quyền xem/xoá/rút consent của người chơi | `POST /p/{slug}/privacy/requests`, xử lý trong Studio | CMP-01 |
-| Hạn lưu trữ dữ liệu | Mặc định 12 tháng, job `retention` ẩn danh hoá | CMP-02 |
+| Quyền xem/xoá/rút consent của người chơi | `POST /p/{slug}/privacy/requests`, xử lý trong Studio (đích, M2) | CMP-01 |
+| Hạn lưu trữ dữ liệu | Mặc định 12 tháng, job `retention` ẩn danh hoá (đích, M2) | CMP-02 |
 | Thông báo khuyến mại may rủi với Sở Công Thương | Hỏi "loại chương trình" khi tạo; checklist pháp lý và nhắc trước publish | CMP-03 |
 | Thể lệ chương trình | Sinh thể lệ từ cấu hình (thời gian, giải, số lượng, giá trị, cách xác định trúng) | CMP-04 |
-| Công bố kết quả, chứng minh minh bạch | Bốc thăm commit–reveal, trang công bố kết quả; biên bản PDF | PRZ-02, PRZ-04 |
-| Không định trước người trúng | Không có tính năng chọn người thắng; quà không ngẫu nhiên đi qua "Tặng quà theo danh sách" | PRZ-12 |
-| Báo cáo giải không có người trúng (tổng giá trị) | Báo cáo sau chương trình | CMP-05 |
-| Lưu vết thao tác | Audit log cho giải, bốc thăm, đổi quà, export | ORG-06 |
-| Danh sách người trúng để công bố | Export có che PII | ANL-02 |
+| Hồ sơ thông báo khuyến mại | Sinh sẵn từ cấu hình (cần luật sư duyệt mẫu, M2) | CMP-06 |
+| Công bố kết quả, chứng minh minh bạch | Bốc thăm commit–reveal, trang công bố kết quả; biên bản PDF (M2) | PRZ-02, PRZ-04 |
+| Không định trước người trúng | Không có tính năng chọn người thắng; quà không ngẫu nhiên đi qua "Tặng quà theo danh sách" (PRZ-12, M3) hoặc "Quà lần sau" ghi rõ trong thể lệ (RET-06) | PRZ-12, RET-06 |
+| Báo cáo giải không có người trúng (tổng giá trị) | Báo cáo sau chương trình (M2) | CMP-05 |
+| Quà hết hạn quay về kho | Chờ ý kiến luật sư trước khi làm (M2) | PRZ-21 |
+| Lưu vết thao tác | Audit log: đã có cho phát hành/tạm dừng/kết thúc/xoá chương trình, mở lại mã; đổi quà, tra SĐT, tồn kho, export là việc còn mở | ORG-06 |
+| Danh sách người trúng để công bố | Export có che PII (M1 Should, chưa có) | ANL-02 |
 
 ---
 
 ## 5. Checklist pháp lý trước chương trình thật đầu tiên
 
 - [ ] Ý kiến luật sư về khuyến mại và PDPL cho các kịch bản: QR tại quầy gắn mua hàng (may rủi gắn mua hàng), minigame online không gắn mua hàng, minigame nội bộ, chương trình gắn hoá đơn
+- [ ] Ý kiến luật sư về: mã tại quầy xoay vòng (EVT-16) có bị coi là gắn mua hàng không; quà hết hạn quay về kho (PRZ-21); quà lần sau không ngẫu nhiên (RET-06)
 - [ ] ToS, Privacy Policy, DPA bản tiếng Việt
 - [ ] Mẫu consent và thông báo xử lý dữ liệu
 - [ ] Mẫu thể lệ và hướng dẫn thông báo Sở Công Thương cho chủ quán

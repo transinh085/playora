@@ -1,6 +1,6 @@
 # Mô hình kinh doanh
 
-Cập nhật: 26/10/2026 · Owner: PO (founder) · Theo [strategy](../product/strategy.md) v4.0 · Mọi con số tài chính là giả định `[GĐ]`, kiểm chứng ở M0 và pilot Tết.
+Cập nhật: 31/10/2026 · Owner: PO (founder) · Theo [strategy](../product/strategy.md) v4.1 · Mọi con số tài chính là giả định `[GĐ]`, kiểm chứng ở M0 và pilot Tết.
 
 Bản cho agency và brand (Campaign Pass, gói Agency năm, đội 8 người) ở lịch sử git của file này và [archive](../archive/2026-10-24-proposal-v2.1.md).
 
@@ -11,9 +11,12 @@ Bản cho agency và brand (Campaign Pass, gói Agency năm, đội 8 người) 
 | Khách hàng | Việc cần làm | Playora mang lại |
 |---|---|---|
 | **Chủ quán F&B** (ICP #1) | "Tết này đông khách hơn quán bên cạnh; khách mới quay lại; không phát quà quá tay" | Playbook theo mục tiêu → game mang sản phẩm của quán trong vài phút; quà trong ngân sách; đổi quà tại quầy; báo cáo khách tới quầy, khách quay lại, chi phí quà |
-| **Nhân viên quầy** (người dùng, không mua) | "Đổi quà nhanh, không bị lừa bằng ảnh chụp màn hình" | Quầy đổi quà trên điện thoại, một lần quét |
-| **Khách của quán** (người chơi) | "Chơi vui, trúng thật, nhận được quà" | Không cài app; kết quả rõ ràng; mã đổi quà luôn có trong "Quà của tôi" |
+| **Nhân viên quầy** (người dùng, không mua) | "Đổi quà nhanh, không bị lừa bằng ảnh chụp màn hình" | Quầy đổi quà trên điện thoại, quét QR hoặc gõ mã; ghép máy bằng QR, không cần email ([D-24](../product/decisions.md)); tìm mã theo SĐT khi khách mất mã ([D-25](../product/decisions.md)) |
+| **Khách của quán** (người chơi) | "Chơi vui, trúng thật, nhận được quà" | Không cài app; kết quả rõ ràng; mã đổi quà luôn có trong "Quà của tôi" (khôi phục được khi đổi trình duyệt) |
+| **Quản lý cửa hàng trong chuỗi** (người dùng gói Chuỗi, M2) | "Biết quán mình đang ra sao, quản lý máy quầy và nhân viên của quán mình" | Số liệu và tồn kho lọc theo quán, máy quầy theo quán (ORG-12, PRZ-14) |
 | **Agency, freelancer** (kênh, M4) | "Làm chương trình cho nhiều quán, không làm lại từ đầu" | Nhân bản, workspace theo quán, white-label |
+
+Persona tương lai (PM agency làm cho nhãn hàng — M4; brand manager nhãn hàng không có quầy — sau Gate M3) chỉ để giữ thiết kế không đóng cửa, không đổi ICP ([D-27](../product/decisions.md), [prd §2.2](../product/prd.md#22-persona-tương-lai-m3m4-chưa-xây-tính-năng-riêng)).
 
 ---
 
@@ -23,7 +26,7 @@ Bản cho agency và brand (Campaign Pass, gói Agency năm, đội 8 người) 
 |---|---|
 | **Khách hàng** | #1 quán đồ uống và ăn nhẹ 1–30 điểm bán; #2 SME có điểm bán khác (spa, gym, nha khoa, bán lẻ) và shop có fanpage; #3 agency/freelancer làm kênh (M4) |
 | **Giá trị** | Mục 1 |
-| **Kênh** | Dựng hộ miễn phí trong pilot; watermark "Tạo minigame cho quán bạn" trên mọi game Free; SEO chợ mẫu (mỗi mẫu × dịp là một trang chơi thử); nhóm Facebook chủ quán F&B; đối tác POS (M4); agency (M4) |
+| **Kênh** | Dựng hộ miễn phí trong pilot; watermark "Tạo bằng Playora" (dẫn về `playora.vn`) trên mọi game Free; SEO chợ mẫu (mỗi mẫu × dịp là một trang chơi thử); nhóm Facebook chủ quán F&B; đối tác POS (M4); agency (M4) |
 | **Quan hệ** | Tự phục vụ; hỗ trợ qua Zalo; dựng hộ cho quán đầu tiên của mỗi chuỗi |
 | **Doanh thu** | Thuê bao tháng/năm theo quán; add-on (OTP/ZNS theo lượt, skin riêng); về sau reseller/OEM |
 | **Tài nguyên chính** | Builder + kho mẫu × skin; prize engine; quầy đổi quà; dữ liệu kết quả theo ngành (benchmark) |
@@ -39,6 +42,7 @@ Bản cho agency và brand (Campaign Pass, gói Agency năm, đội 8 người) 
 
 - **Thuê bao theo quán**, trả tháng hoặc năm (năm giảm ~2 tháng). Định giá bằng VND, VietQR/chuyển khoản; M1 kích hoạt thủ công, M2 tự thanh toán qua PayOS.
 - **Đơn vị giới hạn là lượt đổi quà tại quầy/tháng**, không phải lượt chơi: khách chơi bao nhiêu cũng được, quán chỉ "dùng hết gói" khi khách thật tới quán ([D-20](../product/decisions.md)). Khác WOAY bán quota lượt/ngày.
+- **Hết hạn mức không làm khách mất quà** ([D-23](../product/decisions.md)): Studio cảnh báo ở 80% và 100%; khi mã còn hiệu lực đã phát + lượt đã đổi trong tháng chạm trần cứng (hạn mức + 10%), chương trình ngừng phát giải mới, còn quầy **luôn đổi được** mã đã phát.
 - Gói Free soạn đầy đủ, để chủ quán thấy giá trị trước khi trả tiền; giới hạn ở số chương trình chạy, lượt đổi quà và watermark.
 - **Đang cân nhắc** (Q-1 ở [decisions](../product/decisions.md#câu-hỏi-đang-mở)): trả theo kết quả, ví dụ 300–500đ mỗi lượt đổi quà, thay thuê bao cố định. Hỏi trong phỏng vấn M0 trước khi chốt.
 
@@ -46,9 +50,9 @@ Bản cho agency và brand (Campaign Pass, gói Agency năm, đội 8 người) 
 
 | Gói | Giá `[GĐ]` | Giới hạn chính | Cho ai |
 |---|---|---|---|
-| **Free** | 0đ | 1 chương trình đang chạy; ≤ 100 lượt đổi quà/tháng; mẫu và skin cơ bản; watermark Playora | Thử, quán rất nhỏ; **kênh kéo khách** |
-| **Quán** | 299.000đ/tháng · 2.990.000đ/năm | ≤ 3 chương trình đang chạy; ≤ 2.000 lượt đổi quà/tháng; mọi mẫu và skin theo dịp; bỏ watermark; báo cáo kết quả đầy đủ; giữ chân (từ M2) | Một quán |
-| **Chuỗi** | 799.000đ/tháng · 7.990.000đ/năm | ≤ 10 điểm đổi quà; không giới hạn chương trình; ≤ 10.000 lượt đổi quà/tháng; báo cáo theo cửa hàng; vai trò nhân viên theo quán | Chuỗi 2–30 điểm bán |
+| **Free** | 0đ | 1 chương trình đang chạy; ≤ 100 lượt đổi quà/tháng (trần cứng 110); 1 máy quầy `[GĐ]`; mẫu và skin cơ bản (gán mẫu theo gói từ M2, ADM-03); watermark Playora | Thử, quán rất nhỏ; **kênh kéo khách** |
+| **Quán** | 299.000đ/tháng · 2.990.000đ/năm | ≤ 3 chương trình đang chạy; ≤ 2.000 lượt đổi quà/tháng (trần cứng 2.200); ≤ 3 máy quầy `[GĐ]`; mọi mẫu và skin theo dịp; bỏ watermark; báo cáo kết quả đầy đủ; giữ chân (từ M2) | Một quán |
+| **Chuỗi** | 799.000đ/tháng · 7.990.000đ/năm | ≤ 10 điểm đổi quà `[GĐ]` (đối chiếu với trần 30 máy quầy ở ORG-10 là câu hỏi đang mở); không giới hạn chương trình; ≤ 10.000 lượt đổi quà/tháng (trần cứng 11.000); báo cáo theo quán (nhãn quán từ M1, PRZ-17); điểm đổi quà và quản lý cửa hàng theo quán (từ M2, PRZ-14, ORG-12) | Chuỗi 2–30 điểm bán |
 | **Agency / Reseller** | Chiết khấu 30–50% (M4) | Workspace theo quán, white-label | Agency, freelancer |
 
 Mỏ neo: WOAY Pro 50.000đ/ngày (500 lượt/tháng), Pro-Adv 300.000đ/ngày ([market-research](../research/market-research.md)). Giá Playora cần kiểm bằng Van Westendorp trong phỏng vấn M0 ([interview guide](../research/customer-interview-guide.md)).

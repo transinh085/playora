@@ -43,7 +43,7 @@ export function MetricCard({
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-8 w-16" />
           </div>
-          <Skeleton className="size-11 rounded-2xl" />
+          <Skeleton className="size-11 rounded-xl" />
         </div>
       </Card>
     );

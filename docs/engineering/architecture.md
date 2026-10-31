@@ -1,6 +1,6 @@
 # Kiến trúc hệ thống
 
-Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Liên quan: [ADR](../adr/README.md), [data-model.md](./data-model.md), [api.md](./api.md), [conventions.md](./conventions.md), [product/specs/builder.md](../product/specs/builder.md), [operations/environments-deploy.md](../operations/environments-deploy.md)
+Cập nhật: 31/10/2026 · Owner: Tech Lead (founder) · Liên quan: [ADR](../adr/README.md), [data-model.md](./data-model.md), [api.md](./api.md), [conventions.md](./conventions.md), [product/specs/builder.md](../product/specs/builder.md), [operations/environments-deploy.md](../operations/environments-deploy.md)
 
 Tài liệu này mô tả **kiến trúc hiện tại** và **kiến trúc đích**. Chỗ nào chưa có trong code thì ghi rõ "(đích)". Hiện trạng chi tiết và bước tiếp theo ở §10.
 
@@ -36,8 +36,9 @@ Tài liệu này mô tả **kiến trúc hiện tại** và **kiến trúc đíc
         ▼                                      ▼                                         │
  ┌────────────────────────────────────────────────────────────┐                          │
  │ apps/api (NestJS, modular monolith, stateless, N node)     │                          │
- │  auth · org · event · game · asset · guest · public        │                          │
- │  (đích) plays · prizes · vouchers · redeem · draw · stats  │                          │
+ │  auth · campaigns · plays · vouchers · billing · asset     │                          │
+ │  brand-kit · event · game · guest · public                 │                          │
+ │  (đích) draw · export · counter-devices                    │                          │
  │  PLAY ENGINE + PRIZE ENGINE (logic thuần ở packages/core)  │                          │
  └───┬───────────────┬───────────────┬────────────────────────┘                          │
      │               │ enqueue       │                                                   │
@@ -64,9 +65,9 @@ Phiên bản lấy từ `package.json` (pin chính xác, `bunfig.toml` có `exac
 | Package manager, runtime, test | **Bun 1.4.4** | [ADR-001](../adr/001-monorepo-bun-turborepo.md), [ADR-002](../adr/002-nestjs-on-bun.md) |
 | Monorepo | **Turborepo 2.11** | Cache task `build/lint/test/typecheck` |
 | Frontend | **Next.js 16.4** (App Router) + **React 19.3** | Studio, Play, Web; `output: 'standalone'` |
-| UI | **Ant Design 6.6** + `@playora/ui/{providers,theme,form,game}`; Tailwind CSS 4.3 chỉ cho layout; icon `lucide-react` | [ADR-013](../adr/013-antd-ui.md); shadcn/Radix đã gỡ |
+| UI | **shadcn/ui (style luma)** + Radix UI + Tailwind CSS 4.3 + `@playora/ui/{components,providers,theme,form,game}`; toast `sonner`; icon `lucide-react` | [ADR-016](../adr/016-shadcn-luma-ui.md) (thay [ADR-013](../adr/013-antd-ui.md), [D-29](../product/decisions.md)) |
 | Data fetching | **TanStack Query 5** qua `@playora/api-client/react` (typed từ contract, không codegen) | [ADR-008](../adr/008-contract-first-api.md) |
-| Form | antd `Form` + `useZodForm(<contract schema>)`; game config dùng `AutoForm` sinh từ zod | [ADR-013](../adr/013-antd-ui.md) |
+| Form | `react-hook-form` + `@hookform/resolvers/zod` + shadcn `Form` (`@playora/ui/form`); game config dùng `AutoForm` sinh từ zod (M2, BLD-02) | [ADR-016](../adr/016-shadcn-luma-ui.md) |
 | i18n | **next-intl 4** (vi chuẩn, en) | Studio và Play |
 | Game rendering | DOM/CSS + SVG cho vòng quay, cào thẻ, mở hộp; canvas 2D/PixiJS cho game skill (đích, chưa thêm dependency) | Chọn khi làm `catch-items` |
 | Canvas màn chơi | Editor DOM tự viết, một renderer cho Play và Studio | [ADR-014](../adr/014-free-canvas-screen-editor.md) |
@@ -82,7 +83,7 @@ Phiên bản lấy từ `package.json` (pin chính xác, `bunfig.toml` có `exac
 | SMS/ZNS | (đích) interface `NotificationProvider`, chọn nhà cung cấp khi bật OTP | |
 | Payment | (đích) PayOS (VietQR) | |
 | Lint/format | **Biome 2.6** · TypeScript **6.0.3** | [ADR-007](../adr/007-typescript-6.md) |
-| Test | `bun test`, **Playwright** (e2e), k6 (đích, `tooling/loadtest` mới có README) | [ADR-010](../adr/010-testing-strategy.md) |
+| Test | `bun test`, **Playwright** (e2e), k6 (`tooling/loadtest/play.js`, [REPORT](../../tooling/loadtest/REPORT.md)) | [ADR-010](../adr/010-testing-strategy.md) |
 | Log | `nestjs-pino` | |
 | Observability, analytics | (đích) Sentry, OpenTelemetry, PostHog | §11 |
 | CI/CD | GitHub Actions (`check`, `e2e`, `docker`) | [operations/environments-deploy.md](../operations/environments-deploy.md) |
@@ -105,14 +106,14 @@ playora/
 │   ├── db/         Drizzle schema, migrations (drizzle/), seed, ./testing
 │   ├── auth/       Better Auth options + RBAC (./permissions)
 │   ├── jobs/       định nghĩa job BullMQ dùng chung API/worker
-│   ├── core/       logic thuần, không I/O: prize/, draw/, registration/, session/
+│   ├── core/       logic thuần, không I/O: prize/, draw/, registration/, session/, billing/, compliance/, pii/
 │   ├── game-sdk/   defineTemplate, kiểu instant/skill, preview harness
-│   ├── templates/  registry template (client + ./server); hiện có spin-wheel
-│   ├── ui/         theme, providers, form, auto-form, game components, styles.css
+│   ├── templates/  registry template (client + ./server); hiện có spin-wheel (mô hình cũ). Ba cơ chế M1 (spin-wheel, scratch-card, gift-box) nằm ở @playora/ui/campaign
+│   ├── ui/         shadcn/ui luma components, theme, providers, form, auto-form, game/campaign components, styles.css
 │   ├── i18n/       messages vi/en
 │   ├── env/        zod env schema theo app
 │   └── tsconfig/   base, library, nestjs, nextjs
-├── tooling/        e2e (Playwright) · loadtest (k6, đích) · scripts
+├── tooling/        e2e (Playwright) · loadtest (k6) · scripts
 ├── infra/          compose (dev) · docker (Dockerfile.nest, Dockerfile.next)
 └── docs/
 ```
@@ -125,7 +126,7 @@ packages/core     → contracts             (không I/O, không framework)
 packages/db       → (drizzle, postgres)   (không import Nest/Next)
 templates         → game-sdk, contracts, ui (phần player), core (phần server)
 game-sdk          → contracts
-ui                → (react, antd, tailwind) không biết gì về API
+ui                → (react, radix-ui, tailwind) không biết gì về API
 ```
 
 Ranh giới được Biome `noRestrictedImports` cưỡng chế; danh sách đầy đủ ở [conventions.md §1](./conventions.md#1-bản-đồ-repo).
@@ -167,14 +168,14 @@ Theo [ADR-012 §3](../adr/012-campaign-architecture.md):
 
 ## 6. Play engine (trên `apps/api`)
 
-> **Đã có (instant-win):** module `apps/api/src/modules/plays/` cài đường nóng của [ADR-012 §4](../adr/012-campaign-architecture.md) cho campaign (một game/chương trình, ADR-015): `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` và `POST /orgs/:orgId/campaigns/:id/rehearsal-plays`. Ngoài transaction: token người chơi (`SessionGuard`, `auth: 'player'`) phải thuộc đúng chương trình, chỗ móc chống gian lận `checkAntiFraud` (EVT-13, chưa làm), pha tạm dừng/chưa mở/đã kết thúc trả `closed` mà không trừ lượt. Trong một transaction: khoá dòng `players` (tuần tự hoá lượt của một người, giữ giới hạn/người và idempotency theo `requestId`), giành lượt bằng upsert có điều kiện trên `play_counters`, snapshot, `decide()` với `crypto.randomInt` (ghi `rngProof`), trừ kho `UPDATE … WHERE remaining > 0`; khi có ngân sách, người trúng khoá `games` (`FOR NO KEY UPDATE`) rồi đọc lại Σ issued×valueVnd trước khi trừ kho. Thua race → `out_of_stock`/`budget`, không chọn lại. Lịch chạy lấy từ `events.startsAt/endsAt` (End dời `endsAt`). Chạy thử dùng bản nháp, kho riêng (số lượng nháp − award `rehearsal`), không đổi số liệu live. Chưa có: skill (`submit`), `voucher_codes`, `prize_counters`, `session_ver`. Luồng chi tiết theo request ở [api.md §3](./api.md#3-luồng-chơi-campaign).
+> **Đã có (instant-win):** module `apps/api/src/modules/plays/` cài đường nóng của [ADR-012 §4](../adr/012-campaign-architecture.md) cho campaign (một game/chương trình, ADR-015): `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` và `POST /orgs/:orgId/campaigns/:id/rehearsal-plays`. Ngoài transaction: token người chơi (`SessionGuard`, `auth: 'player'`) phải thuộc đúng chương trình, chống gian lận mức Thấp/Chuẩn (`AntiFraudService`: rate limit, Turnstile, EVT-13), pha tạm dừng/chưa mở/đã kết thúc trả `closed` mà không trừ lượt. Trong một transaction: khoá dòng `players` (tuần tự hoá lượt của một người, giữ giới hạn/người và idempotency theo `requestId`), giành lượt bằng upsert có điều kiện trên `play_counters`, snapshot, `decide()` với `crypto.randomInt` (ghi `rngProof`), trừ kho `UPDATE … WHERE remaining > 0`; khi có ngân sách, người trúng khoá `games` (`FOR NO KEY UPDATE`) rồi đọc lại Σ issued×valueVnd trước khi trừ kho. Thua race → `out_of_stock`/`budget`, không chọn lại. Lịch chạy lấy từ `events.startsAt/endsAt` (End dời `endsAt`). Chạy thử dùng bản nháp, kho riêng (số lượng nháp − award `rehearsal`), không đổi số liệu live. Chưa có: skill (`submit`), `voucher_codes`, `prize_counters`. Luồng chi tiết theo request ở [api.md §3](./api.md#3-luồng-chơi-campaign).
 
 ### 6.1 Mô hình
 
-- **Instant:** `POST /v1/p/{slug}/games/{gameId}/plays` (header `Idempotency-Key`). Một lần gọi = một lượt: kiểm tra điều kiện, gọi prize engine, trừ kho trong một transaction, trả `{ playId, outcome, display, remaining }` **trước** khi client animate.
-- **Skill:** `POST …/plays` bắt đầu lượt (lượt được tính ngay, trả `seed`), rồi `POST …/plays/{playId}/submit`; server gọi `SkillServerModule.validate` (thời lượng theo server, điểm tối đa, plausibility) rồi mới xét giải.
+- **Instant:** `POST /v1/p/{slug}/plays` (body `requestId`, idempotent theo người chơi; thêm `gameId` vào path khi có nhiều game mỗi chương trình). Một lần gọi = một lượt: kiểm tra điều kiện, gọi prize engine, trừ kho trong một transaction, trả `{ playId, outcome, reason, prize, voucher, turnsLeftToday }` **trước** khi client animate.
+- **Skill (đích, M2):** `POST …/plays` bắt đầu lượt (lượt được tính ngay, trả `seed`), rồi `POST …/plays/{playId}/submit`; server gọi `SkillServerModule.validate` (thời lượng theo server, điểm tối đa, plausibility) rồi mới xét giải.
 - **Stateless:** API không giữ state theo chương trình trong bộ nhớ; scale bằng cách thêm node. Tranh chấp tồn kho giải bằng update có điều kiện trên Postgres (§7.3).
-- **Lượt bị gắn cờ** (chống gian lận) không được phát giải; ghi lý do vào `plays`.
+- **Lượt bị gắn cờ** (mức Cao, M2 — [D-28](../product/decisions.md)) sẽ không được phát giải; M1 chưa gắn cờ tự động.
 
 ### 6.2 Tải mục tiêu
 
@@ -184,7 +185,7 @@ Theo [ADR-012 §3](../adr/012-campaign-architecture.md):
 | p95 quyết định kết quả + trừ kho | < 200 ms | < 200 ms |
 | Lỗi 5xx khi đỉnh | 0 | 0 |
 
-Kiểm bằng k6 nhắm Play API (`tooling/loadtest`, chưa viết).
+Kiểm bằng k6 nhắm Play API (`tooling/loadtest/play.js`, [REPORT](../../tooling/loadtest/REPORT.md)); đã đạt trên laptop 26/10 (p95 150 ms), còn phải chạy lại trên VM production.
 
 ### 6.3 Đồng hồ server
 
@@ -225,7 +226,7 @@ INSERT INTO awards (...) VALUES (...);
 -- voucher: SELECT … FROM voucher_codes WHERE prize_id = $1 AND award_id IS NULL LIMIT 1 FOR UPDATE SKIP LOCKED
 ```
 
-- **Idempotency:** mỗi lượt có `client_request_id` unique; mỗi `play` chỉ có tối đa một award.
+- **Idempotency:** mỗi lượt có `requestId`, unique `(player_id, request_id)` trên `plays`; mỗi `play` chỉ có tối đa một award.
 - **RNG:** `crypto.randomInt` trên server; ghi `rng_proof` cho từng lượt để audit.
 - **Tối ưu khi nóng:** nếu tranh chấp dòng `prizes` quá cao, chia kho thành N bucket hoặc dùng bộ đếm Valkey + outbox. Chỉ làm khi load test cho thấy cần.
 
@@ -234,10 +235,10 @@ INSERT INTO awards (...) VALUES (...);
 ## 8. Xác thực và phân quyền
 
 - **Organizer:** Better Auth mount trong `apps/api` tại `/auth/*`. Production: session cookie domain `.playora.vn`, `SameSite=Lax`, `Secure`. Studio gọi API qua cùng domain cha.
-- **RBAC:** vai trò `owner`, `admin`, `editor`, `operator`, `viewer` (`packages/auth/src/permissions.ts`). Contract khai báo `permission`; `OrgAccessGuard` kiểm tra membership và quyền. (đích) vai trò "chỉ đổi quà" cho nhân viên quầy.
+- **RBAC:** vai trò `owner`, `admin`, `editor`, `operator`, `viewer`, `redeemer` ("chỉ đổi quà") (`packages/auth/src/permissions.ts`). Contract khai báo `permission`; `OrgAccessGuard` kiểm tra membership và quyền. (đích) quản lý cửa hàng (ORG-12, M2); máy quầy dùng chế độ auth `device`, quyền cố định `voucher: read/redeem` (ORG-10, [ADR-017](../adr/017-counter-device-pairing.md) Proposed).
 - **Cô lập tenant:** mọi repository nhận `organizationId` **đầu tiên** và lọc mọi truy vấn theo nó; guard là lớp bảo vệ thứ hai, không phải duy nhất. Mỗi module API có test cross-tenant. Cân nhắc Postgres RLS cho bảng PII về sau.
-- **Người chơi:** `POST /v1/p/{slug}/join` trả token phiên ký HMAC (`signPlayerSession`, claims `{ kind, organizationId, eventId, sub, displayName, ver, exp }`, hạn 24 h), gửi qua header `Authorization`. `ver` dùng để thu hồi (đích: cột `players.session_ver`).
-- **Nhân viên:** organizer session có quyền trên chương trình (bốc thăm, chạy thử, đổi quà).
+- **Người chơi:** `POST /v1/p/{slug}/join` trả token phiên ký HMAC (`signPlayerSession`, claims `{ kind, organizationId, eventId, sub, displayName, ver, exp }`, hạn 24 h), gửi qua header `Authorization`. `ver = players.session_ver`; tăng cột này thu hồi mọi token cũ.
+- **Nhân viên quầy:** thành viên vai trò `redeemer` (phiên Better Auth) hoặc máy quầy ghép QR (đích, ORG-10).
 
 ---
 
@@ -257,23 +258,23 @@ Khai báo ở `packages/jobs/src/definitions.ts`; TypeScript buộc mọi job c�
 
 ---
 
-## 10. Hiện trạng và bước tiếp theo (26/10/2026)
+## 10. Hiện trạng và bước tiếp theo (31/10/2026)
 
 | Mảng | Hiện trạng |
 |---|---|
-| API | Module `assets`, `brand-kits`, `campaigns`, `events`, `games`, `guests`, `health`, `me`, `openapi`, `plays`, `public`, `templates`, `vouchers`. Public API: `GET /p/:slug`, `POST /p/:slug/join`, `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` (token người chơi `Authorization: Bearer`); Studio chạy thử `POST /orgs/:orgId/campaigns/:id/rehearsal-plays` |
-| DB | Bảng `clients`, `brand_kits`, `events`, `games`, `game_versions`, `guest_list_entries`, `players`, `consents`, `prizes`, `draw_spins`, `awards`, `assets`, `audit_logs` + bảng Better Auth. Chưa có `plays`, `play_counters`, `voucher_codes` |
-| Core | Prize engine, draw provably-fair, registration/consent, player session: có test, **chưa được API gọi** |
-| Templates | `spin-wheel` |
-| Studio | Một mô hình **Campaign** trên API thật (`features/builder-lab`, hook ở `api.ts`): chương trình, editor 3 chế độ (Sửa nhanh, Tuỳ biến canvas, Luật & giải), chạy thử, trang vận hành, quầy đổi quà. Gói & sử dụng ở `/orgs/:orgId/settings/billing` (cảnh báo 80%/100% trên Trang chủ, quầy đổi quà, publish/tiếp tục) và back-office nội bộ `/admin` (`features/billing`). UI sự kiện/trò chơi/khách mời cũ (`/events/**`, `features/events|games|guests`) **đã gỡ** (27/10); module API `events`/`games`/`guests` vẫn giữ vì Campaign lưu trên các bảng đó (ADR-015) |
-| Play | `/`, `/preview`, `/[slug]` (dừng ở phòng chờ sau khi join) |
+| API | Module `assets`, `billing`, `brand-kits`, `campaigns`, `events`, `games`, `guests`, `health`, `me`, `openapi`, `plays`, `public`, `templates`, `vouchers`. Public API: `GET /p/:slug`, `POST /p/:slug/join`, `GET /p/:slug/campaign`, `POST /p/:slug/plays`, `GET /p/:slug/me` (token người chơi `Authorization: Bearer`); Studio chạy thử `POST /orgs/:orgId/campaigns/:id/rehearsal-plays` |
+| DB | Bảng `clients`, `brand_kits`, `events`, `games`, `game_versions`, `guest_list_entries`, `players`, `consents`, `prizes`, `draw_spins`, `awards`, `plays`, `play_counters`, `assets`, `audit_logs`, `org_subscriptions`, `billing_invoices` + bảng Better Auth. Chưa có `voucher_codes`, `prize_counters`, `counter_devices` ([ADR-017](../adr/017-counter-device-pairing.md)) |
+| Core | Prize engine, registration/consent, player session, billing, PII: có test, API đã dùng; draw provably-fair chưa có API (PRZ-02, M2) |
+| Templates | `spin-wheel` trong `packages/templates` (mô hình cũ); 3 cơ chế M1 (`spin-wheel`, `scratch-card`, `gift-box`) trong `@playora/ui/campaign` |
+| Studio | Một mô hình **Campaign** trên API thật (`features/builder-lab`, hook ở `api.ts`): chương trình, editor 3 chế độ (Sửa nhanh, Tuỳ biến canvas, Luật & giải), chạy thử, trang vận hành, quầy đổi quà. Gói & sử dụng ở `/orgs/:orgId/settings/billing` (cảnh báo 80%/100% trên Trang chủ, quầy đổi quà, publish/tiếp tục) và back-office nội bộ `/admin` (`features/billing`). UI sự kiện/trò chơi/khách mời cũ (`/events/**`, `features/events|games|guests`) **đã gỡ** (27/10); module API `events`/`games`/`guests` vẫn giữ vì Campaign lưu trên các bảng đó ([ADR-015](../adr/015-campaign-persistence.md)) |
+| Play | `/`, `/preview`, `/[slug]` (Bìa → Form → Game → Kết quả, API thật), `/[slug]/prizes` (Quà của tôi) |
 
-**Bước tiếp theo** (theo [product/roadmap.md](../product/roadmap.md)):
+**Bước tiếp theo** (theo [product/prd.md §7.1](../product/prd.md#71-việc-m1-còn-mở) và [product/roadmap.md](../product/roadmap.md)):
 
-1. Contract + API thật cho chương trình, lượt chơi, voucher, đổi quà, thống kê (`campaigns`/`plays`/`vouchers`/`stats`), thay `mock/api.ts` bằng `useRouteQuery`/`useRouteMutation`. Cần ADR chốt cách lưu Campaign (trên `events` + `games` + `game_versions` hay bảng mới).
-2. Migration `plays`, `play_counters`, `voucher_codes`, `players.session_ver`.
-3. Play runtime thật: Game → Kết quả → Quà của tôi.
-4. Test 1 triệu lượt mô phỏng + k6 Play API trước pilot.
+1. Chuyển điểm chặn hạn mức gói sang lúc phát giải ([D-23](../product/decisions.md), BIL-02).
+2. Tra mã chưa đổi theo SĐT ở quầy và khôi phục "Quà của tôi" (PRZ-15, PRZ-16, [D-25](../product/decisions.md)).
+3. Máy quầy ghép QR (ORG-10, [D-24](../product/decisions.md), [ADR-017](../adr/017-counter-device-pairing.md)).
+4. Chạy lại k6 trên VM production trước pilot.
 
 ---
 
@@ -281,7 +282,7 @@ Khai báo ở `packages/jobs/src/definitions.ts`; TypeScript buộc mọi job c�
 
 - **Trace:** OpenTelemetry cho Nest (HTTP, pg, ioredis), propagate tới worker.
 - **Metric chính:** `play_rate{event}`, `play_draw_latency_ms`, `play_rejected_total{reason}`, `prize_stock_remaining`, `prize_pacing_deviation`, `event_loop_lag_ms`, `job_failed_total`.
-- **Dashboard nội bộ** cho từng chương trình đang chạy: lượt/giây, độ trễ, lỗi, giải còn lại so với kế hoạch, tỷ lệ gắn cờ. Alert qua Telegram.
+- **Dashboard nội bộ** cho từng chương trình đang chạy: lượt/giây, độ trễ, lỗi, giải còn lại so với kế hoạch, tỷ lệ bị chặn (rate limit/Turnstile; gắn cờ từ M2). Alert qua Telegram.
 - **Sentry** cho Studio, Play và backend.
 
 Hiện có: log JSON `nestjs-pino` kèm `x-request-id`, health `/health` và `/health/ready`.
@@ -297,7 +298,7 @@ Dù làm tối giản tới đâu, những thứ sau phải có ngay từ chươ
 - Chống gian lận mức Chuẩn ([security.md §1](./security.md#1-chống-gian-lận)).
 - Chạy thử chương trình bằng dữ liệu `rehearsal`, không trừ kho thật.
 - Consent theo PDPL ([business/compliance.md](../business/compliance.md)).
-- Audit log cho thao tác trên giải, bốc thăm, export.
+- Audit log cho thao tác trên giải, đổi quà, bốc thăm, export (hiện mới có phát hành/tạm dừng/kết thúc/xoá chương trình, mở lại mã, đổi gói — xem PRD ORG-06).
 - Test cross-tenant cho mọi module API.
 
 ---

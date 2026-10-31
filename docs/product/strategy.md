@@ -1,6 +1,6 @@
 # Chiến lược sản phẩm Playora
 
-Phiên bản: **v4.0** · 26/10/2026 · Owner: PO (founder) · **Nguồn chân lý** cho định hình sản phẩm: khi tài liệu khác mâu thuẫn với file này thì file này đúng.
+Phiên bản: **v4.1** · 31/10/2026 · Owner: PO (founder) · **Nguồn chân lý** cho định hình sản phẩm: khi tài liệu khác mâu thuẫn với file này thì file này đúng.
 
 Liên quan: [prd.md](./prd.md) · [roadmap.md](./roadmap.md) · [decisions.md](./decisions.md) · [business-model](../business/business-model.md) · nghiên cứu ở [research/](../research/)
 
@@ -19,7 +19,7 @@ Chủ quán không mua "game builder", họ mua **khách tới quán**. Builder 
 
 | Ta xây | Chủ quán thấy |
 |---|---|
-| Builder (template × skin × canvas) | "Có game mang ảnh ly trà sữa của quán trong 5 phút" |
+| Builder (template × skin × canvas) | "Có game mang ảnh ly trà sữa của quán trong vài phút" |
 | Prize engine (tồn kho, pacing, ngân sách) | "Không bao giờ phát quá số quà tôi đặt" |
 | Đổi quà tại quầy | "Biết chắc khách đã đến quán" |
 | Giữ chân (điểm danh, bốc mỗi ngày…) | "Khách quay lại lần 2, lần 3" |
@@ -49,7 +49,7 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
 |---|---|
 | 凡科 có ~1.700 template trên ~111 engine; phần lớn game bốc thăm dùng chung một logic ([teardown §1](../research/guandayun-teardown.md#1-tóm-tắt)) | Ít engine, nhiều renderer và skin. Kho mẫu lớn đến từ dây chuyền skin |
 | WOAY quảng cáo "5 phút" nhưng chỉ đổi màu, logo, ảnh quà; bán quota lượt/ngày ([market](../research/market-research.md)) | Builder dùng **ảnh sản phẩm của chính quán** và luật/giải sâu hơn; giá không phạt khách chơi nhiều |
-| Chủ SME (F&B, spa, gym, bán lẻ) không có designer, không có thời gian | Bắt đầu từ **mục tiêu** (playbook), không bắt đầu từ trang trắng; publish ≤ 5 phút |
+| Chủ SME (F&B, spa, gym, bán lẻ) không có designer, không có thời gian | Bắt đầu từ **mục tiêu** (playbook), không bắt đầu từ trang trắng; phát hành ≤ 10 phút (M1), ≤ 5 phút (M2) |
 | Nỗi sợ lớn nhất: phát quà quá tay, gian lận, nhân viên đổi sai | Prize engine + đổi quà tại quầy là lõi từ ngày đầu |
 | SME cần khách **quay lại**, không chỉ một lần dịp Tết | Giữ chân là lý do trả thuê bao |
 | Ở VN, Zalo đóng vai trò WeChat | Zalo (OA, ZNS, đăng nhập) là kênh lõi |
@@ -105,7 +105,7 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
                                 ▼
  PLAYORA CORE
  · Engine instant-win (1 logic, nhiều renderer: vòng quay, cào, mở hộp, đập trứng, lật thẻ…)
- · Engine skill + điểm (hứng quà, chạm nhanh, đếm tiền…)
+ · Engine skill + điểm (hứng quà, lật cặp, đập logo, ghép hình…)
  · Engine giữ chân (điểm danh, bốc mỗi ngày, hub điểm, sưu tầm thẻ)
  · Prize & Participation · Đổi quà · Chống gian lận · Danh tính & Consent · Báo cáo · Gói/Quota
 ```
@@ -121,9 +121,9 @@ Kiến trúc kỹ thuật: [engineering/architecture.md](../engineering/architec
 3. **Báo cáo bằng kết quả kinh doanh.** Ưu tiên "khách tới quầy", "khách quay lại", "chi phí quà so với ngân sách" hơn "lượt chơi".
 4. **Engine ít, renderer và skin nhiều.** Cơ chế mới phải là renderer trên engine có sẵn, trừ khi nó đáng giá ≥ 10 skin.
 5. **Game mobile-first, Studio desktop-first.** Riêng màn Đổi quà dùng tốt trên điện thoại.
-6. **Nhanh mặc định, sâu khi cần.** Publish từ playbook ≤ 5 phút; cấu hình nâng cao mở theo lớp.
+6. **Nhanh mặc định, sâu khi cần.** Phát hành từ playbook ≤ 10 phút ở M1, ≤ 5 phút ở M2 (luồng "60 giây" BLD-28); cấu hình nâng cao mở theo lớp.
 7. **Builder là sản phẩm.** Playora dựng hộ khách bằng chính Studio. Cái gì mình thấy khó thì khách cũng thấy khó.
-8. **Minh bạch mặc định.** Không định trước người trúng, không số liệu ảo. Quà không ngẫu nhiên đi qua "Tặng quà theo danh sách".
+8. **Minh bạch mặc định.** Không định trước người trúng, không số liệu ảo. Quà không ngẫu nhiên chỉ đi qua "Tặng quà theo danh sách" (PRZ-12) hoặc "Quà lần sau" (RET-06), luôn ghi rõ là quà tặng trong thể lệ.
 9. **Không xây khi chưa có người dùng cần.** Tính năng mới cần một bước trong vòng giá trị (§2) và một bằng chứng từ khách (phỏng vấn, pilot, số liệu).
 
 ### Không làm (ít nhất đến hết 2027)
@@ -132,7 +132,7 @@ Kiến trúc kỹ thuật: [engineering/architecture.md](../engineering/architec
 - Game LED/sân khấu realtime (code lưu ở tag `archive/live-engine`, [ADR-011](../adr/011-remove-live-engine.md)).
 - Editor logic kiểu Epub360 (canvas tự do chỉ là lớp trình bày, [ADR-014](../adr/014-free-canvas-screen-editor.md)).
 - Thương mại: flash sale, mua nhóm, mặc cả, hoa hồng.
-- Bộ SaaS đầy đủ như 凡科 (web, shop, CRM, quản lý cửa hàng, POS).
+- Bộ SaaS đầy đủ như 凡科 (web, shop, CRM, phần mềm quản lý bán hàng, POS). Vai trò "quản lý cửa hàng" (ORG-12) chỉ là quyền trong Studio, không phải phần mềm quản lý cửa hàng.
 - Lì xì tiền mặt, cá cược, chia quỹ thưởng, đổi thưởng ra tiền.
 - Cơ chế ép rủ bạn (gom like, trợ lực); chỉ "thêm lượt khi chia sẻ" có giới hạn.
 - Số liệu ảo, upload sẵn danh sách người trúng.
@@ -146,7 +146,7 @@ Kiến trúc kỹ thuật: [engineering/architecture.md](../engineering/architec
 |---|---|---|
 | **North Star** | **Lượt đổi quà tại quầy mỗi tháng** (lượt ghé quán đã xác thực), trên mọi quán đang dùng | Pilot Tết: 1.000 → 12/2027: 100.000 |
 | Kích hoạt | Số quán có ≥ 1 chương trình đang chạy và ≥ 30 lượt đổi quà trong tháng | Pilot: 5 → M2: 50 → 12/2027: 1.000 |
-| Kết quả cho quán | % khách đổi quà quay lại lần 2 trong 30 ngày | ≥ 20% |
+| Kết quả cho quán | % khách đã đổi quà có lượt đổi thứ hai ở một ngày khác trong 30 ngày (chương trình "Khách quay lại lần 2" hoặc bật quà lần sau RET-06); từ M2 tính theo lượt ghé đã xác thực (PLB-09) | ≥ 20% (đo thử ở pilot, mục tiêu từ M2) |
 | Kết quả cho quán | Chi phí quà trung bình cho mỗi lượt ghé quán | Báo được cho 100% chương trình |
 | Builder | Trung vị thời gian từ chọn playbook đến publish | M1 ≤ 10 phút · M2 ≤ 5 phút |
 | Builder | % chương trình tự dựng không cần hỗ trợ | M1 ≥ 50% · M2 ≥ 80% |
@@ -166,7 +166,7 @@ Vì sao North Star là lượt đổi quà: nó chỉ tăng khi cả vòng giá 
 |---|---|---|---|---|
 | A1 | Chủ quán chọn Playora vì thấy khách tới quán và quay lại (kết quả), và vì game mang sản phẩm của họ (builder) | M0, pilot | Lý do chọn trong phỏng vấn; quán gia hạn sau pilot | Cạnh tranh bằng kho skin theo mùa và giá |
 | A2 | Chủ quán tự dựng được trong ≤ 10 phút từ playbook | Pilot | Đo ≥ 10 quán | Thêm wizard, giảm mặc định, dựng hộ |
-| A3 | Nhân viên quầy chịu quét mã đổi quà trong giờ đông khách | Pilot | ≥ 80% quà hiện vật được đổi qua màn Đổi quà | Cho tự đổi bằng PIN, đổi bằng mã ngắn |
+| A3 | Nhân viên quầy chịu quét mã đổi quà trong giờ đông khách | Pilot | ≥ 80% quà hiện vật được đổi qua màn Đổi quà | Đã giảm ma sát bằng máy quầy ghép QR ([D-24](./decisions.md)), tra mã theo SĐT ([D-25](./decisions.md)), quầy PWA + chế độ tập huấn; nếu vẫn sai: cho khách tự đổi bằng PIN nhân viên (M3) |
 | A4 | Quán trả **thuê bao**, không chỉ mua theo mùa | M2 | Retention tháng 2 ≥ 60% | Bán theo chương trình, thuê bao cho gói có giữ chân |
 | A5 | Giữ chân làm khách quay lại | M2–M3 | Quay lại 30 ngày ≥ 20% | Tập trung chương trình theo mùa |
 | A6 | SEO, chợ mẫu công khai, gói Free và watermark kéo được quán với CAC thấp | M2 | CAC ≤ 3 tháng thuê bao | Kênh agency/POS sớm hơn |
@@ -196,6 +196,7 @@ Tết 2027 là **mùa để học**, không phải mốc doanh thu.
 
 | Phiên bản | Ngày | Thay đổi chính |
 |---|---|---|
+| **v4.1** | 31/10/2026 | Thêm persona tương lai (agency làm cho nhãn hàng, nhãn hàng chạy trực tiếp) và quản lý cửa hàng trong chuỗi ([D-27](./decisions.md)), không đổi ICP; nguyên tắc 8 cho phép "Quà lần sau" (RET-06) như quà tặng ghi trong thể lệ; A3 nhắc máy quầy và tra mã theo SĐT ([D-24](./decisions.md), [D-25](./decisions.md)); căn số phút dựng theo §8 |
 | **v4.0** | 26/10/2026 | Builder vẫn là lõi, nhưng **định vị theo kết quả**: playbook theo mục tiêu, báo cáo kết quả, North Star đổi từ "SME có chương trình chạy" sang **lượt đổi quà tại quầy**; beachhead F&B đồ uống; lộ trình theo năng lực một người; tài liệu chia thư mục |
 | v3.0 | 25/10/2026 | ICP #1 đổi từ agency sang SME; hình mẫu 凡科; 2 engine + engine giữ chân; Studio desktop-first, game mobile-first; đổi quà tại quầy lên M1; Zalo lên M3; giá thuê bao |
 | v2.1 | 24/10/2026 | Bỏ Live add-on (game LED, Host Console, Screen) |

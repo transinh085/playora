@@ -1,6 +1,7 @@
 'use client';
 
 import { Badge } from '@playora/ui/components/badge';
+import { QRCodeSvg } from '@playora/ui/components/qr-code';
 import { Switch } from '@playora/ui/components/switch';
 import { Countdown } from '@playora/ui/game/countdown';
 import { GameButton } from '@playora/ui/game/game-button';
@@ -10,38 +11,37 @@ import { JoinPanel } from '@playora/ui/game/join-panel';
 import { Leaderboard } from '@playora/ui/game/leaderboard';
 import { TeamBar } from '@playora/ui/game/team-bar';
 import { type BrandKitTheme, type Skin, skins } from '@playora/ui/theme';
+import { Gift, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 const SKIN_LABEL: Record<Skin, string> = {
-  classic: 'Classic',
-  yep: 'YEP Gala',
-  tet: 'Tết',
-  day: 'Day (booth)',
+  tet: 'Tết (Đỏ lì xì & Vàng lá)',
+  day: 'Day (Quán sáng / Ngoài trời)',
+  yep: 'YEP Gala (Navy & Champagne)',
+  classic: 'Classic (Sân khấu Tím)',
 };
 
 const COMPARE_SKIN: Record<Skin, Skin> = {
+  tet: 'day',
+  day: 'tet',
+  yep: 'tet',
   classic: 'tet',
-  yep: 'day',
-  tet: 'yep',
-  day: 'classic',
 };
 
-const TEAMS = [
-  { team: 'Kinh doanh', score: 1840 },
-  { team: 'Marketing', score: 2210 },
-  { team: 'Kỹ thuật', score: 1525 },
-  { team: 'Vận hành', score: 990 },
+const PRIZE_POOL = [
+  { team: 'Mua 1 Tặng 1 Ô Long', score: 38 },
+  { team: 'Miễn phí Up Size L', score: 142 },
+  { team: 'Topping Kem Phô Mai', score: 96 },
+  { team: 'Túi vải Lộc Xuân', score: 36 },
 ];
 
 const TOP = [
-  { id: 'a', name: 'Nguyễn Thị Hồng Nhung', score: 412, meta: 'Marketing' },
-  { id: 'b', name: 'Trần Quốc Bảo', score: 398, meta: 'Kinh doanh' },
-  { id: 'c', name: 'Lê Hoàng Yến', score: 371, meta: 'Marketing' },
-  { id: 'd', name: 'Phạm Đức Thắng', score: 356, meta: 'Kỹ thuật' },
-  { id: 'e', name: 'Võ Minh Khôi', score: 340, meta: 'Vận hành' },
+  { id: 'a', name: 'Nguyễn Thị Hồng Nhung', score: 412, meta: 'Cơ sở Nguyễn Huệ' },
+  { id: 'b', name: 'Trần Quốc Bảo', score: 398, meta: 'Cơ sở Cầu Giấy' },
+  { id: 'c', name: 'Lê Hoàng Yến', score: 371, meta: 'Cơ sở Thảo Điền' },
 ];
 
-/** Example brand kit: a bank in red/gold, to show the brand layer overriding a skin. */
+/** Example brand kit: a bubble-tea chain in signature crimson/gold, overriding the base skin. */
 const SAMPLE_BRAND: BrandKitTheme = { primary: '#e30613', accent: '#ffcc00', radius: 'soft' };
 
 function SkinShowcaseCard({
@@ -53,19 +53,19 @@ function SkinShowcaseCard({
   brand?: BrandKitTheme;
   badgeLabel: string;
 }) {
-  const max = Math.max(...TEAMS.map((t) => t.score));
+  const max = Math.max(...PRIZE_POOL.map((t) => t.score));
 
   return (
     <GameRoot
       skin={skin}
       brand={brand}
       data-testid={`game-preview-skin-${skin}`}
-      className="grid min-h-0 w-full content-start gap-5 rounded-3xl border-4 border-foreground/15 p-6"
+      className="grid min-h-0 w-full content-start gap-5 rounded-3xl border-4 border-foreground/15 p-6 shadow-lg"
     >
       <div className="flex items-center justify-between gap-2">
         <Badge
           variant="secondary"
-          className="m-0 border-0 px-3 py-1 font-game text-xs font-bold bg-[var(--game-surface)] text-[var(--game-fg)]"
+          className="m-0 border-0 bg-[var(--game-surface)] px-3 py-1 font-game text-xs font-bold text-[var(--game-fg)]"
         >
           {badgeLabel}: {SKIN_LABEL[skin]}
         </Badge>
@@ -74,14 +74,25 @@ function SkinShowcaseCard({
         </div>
       </div>
 
+      {/* BLD-25: Transparent Cover Prize Counter */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-game border border-game-border bg-game-surface px-3.5 py-2.5 text-xs">
+        <div className="flex items-center gap-2 font-semibold">
+          <Gift className="size-4" />
+          <span>Còn 312 / 400 phần quà tại 3 cơ sở (BLD-25)</span>
+        </div>
+        <span className="rounded-full bg-black/20 px-2.5 py-0.5 font-mono text-[11px]">
+          Hôm nay còn 1 lượt
+        </span>
+      </div>
+
       <JoinPanel
         className="rounded-game border border-game-border bg-game-surface p-3 text-sm"
-        url="playora.vn/yep-abc"
-        code="4821"
+        url="play.playora.vn/tra-sua-ha"
+        code="PL94K7"
       />
 
       <div className="grid gap-2">
-        {TEAMS.map((t, i) => (
+        {PRIZE_POOL.map((t, i) => (
           <TeamBar
             key={t.team}
             name={t.team}
@@ -93,22 +104,36 @@ function SkinShowcaseCard({
         ))}
       </div>
 
-      <Leaderboard highlightId="b" entries={TOP.slice(0, 3)} className="text-sm" />
+      <Leaderboard highlightId="b" entries={TOP} className="text-sm" />
 
       <GameResult
         outcome="win"
-        title="Chúc mừng! Bạn trúng Giải Nhất"
-        description="Ô vòng quay: Lộc Xuân"
+        title="Chúc mừng! Bạn trúng 1× Up Size L"
+        description="Đưa mã PL94K7 cho nhân viên quầy trước 05/02/2027"
       />
 
+      {/* PRZ-03 / PRZ-16: Voucher Card with QR + Anti-screenshot live indicator */}
+      <div className="flex items-center justify-between gap-3 rounded-game border border-game-border bg-game-surface p-3.5">
+        <div className="rounded-xl bg-white p-1.5">
+          <QRCodeSvg value="PL94K7" size={56} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-mono text-lg font-extrabold tracking-widest">PL94K7</div>
+          <div className="flex items-center gap-1.5 text-[11px] text-game-muted">
+            <ShieldCheck className="size-3.5 shrink-0" />
+            <span>Đồng hồ thực chống ảnh chụp màn hình · 17:09:24</span>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col items-center gap-3 pt-1">
-        <GameButton size="tap">Chạm!</GameButton>
+        <GameButton size="tap">Quay ngay!</GameButton>
         <div className="grid w-full gap-2.5 sm:grid-cols-3">
           <GameButton variant="primary" size="md">
-            Quay ngay
+            Lưu vào Zalo
           </GameButton>
           <GameButton variant="accent" size="md">
-            Nhận quà
+            Quà của tôi
           </GameButton>
           <GameButton variant="surface" size="md">
             Thể lệ
@@ -120,7 +145,7 @@ function SkinShowcaseCard({
 }
 
 export function GamePreview() {
-  const [skin, setSkin] = useState<Skin>('classic');
+  const [skin, setSkin] = useState<Skin>('tet');
   const [branded, setBranded] = useState(false);
   const brand = branded ? SAMPLE_BRAND : undefined;
   const secondarySkin = COMPARE_SKIN[skin];
@@ -128,13 +153,13 @@ export function GamePreview() {
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex rounded-full bg-muted p-1 text-xs">
+        <div className="inline-flex flex-wrap rounded-xl bg-muted p-1 text-xs">
           {skins.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setSkin(s)}
-              className={`rounded-full px-3 py-1 font-medium transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 font-medium transition-all ${
                 skin === s
                   ? 'bg-background text-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -153,7 +178,7 @@ export function GamePreview() {
             checked={branded}
             onCheckedChange={(checked) => setBranded(checked)}
           />
-          <span>Áp brand kit mẫu (đỏ #E30613)</span>
+          <span>Áp Brand Kit quán mẫu (Đỏ #E30613 · Tương phản tự động WCAG)</span>
         </label>
       </div>
 
@@ -174,7 +199,7 @@ export function GamePreview() {
               <span className="font-game text-sm font-bold">{SKIN_LABEL[s]}</span>
               <Countdown seconds={s === 'tet' ? 3 : 12} className="text-lg" />
             </div>
-            <p className="text-xs text-game-muted">Vòng quay may mắn · 3 lượt còn lại</p>
+            <p className="text-xs text-game-muted">Vòng quay Lộc Xuân · Còn 1 lượt hôm nay</p>
             <GameButton variant="primary" size="md" className="w-full">
               Quay ngay
             </GameButton>

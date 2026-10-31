@@ -1,14 +1,14 @@
 # Game Builder: thành phần, khả năng tuỳ biến và yêu cầu kỹ thuật
 
-**Trạng thái:** Đề xuất · 26/10/2026 · Đầu vào: kiểm kê code nhánh `feat/studio-builder-redesign` (Builder Lab + canvas editor), [specs/builder](../product/specs/builder.md), [kế hoạch builder 25/10](../plans/2026-10-25-game-builder-plan.md), [specs/studio-ux](../product/specs/studio-ux.md), [ADR-014](../adr/014-free-canvas-screen-editor.md) · Liên quan: [specs/game-catalog](../product/specs/game-catalog.md), [design-system](./design-system.md)
+**Trạng thái:** Đề xuất · 26/10/2026 (kiểm kê trước khi nối API, cập nhật chú thích 31/10/2026) · Đầu vào: kiểm kê code Builder + canvas editor, [specs/builder](../product/specs/builder.md), [kế hoạch builder 25/10](../plans/2026-10-25-game-builder-plan.md), [specs/studio-ux](../product/specs/studio-ux.md), [ADR-014](../adr/014-free-canvas-screen-editor.md) · Liên quan: [specs/game-catalog](../product/specs/game-catalog.md), [design-system](./design-system.md)
 
-> Tài liệu này **không thay** [specs/builder](../product/specs/builder.md) (đặc tả sản phẩm) hay [roadmap](../product/roadmap.md) (kế hoạch). Nó là bản đồ kỹ thuật: builder gồm những thành phần nào, mỗi thành phần đang làm được gì, người dùng tuỳ biến được tới đâu, và yêu cầu kỹ thuật để builder đạt mức "chuyên nghiệp, chỉn chu, dễ tuỳ biến". Mỗi yêu cầu có ID `GB-…` để đưa vào [prd.md](../product/prd.md) (§5.3).
+> Tài liệu này **không thay** [specs/builder](../product/specs/builder.md) (đặc tả sản phẩm) hay [roadmap](../product/roadmap.md) (kế hoạch). Nó là bản đồ kỹ thuật: builder gồm những thành phần nào, mỗi thành phần đang làm được gì, người dùng tuỳ biến được tới đâu, và yêu cầu kỹ thuật để builder đạt mức "chuyên nghiệp, chỉn chu, dễ tuỳ biến". Mỗi yêu cầu có ID `GB-…`; khi lên lịch thì gom vào ID `BLD-*` tương ứng trong [prd.md §5.3](../product/prd.md#53-builder-bld) (không thêm `GB-*` vào PRD).
 
 ---
 
 ## 0. Tóm tắt
 
-1. **Builder hiện có 12 thành phần** (§2), phần lớn đã chạy trong Builder Lab với backend giả. Nền móng tốt: tài liệu màn dạng canvas, ô thay thế, luật dạng câu, mô phỏng giải, pre-flight sửa một chạm, quyết định giải chạy bằng `@playora/core/prize` thật.
+1. **Builder hiện có 12 thành phần** (§2), phần lớn đã chạy với API thật (`campaigns`/`plays`/`vouchers`, [ADR-015](../adr/015-campaign-persistence.md)). Nền móng tốt: tài liệu màn dạng canvas, ô thay thế, luật dạng câu, mô phỏng giải, pre-flight sửa một chạm, quyết định giải chạy bằng `@playora/core/prize` thật.
 2. **Vì sao chưa "pro":** (a) cơ chế game, thứ người chơi nhìn nhiều nhất, **gần như không tuỳ biến được**; (b) 9 mẫu (3 cơ chế × 3 skin) **dùng chung một bố cục**; (c) hệ thiết kế chỉ có 5 màu + 2 "font" logic; (d) editor thiếu thao tác cơ bản của công cụ thiết kế (chọn nhiều, copy/paste, group, phân bố đều); (e) **hai mô hình template song song** (`packages/game-sdk` + `packages/templates` vs Builder Lab) chưa hợp nhất.
 3. **Đề xuất trục kiến trúc** (§4): mọi thứ người dùng chỉnh được đều là **dữ liệu có schema** ở 4 tầng — *Theme* (token) → *Template* (bố cục + cơ chế + ô thay thế) → *Mechanism config* (schema riêng từng cơ chế) → *Override* (canvas). Editor, Sửa nhanh, AI và pre-flight đều đọc/ghi cùng các schema đó.
 4. **Ưu tiên làm trước** (§7): hợp nhất mô hình template → Mechanism config (vòng quay trước) → Theme token + font + brand kit → 3 bố cục/cơ chế + thư viện block → hoàn thiện editor.
@@ -19,7 +19,7 @@
 
 | Thuật ngữ | Nghĩa trong tài liệu này |
 |---|---|
-| **Campaign** | Một chương trình của chủ quán: 1 cơ chế, màn, giải, luật. Trong Lab là `Campaign` (`builder-lab/mock/types.ts`). |
+| **Campaign** | Một chương trình của chủ quán: 1 cơ chế, màn, giải, luật. Kiểu `Campaign` lấy từ contract `packages/contracts/src/api/campaigns.ts`. |
 | **Cơ chế (mechanism)** | Phần game có tương tác: vòng quay, thẻ cào, hộp quà… Vẽ trong khung `gameStage`, **không bao giờ tự quyết định kết quả**. |
 | **Template** | Gói = cơ chế + bố cục màn mặc định + ô thay thế + cấu hình mặc định. |
 | **Skin / Theme** | Bộ token thị giác (màu, font, bo góc, bóng, sticker, âm thanh) theo dịp. Hiện tại skin chỉ là 5 màu + 3 sticker. |
@@ -33,7 +33,7 @@
 
 ## 2. Kiểm kê thành phần hiện có
 
-Ký hiệu: ✅ dùng được · ⚠️ có nhưng yếu/chưa đủ · ❌ chưa có · 🧪 chỉ trong Lab (backend giả).
+Ký hiệu: ✅ dùng được · ⚠️ có nhưng yếu/chưa đủ · ❌ chưa có · 🧪 bản thử nghiệm (chưa đủ cho pilot).
 
 ### 2.1 Bản đồ tổng thể
 
@@ -45,7 +45,7 @@ Ký hiệu: ✅ dùng được · ⚠️ có nhưng yếu/chưa đủ · ❌ ch�
 │                 └─ ⑧ Luật & giải (cách phát → quà → luật câu → mô phỏng)    │
 │                        │ đọc/ghi một bản nháp Campaign                       │
 │ ⑤ CanvasScreen (renderer chung) ◄── ⑥ Cơ chế (wheel/scratch/giftbox)        │
-│ ⑦ Template + skin (buildScreens)                                            │
+│ ⑦ Template + skin (starter/defaults)                                        │
 └────────────────────────────────────────────────────────────────────────────┘
           │ publish (bất biến)                     │ quyết định giải
           ▼                                        ▼
@@ -57,18 +57,18 @@ Ký hiệu: ✅ dùng được · ⚠️ có nhưng yếu/chưa đủ · ❌ ch�
 
 | # | Thành phần | Vị trí code | Trạng thái | Người dùng tuỳ biến được gì | Khoảng trống chính |
 |---|---|---|---|---|---|
-| ① | Chợ mẫu (template gallery) | `builder-lab/components/home/template-gallery.tsx`, `mock/templates.ts` | 🧪 | Chọn cơ chế × skin, lọc theo dịp | 9 mẫu cùng **một** bố cục (`createDemoDoc`); `industries` gán chung cho mọi mẫu; không có thumbnail thật; không lọc theo ngành |
-| ② | Editor shell | `builder-lab/components/builder-editor.tsx`, `editor/use-campaign-draft.ts` | 🧪 | Chuyển 3 chế độ, đổi tên, chơi thử | Autosave chỉ vào localStorage; chưa có phát hiện xung đột phiên bản |
-| ③ | Sửa nhanh | `quick-edit/{quick-edit-panel,slot-card,slots}.tsx` | 🧪 | 5 slot cố định (`logo`, `productPhoto`, `title`, `promoText`, `cta`), đổi skin giữ nội dung đã sửa, 5 màu brand | `SlotKey` là enum cứng; thiếu slot nền, ảnh quà, sticker, màu chủ đạo; chưa có chạm-để-sửa trên preview |
-| ④ | Canvas editor | `canvas-editor/components/{canvas-workspace,editor-canvas,properties-panel,side-panels}.tsx`, `lib/{editor-state,geometry}.ts` | ✅ (prototype) | Kéo, đổi cỡ, xoay, snap (ngưỡng 5 px) vào mép/tâm, bảng lớp kéo đổi thứ tự, khoá/ẩn, undo/redo 100 bước, zoom, menu chuột phải, phím tắt (⌘Z/⌘Y/⌘D, Delete, mũi tên) | Không chọn nhiều, không group, không copy/paste (kể cả giữa màn), không phân bố đều, không sao chép style, không đo khoảng cách, khoá 1 mức (`locked: boolean`), không neo dọc |
+| ① | Chợ mẫu (template gallery) | `builder-lab/components/home/template-gallery.tsx`, `builder-lab/lib/starter.ts` | ✅ | Chọn cơ chế × skin, lọc theo dịp/mục tiêu | 9 mẫu cùng **một** bố cục; chưa có art thật cho từng skin (BLD-06 🧪) |
+| ② | Editor shell | `builder-lab/components/builder-editor.tsx`, `editor/use-campaign-draft.ts` | ✅ | Chuyển 3 chế độ, đổi tên, chơi thử trong Studio | Autosave lưu bản nháp qua API sau 800 ms; chưa phát hiện xung đột phiên bản |
+| ③ | Sửa nhanh | `quick-edit/{quick-edit-panel,slot-card,slots}.tsx` | ✅ | 5 slot cố định (`logo`, `productPhoto`, `title`, `promoText`, `cta`), đổi skin giữ nội dung đã sửa, 5 màu brand | `SlotKey` là enum cứng; thiếu slot nền, sticker; chưa có chạm-để-sửa trên preview |
+| ④ | Canvas editor | `canvas-editor/components/{canvas-workspace,editor-canvas,properties-panel,side-panels}.tsx`, `lib/{editor-state,geometry}.ts` | ✅ (beta) | Kéo, đổi cỡ, xoay, snap (ngưỡng 5 px) vào mép/tâm, bảng lớp kéo đổi thứ tự, khoá/ẩn, undo/redo 100 bước, zoom, menu chuột phải, phím tắt (⌘Z/⌘Y/⌘D, Delete, mũi tên) | Không chọn nhiều, không group, không copy/paste (kể cả giữa màn), không phân bố đều, không sao chép style, không đo khoảng cách, khoá 1 mức (`locked: boolean`), không neo dọc |
 | ⑤ | Renderer màn `CanvasScreen` | `packages/ui/src/campaign/canvas-screen.tsx` (`@playora/ui/campaign`) | ✅ | Biến `{prize.name}`, `{player.name}`, `{event.name}`, `{turns.left}`; animation vào (5) + lặp (3); nhãn truyền vào qua `CanvasLabels` (namespace i18n `campaignPlayer`) | Dùng chung Studio + Play; chữ do người dùng soạn chưa đa ngôn ngữ |
-| ⑥ | Cơ chế game | `packages/ui/src/campaign/{spin-wheel,scratch-card,gift-box}.tsx` (`Mechanism`) | 🧪 | **Chỉ gián tiếp qua 5 màu brand** và danh sách giải | Không có config riêng; trong khi `packages/templates/src/spin-wheel/definition.ts` đã có `segments[].color`, `spins`, `durationMs`, `centerLogo`, `backgroundImage` → **hai nguồn sự thật** |
-| ⑦ | Template + skin | `builder-lab/mock/templates.ts` (`buildScreens`, `SKINS`) | 🧪 | — | Skin = 5 màu + 3 sticker + câu chữ; vá bố cục bằng **tên phần tử** (`patch(cover, 'Tiêu đề', …)`) nên giòn khi đổi tên; tự co chữ bằng công thức đoán `0.95em/glyph` |
-| ⑧ | Luật & giải | `components/rules/*`, `rules-prizes-panel.tsx`, `lib/{rules-summary,rules-sim}.ts` | 🧪 (engine thật) | 3 mode (`per_prize_probability`, `overall_win_rate`, `guaranteed`), quà (tên, ảnh, SL, giá trị, xác suất), lượt/ngày, tối đa trúng/người, thời gian, giờ mở cửa, rải đều, ngân sách, bật/tắt form; mô phỏng | Form người chơi cố định (tên + SĐT); chưa có giải an ủi, loại giải (voucher pool…) |
-| ⑨ | Pre-flight | `lib/preflight.ts` | ✅ | Sửa một chạm cho 11 mã lỗi (`noPrizes`, `zeroQuantity`, `probabilitySum`, `endInPast`, `endBeforeStart`, `lowStock`, `smallText`, `smallButton`, `offCanvas`, `lowContrast`, `emptyTitle`) | Chưa kiểm ảnh độ phân giải thấp, số phần tử > 60, chữ tràn khung, link sai định dạng, bố cục trên máy ngắn |
-| ⑩ | Publish | `editor/publish-dialog.tsx` | 🧪 | Link chơi, link tập dượt, link quầy, QR, số liệu | Chưa có version bất biến thật / `hotEditable` trong Lab |
-| ⑪ | Player | `CampaignPlayer` trong `@playora/ui/campaign` (thuần, không gọi API); `components/lab-player.tsx` là adapter mock + toolbar Lab | 🧪 | — | Play app chưa nối API (story riêng) |
-| ⑫ | Vận hành | `redeem-desk.tsx`, `studio/campaign-ops.tsx`, `campaign-home.tsx` | 🧪 | Tạm dừng, đổi quà một lần | — |
+| ⑥ | Cơ chế game | `packages/ui/src/campaign/{spin-wheel,scratch-card,gift-box}.tsx` (`Mechanism`) | ✅ | **Chỉ gián tiếp qua 5 màu brand** và danh sách giải | Không có config riêng (BLD-02 dời sang M2); trong khi `packages/templates/src/spin-wheel/definition.ts` đã có `segments[].color`, `spins`, `durationMs`, `centerLogo`, `backgroundImage` → **hai nguồn sự thật** |
+| ⑦ | Template + skin | `builder-lab/lib/starter.ts` + `apps/api/src/modules/campaigns/campaign-defaults.ts` | 🧪 | — | Skin = 5 màu + 3 sticker + câu chữ; tự co chữ bằng công thức đoán `0.95em/glyph` |
+| ⑧ | Luật & giải | `components/rules/*`, `rules-prizes-panel.tsx`, `lib/{rules-summary,rules-sim}.ts` | ✅ | 3 mode (`per_prize_probability`, `overall_win_rate`, `guaranteed`), quà (tên, ảnh, SL, giá vốn, xác suất), lượt/ngày, tối đa trúng/người, thời gian, ngày mở, giờ mở cửa, rải đều, ngân sách, đổi quà trước khi chơi tiếp, bật/tắt form, chống gian lận, pháp lý; mô phỏng | Form người chơi cố định (tên + SĐT); M1 chỉ có quà đổi tại quầy |
+| ⑨ | Pre-flight | `lib/preflight.ts` | ✅ | Sửa một chạm cho 12 mã lỗi (`noPrizes`, `zeroQuantity`, `probabilitySum`, `endInPast`, `endBeforeStart`, `lowStock`, `smallText`, `smallButton`, `offCanvas`, `lowContrast`, `emptyTitle`, `unselectedPromotionType`) | Chưa kiểm ảnh độ phân giải thấp, số phần tử > 60, cảnh báo theo mô phỏng, chưa chơi thử (BLD-09 Could) |
+| ⑩ | Publish | `editor/publish-dialog.tsx` | ✅ | Phát hành tạo `game_versions` bất biến; checklist pháp lý | Chưa có sửa nóng chữ/nhãn khi đang chạy (BLD-08, M1 Could) |
+| ⑪ | Player | `CampaignPlayer` trong `@playora/ui/campaign`; Play nối API thật (`/p/:slug/campaign`, `/plays`, `/me`) | ✅ | — | — |
+| ⑫ | Vận hành | `redeem-desk.tsx`, `studio/campaign-ops.tsx`, `campaign-home.tsx` | ✅ | Tạm dừng/tiếp tục/kết thúc, đổi quà một lần, mở lại mã (owner) | Đang mở cho pilot: PRZ-15/16, ORG-10 (M1 Must) |
 
 **Builder thế hệ cũ** `apps/studio/src/features/games/**` (AutoForm từ `configSchema`, iframe preview, skin panel) đã gỡ ngày 27/10 cùng UI `/events/**` ([studio-ux §5](../product/specs/studio-ux.md) C1).
 
@@ -142,7 +142,7 @@ Thuộc tính chung (`BaseElement`): `x, y, w, h, rotation, opacity, locked, hid
 
 ## 5. Yêu cầu kỹ thuật theo thành phần
 
-Mức ưu tiên: **P0** = trước pilot Tết (≤ 15/01/2027) · **P1** = M2 · **P2** = sau.
+Mức ưu tiên: **P0** chỉ áp dụng khi hạng mục nằm trong [prd.md §7.1](../product/prd.md#71-việc-m1-còn-mở) ([D-26, D-28](../product/decisions.md)); các mục `GB-*` còn lại là backlog sau pilot (M2+).
 
 ### 5.1 Mô hình dữ liệu
 
@@ -157,7 +157,7 @@ Mức ưu tiên: **P0** = trước pilot Tết (≤ 15/01/2027) · **P1** = M2 �
 | GB-D07 | Phần tử có `role` ổn định (vd. `cover.title`) thay cho vá theo `name`; `name` chỉ để hiển thị | P0 |
 | GB-D08 | Chữ dùng `LocalizedText { vi, en? }` | P1 |
 | GB-D09 | `group` (phần tử con có toạ độ tương đối) để hỗ trợ group và block | P1 |
-| GB-D10 | Giới hạn kích thước: ≤ 60 phần tử/màn, ≤ 2.000 px chiều cao, tài liệu JSON ≤ 256 KB (không nhúng data URL; ảnh là asset id) | P0 |
+| GB-D10 | Giới hạn kích thước: tối đa 200 phần tử/màn (server từ chối, BLD-20), cảnh báo khi > 60 (BLD-09); ≤ 2.000 px chiều cao, tài liệu JSON ≤ 256 KB (không nhúng data URL; ảnh là asset id) | P0 |
 
 ### 5.2 Cơ chế game có thể tuỳ biến (Mechanism config)
 
@@ -196,7 +196,7 @@ Mỗi cơ chế khai báo `configSchema` bằng `field.*` của `@playora/game-s
 
 | ID | Yêu cầu | Ưu tiên |
 |---|---|---|
-| GB-L01 | **Một thư mục = một template** (`packages/templates/src/<id>/`): `definition.ts` (schema, server), `mechanism.tsx`, `layouts/*.json` (ScreenDoc theo vai trò), `slots.ts`, `thumbnail.webp`. Registry tự sinh; lệnh `bun run gen:template` (specs/builder §2.1) | P0 |
+| GB-L01 | **Một thư mục = một template** (`packages/templates/src/<id>/`): `definition.ts` (schema, server), `mechanism.tsx`, `layouts/*.json` (ScreenDoc theo vai trò), `slots.ts`, `thumbnail.webp`. Registry tự sinh; lệnh `bun run gen:template` (specs/builder §2.1) | P1 (BLD-24, M1 Could) |
 | GB-L02 | Mỗi cơ chế có **≥ 3 bố cục** khác biệt rõ (vd. *Hero ảnh lớn*, *Poster chữ to*, *Thẻ nổi*). Chợ mẫu = bố cục × theme pack | P0 |
 | GB-L03 | Đổi bố cục/theme **giữ nội dung slot** (mở rộng `switchSkin` hiện có sang `switchLayout`) | P0 |
 | GB-L04 | Thư viện **block** (~8 block khởi đầu): Thể lệ ngắn, Danh sách quà, Đếm ngược + CTA, Thông tin quán + Zalo/gọi, Huy hiệu khuyến mãi, Footer nhà tài trợ, Người trúng gần đây (dữ liệu thật), Hướng dẫn 3 bước | P1 |
@@ -283,7 +283,7 @@ Giữ cơ chế "cảnh báo + sửa một chạm" hiện có; bổ sung:
 | ID | Yêu cầu | Ưu tiên |
 |---|---|---|
 | GB-R01 | `CanvasScreen` + cơ chế chuyển sang `@playora/ui/game`, dùng chung cho Studio preview và Play | P0 |
-| GB-R02 | Ngân sách Play trên 4G, máy Android tầm trung: JS ≤ 150 KB gzip cho màn đầu, LCP ≤ 2,5 s, tương tác cơ chế 60 fps | P0 |
+| GB-R02 | Ngân sách Play trên 4G, máy Android tầm trung: First Load JS trong ngân sách [prd §6](../product/prd.md#6-yêu-cầu-phi-chức-năng) (≤ 260 KB gzip, trần 280), LCP ≤ 2,5 s, tương tác cơ chế ≥ 30 fps máy cũ (mục tiêu 60 fps) | P0 |
 | GB-R03 | Lazy-load ảnh các màn sau; preload ảnh màn `game` khi người chơi đang ở `cover`/`form` | P0 |
 | GB-R04 | Snapshot test: render từng bố cục × theme ở 3 kích thước máy, so ảnh (Playwright) — đảm bảo "preview khớp 100% bản publish" (specs/builder §9) | P1 |
 
@@ -302,7 +302,7 @@ Giữ cơ chế "cảnh báo + sửa một chạm" hiện có; bổ sung:
 | GB-S01 | Không phần tử, config, AI hay block nào có đường gọi tới quyết định giải; cơ chế chỉ diễn kết quả server trả (AGENTS.md, specs/builder §1) | P0 |
 | GB-S02 | **Bỏ dữ liệu người trúng bịa** khỏi mẫu (`marquee` mặc định); khối "Người trúng gần đây" chỉ đọc từ engine, che số, ẩn khi rỗng | P0 |
 | GB-S03 | Link do người dùng nhập chỉ cho `https:`, `tel:`, `zalo.me`; render với `rel="noopener noreferrer"` | P0 |
-| GB-S04 | Sau publish: chỉ field `hotEditable` (chữ, nhãn) được sửa, có audit; đổi config cơ chế/bố cục = version mới (specs/builder §4.3) | P0 |
+| GB-S04 | Sau publish: mọi thay đổi vào bản nháp và phải phát hành lại (BLD-08); khi có sửa nóng (M1 Could) thì chỉ chữ/nhãn, có audit; đổi config cơ chế/bố cục luôn là version mới (specs/builder §4.3) | P0 |
 | GB-S05 | Mọi truy vấn template/asset/brand kit theo `organizationId` (tenant isolation) | P0 |
 
 ### 5.14 Kiểm thử
@@ -362,4 +362,4 @@ B1–B5 (~6,5 tuần) chạy **sau hoặc xen kẽ P0 vòng lõi chơi được*
 2. **Font:** self-host (ổn định, không phụ thuộc Google) hay `next/font/google`? Danh sách 8–10 cặp font cuối cùng.
 3. **Art:** ai vẽ sticker/khung/ảnh nền cho 3 theme pack đầu (thuê ngoài, mua bộ có license, hay AI + chỉnh tay)?
 4. **Âm thanh:** có đưa vào P0 không (tăng "độ đã" rõ rệt nhưng cần nguồn có license)?
-5. **Block "Người trúng gần đây":** hiện tên hay chỉ số điện thoại che (cần đối chiếu đồng ý dữ liệu cá nhân — NĐ 13)?
+5. **Block "Người trúng gần đây":** hiện tên hay chỉ số điện thoại che (cần đối chiếu đồng ý dữ liệu cá nhân — Luật 91/2025/QH15)?
