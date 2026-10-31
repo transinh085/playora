@@ -1,6 +1,6 @@
 # PRD — Playora
 
-Phiên bản: **v4.3** · 31/10/2026 · Owner: PO · Theo [strategy.md](./strategy.md) v4.0 · Thuật ngữ: [glossary.md](./glossary.md) · Thay đổi: [§9](#9-lịch-sử-phiên-bản)
+Phiên bản: **v4.3** · 31/10/2026 · Owner: PO · Theo [strategy.md](./strategy.md) v4.1 · Thuật ngữ: [glossary.md](./glossary.md) · Thay đổi: [§9](#9-lịch-sử-phiên-bản)
 
 **Giai đoạn:** M0 Discovery · **M1** vòng lõi + pilot Tết (→ 02/2027) · **M2** self-serve + giữ chân v1 (03–05/2027) · **M3** Zalo + giữ chân v2 (06–09/2027) · **M4** kênh + Tết 2028 (10–12/2027) · **Later** 2028+. Lịch chi tiết: [roadmap.md](./roadmap.md).
 
@@ -110,7 +110,8 @@ Sidebar: **Trang chủ** · MINIGAME (Chương trình, Kho mẫu, Đổi quà) �
 | Email tóm tắt hằng ngày | (email) | 4 số hôm qua, % quà còn lại, cảnh báo bất thường, link về Tổng quan | ANL-10 | M1 (Should) |
 | Brand kit | `/brand-kits` | Tạo/sửa brand kit: logo, 5 màu (chính, nhấn, nền, bề mặt, chữ), font; chương trình mới lấy brand kit đầu tiên | BLD-04 | |
 | | | Upload logo → tự đề xuất 5 màu | BLD-27 | M1 (Could) |
-| Thư viện ảnh | `/assets` | Upload ảnh (tối ưu, giới hạn dung lượng), xem, xoá; chọn ảnh từ thư viện trong builder | BLD-13 | |
+| Thư viện ảnh | `/assets` | Upload ảnh (tối ưu, giới hạn dung lượng), xem, xoá; brand kit chọn logo từ thư viện | BLD-13 | |
+| | | Chọn ảnh từ thư viện ngay trong Builder (hiện Builder chỉ upload mới) | BLD-13 | M1 (Could) |
 | | | Chụp ảnh sản phẩm → tự xoá nền | BLD-22 | M2 |
 | Cài đặt tổ chức | `/settings` | Tên tổ chức; **Thành viên & vai trò**: danh sách, mời qua email kèm vai trò, đổi vai trò, gỡ thành viên, huỷ lời mời (`/members` và `/settings/members` chuyển hướng về đây) | ORG-02, ORG-02a | |
 | Máy quầy | `/settings/counter-devices` | Thêm máy quầy (nhãn, quán) → QR ghép; danh sách máy, lần dùng cuối; thu hồi một chạm | ORG-10, PRZ-17 | M1 (Must) |
@@ -134,7 +135,7 @@ Sidebar: **Trang chủ** · MINIGAME (Chương trình, Kho mẫu, Đổi quà) �
 | Builder (toàn màn hình) | `/campaigns/{id}/edit` | Ba chế độ trên cùng bản nháp: **Sửa nhanh · Tuỳ biến · Luật & giải**; giữa là preview điện thoại; nút **Phát hành** mở hộp kiểm tra + checklist pháp lý | BLD-03, BLD-07 | |
 | | | **Sửa nhanh** (mặc định): thẻ ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà); đổi skin giữ nội dung; màu brand | BLD-19, BLD-06 | |
 | | | **Tuỳ biến** (beta): canvas tự do mỗi màn — kéo, đổi cỡ, xoay, snap, lớp, khoá | BLD-20 | |
-| | | Cấu hình riêng của mẫu (số ô vòng quay, tỷ lệ cào, số hộp…) | BLD-02 | |
+| | | Cấu hình riêng của mẫu trong form tự sinh (hiện cơ chế tự suy từ danh sách giải, không có form) | BLD-02 | M2 |
 | | | **Luật & giải** (4 bước): (1) cách phát giải → (2) giải (tên, ảnh, số lượng, giá vốn) → (3) luật viết bằng câu (lượt/ngày, lịch, giờ mở cửa, rải quà, ngân sách, form, chống gian lận) → (4) pháp lý (loại chương trình, thể lệ tự sinh/sửa); kèm thẻ mô phỏng | BLD-21, PRZ-01, PRZ-05, PRZ-07, PRZ-08, PRZ-09, EVT-05, EVT-13, EVT-14, CMP-03, CMP-04 | |
 | | | Tự lưu, undo/redo | BLD-14 | |
 | | | Preview chuyển giữa 5 màn (Bìa, Form, Game, Trúng, Không trúng); nút Chơi thử chạy bản nháp trong Studio (thành viên đăng nhập), không trừ kho thật | BLD-03, BLD-23 | |
@@ -156,7 +157,7 @@ Sidebar: **Trang chủ** · MINIGAME (Chương trình, Kho mẫu, Đổi quà) �
 | Vận hành · Giải & đổi quà | tab | Bảng quà: tổng / đã phát / đã đổi / còn lại / chi phí; danh sách mã (đã phát, đã đổi, hết hạn, huỷ); lối tắt sang Quầy đổi quà | PRZ-09, PRZ-10 | |
 | | | Thêm/bớt tồn kho khi đang chạy, có audit (hiện phải sửa bản nháp và phát hành lại) | PRZ-01 | M1 (Should) |
 | | | Bốc thăm cuối chương trình | PRZ-02 | M2 |
-| Vận hành · Kênh & QR | `/campaigns/{id}/share` | QR tải PNG/SVG; link theo kênh (`?ch=qr-ban`, `fanpage`, `zalo-oa`, tự đặt); mẫu in standee + tent card (`/share/print`); mời nhân viên quầy | EVT-10, EVT-11, ORG-02a | |
+| Vận hành · Chia sẻ & QR | `/campaigns/{id}/share` | QR tải PNG/SVG; link theo kênh (`?ch=qr-ban`, `fanpage`, `zalo-oa`, tự đặt); mẫu in standee + tent card (`/share/print`); mời nhân viên quầy | EVT-10, EVT-11, ORG-02a | |
 | | | Thêm máy quầy (QR ghép) | ORG-10 | M1 (Must) |
 | | | Checklist **"Sẵn sàng mở bán"**: đã in QR · đã có máy quầy · nhân viên đã đổi thử mã tập huấn · đã chia sẻ fanpage | BLD-29 | M1 (Should) |
 | Vận hành · Cài đặt | tab | Đổi ngày kết thúc (**gia hạn**); **tạm dừng / tiếp tục**, **kết thúc ngay**; xoá (chặn khi Đã lên lịch / Đang chạy / Tạm dừng) | EVT-01 | |
@@ -309,7 +310,7 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 #### ORG-06 · Audit log
 
 - **Hành vi:** ghi lại ai, lúc nào, làm gì, trên đối tượng nào, giá trị trước/sau.
-  - **Đã ghi:** `campaign.publish`, `campaign.pause` / `resume` / `end`, `campaign.delete`, `voucher.reopen` (kèm lý do), đổi gói và ghi hoá đơn ở back-office, thay đổi brand kit và ảnh.
+  - **Đã ghi:** `campaign.publish`, `campaign.pause` / `resume` / `end`, `campaign.delete`, `voucher.reopen` (kèm lý do), đổi gói và ghi hoá đơn ở back-office, xoá brand kit và xoá ảnh.
   - *Chưa có:* lượt đổi quà (hiện người đổi và thời điểm chỉ nằm trên bản ghi award — đủ cho báo cáo, chưa là audit), gia hạn (đổi ngày kết thúc), điều chỉnh tồn kho, sửa nóng, export, tra cứu theo SĐT (PRZ-15), màn xem audit trong Studio.
 - **Quy tắc:** audit chỉ ghi thêm, không sửa/xoá; owner/admin xem được (`audit:read`).
 - **Nghiệm thu:** test tích hợp kiểm có dòng audit cho phát hành, tạm dừng/kết thúc, xoá, mở lại mã, đổi gói; mỗi hành động mới trong danh sách *Chưa có* thêm test khi làm.
@@ -352,7 +353,7 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
   | Khách quay lại lần 2 (`second_visit`) | Cào thẻ, skin quanh năm | Phải đổi quà lần trước mới chơi tiếp (`requireRedeemBeforeReplay`), 30 ngày | % quay lại trong 14 ngày |
   | Lấp ngày vắng (`slow_days`) | Mở hộp | Chỉ mở các ngày vắng (`openDays`), quà cao hơn | Lượt đổi quà ngày vắng |
 
-  Cuối trang có "Tự chọn mẫu" (kho mẫu, BLD-01). Chọn xong → bước Thiết lập (PLB-02) → Builder ở bước Giao diện, chế độ Sửa nhanh, đã đủ giải và luật.
+  Cuối trang có "Tự chọn mẫu" (kho mẫu, BLD-01). Chọn xong → bước Thiết lập (PLB-02) → Builder ở chế độ Sửa nhanh, đã đủ giải và luật.
 - **Quy tắc:** playbook chỉ là cấu hình ban đầu; server không có logic riêng theo playbook. Tag playbook lưu trên chương trình để báo cáo theo mục tiêu.
 - **Nghiệm thu:** e2e `playbook-create.spec.ts`: chọn playbook → nhập ngân sách, giá vốn, ngày → vào Builder → bước kiểm tra không còn lỗi chặn về giải/luật.
 
@@ -397,14 +398,14 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
 | BLD-01 | Kho mẫu lọc theo dịp, ngành, mục tiêu; xem trước chơi được | M1 (trong Studio), M2 (công khai, SEO) | ✅ (trong Studio) |
-| BLD-02 | Auto-form sinh từ `configSchema` cho phần riêng của mẫu | M1 | ✅ (editor cũ) |
+| BLD-02 | Auto-form sinh từ `configSchema` cho phần riêng của mẫu | M2 | ⬜ trong mô hình Campaign (`@playora/ui/auto-form` có sẵn, editor cũ dùng nó đã gỡ 27/10; M1 cơ chế tự suy từ danh sách giải) |
 | BLD-03 | Preview thật: cùng renderer với Play, kết quả giả lập chọn được | M1 | ✅ |
 | BLD-04 | Brand kit (logo, màu, font) áp cho mọi chương trình | M1 | ✅ |
 | BLD-06 | Skin: M1 mỗi mẫu 3 skin (Tết, quanh năm, khai trương) có hình thật; M2 bộ theo dịp | M1/M2 | 🧪 (3 mẫu × 3 skin, chưa có art thật) |
 | BLD-07 | Flow chuẩn: Bìa → Form → Game → Kết quả (Trúng / Không trúng; hết lượt, ngoài giờ là thông báo) → Quà của tôi | M1 | ✅ |
 | BLD-08 | Phát hành tạo phiên bản bất biến; chỉ chữ/nhãn sửa nóng được, có audit | M1 | ✅ phiên bản bất biến, bản nháp sửa tiếp không ảnh hưởng người chơi · ⬜ sửa nóng (hiện mọi thay đổi phải phát hành lại; M1 Could) |
-| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | ✅ (các luật ở chi tiết) · ⬜ cảnh báo theo mô phỏng, "chưa chơi thử", giải không gắn ô vòng quay |
-| BLD-13 | Thư viện ảnh: upload, tối ưu ảnh, cắt theo ô | M1 | ✅ upload · ⬜ cắt theo ô |
+| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | ✅ (các luật ở chi tiết) · ⬜ cảnh báo theo mô phỏng, "chưa chơi thử", màn > 60 phần tử |
+| BLD-13 | Thư viện ảnh: upload, tối ưu ảnh, chọn lại ảnh trong Builder, cắt theo ô | M1 | ✅ upload, thư viện, brand kit chọn từ thư viện · ⬜ chọn từ thư viện trong Builder, cắt theo ô (M1 Could) |
 | BLD-14 | Tự lưu, undo/redo | M1 | ✅ |
 | BLD-15 | Nhân bản chương trình; thùng rác 14 ngày | M2 | ⬜ |
 | BLD-19 | **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà) | M1 | ✅ |
@@ -428,11 +429,11 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 - **Quy tắc:** M1 có 3 mẫu instant-win (`spin-wheel`, `scratch-card`, `gift-box`) × 3 skin (`tet`, `everyday`, `grand-opening`). Mẫu bị tắt ở back-office (M2) không hiện.
 - **Nghiệm thu:** e2e tạo chương trình từ kho mẫu.
 
-#### BLD-02 · Cấu hình riêng của mẫu
+#### BLD-02 · Cấu hình riêng của mẫu (M2)
 
-- **Hành vi:** panel "Cấu hình mẫu" trong Builder hiện các field riêng của mẫu (vòng quay: số ô 4–12, nhãn/màu/ảnh từng ô, ô gắn giải hoặc "chúc may mắn", thời lượng quay 3–8 s; cào thẻ: ảnh lớp phủ, % lộ để hiện kết quả, mặc định 60%; mở hộp: số hộp 1/3/9).
-- **Quy tắc:** form sinh từ `configSchema` (zod) của mẫu và validate bằng chính schema đó ở cả client và server; giải, lịch, lượt chơi, màn shell là panel nền tảng viết tay.
-- **Nghiệm thu:** nhập giá trị ngoài khoảng thì báo lỗi tại field; server từ chối config sai schema (400).
+- **Hiện tại (M1):** mô hình Campaign không có cấu hình riêng theo mẫu; cơ chế tự suy từ danh sách giải và brand: vòng quay dựng ô từ các giải (tối thiểu 6 ô, xen ô "chúc may mắn", `wheel-math.ts`), cào thẻ hiện kết quả khi cào ≥ 45%, mở hộp có 3 hộp.
+- **Đích (M2):** panel "Cấu hình mẫu" hiện các field riêng của mẫu (số ô, thời lượng quay, ngưỡng cào, số hộp…), form sinh từ `configSchema` (zod) bằng `@playora/ui/auto-form` và validate bằng chính schema ở client và server; giải, lịch, lượt chơi, màn shell vẫn là panel nền tảng viết tay.
+- **Nghiệm thu (M2):** nhập giá trị ngoài khoảng thì báo lỗi tại field; server từ chối config sai schema (400).
 
 #### BLD-03 · Preview thật
 
@@ -518,7 +519,7 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 #### BLD-25 · Bìa minh bạch
 
 - **Hành vi:** màn Bìa mặc định của mọi skin có khối "Còn 312 / 400 phần quà" (thanh tiến độ), danh sách quà có ảnh và tên, và dòng "Hôm nay bạn còn 1 lượt" (khi đã biết người chơi). Chủ quán ẩn/hiện hoặc kéo vị trí trong Tuỳ biến.
-- **Quy tắc:** số liệu lấy từ API công khai của chương trình (đọc `prize_counters`, cache ≤ 30 s); chỉ hiện tổng quà, không lộ tỷ lệ trúng; chương trình `per_prize_probability` có thể tắt dòng số lượng.
+- **Quy tắc:** số liệu lấy từ API công khai của chương trình (đọc `prizes.remaining`, cache ≤ 30 s); chỉ hiện tổng quà, không lộ tỷ lệ trúng; chương trình `per_prize_probability` có thể tắt dòng số lượng.
 - **Nghiệm thu:** số trên Bìa khớp tồn kho sau một lượt trúng (trong vòng 30 s); không làm tăng First Load JS của Play quá ngân sách §6.
 
 #### BLD-26 · QR chơi thử trên điện thoại
@@ -621,7 +622,7 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 
 - **Hành vi:** trong hộp Phát hành (hoặc thẻ mô phỏng), nút "Chạy thử N lượt" (100–10.000) chạy bot qua chính API lượt chơi ở chế độ chơi thử, rồi hiện quà còn lại và chi phí như mô phỏng.
 - **Quy tắc:** không trừ kho thật, không vào báo cáo/quota; dùng cùng code đường đi với lượt thật để bắt lỗi cấu hình.
-- **Nghiệm thu:** sau khi chạy, `prize_counters` thật không đổi.
+- **Nghiệm thu:** sau khi chạy, tồn kho thật (`prizes.issued` / `remaining`) không đổi.
 
 #### EVT-15 · Thao tác khẩn trên điện thoại (Could)
 
@@ -682,16 +683,16 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 
 #### GAM-01 · Instant-win do server quyết định
 
-- **Hành vi:** người chơi bấm chơi → client gọi API lượt chơi kèm `deviceId`, token lượt, Turnstile (mức Chuẩn) → server kiểm điều kiện (lịch, lượt, giới hạn, gian lận), gọi prize engine trong một giao dịch, trừ kho nguyên tử, cấp mã đổi quà → trả `{ outcome: win | lose | no_turns | closed, prize?, voucher?, display }` → client chỉ animate tới kết quả đã biết (vòng quay dừng ở `display.slotIndex`).
-- **Quy tắc:** API idempotent theo token (gọi lại trả cùng kết quả); client không gửi kết quả; không có đường nào định trước người trúng; hộp/ô còn lại **không** lật ra "giải lẽ ra trúng". Mỗi lượt ghi log đủ để kiểm toán.
+- **Hành vi:** người chơi bấm chơi → client gọi API lượt chơi kèm `deviceId`, token lượt, Turnstile (mức Chuẩn) → server kiểm điều kiện (lịch, lượt, giới hạn, gian lận), gọi prize engine trong một giao dịch, trừ kho nguyên tử, cấp mã đổi quà → trả `{ playId, outcome: win | lose | no_turns | closed, reason?, prize?, voucher?, turnsLeftToday }` → client chỉ animate tới kết quả đã biết (vòng quay chọn một ô khớp kết quả rồi dừng ở đó).
+- **Quy tắc:** API idempotent theo `requestId` của người chơi (gọi lại trả cùng kết quả); client không gửi kết quả; không có đường nào định trước người trúng; hộp/ô còn lại **không** lật ra "giải lẽ ra trúng". Mỗi lượt ghi log đủ để kiểm toán.
 - **Nghiệm thu:** test tích hợp gọi lại cùng token không tạo lượt thứ hai; PRD §7.3–7.4.
 
 #### GAM-04 · Renderer M1
 
 - **Hành vi:**
-  - **Vòng quay (`spin-wheel`):** 4–12 ô; server chọn giải rồi chọn ngẫu nhiên một ô gắn giải đó; trượt/hết quà dừng ở ô "chúc may mắn".
-  - **Cào thẻ (`scratch-card`):** cào bằng ngón tay; lộ ≥ ngưỡng (mặc định 60%) thì hiện kết quả; kết quả đã có trước khi cào.
-  - **Mở hộp (`gift-box`):** 1/3/9 hộp (biến thể skin: trứng vàng, lì xì); chọn hộp nào cũng ra kết quả server đã quyết định; thể lệ ghi rõ.
+  - **Vòng quay (`spin-wheel`):** ô dựng từ danh sách giải (tối thiểu 6 ô, xen ô "chúc may mắn"); server quyết định kết quả, client chọn một ô khớp kết quả để dừng; trượt/hết quà dừng ở ô "chúc may mắn". Số ô tuỳ chỉnh: BLD-02 (M2).
+  - **Cào thẻ (`scratch-card`):** cào bằng ngón tay; cào ≥ 45% thì hiện kết quả; người dùng bàn phím/công tắc có nút hiện kết quả; kết quả đã có trước khi cào.
+  - **Mở hộp (`gift-box`):** 3 hộp; chọn hộp nào cũng ra kết quả server đã quyết định; thể lệ ghi rõ. Biến thể trứng vàng, lì xì, lưới 9 ô: M2.
 - **Quy tắc:** chơi được bằng một ngón tay trên máy cũ, trong trình duyệt Zalo/FB; bundle mỗi mẫu ≤ 300 KB gzip, ≥ 30 fps.
 - **Nghiệm thu:** e2e `play-mechanisms` cho 3 mẫu; QA thiết bị theo PRD §7.7.
 
@@ -950,7 +951,7 @@ Pháp lý: [compliance](../business/compliance.md).
 
 | Nhóm | Yêu cầu |
 |---|---|
-| Hiệu năng Player | First load ≤ 2 s trên 4G; First Load JS `play /[slug]` ≤ 260 KB gzip (trần 280, [ADR-013](../adr/013-antd-ui.md); giữ ngân sách này nếu [ADR-016](../adr/016-shadcn-luma-ui.md) được duyệt); mỗi mẫu lazy-load ≤ 300 KB; ≥ 30 fps máy cũ |
+| Hiệu năng Player | First load ≤ 2 s trên 4G; First Load JS `play /[slug]` ≤ 260 KB gzip (trần 280; [ADR-016](../adr/016-shadcn-luma-ui.md), thay ADR-013); mỗi mẫu lazy-load ≤ 300 KB; ≥ 30 fps máy cũ |
 | Play API | Đỉnh ≥ 500 lượt/giây/chương trình (M1); quyết định kết quả + trừ kho p95 < 200 ms |
 | Quầy đổi quà | Từ quét mã đến kết quả ≤ 2 s trên 4G |
 | Khả dụng | 99,9%/tháng; không deploy trong khung giờ đánh dấu "quan trọng" ([runbook](../operations/runbook.md)) |
@@ -995,10 +996,10 @@ Tổng hợp từ cột Hiện trạng, để theo dõi trước pilot. Mức ư
 | Should | PRZ-01 | Thêm/bớt tồn kho khi đang chạy không cần phát hành lại, có audit | Tết hay hết quà giữa chừng |
 | Could | BLD-08 | Sửa nóng chữ/nhãn không cần phát hành lại | |
 | Could | PRZ-10 | Chỉnh hạn đổi quà theo chương trình (hiện cố định kết thúc + 7 ngày) | |
-| Could | BLD-09 | Cảnh báo theo mô phỏng, "chưa chơi thử", giải không gắn ô vòng quay | |
+| Could | BLD-09 | Cảnh báo theo mô phỏng, "chưa chơi thử", màn > 60 phần tử | |
 | Could | RET-06 | Quà lần sau | Tác động lớn nhất tới G5; không kịp thì M2 |
 | Could | PLB-10, BLD-27, EVT-15 | Hiệu quả theo quà; màu từ logo; thao tác khẩn trên điện thoại | |
-| Could | BLD-13 | Cắt ảnh theo ô | |
+| Could | BLD-13 | Chọn ảnh từ thư viện trong Builder; cắt ảnh theo ô | |
 | Could | BLD-24 | Lệnh `gen:template` | Tới khi có: copy `spin-wheel` |
 | Could | EVT-09 | Chạy thử bằng bot N lượt | |
 | Could | ADM-01, ADM-02 | Impersonate có log; lịch chương trình sắp chạy | |
@@ -1018,7 +1019,7 @@ Xem [decisions.md — Câu hỏi đang mở](./decisions.md#câu-hỏi-đang-m�
 
 | Phiên bản | Ngày | Thay đổi chính |
 |---|---|---|
-| **v4.3** | 31/10/2026 | Rà soát PRD với code: sửa Builder thành 3 chế độ + hộp Phát hành (không phải 4 bước); chơi thử hiện chỉ trong Studio, link nháp công khai là việc còn mở; tab Người chơi là danh sách lượt chơi; mở lại mã nằm ở Quầy đổi quà; hạn đổi cố định kết thúc + 7 ngày; luật kiểm tra trước phát hành theo `preflight.ts`; audit thực tế; chống gian lận M1 không có blacklist/gắn cờ; M1 chỉ có loại giải "quà đổi tại quầy". Mục tiêu §1 có cách đo rõ và giai đoạn. Ưu tiên Must/Should/Could ghi ở cả §3 |
+| **v4.3** | 31/10/2026 | Rà soát PRD với code: sửa Builder thành 3 chế độ + hộp Phát hành (không phải 4 bước); chơi thử hiện chỉ trong Studio, link nháp công khai là việc còn mở; tab Người chơi là danh sách lượt chơi; mở lại mã nằm ở Quầy đổi quà; hạn đổi cố định kết thúc + 7 ngày; luật kiểm tra trước phát hành theo `preflight.ts`; audit thực tế; chống gian lận M1 không có blacklist/gắn cờ; M1 chỉ có loại giải "quà đổi tại quầy". Mục tiêu §1 có cách đo rõ và giai đoạn. Ưu tiên Must/Should/Could ghi ở cả §3. Chuẩn hoá thêm cùng đợt rà soát tài liệu: tab "Chia sẻ & QR"; cơ chế M1 tự suy từ danh sách giải (vòng quay ≥ 6 ô, cào 45%, 3 hộp), BLD-02 sang M2; tồn kho ở `prizes.issued/remaining`; BLD-13 chưa chọn ảnh từ thư viện trong Builder; UI theo [ADR-016](../adr/016-shadcn-luma-ui.md) (D-29) |
 | v4.2 | 31/10/2026 | Persona tương lai (agency, nhãn hàng) và quản lý cửa hàng ([D-27](./decisions.md)); ID từ review tính năng ([D-23…D-26](./decisions.md)) |
 | v4.1 | 31/10/2026 | Bản đồ tính năng theo bề mặt (§3); chi tiết hành vi · quy tắc · nghiệm thu cho từng ID M1 |
 | v4.0 | 26/10/2026 | Theo strategy v4.0: playbook, báo cáo kết quả, North Star lượt đổi quà |

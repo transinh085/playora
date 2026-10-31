@@ -24,7 +24,7 @@ export function IconTile({
 }) {
   return (
     <div
-      className={`shrink-0 flex items-center justify-center rounded-2xl ${TONE_CLASSES[tone]}`}
+      className={`shrink-0 flex items-center justify-center rounded-xl ${TONE_CLASSES[tone]}`}
       style={{ width: size, height: size }}
     >
       {children}

@@ -1,6 +1,6 @@
 # Kiến trúc code, convention và quy trình phát triển
 
-Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Áp dụng cho mọi code trong repo · Liên quan: [architecture.md](./architecture.md), [adr/](../adr/README.md), [AGENTS.md](../../AGENTS.md)
+Cập nhật: 31/10/2026 · Owner: Tech Lead (founder) · Áp dụng cho mọi code trong repo · Liên quan: [architecture.md](./architecture.md), [adr/](../adr/README.md), [AGENTS.md](../../AGENTS.md)
 
 ---
 
@@ -10,25 +10,25 @@ Cập nhật: 26/10/2026 · Owner: Tech Lead (founder) · Áp dụng cho mọi c
 apps/
   api/          NestJS 12 trên Bun — REST /v1, Better Auth /auth, OpenAPI /v1/openapi.json, play engine + prize engine
   worker/       NestJS standalone + BullMQ — xử lý job từ @playora/jobs
-  studio/       Next.js 16 — builder cho organizer (đăng nhập, org, events…)
+  studio/       Next.js 16 — builder, vận hành chương trình, quầy đổi quà, gói & sử dụng, back-office /admin
   play/         Next.js 16 — player shell /[slug] (kiosk ?mode=kiosk là đích), preview /preview
   web/          Next.js 16 — landing
 packages/
   contracts/    zod: route contracts (REST), ErrorCode — NGUỒN CHÂN LÝ
   api-client/   typed client từ contracts (+ ./react: TanStack Query hooks)
   db/           Drizzle schema, migrations, seed, ./testing (DB test)
-  auth/         Better Auth options + RBAC 5 vai trò (./permissions)
+  auth/         Better Auth options + RBAC 6 vai trò (owner, admin, editor, operator, viewer, redeemer) (./permissions)
   jobs/         queue + payload schema + producer
-  core/         logic thuần, không I/O: prize engine, pacing, quota, provably-fair (bốc thăm cuối chương trình)
-  game-sdk/     interface template game (instant / skill / draw)
+  core/         logic thuần, không I/O: prize engine, pacing, hạn mức gói (billing), thể lệ (compliance), PII, provably-fair (bốc thăm cuối chương trình)
+  game-sdk/     interface template game (instant / skill)
   templates/    registry template (client + ./server)
-  ui/           design system: tokens, theme, providers, form, auto-form, game surface, ./styles.css
+  ui/           design system: shadcn/ui luma components, tokens, theme, providers, form, auto-form, game/campaign surface, ./styles.css
   i18n/         messages vi/en (vi là chuẩn)
   env/          zod schema env theo app
   tsconfig/     base, library, nestjs, nextjs
 tooling/
   e2e/          Playwright (desktop + mobile)
-  loadtest/     k6 load test Play API (join, play, draw)
+  loadtest/     k6 Play API (play.js, REPORT.md)
   scripts/      check-commit-msg…
 infra/
   compose/      Postgres :54329, Valkey :63799, MinIO, Mailpit
@@ -44,16 +44,16 @@ apps/*  →  packages/*               (app không import app)
 contracts, i18n, env  →  không phụ thuộc package nội bộ nào (core → contracts)
 db  →  (drizzle, postgres)          auth  →  db
 api-client  →  contracts
-ui  →  (react, antd, tailwind)      không biết gì về API
+ui  →  (react, radix-ui, tailwind)  không biết gì về API
 ```
 
 **Ranh giới import cưỡng chế bằng linter (`biome.json` `noRestrictedImports`):**
 
-1. **`packages/{contracts,core,game-sdk,i18n,env}/**`**: Cấm `@playora/db`, `@playora/auth`, `@nestjs/*`, `drizzle-orm`, `ioredis`, `next`, `antd` (đảm bảo package logic thuần, không dính DB/framework; `game-sdk` được phép dùng `react` type như `ComponentType`).
+1. **`packages/{contracts,core,game-sdk,i18n,env}/**`**: Cấm `@playora/db`, `@playora/auth`, `@nestjs/*`, `drizzle-orm`, `ioredis`, `next` (đảm bảo package logic thuần, không dính DB/framework; `game-sdk` được phép dùng `react` type như `ComponentType`).
 2. **`packages/ui/**`**: Cấm `@playora/api-client`, `@playora/db` (UI chỉ nhận dữ liệu/props thuần hoặc contract schema qua form adapter, không phụ thuộc client API hay tầng DB).
 3. **`apps/api/src/modules/*/**`**: Cấm `../*/*.repository` (cấm truy cập repository xuyên module; dữ liệu từ module khác phải gọi qua Service của module đó; hiện tại **không có ngoại lệ** nào).
 4. **`apps/studio/src/app/**`**: Cấm `@/app/**` và `**/_components/**` (tầng routing Next.js mỏng ≤ 30 dòng; component thuộc feature được đóng gói tại `features/<feature>/components`).
-5. **Toàn repo**: Cấm `react-hook-form`, `radix-ui`, `sonner`, `@playora/ui/components/*` (chặn tái phát sau khi đã dọn dẹp chuyển hoàn toàn sang Ant Design và form adapter mới).
+5. **Toàn repo**: Cấm `antd` (đã chuyển sang `shadcn/ui` style `luma`, [ADR-016](../adr/016-shadcn-luma-ui.md)).
 
 ---
 
@@ -99,7 +99,7 @@ Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng th�
 6. **Studio** — `apps/studio/src/features/<feature>/` + route mỏng ở `apps/studio/src/app/(app)/orgs/[orgId]/<feature>/` (mẫu hiện có: `features/brand-kits`; UI `features/games` cũ đã gỡ 27/10, ví dụ dưới giữ tên `games` để minh hoạ)
    - `features/games/api.ts`: gom hook đọc (`useRouteQuery(api, gamesApi.list, …)`) và ghi (`useRouteMutation` + `invalidateQueries({ queryKey: routePrefix(gamesApi.list) })`).
    - `features/games/components/*`: UI của feature; `page.tsx` trong `app/**` chỉ đọc `params`, khai báo `metadata` và render component từ `@/features/*` (≤ 30 dòng).
-   - Form: antd `Form` + `useZodForm(CreateGameBody)` (`@playora/ui/form`) dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`; toast/confirm qua `App.useApp()`.
+   - Form: `react-hook-form` + `@hookform/resolvers/zod` + shadcn `Form` (`@playora/ui/form`) dùng **chính schema** của contract; lỗi API gắn vào field bằng `applyApiError`; toast qua `sonner` (`toast.success` / `toast.error`).
    - Text qua `useTranslations`; thêm key vào **cả** `vi.json` và `en.json` (test i18n sẽ bắt thiếu).
 7. **E2E** cho luồng chính — `tooling/e2e/tests/*.spec.ts`.
 
@@ -112,7 +112,8 @@ Module **events** là mẫu chuẩn, có đủ mọi lớp. Copy theo đúng th�
 ```
 helmet → CORS → [/auth/* → Better Auth] → express.json
 → ThrottlerGuard (Redis, RATE_LIMIT_PER_MIN/IP)
-→ SessionGuard (contract.auth: public | session | player; mặc định cần session)
+→ SessionGuard (contract.auth: public | session | player; device là đích, ADR-017; mặc định cần session)
+→ PlatformAdminGuard (route platformAdmin: true)
 → OrgAccessGuard (contract.permission + :orgId → member.role → hasPermission)
 → @Args() validate params/query/body bằng zod của contract → handler
 → ResponseContractInterceptor (dev/test: response phải khớp contract)
@@ -157,38 +158,39 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 |---|---|
 | Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
 | Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
-| Form | antd `Form` + `useZodForm(<schema từ contracts>)` (`@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
-| UI | Dùng component từ `antd`, provider/theme từ `@playora/ui/{providers,theme}`; Tailwind chỉ cho layout/spacing; không hard-code màu. Xem [design-system.md](./design-system.md) và [ADR-013](../adr/013-antd-ui.md) |
+| Form | `react-hook-form` + `useZodForm(<schema từ contracts>)` + shadcn `Form` (`@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
+| UI | Dùng component shadcn/ui style `luma` từ `@playora/ui/components` và helper từ `@playora/ui/{providers,theme,form,game}`; Tailwind CSS v4 cho layout và token; không hard-code màu. Xem [design-system.md](./design-system.md) và [ADR-016](../adr/016-shadcn-luma-ui.md) |
 | i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
-| Thông báo | `const { message, notification, modal } = App.useApp()` từ `antd` (không dùng static `message.*`) |
+| Thông báo | `toast.success(...)` / `toast.error(...)` từ `sonner` (mount `<Toaster />` ở root `layout.tsx`) |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
 
 ### 6.2 Play (Player / Kiosk)
 
-- Ưu tiên nhẹ: shell người chơi giữ First Load JS trong ngân sách ở [ADR-013](../adr/013-antd-ui.md) (mục tiêu ≤ 260 KB gzip cho `/[slug]`); text qua next-intl.
+- Ưu tiên nhẹ: shell người chơi giữ First Load JS trong ngân sách ở [ADR-016](../adr/016-shadcn-luma-ui.md) (mục tiêu ≤ 260 KB gzip cho `/[slug]`, trần 280); text qua next-intl.
 - Game surface được lazy-load theo template (`React.lazy` + `Suspense`).
 - Bề mặt người chơi (và kiosk về sau) bọc trong `GameRoot` (`@playora/ui/game/*`); chỉ dùng token `--game-*` để skin và brand kit đổi được ([design-system.md](./design-system.md)).
 
-### 6.3 Thêm component antd
+### 6.3 Sử dụng component `@playora/ui`
 
-Import trực tiếp từ `antd` (đã cấu hình `optimizePackageImports: ['antd']` trong Next.js):
+Import trực tiếp từ `@playora/ui/components` và `@playora/ui/form`:
 
 ```tsx
-import { App, Button, Form, Input, Modal } from 'antd';
-import { applyApiError, useZodForm } from '@playora/ui/form';
+import { Button, Dialog, Input } from '@playora/ui/components';
+import { applyApiError, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useZodForm } from '@playora/ui/form';
+import { toast } from 'sonner';
 ```
 
-- Không tự bọc lại `ConfigProvider` ở từng màn hình; dùng `StudioProvider` (Studio) hoặc `PlayProvider` / `GameRoot` (Play) kết hợp `AntdRegistry` ở root `layout.tsx`.
-- Ở `apps/play`, chỉ dùng các component nhẹ (`Button`, `Input`, `Form`, `Checkbox`, `Radio`, `Select`, `Result`, `Modal`, `Skeleton`, `Alert`, `Tag`, `Empty`); **không** import `DatePicker`, `Table`, `ColorPicker`, `Upload` để giữ ngân sách First Load JS ([ADR-013](../adr/013-antd-ui.md)).
+- Dùng `StudioProvider` (Studio) hoặc `PlayProvider` / `GameRoot` (Play) ở root `layout.tsx`.
+- Giữ đúng thẩm mỹ `luma` ([ADR-016](../adr/016-shadcn-luma-ui.md)): nút pill (`rounded-full`), thẻ bo mềm (`rounded-2xl`), xác nhận hành động xoá qua `AlertDialog`.
 
 ### 6.4 Cấu trúc thư mục frontend
 
 ```
 apps/studio/src/
   app/                       # CHỈ routing: page/layout mỏng (≤ 30 dòng), metadata, đọc params
-  features/<feature>/        # builder-lab (luồng Campaign chính, backend giả ở mock/), canvas-editor,
-                             # events, guests, games, brand-kits, assets, members, auth
-    api.ts                   # hook dữ liệu: useEvent(), useUpdateEvent()… (useRouteQuery/useRouteMutation + invalidateQueries)
+  features/<feature>/        # builder-lab (luồng Campaign chính, API thật), canvas-editor,
+                             # brand-kits, assets, members, billing, auth
+    api.ts                   # hook dữ liệu: useCampaign(), useUpdateCampaign()… (useRouteQuery/useRouteMutation + invalidateQueries)
     components/              # UI của feature
     lib/                     # helper thuần + *.test.ts (nếu có)
   components/                # shell dùng chung (app-shell…)
@@ -209,7 +211,7 @@ apps/studio/src/
 | Integration API | `bun test` + `createTestApp()` + DB `playora_test` | `apps/api/test/*.e2e.test.ts` | Mọi module API: happy path, validate 400, 401, **cross-tenant 403/404**, conflict |
 | Contract | `ResponseContractInterceptor` (tự bật trong test) | — | Luôn bật ngoài production |
 | E2E | Playwright (desktop + Pixel 7) | `tooling/e2e/tests` | Luồng chính của người dùng; fixture fail khi trình duyệt có lỗi console |
-| Tải | k6 Play API (chưa viết; `tooling/loadtest` mới có README) | `tooling/loadtest` | Trước khi chạy chương trình thật đầu tiên và trước mỗi mùa cao điểm |
+| Tải | k6 Play API (`tooling/loadtest/play.js`) | `tooling/loadtest` | Trước khi chạy chương trình thật đầu tiên và trước mỗi mùa cao điểm |
 
 DB test được tạo và migrate tự động (`@playora/db/testing`). Dữ liệu test dùng email và slug ngẫu nhiên, nên chạy lại không cần dọn.
 

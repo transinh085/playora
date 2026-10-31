@@ -1,221 +1,192 @@
+import { Badge } from '@playora/ui/components/badge';
 import type { Metadata } from 'next';
 import { Logo, LogoMark } from '@/components/logo';
+import { FoundationsShowcase } from './_components/foundations-showcase';
 import { GamePreview } from './_components/game-preview';
+import { PrdRecipes } from './_components/prd-recipes';
 import { StudioPreview } from './_components/studio-preview';
+import { ThemeToggle } from './_components/theme-toggle';
 
 export const metadata: Metadata = {
-  title: 'Playora Design System',
+  title: 'Playora Design System v2.0 — shadcn/ui Luma',
   robots: { index: false },
 };
 
-const SCALES = [
-  {
-    name: 'teal',
-    note: 'Thương hiệu: chỉ cho hành động chính, link, focus, mục đang chọn',
-    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
-  },
-  {
-    name: 'ink',
-    note: 'Neutral xám lạnh, gánh gần hết giao diện Studio',
-    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
-  },
-  {
-    name: 'spotlight',
-    note: 'Ánh đèn sân khấu: nút chơi, điểm, top 1',
-    steps: [300, 400, 500, 600],
-  },
-  { name: 'stage', note: 'Nền đêm cho skin sân khấu', steps: [800, 900, 950] },
-  {
-    name: 'violet',
-    note: 'Legacy: chỉ còn cho skin classic',
-    steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],
-  },
-];
-
-const TEAM_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8];
-
-const SEMANTIC = [
-  { token: 'success', label: 'Thành công · đã check-in' },
-  { token: 'warning', label: 'Cảnh báo · pre-flight' },
-  { token: 'info', label: 'Thông tin · đã lên lịch' },
-  { token: 'live', label: 'On air · đang diễn ra' },
-  { token: 'destructive', label: 'Xoá, lỗi' },
-];
-
-const TYPE_STUDIO = [
-  { cls: 'text-2xl font-semibold', label: 'Tiêu đề trang · 24/28 · 600' },
-  { cls: 'text-xl font-semibold', label: 'Tiêu đề modal · 20/24 · 600' },
-  { cls: 'text-base font-semibold', label: 'Tiêu đề khối · 16/20 · 600' },
-  { cls: 'text-sm', label: 'Nội dung, bảng, form · 14/20 · 400' },
-  { cls: 'text-xs text-muted-foreground', label: 'Chú thích · 12/16 · 400' },
-];
-
 function Section({
   id,
+  badge,
   title,
   lead,
   children,
 }: {
   id: string;
+  badge: string;
   title: string;
   lead: string;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="grid scroll-mt-8 gap-6 border-t py-12">
-      <header className="grid max-w-2xl gap-2">
-        <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
-        <p className="text-muted-foreground">{lead}</p>
+    <section id={id} className="grid scroll-mt-20 gap-6 border-t border-border/80 py-12">
+      <header className="grid max-w-3xl gap-2">
+        <div>
+          <Badge variant="secondary" className="font-mono text-[11px]">
+            {badge}
+          </Badge>
+        </div>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {title}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">{lead}</p>
       </header>
       {children}
     </section>
   );
 }
 
+const NAV_ITEMS = [
+  ['foundations', '1. Nền tảng (Tokens & WCAG)'],
+  ['studio', '2. Thành phần Studio (shadcn/ui)'],
+  ['recipes', '3. Mẫu nghiệp vụ PRD v4.3'],
+  ['game', '4. Player & Skin Engine'],
+  ['logo', '5. Nhận diện & White-label'],
+] as const;
+
 export default function DesignSystemPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
-      <header className="grid gap-6 pb-12">
-        <Logo className="text-xl" />
-        <h1 className="max-w-3xl font-display text-4xl leading-[1.15] font-bold tracking-tight text-balance sm:text-5xl">
-          Một hệ thống cho bàn làm việc và bề mặt người chơi.
-        </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
-          Studio yên tĩnh trên Ant Design v6 để agency dựng chiến dịch nhanh. Bề mặt người chơi sáng
-          như sân khấu, bấm được bằng một ngón và đổi da theo từng sự kiện bằng skin cùng brand kit.
-          Đặc tả đầy đủ ở docs/engineering/design-system.md.
-        </p>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-          {[
-            ['mau', 'Màu'],
-            ['chu', 'Chữ'],
-            ['studio', 'Studio'],
-            ['game', 'Game & skin'],
-            ['logo', 'Logo'],
-          ].map(([id, label]) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-      </header>
-
-      <Section
-        id="mau"
-        title="Màu"
-        lead="Ba tầng token: primitive → ThemeConfig cho Studio → --game-* cho người chơi và kiosk. Component chỉ dùng hai tầng sau."
-      >
-        <div className="grid gap-5">
-          {SCALES.map((scale) => (
-            <div key={scale.name} className="grid gap-2">
-              <div className="flex items-baseline gap-3">
-                <span className="font-mono text-sm font-medium">--{scale.name}-*</span>
-                <span className="text-sm text-muted-foreground">{scale.note}</span>
-              </div>
-              <div className="flex overflow-hidden rounded-lg border">
-                {scale.steps.map((step) => (
-                  <div key={step} className="min-w-0 flex-1">
-                    <div className="h-14" style={{ background: `var(--${scale.name}-${step})` }} />
-                    <div className="truncate px-1.5 py-1 text-[11px] text-muted-foreground tabular-nums">
-                      {step}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          <div className="grid gap-2">
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-sm font-medium">--team-1…8</span>
-              <span className="text-sm text-muted-foreground">
-                Màu đội thi đấu. Luôn đi kèm nhãn tên đội.
-              </span>
-            </div>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-              {TEAM_NUMBERS.map((n) => (
-                <div
-                  key={n}
-                  className="grid h-14 place-items-center rounded-lg text-sm font-semibold text-stage"
-                  style={{ background: `var(--team-${n})` }}
-                >
-                  {n}
-                </div>
-              ))}
-            </div>
+    <div className="min-h-dvh bg-background text-foreground">
+      {/* Sticky Luma Glass Header */}
+      <div className="luma-glass sticky top-0 z-40 border-b border-border/70">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-8">
+          <div className="flex items-center gap-3">
+            <Logo className="text-xl" />
+            <Badge variant="outline" className="font-mono text-xs">
+              v2.0 · shadcn/ui luma · ADR-016
+            </Badge>
           </div>
+          <nav className="hidden flex-wrap items-center gap-x-5 gap-y-1 text-xs font-medium lg:flex">
+            {NAV_ITEMS.map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <ThemeToggle />
         </div>
-        <div className="grid gap-3 sm:grid-cols-5">
-          {SEMANTIC.map((s) => (
-            <div key={s.token} className="grid gap-2 rounded-lg border p-3">
-              <div className="h-8 rounded-md" style={{ background: `var(--${s.token})` }} />
-              <span className="font-mono text-xs">{s.token}</span>
-              <span className="text-xs text-muted-foreground">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </Section>
+      </div>
 
-      <Section
-        id="chu"
-        title="Chữ"
-        lead="Unbounded cho khoảnh khắc trình diễn: wordmark, tên game, điểm, đồng hồ. Be Vietnam Pro, do người Việt thiết kế, cho mọi nội dung và giao diện. Cả hai có đủ dấu tiếng Việt."
-      >
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="grid content-start gap-3 rounded-xl border p-6">
-            <span className="text-sm text-muted-foreground">Display · Unbounded</span>
-            <p className="font-display text-5xl font-bold tracking-tight">
-              Cả hội trường cùng chơi
-            </p>
-            <p className="font-display text-4xl font-extrabold tabular-nums">00:05 · 2.210</p>
-            <p className="font-display text-lg">Ầ Ẩ Ẫ Ậ Ắ Ặ Ữ Ỹ ổ ợ ự</p>
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
+        {/* Hero Overview */}
+        <header className="grid gap-6 pb-12">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="default">PRD v4.3 Aligned</Badge>
+            <Badge variant="outline">Radix UI + Tailwind CSS v4</Badge>
+            <Badge variant="outline">OKLCH Perceptual Tokens</Badge>
           </div>
-          <div className="grid content-start gap-3 rounded-xl border p-6">
-            <span className="text-sm text-muted-foreground">
-              Text · Be Vietnam Pro (thang Studio)
-            </span>
-            {TYPE_STUDIO.map((t) => (
-              <div key={t.label} className="grid gap-0.5">
-                <span className={t.cls}>Year End Party Công ty ABC 2026</span>
-                <span className="text-xs text-muted-foreground">{t.label}</span>
+          <h1 className="type-display-lg max-w-4xl text-balance text-foreground">
+            Studio yên tĩnh cho chủ quán. Game rực rỡ cho khách chơi. Quầy đổi quà 3 giây.
+          </h1>
+          <p className="max-w-3xl text-base text-muted-foreground sm:text-lg">
+            Hệ thống thiết kế Playora v2.0 dựng trên <strong>shadcn/ui (style luma)</strong>, kết
+            hợp triết lý bàn làm việc SaaS/AI hiện đại (Vercel Geist/v0, Dub.co, Cal.com, Midday)
+            với bộ máy skin 3 tầng cho minigame có thưởng tại quán trà sữa, cà phê và chuỗi F&amp;B.
+            Đặc tả kỹ thuật đầy đủ tại{' '}
+            <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-sm">
+              docs/engineering/design-system.md
+            </code>
+            .
+          </p>
+
+          {/* 4-Surface Summary Grid from PRD §3 */}
+          <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                surface: '1. Studio (Desktop-first)',
+                persona: 'Chị Hà (Chủ quán) · Chị Thảo (Quản lý)',
+                desc: 'Nền ink-50 yên tĩnh, thẻ bo 16px (rounded-2xl), mọi control Button/Input/Select đồng bộ bo 12px (rounded-xl).',
+              },
+              {
+                surface: '2. Builder 3 Chế độ',
+                persona: 'Sửa nhanh · Tuỳ biến · Luật & Giải',
+                desc: 'Toàn màn hình, thanh chuyển chế độ nổi luma-glass, mô phỏng rủi ro hết quà và hộp kiểm tra phát hành.',
+              },
+              {
+                surface: '3. Quầy đổi quà (Mobile)',
+                persona: 'Tuấn (Nhân viên quầy giờ cao điểm)',
+                desc: 'Ghép máy bằng QR (ORG-10), chữ trạng thái ĐỔI ĐƯỢC cực đại, tìm theo SĐT, nút xác nhận 56px.',
+              },
+              {
+                surface: '4. Player & Kiosk (Mobile)',
+                persona: 'Khách của quán trên mạng 4G',
+                desc: 'Tải ≤ 260 KB gzip, đổi da theo Skin × Brand Kit tự tính tương phản WCAG, đồng hồ thực chống chụp màn hình.',
+              },
+            ].map((item) => (
+              <div
+                key={item.surface}
+                className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs"
+              >
+                <div className="text-sm font-bold text-foreground">{item.surface}</div>
+                <div className="mt-0.5 text-xs font-medium text-primary">{item.persona}</div>
+                <p className="mt-2 text-xs text-muted-foreground">{item.desc}</p>
               </div>
             ))}
           </div>
-        </div>
-      </Section>
+        </header>
 
-      <Section
-        id="studio"
-        title="Studio (Ant Design v6)"
-        lead="Công cụ làm việc dựng trên Ant Design v6 và StudioProvider: mật độ vừa, ít màu, trạng thái rõ. Màu thương hiệu chỉ dành cho hành động chính và trạng thái đang chọn."
-      >
-        <StudioPreview />
-      </Section>
+        <Section
+          id="foundations"
+          badge="Foundations · Tokens & Accessibility"
+          title="Nền tảng: Màu sắc OKLCH, Chữ tiếng Việt & Hình khối Luma"
+          lead="Ba tầng token: Primitive (--teal-*, --ink-*, --spotlight-*) → Studio Semantic (--background, --primary, --success…) → Game Surface (--game-*). Mọi cặp màu ngữ nghĩa được đo độ tương phản WCAG 2.1 trực tiếp trên trang."
+        >
+          <FoundationsShowcase />
+        </Section>
 
-      <Section
-        id="game"
-        title="Game & skin"
-        lead="Mọi bề mặt người chơi thấy đều bọc trong GameRoot (PlayProvider + --game-*). Skin đổi cả bộ token; brand kit của khách đè lên sau, và chữ tự đổi sáng/tối để luôn đọc được."
-      >
-        <GamePreview />
-      </Section>
+        <Section
+          id="studio"
+          badge="Components · @playora/ui/components"
+          title="Thành phần Studio & Ma trận Trạng thái (shadcn/ui Luma)"
+          lead="Toàn bộ primitive dùng Radix UI + Tailwind v4 với hệ bo góc đồng tâm (Concentric Radius): mọi control (Button, Input, Select, Textarea, TabsList) thống nhất bo 12px (rounded-xl), item con bên trong bo 8px (rounded-lg), thẻ và hộp thoại bo 16px (rounded-2xl)."
+        >
+          <StudioPreview />
+        </Section>
 
-      <Section
-        id="logo"
-        title="Logo"
-        lead="Nút play dưới một chấm đèn spotlight. Wordmark luôn viết thường. Ở chế độ white-label, logo Playora được ẩn hoàn toàn."
-      >
-        <div className="flex flex-wrap items-center gap-8">
-          <Logo className="text-3xl" />
-          <LogoMark className="size-16" />
-          <div className="dark rounded-xl bg-background p-6 text-foreground">
-            <Logo className="text-2xl" />
+        <Section
+          id="recipes"
+          badge="Domain Recipes · PRD v4.3"
+          title="Mẫu nghiệp vụ chuẩn theo PRD v4.3 & Quy tắc Do / Don't"
+          lead="4 bản mẫu lắp ghép trực tiếp từ bộ component của hệ thống: Luồng Playbook & Ngân sách (PLB-01/02), Màn Vận hành & Báo cáo Kết quả (PLB-03), Quầy đổi quà trên điện thoại (PRZ-10/18), và 4 cặp quy tắc bắt buộc."
+        >
+          <PrdRecipes />
+        </Section>
+
+        <Section
+          id="game"
+          badge="Player Surface · @playora/ui/game"
+          title="Bề mặt Người chơi (Player), Skin theo mùa & Brand Kit tự động"
+          lead="Mọi bề mặt người chơi thấy đều bọc trong GameRoot (PlayProvider + --game-*). Thứ tự áp dụng: mẫu mặc định → skin ([data-skin]) → brand kit (brandKitVars) → ghi đè từng ô ảnh. Chữ tự động chọn sáng/tối theo tương phản WCAG ≥ 3:1."
+        >
+          <GamePreview />
+        </Section>
+
+        <Section
+          id="logo"
+          badge="Brand Identity · ORG-04 & BIL-02"
+          title="Logo & Quy tắc White-label"
+          lead="Biểu tượng nút Play dưới một chấm đèn spotlight. Wordmark luôn viết thường bằng font Unbounded. Ở gói có quyền White-label (ORG-04), watermark và logo Playora trên Player được ẩn hoàn toàn."
+        >
+          <div className="flex flex-wrap items-center gap-8 rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+            <Logo className="text-3xl" />
+            <LogoMark className="size-16" />
+            <div className="dark rounded-2xl border border-white/10 bg-background p-6 text-foreground">
+              <Logo className="text-2xl" />
+            </div>
           </div>
-        </div>
-      </Section>
-    </main>
+        </Section>
+      </main>
+    </div>
   );
 }

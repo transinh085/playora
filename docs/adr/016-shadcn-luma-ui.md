@@ -20,7 +20,7 @@
 | Chủ đề | Quyết định |
 |---|---|
 | Thư viện UI | **shadcn/ui** (`radix-ui` primitives, Tailwind CSS v4 native, Lucide icons) tại `packages/ui/src/components/*` |
-| Style / Preset | **`luma`**: Bo góc mượt (`--radius: 0.75rem` / `rounded-xl`, `rounded-full` cho pill buttons), shadow phân tầng mềm mại, bề mặt breathable |
+| Style / Preset | **`luma`**: Bo góc đồng tâm (`--radius-xl: 12px` / `rounded-xl` đồng nhất cho Button, Input, Select; `rounded-2xl` cho Card/Dialog; `rounded-full` cho Badge/Avatar), shadow phân tầng mềm mại, bề mặt breathable |
 | Form | `react-hook-form` + `@hookform/resolvers/zod` + shadcn `Form` (`FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`) |
 | Feedback & Toast | **`sonner`** (`toast.success()`, `toast.error()`) thay thế `App.useApp()` của antd |
 | Modal & Confirmation | shadcn `Dialog`, `AlertDialog` (cho hành động xác nhận/xoá), `Sheet` (cho side panel) |
@@ -57,4 +57,4 @@
 
 ## Lịch sử
 
-- 31/10/2026: Tạo (Proposed), bắt đầu lộ trình chuyển đổi từ Ant Design v6 sang shadcn style luma.
+- 31/10/2026: Accepted ([D-29](../product/decisions.md)); thay thế [ADR-013](./013-antd-ui.md), hoàn tất chuyển đổi từ Ant Design v6 sang shadcn/ui style luma.

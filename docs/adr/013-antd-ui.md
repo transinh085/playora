@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | Accepted |
+| **Trạng thái** | Superseded by [ADR-016](./016-shadcn-luma-ui.md) (31/10/2026) |
 | **Ngày** | 24/10/2026 |
 | **Người quyết định** | Founder |
 | **Thay thế / Liên quan** | Thay một phần [ADR-009](./009-frontend-stack.md) (UI, form, toast) · [../engineering/design-system.md](../engineering/design-system.md) |
@@ -87,3 +87,4 @@ Baseline `next build` (Next.js 16.4.3 Turbopack trên `main@e9a8106`, **trước
 - 24/10/2026: Accepted.
 - 25/10/2026: sửa thứ tự `@layer` để utilities Tailwind thắng antd (`b9fea12`); Studio theo giao diện admin games-vt.
 - 26/10/2026: chuẩn hoá theo [mẫu ADR](./000-template.md). Số đo baseline giữ nguyên, chưa đo lại.
+- 31/10/2026: Superseded by [ADR-016](./016-shadcn-luma-ui.md) (shadcn/ui luma); ngân sách bundle Play ≤ 260 KB giữ nguyên.

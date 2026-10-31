@@ -78,7 +78,7 @@ export function Checklist({
                     asChild
                     size="sm"
                     variant={item.key === nextKey ? 'default' : 'outline'}
-                    className="rounded-full shadow-xs text-xs"
+                    className="shadow-xs text-xs"
                     tabIndex={-1}
                   >
                     <Link href={item.href as Route}>{item.action}</Link>
