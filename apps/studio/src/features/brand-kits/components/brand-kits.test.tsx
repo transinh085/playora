@@ -92,7 +92,7 @@ describe('brand-kits helpers and components', () => {
 
     // 1. Both queries pending -> renders Skeleton
     const loadingHtml = renderManager();
-    expect(loadingHtml).toContain('animate-pulse');
+    expect(loadingHtml).toContain('bui-skeleton');
 
     // 2. Brand kits resolved while assets query is still pending -> still renders Skeleton
     queryClient.setQueryData(
@@ -100,7 +100,7 @@ describe('brand-kits helpers and components', () => {
       { items: [sampleKit], nextCursor: null },
     );
     const partialLoadingHtml = renderManager();
-    expect(partialLoadingHtml).toContain('animate-pulse');
+    expect(partialLoadingHtml).toContain('bui-skeleton');
 
     // 3. Assets resolved -> mounts BrandKitsManagerInner (key="new") with Form + GameRoot preview
     queryClient.setQueryData(

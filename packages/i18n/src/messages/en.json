@@ -210,7 +210,20 @@
     "expand": "Expand navigation",
     "openNav": "Open navigation",
     "switchOrg": "Switch organization",
-    "eventDetail": "Campaign details"
+    "eventDetail": "Campaign details",
+    "quickActions": "Quick Actions",
+    "quickActionsPlaceholder": "Search pages, campaigns, or actions…",
+    "quickActionsEmpty": "No matching actions found.",
+    "favorites": "Favorites",
+    "database": "Database",
+    "sort": "Sort",
+    "filters": "Filters",
+    "help": "Help",
+    "helpDocs": "Documentation",
+    "helpShortcuts": "Keyboard shortcuts",
+    "helpSupport": "Support & Feedback",
+    "notifications": "Notifications",
+    "notificationsEmpty": "You’re all caught up."
   },
   "canvasLab": {
     "title": "Canvas editor",
@@ -1159,6 +1172,10 @@
     "viewGrid": "Grid view",
     "viewTable": "Table view",
     "openOps": "View operations",
+    "quickView": "Quick view",
+    "quickViewTitle": "Campaign details",
+    "openShare": "Share & QR",
+    "actions": "Actions",
     "copyLink": "Copy link",
     "linkCopied": "Link copied",
     "emptyTitle": "No campaigns yet",
@@ -1359,7 +1376,70 @@
       "continueEditing": "Continue editing",
       "share": "Share & QR",
       "templates": "Suggested templates",
-      "allTemplates": "All templates"
+      "allTemplates": "All templates",
+      "playbooks": {
+        "title": "Quick-launch by goal",
+        "slowDays": "Boost quiet days",
+        "slowDaysDesc": "Offer prizes & vouchers on quiet weekdays",
+        "secondVisit": "Drive second visits",
+        "secondVisitDesc": "Voucher discount on the next visit",
+        "grandOpening": "Grand opening & Events",
+        "grandOpeningDesc": "Lucky wheel with big prizes",
+        "custom": "Custom campaign",
+        "customDesc": "Pick any template & customize freely"
+      },
+      "trends": {
+        "title": "Redemptions & Plays Trend",
+        "plays": "Plays",
+        "wins": "Wins",
+        "redeemed": "Counter visits",
+        "range7d": "Last 7 days",
+        "range30d": "Last 30 days",
+        "emptyTitle": "No plays data yet",
+        "emptyDesc": "The trend chart will appear as soon as the first player spins or redeems.",
+        "playRehearsal": "Test play in Studio"
+      },
+      "counter": {
+        "title": "Live Counter Activity",
+        "stationActive": "Counter active",
+        "stationClosed": "No counter connected",
+        "openDesk": "Open Counter Desk",
+        "empty": "No vouchers redeemed yet today",
+        "emptyHint": "Counter staff scan QR codes or type 6 characters to redeem.",
+        "redeemedAt": "Redeemed at {time}",
+        "justNow": "Just now"
+      },
+      "table": {
+        "tabs": {
+          "all": "All",
+          "live": "Live",
+          "draftScheduled": "Draft & Scheduled",
+          "ended": "Ended"
+        },
+        "searchPlaceholder": "Search campaigns...",
+        "columns": {
+          "campaign": "Campaign",
+          "phase": "Status",
+          "period": "Period",
+          "performance": "Plays / Wins",
+          "counterConversion": "Counter visits",
+          "stock": "Prize stock",
+          "actions": "Actions"
+        },
+        "stockLeft": "{left}/{total} left",
+        "unlimited": "Unlimited",
+        "rate": "{percent}% redeemed"
+      },
+      "statCards": {
+        "redeemedCaption": "Guests visiting counter",
+        "redeemedHint": "Total vouchers successfully redeemed by staff at the counter.",
+        "playsCaption": "Across all campaigns",
+        "playsHint": "Total guest interactions and minigame spins.",
+        "prizeCostCaption": "Cost of prizes handed out",
+        "prizeCostHint": "Actual cost of prizes already redeemed at the counter.",
+        "attentionCaption": "Actionable items",
+        "attentionHint": "Includes low stock alerts, paused or expiring campaigns."
+      }
     },
     "openPlay": "Open player page",
     "playbookTag": {
@@ -1784,5 +1864,132 @@
     "versionsEmpty": "No published versions yet.",
     "versionCurrent": "Current",
     "versionHash": "Config hash: {hash}"
+  },
+  "templatesCatalog": {
+    "title": "Minigame Template Catalog",
+    "subtitle": "Rich collection of minigame templates designed for F&B and retail. Browse, preview, and launch campaigns in seconds.",
+    "totalCountTag": "{count} templates available",
+    "toolbar": {
+      "searchPlaceholder": "Search by template name, occasion, mechanic…",
+      "filterBy": "Filters",
+      "savedTab": "Saved ({count})",
+      "mechanicLabel": "Game mechanic",
+      "verticalLabel": "Industry",
+      "goalLabel": "Campaign goal",
+      "sortLabel": "Sort by",
+      "reset": "Reset",
+      "showingCount": "Showing {current}/{total} templates",
+      "occasions": {
+        "all": "All occasions",
+        "tet": "Tet 2026",
+        "opening": "Grand Opening",
+        "everyday": "Everyday / Weekend",
+        "midAutumn": "Mid-Autumn",
+        "xmas": "Christmas",
+        "blackFriday": "Black Friday"
+      },
+      "mechanics": {
+        "allMechanics": "All mechanics",
+        "spinWheel": "Spin the Wheel",
+        "scratchCard": "Scratch Card",
+        "giftBox": "Mystery Gift Box",
+        "eggSmash": "Egg Smash (M2)",
+        "catchItems": "Catch Items (M2)",
+        "memoryMatch": "Memory Match (M2)",
+        "luckyEnvelope": "Lucky Envelope"
+      },
+      "verticals": {
+        "allVerticals": "All industries",
+        "fnb": "F&B General",
+        "cafeMilktea": "Coffee & Tea",
+        "restaurant": "Restaurant & Dining",
+        "retail": "Retail & Fashion",
+        "beauty": "Beauty & Spa"
+      },
+      "goals": {
+        "allGoals": "All goals",
+        "traffic": "Attract new visitors",
+        "retention": "Customer retention",
+        "leads": "Lead generation",
+        "clearance": "Clearance & Upsell"
+      },
+      "sort": {
+        "popularity": "Most popular",
+        "newest": "Newest",
+        "duration": "Play duration"
+      }
+    },
+    "card": {
+      "prototypeBadge": "M2 Prototype",
+      "preview": "Preview",
+      "use": "Use template",
+      "save": "Save template",
+      "saved": "Saved",
+      "usageTag": "{count} uses",
+      "skinsLabel": "Skins",
+      "playsLabel": "plays"
+    },
+    "drawer": {
+      "instantWin": "Instant-win",
+      "skillGame": "Skill game",
+      "save": "Save template",
+      "saved": "Saved",
+      "expectedOutcomesTitle": "Expected campaign impact",
+      "usageCount": "Times used",
+      "usageHint": "Campaigns deployed",
+      "setupTime": "Launch time",
+      "setupTimeHint": "Apply Brand Kit & launch",
+      "completionRate": "Completion rate",
+      "completionHint": "Players finishing the game",
+      "screens": {
+        "cover": "Cover",
+        "game": "Game",
+        "win": "Win result",
+        "lose": "Lose result"
+      },
+      "mockShopName": "Moc Coffee & Tea · Store 1",
+      "viewTerms": "View terms & conditions",
+      "playing...": "Spinning…",
+      "revealResult": "Reveal outcome",
+      "congrats": "Congratulations!",
+      "voucherCodeLabel": "Voucher code",
+      "playAgain": "Play again",
+      "consolationGift": "You received a 10% voucher code at the cashier.",
+      "backToCover": "Back to cover",
+      "runningRehearsal": "Simulating play…",
+      "tryPlayInteractive": "Try interactive play",
+      "playsCounter": "times played",
+      "availableSkinsTitle": "Available skin themes",
+      "recommendedDuration": "Recommended duration",
+      "durationHint": "Optimal for counter queues",
+      "recommendedWinRate": "Recommended win rate",
+      "winRateHint": "Balanced prize budget",
+      "complianceTitle": "Transparent & Compliant",
+      "complianceDesc": "Outcomes are securely evaluated server-side before display; cannot be manipulated.",
+      "close": "Close",
+      "useThisTemplate": "Use this template"
+    },
+    "createModal": {
+      "title": "Create new campaign",
+      "subtitle": "Set campaign name and brand kit to begin editing.",
+      "nameLabel": "Campaign name",
+      "namePlaceholder": "E.g. Tet 2026 Spin Wheel - Store 1",
+      "brandKitLabel": "Brand Kit",
+      "defaultBrandKit": "Default Brand Kit",
+      "cancel": "Cancel",
+      "startDesigning": "Create & Start editing",
+      "creating": "Creating…",
+      "createdSuccess": "Campaign created successfully!",
+      "createFailed": "Failed to create campaign. Please try again.",
+      "m2FallbackNotice": "M2 template prototype: created on equivalent engine for you to test!"
+    },
+    "empty": {
+      "title": "No templates match your filters",
+      "description": "Try adjusting your search terms or reset the filters.",
+      "resetAction": "Reset all filters",
+      "savedTitle": "No saved templates yet",
+      "savedDescription": "Click the bookmark icon on any template to save it for later review.",
+      "showAllAction": "View all templates"
+    }
   }
 }

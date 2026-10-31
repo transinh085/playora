@@ -2,10 +2,9 @@
 
 import { ApiError } from '@playora/api-client';
 import { ErrorCode } from '@playora/contracts';
-import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
-import { Button } from '@playora/ui/components/button';
-import { toast } from '@playora/ui/components/sonner';
-import { AlertTriangle } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { toast } from '@playora/ui/components/base/toast/toast';
+import { AlertTriangle } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -20,25 +19,26 @@ export function PlanCampaignLimitAlert({ orgId }: { orgId: string }) {
   const t = useTranslations('billing');
   const tErrors = useTranslations('errors');
   return (
-    <Alert
-      className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+    <div
+      role="alert"
+      className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
       data-testid="plan-campaign-limit"
     >
-      <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+      <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <AlertTitle>{tErrors('PLAN_CAMPAIGN_LIMIT')}</AlertTitle>
-          <AlertDescription className="text-amber-800/90 dark:text-amber-300/80">
+          <p className="text-sm font-semibold">{tErrors('PLAN_CAMPAIGN_LIMIT')}</p>
+          <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
             {t('campaignsLimitBody')}
-          </AlertDescription>
+          </p>
         </div>
         <Link href={billingPath(orgId)}>
-          <Button variant="outline" size="sm" tabIndex={-1} className="shrink-0">
+          <Button variant="secondary" size="small" tabIndex={-1} className="shrink-0">
             {t('viewPlan')}
           </Button>
         </Link>
       </div>
-    </Alert>
+    </div>
   );
 }
 
@@ -56,10 +56,12 @@ export function useCampaignActionError(orgId: string) {
     if (isPlanCampaignLimit(error)) {
       toast.error(tErrors('PLAN_CAMPAIGN_LIMIT'), {
         description: t('campaignsLimitBody'),
-        action: {
-          label: t('viewPlan'),
-          onClick: () => router.push(billingPath(orgId)),
-        },
+        actions: [
+          {
+            label: t('viewPlan'),
+            onClick: () => router.push(billingPath(orgId)),
+          },
+        ],
       });
       return;
     }

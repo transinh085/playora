@@ -1,24 +1,15 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@playora/ui/components/form';
-import { Input } from '@playora/ui/components/input';
-import { toast } from '@playora/ui/components/sonner';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Divider } from '@playora/ui/components/base/divider/divider';
+import { Input } from '@playora/ui/components/base/input/input';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import type { Route } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { authClient } from '@/lib/auth-client';
 
@@ -107,139 +98,118 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   }
 
   return (
-    <Card className="w-full max-w-sm rounded-2xl border-border/80 shadow-md">
-      <CardHeader className="text-center pb-2">
-        <CardTitle className="text-xl font-bold">
+    <div className="w-full max-w-sm rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card">
+      <div className="pb-4 text-center">
+        <h2 className="m-0 text-headline-semibold text-text-primary">
           {mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {mode === 'sign-up' && (
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('name')}</FormLabel>
-                    <FormControl>
-                      <Input id="name" autoComplete="name" className="rounded-xl" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        </h2>
+      </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {mode === 'sign-up' && (
+          <Controller
+            control={form.control}
+            name="name"
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('name')}
+                autoComplete="name"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
               />
             )}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('email')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      className="rounded-xl"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          />
+        )}
+        <Controller
+          control={form.control}
+          name="email"
+          render={({ field, fieldState }) => (
+            <Input
+              label={t('email')}
+              type="email"
+              autoComplete="email"
+              value={field.value}
+              onChange={field.onChange}
+              isInvalid={!!fieldState.error}
+              hint={fieldState.error?.message}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('password')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-                      className="rounded-xl"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="password"
+          render={({ field, fieldState }) => (
+            <Input
+              label={t('password')}
+              type="password"
+              autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+              value={field.value}
+              onChange={field.onChange}
+              isInvalid={!!fieldState.error}
+              hint={fieldState.error?.message}
             />
+          )}
+        />
 
-            {error && (
-              <div className="rounded-xl bg-destructive/10 p-3 text-xs font-medium text-destructive">
-                {error}
-              </div>
-            )}
-            {magicLinkSentTo && (
-              <div className="rounded-xl bg-teal-500/10 p-3 text-xs font-medium text-teal-800 dark:text-teal-200">
-                {t('magicLinkSent', { email: magicLinkSentTo })}
-              </div>
-            )}
+        {error && (
+          <div className="rounded-xl bg-notification-error-background p-3 text-caption-1-medium text-text-error-primary">
+            {error}
+          </div>
+        )}
+        {magicLinkSentTo && (
+          <div className="rounded-xl bg-notification-success-background p-3 text-caption-1-medium text-notification-success-foreground">
+            {t('magicLinkSent', { email: magicLinkSentTo })}
+          </div>
+        )}
 
-            <div className="pt-2 flex flex-col gap-3">
-              <Button
-                type="submit"
-                className="w-full rounded-full shadow-xs"
-                disabled={isSubmitting || isSendingLink}
-              >
-                {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {mode === 'sign-in' ? t('signIn') : t('signUp')}
-              </Button>
+        <div className="flex flex-col gap-2.5 pt-2">
+          <Button type="submit" className="w-full" disabled={isSubmitting || isSendingLink}>
+            {mode === 'sign-in' ? t('signIn') : t('signUp')}
+          </Button>
 
-              <div className="relative my-2 text-center text-xs text-muted-foreground">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <span className="relative bg-card px-2 text-[11px] uppercase tracking-wider">
-                  {t('orDivider')}
-                </span>
-              </div>
+          <Divider className="my-1" contentClassName="text-caption-1-semibold uppercase">
+            {t('orDivider')}
+          </Divider>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full rounded-full shadow-xs"
-                disabled={isSubmitting || isSendingLink}
-                onClick={onSendMagicLink}
-              >
-                {isSendingLink && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {t('sendMagicLink')}
-              </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            disabled={isSubmitting || isSendingLink}
+            onClick={onSendMagicLink}
+          >
+            {t('sendMagicLink')}
+          </Button>
 
-              {googleEnabled && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full rounded-full shadow-xs"
-                  disabled={isSubmitting || isSendingLink}
-                  onClick={onGoogleSignIn}
-                >
-                  {t('continueWithGoogle')}
-                </Button>
-              )}
+          {googleEnabled && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              disabled={isSubmitting || isSendingLink}
+              onClick={onGoogleSignIn}
+            >
+              {t('continueWithGoogle')}
+            </Button>
+          )}
 
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full rounded-full text-xs text-muted-foreground"
-                onClick={() => {
-                  setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
-                  form.reset();
-                  setError(null);
-                  setMagicLinkSentTo(null);
-                }}
-              >
-                {mode === 'sign-in' ? t('toSignUp') : t('toSignIn')}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button
+            type="button"
+            variant="ghost"
+            size="small"
+            className="w-full"
+            onClick={() => {
+              setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+              form.reset();
+              setError(null);
+              setMagicLinkSentTo(null);
+            }}
+          >
+            {mode === 'sign-in' ? t('toSignUp') : t('toSignIn')}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

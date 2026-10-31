@@ -1,18 +1,8 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@playora/ui/components/alert-dialog';
-import { Card, CardContent } from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
-import { Check } from 'lucide-react';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { AlertDialog } from '@playora/ui/components/base/modal/modal';
+import { Check } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
@@ -109,12 +99,14 @@ export function QuickEditPanel({
                   className="size-8 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
                   aria-label={tBrand(key)}
                 />
-                <Input
+                <InputBase
+                  aria-label={tBrand(key)}
                   value={campaign.brand[key] || ''}
                   onChange={(e) =>
                     onChange({ brand: { ...campaign.brand, [key]: e.target.value } })
                   }
-                  className="w-24 font-mono text-xs uppercase"
+                  fieldClassName="w-24"
+                  className="font-mono text-xs uppercase"
                 />
               </div>
             </div>
@@ -122,20 +114,15 @@ export function QuickEditPanel({
         </div>
       </Section>
 
-      <AlertDialog open={!!pendingSkin} onOpenChange={(open) => !open && setPendingSkin(null)}>
-        <AlertDialogContent className="rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('skinConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('skinConfirm')}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">{tCommon('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSkin} className="rounded-full">
-              {t('skinConfirmOk')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertDialog
+        isOpen={!!pendingSkin}
+        onOpenChange={(open) => !open && setPendingSkin(null)}
+        title={t('skinConfirmTitle')}
+        description={t('skinConfirm')}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={t('skinConfirmOk')}
+        onConfirm={confirmSkin}
+      />
     </div>
   );
 }
@@ -175,30 +162,39 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
         const active = skin.key === campaign.skinKey;
         const cover = covers[i];
         return (
-          <Card
+          // biome-ignore lint/a11y/useSemanticElements: interactive skin card
+          <div
             key={skin.key}
+            role="button"
+            tabIndex={0}
             onClick={() => onPick(skin.key)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onPick(skin.key);
+              }
+            }}
             data-testid={`skin-${skin.key}`}
-            className={`cursor-pointer overflow-hidden rounded-2xl transition-all ${
+            className={`cursor-pointer overflow-hidden rounded-lg border transition-all shadow-xs ${
               active
-                ? 'border-2 border-primary ring-2 ring-primary/20'
-                : 'border border-border hover:border-foreground/30'
+                ? 'border-neutral-900 ring-1 ring-neutral-900/10 dark:border-white dark:ring-white/20'
+                : 'border-neutral-200 hover:border-neutral-400 dark:border-white/10 dark:hover:border-white/20'
             }`}
           >
-            <div className="relative h-24 w-full bg-muted/40">
+            <div className="relative h-20 w-full bg-neutral-100/50 dark:bg-white/5">
               {cover && <FitScreen screen={cover} brand={skin.brand} />}
               {active && (
-                <span className="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                  <Check className="size-3" />
+                <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-neutral-900 text-white shadow-xs dark:bg-white dark:text-neutral-900">
+                  <Check className="size-2.5" />
                 </span>
               )}
             </div>
-            <CardContent className="p-2">
-              <span className="block truncate text-center text-xs font-medium">
+            <div className="p-2">
+              <span className="block truncate text-center text-xs font-medium text-neutral-900 dark:text-neutral-100">
                 {t(`skins.${skin.key}`)}
               </span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>

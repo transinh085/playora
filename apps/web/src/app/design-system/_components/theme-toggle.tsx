@@ -1,7 +1,8 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Moon, Sun } from 'lucide-react';
+import { applyThemeWithTransition } from '@playora/ui/components/application/theme/theme-toggle';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Moon, Sun } from '@playora/ui/icons';
 import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
@@ -11,22 +12,26 @@ export function ThemeToggle() {
     setDark(document.documentElement.classList.contains('dark'));
   }, []);
 
-  const toggle = () => {
+  const toggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     const next = !dark;
     setDark(next);
-    document.documentElement.classList.toggle('dark', next);
+    const pointerOrigin =
+      event.clientX !== 0 && event.clientY !== 0 ? { x: event.clientX, y: event.clientY } : null;
+    void applyThemeWithTransition(next ? 'dark' : 'light', {
+      origin: pointerOrigin,
+      element: event.currentTarget,
+    });
   };
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant="secondary"
+      size="small"
+      leadingIcon={dark ? Sun : Moon}
       onClick={toggle}
       aria-label={dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
-      className="gap-2"
     >
-      {dark ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4" />}
-      <span>{dark ? 'Chế độ tối (Dark)' : 'Chế độ sáng (Light)'}</span>
+      {dark ? 'Chế độ tối (Dark)' : 'Chế độ sáng (Light)'}
     </Button>
   );
 }

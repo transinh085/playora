@@ -1,8 +1,7 @@
 'use client';
 
 import type { AssetSummary } from '@playora/contracts';
-import { Badge } from '@playora/ui/components/badge';
-import { Card } from '@playora/ui/components/card';
+import { Chip } from '@playora/ui/components/base/badges/chip';
 import { GameButton } from '@playora/ui/game/game-button';
 import { GameRoot } from '@playora/ui/game/game-root';
 import { useTranslations } from 'next-intl';
@@ -27,8 +26,10 @@ export function BrandKitPreviewCard({
   const bgAsset = imageAssets.find((a) => a.id === watchedTokens?.backgroundAssetId);
 
   return (
-    <Card className="h-fit rounded-2xl p-6">
-      <h3 className="mb-4 text-base font-semibold">{t('brandKits.previewTitle')}</h3>
+    <div className="h-fit rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+      <h3 className="mb-3 text-caption-1-semibold uppercase tracking-wider text-text-secondary">
+        {t('brandKits.previewTitle')}
+      </h3>
       <GameRoot
         brand={{
           primary: watchedTokens?.colors?.primary,
@@ -46,7 +47,7 @@ export function BrandKitPreviewCard({
               }
             : undefined
         }
-        className="flex min-h-80 flex-col items-center justify-between rounded-xl p-6 text-center"
+        className="flex min-h-80 flex-col items-center justify-between rounded-2xl p-6 text-center"
       >
         <div className="flex flex-col items-center gap-3">
           {logoAsset && (
@@ -57,19 +58,22 @@ export function BrandKitPreviewCard({
               className="h-12 w-auto object-contain"
             />
           )}
-          <Badge variant="outline" className="border-game-border bg-game-surface text-game-fg">
+          <Chip
+            variant="caption"
+            className="border border-game-border bg-game-surface text-game-fg"
+          >
             {watchedName || 'Playora'}
-          </Badge>
+          </Chip>
         </div>
 
         <div className="grid gap-2">
           <h3
-            className="text-game-fg text-xl font-bold"
+            className="text-xl font-bold text-game-fg"
             style={{ fontFamily: watchedTokens?.fontHeading }}
           >
             {t('brandKits.previewHeading')}
           </h3>
-          <p className="text-game-muted text-sm" style={{ fontFamily: watchedTokens?.fontBody }}>
+          <p className="text-sm text-game-muted" style={{ fontFamily: watchedTokens?.fontBody }}>
             {t('brandKits.previewSubtitle')}
           </p>
         </div>
@@ -78,6 +82,6 @@ export function BrandKitPreviewCard({
           {t('brandKits.previewCta')}
         </GameButton>
       </GameRoot>
-    </Card>
+    </div>
   );
 }

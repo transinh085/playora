@@ -6,27 +6,13 @@ import {
   type BrandKitSummary,
   type CreateBrandKitBody,
 } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@playora/ui/components/form';
-import { Input } from '@playora/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@playora/ui/components/select';
-import { Plus } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Input } from '@playora/ui/components/base/input/input';
+import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { Plus } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
-import type { UseFormReturn } from 'react-hook-form';
+import { type ReactNode, useMemo } from 'react';
+import { Controller, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type BrandKitFormValues = z.input<typeof CreateBrandKitBody>;
@@ -83,12 +69,18 @@ const FONT_FIELDS = [
 
 export function HexColorInput({
   id,
+  label,
   value,
   onChange,
+  isInvalid,
+  hint,
 }: {
   id?: string;
+  label?: ReactNode;
   value?: string;
   onChange?: (next: string) => void;
+  isInvalid?: boolean;
+  hint?: ReactNode;
 }) {
   const hexValue = typeof value === 'string' ? value : '#000000';
   const safePickerColor = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hexValue)
@@ -98,21 +90,25 @@ export function HexColorInput({
     : '#000000';
 
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="color"
-        value={safePickerColor}
-        onChange={(e) => onChange?.(e.target.value)}
-        className="h-9 w-10 shrink-0 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
-        aria-label="Pick color"
-      />
-      <Input
-        id={id}
-        value={hexValue}
-        onChange={(e) => onChange?.(e.target.value)}
-        className="font-mono"
-      />
-    </div>
+    <Input
+      id={id}
+      label={label}
+      aria-label={!label ? 'Hex color' : undefined}
+      value={hexValue}
+      onChange={(val) => onChange?.(val)}
+      isInvalid={isInvalid}
+      hint={hint}
+      inputClassName="font-mono"
+      leadingAddon={
+        <input
+          type="color"
+          value={safePickerColor}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="size-6 shrink-0 cursor-pointer rounded-md border border-border-button-default bg-transparent p-0.5 shadow-2xs"
+          aria-label="Pick color"
+        />
+      }
+    />
   );
 }
 
@@ -157,54 +153,53 @@ export function BrandKitEditorCard({
   ] as const;
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base font-semibold">
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">
           {editingId ? t('brandKits.edit') : t('brandKits.new')}
-        </CardTitle>
+        </h3>
         {editingId ? (
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            size="small"
+            leadingIcon={Plus}
             onClick={onResetToNew}
-            className="h-8 gap-1 text-xs"
           >
-            <Plus className="size-3.5" />
             {t('brandKits.new')}
           </Button>
         ) : null}
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-5">
         <div className="grid gap-4">
-          <FormField
+          <Controller
             control={form.control}
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('brandKits.name')}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('brandKits.name')}
+                value={field.value}
+                onChange={field.onChange}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
+              />
             )}
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
             {COLOR_FIELDS.map(([colorKey, labelKey]) => (
-              <FormField
+              <Controller
                 key={colorKey}
                 control={form.control}
                 name={`tokens.colors.${colorKey}` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t(labelKey)}</FormLabel>
-                    <FormControl>
-                      <HexColorInput value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <HexColorInput
+                    label={t(labelKey)}
+                    value={field.value}
+                    onChange={field.onChange}
+                    isInvalid={!!fieldState.error}
+                    hint={fieldState.error?.message}
+                  />
                 )}
               />
             ))}
@@ -212,29 +207,32 @@ export function BrandKitEditorCard({
 
           <div className="grid gap-4 sm:grid-cols-2">
             {FONT_FIELDS.map(([fontKey, labelKey]) => (
-              <FormField
+              <Controller
                 key={fontKey}
                 control={form.control}
                 name={`tokens.${fontKey}` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t(labelKey)}</FormLabel>
-                    <Select value={field.value ?? undefined} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger aria-label={t(labelKey)}>
-                          <SelectValue placeholder={t(labelKey)} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {fontOptions.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>
-                            {f.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-body-medium text-text-primary">{t(labelKey)}</span>
+                    <Select
+                      aria-label={t(labelKey)}
+                      selectedKey={field.value ?? null}
+                      onSelectionChange={(key) => {
+                        if (key !== null) field.onChange(String(key));
+                      }}
+                    >
+                      {fontOptions.map((f) => (
+                        <SelectItem key={f.value} id={f.value}>
+                          {f.label}
+                        </SelectItem>
+                      ))}
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                    {fieldState.error?.message && (
+                      <span className="text-caption-1-medium text-text-error-primary">
+                        {fieldState.error.message}
+                      </span>
+                    )}
+                  </div>
                 )}
               />
             ))}
@@ -242,49 +240,52 @@ export function BrandKitEditorCard({
 
           <div className="grid gap-4 sm:grid-cols-3">
             {assetSlots.map(([slotKey, labelKey, options]) => (
-              <FormField
+              <Controller
                 key={slotKey}
                 control={form.control}
                 name={`tokens.${slotKey}` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t(labelKey)}</FormLabel>
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-body-medium text-text-primary">{t(labelKey)}</span>
                     <Select
-                      value={field.value ?? NONE_ASSET}
-                      onValueChange={(v) => field.onChange(v === NONE_ASSET ? null : v)}
+                      aria-label={t(labelKey)}
+                      selectedKey={field.value ?? NONE_ASSET}
+                      onSelectionChange={(key) => {
+                        if (key !== null) {
+                          const v = String(key);
+                          field.onChange(v === NONE_ASSET ? null : v);
+                        }
+                      }}
                     >
-                      <FormControl>
-                        <SelectTrigger aria-label={t(labelKey)}>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {options.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                      {options.map((opt) => (
+                        <SelectItem key={opt.value} id={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                    {fieldState.error?.message && (
+                      <span className="text-caption-1-medium text-text-error-primary">
+                        {fieldState.error.message}
+                      </span>
+                    )}
+                  </div>
                 )}
               />
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 border-t border-separator-border pt-3">
             {editingId && (
-              <Button type="button" variant="outline" onClick={onResetToNew}>
+              <Button type="button" variant="secondary" size="small" onClick={onResetToNew}>
                 {t('common.cancel')}
               </Button>
             )}
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" size="small" disabled={isSubmitting}>
               {editingId ? t('common.save') : t('common.create')}
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

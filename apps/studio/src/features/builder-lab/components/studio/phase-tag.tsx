@@ -1,37 +1,41 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { CircleCheck, CircleStop, Clock, Pause, PencilLine } from 'lucide-react';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { CircleCheck, CircleStop, Clock, Pause, PencilLine } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import type { CampaignPhase } from '../../lib/phase';
 
 const LOOK: Record<
   CampaignPhase,
   {
-    variant: 'default' | 'secondary' | 'outline' | 'destructive';
+    color: 'neutral' | 'blue' | 'lime' | 'orange' | 'gray';
     className?: string;
     Icon: typeof Clock;
   }
 > = {
-  draft: { variant: 'outline', Icon: PencilLine },
-  scheduled: { variant: 'secondary', className: 'text-blue-600 dark:text-blue-400', Icon: Clock },
+  draft: { color: 'neutral', Icon: PencilLine },
+  scheduled: { color: 'blue', Icon: Clock },
   live: {
-    variant: 'outline',
-    className: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400',
+    color: 'lime',
     Icon: CircleCheck,
   },
-  paused: { variant: 'secondary', className: 'text-amber-600 dark:text-amber-400', Icon: Pause },
-  ended: { variant: 'outline', Icon: CircleStop },
+  paused: { color: 'orange', Icon: Pause },
+  ended: { color: 'gray', Icon: CircleStop },
 };
 
 /** Lifecycle tag with an icon (docs/engineering/design-system.md §3.4): colour is never the only signal. */
 export function PhaseTag({ phase }: { phase: CampaignPhase }) {
   const t = useTranslations('campaigns.phase');
-  const { variant, className, Icon } = LOOK[phase];
+  const { color, className, Icon } = LOOK[phase];
   return (
-    <Badge variant={variant} className={`gap-1 font-normal ${className ?? ''}`} data-phase={phase}>
-      <Icon className="size-3" />
+    <Chip
+      variant="subtle"
+      color={color}
+      className={`gap-1.5 text-xs font-medium ${className ?? ''}`}
+      data-phase={phase}
+    >
+      <Icon className="size-3.5" />
       {t(phase)}
-    </Badge>
+    </Chip>
   );
 }

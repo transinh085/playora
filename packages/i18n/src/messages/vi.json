@@ -210,7 +210,20 @@
     "expand": "Mở rộng thanh điều hướng",
     "openNav": "Mở danh mục điều hướng",
     "switchOrg": "Chuyển tổ chức",
-    "eventDetail": "Chi tiết chương trình"
+    "eventDetail": "Chi tiết chương trình",
+    "quickActions": "Thao tác nhanh",
+    "quickActionsPlaceholder": "Tìm trang, chương trình hoặc thao tác…",
+    "quickActionsEmpty": "Không tìm thấy mục phù hợp.",
+    "favorites": "Gần đây",
+    "database": "Danh sách",
+    "sort": "Sắp xếp",
+    "filters": "Bộ lọc",
+    "help": "Trợ giúp",
+    "helpDocs": "Tài liệu hướng dẫn",
+    "helpShortcuts": "Phím tắt",
+    "helpSupport": "Hỗ trợ & Góp ý",
+    "notifications": "Thông báo",
+    "notificationsEmpty": "Bạn đã nắm bắt hết thông tin mới."
   },
   "canvasLab": {
     "title": "Canvas editor",
@@ -1159,6 +1172,10 @@
     "viewGrid": "Xem dạng thẻ",
     "viewTable": "Xem dạng bảng",
     "openOps": "Xem vận hành",
+    "quickView": "Xem nhanh",
+    "quickViewTitle": "Chi tiết chương trình",
+    "openShare": "Chia sẻ & In QR",
+    "actions": "Thao tác",
     "copyLink": "Sao chép link",
     "linkCopied": "Đã sao chép link",
     "emptyTitle": "Chưa có chương trình nào",
@@ -1359,7 +1376,70 @@
       "continueEditing": "Tiếp tục soạn",
       "share": "Chia sẻ & QR",
       "templates": "Mẫu gợi ý",
-      "allTemplates": "Tất cả mẫu"
+      "allTemplates": "Tất cả mẫu",
+      "playbooks": {
+        "title": "Khởi tạo nhanh theo mục tiêu",
+        "slowDays": "Kéo khách ngày vắng",
+        "slowDaysDesc": "Tặng quà & voucher thứ 3, thứ 4",
+        "secondVisit": "Khách quay lại lần 2",
+        "secondVisitDesc": "Voucher giảm bill cho lần ghé sau",
+        "grandOpening": "Khai trương & Dịp lễ",
+        "grandOpeningDesc": "Vòng quay may mắn bùng nổ quà",
+        "custom": "Tự tạo kịch bản",
+        "customDesc": "Chọn mẫu và tùy chỉnh tự do"
+      },
+      "trends": {
+        "title": "Hiệu quả đổi quà & Lượt chơi",
+        "plays": "Lượt chơi",
+        "wins": "Lượt trúng quà",
+        "redeemed": "Khách tới quầy đổi quà",
+        "range7d": "7 ngày qua",
+        "range30d": "30 ngày qua",
+        "emptyTitle": "Chưa có dữ liệu lượt chơi",
+        "emptyDesc": "Biểu đồ xu hướng sẽ xuất hiện ngay khi có khách hàng chơi hoặc đổi quà đầu tiên.",
+        "playRehearsal": "Chơi thử trong Studio"
+      },
+      "counter": {
+        "title": "Hoạt động quầy đổi quà",
+        "stationActive": "Quầy đang mở",
+        "stationClosed": "Chưa kết nối quầy",
+        "openDesk": "Mở quầy đổi quà",
+        "empty": "Chưa có lượt đổi quà nào hôm nay",
+        "emptyHint": "Nhân viên đứng quầy quét mã QR hoặc nhập 6 ký tự để ghi nhận.",
+        "redeemedAt": "Đã đổi lúc {time}",
+        "justNow": "Vừa xong"
+      },
+      "table": {
+        "tabs": {
+          "all": "Tất cả",
+          "live": "Đang chạy",
+          "draftScheduled": "Nháp & Lên lịch",
+          "ended": "Đã kết thúc"
+        },
+        "searchPlaceholder": "Tìm tên chiến dịch...",
+        "columns": {
+          "campaign": "Chiến dịch",
+          "phase": "Trạng thái",
+          "period": "Thời gian",
+          "performance": "Lượt chơi / Trúng",
+          "counterConversion": "Khách tới quầy",
+          "stock": "Kho quà",
+          "actions": "Thao tác"
+        },
+        "stockLeft": "Còn {left}/{total}",
+        "unlimited": "Không giới hạn",
+        "rate": "{percent}% đổi quà"
+      },
+      "statCards": {
+        "redeemedCaption": "Lượt khách tới quầy",
+        "redeemedHint": "Tổng số voucher quà tặng đã được nhân viên đối soát thành công tại quầy.",
+        "playsCaption": "Toàn bộ chiến dịch",
+        "playsHint": "Tổng số lượt khách đã tương tác và chơi minigame.",
+        "prizeCostCaption": "Giá trị quà đã trao",
+        "prizeCostHint": "Tổng giá vốn thực tế của các phần quà khách đã đổi tại quầy.",
+        "attentionCaption": "Việc cần xử lý ngay",
+        "attentionHint": "Bao gồm cảnh báo cạn kho quà, chiến dịch tạm dừng hoặc sắp hết hạn."
+      }
     },
     "openPlay": "Mở trang chơi",
     "playbookTag": {
@@ -1784,5 +1864,132 @@
     "versionsEmpty": "Chưa có phiên bản nào được xuất bản.",
     "versionCurrent": "Đang dùng",
     "versionHash": "Mã cấu hình: {hash}"
+  },
+  "templatesCatalog": {
+    "title": "Kho mẫu minigame",
+    "subtitle": "Bộ sưu tập mẫu minigame phong phú được thiết kế chuẩn cho F&B và bán lẻ. Chọn mẫu, xem trước và khởi tạo chiến dịch trong tích tắc.",
+    "totalCountTag": "{count} mẫu có sẵn",
+    "toolbar": {
+      "searchPlaceholder": "Tìm kiếm theo tên mẫu, dịp, cơ chế…",
+      "filterBy": "Bộ lọc",
+      "savedTab": "Đã lưu ({count})",
+      "mechanicLabel": "Cơ chế game",
+      "verticalLabel": "Ngành hàng",
+      "goalLabel": "Mục tiêu chiến dịch",
+      "sortLabel": "Sắp xếp",
+      "reset": "Đặt lại",
+      "showingCount": "Hiển thị {current}/{total} mẫu",
+      "occasions": {
+        "all": "Tất cả dịp",
+        "tet": "Tết 2026",
+        "opening": "Khai trương",
+        "everyday": "Ngày thường / Cuối tuần",
+        "midAutumn": "Trung thu",
+        "xmas": "Giáng sinh",
+        "blackFriday": "Black Friday"
+      },
+      "mechanics": {
+        "allMechanics": "Tất cả cơ chế",
+        "spinWheel": "Vòng quay may mắn",
+        "scratchCard": "Thẻ cào trúng thưởng",
+        "giftBox": "Mở hộp quà bí mật",
+        "eggSmash": "Đập trứng vàng (M2)",
+        "catchItems": "Hứng quà rơi (M2)",
+        "memoryMatch": "Lật thẻ tìm cặp (M2)",
+        "luckyEnvelope": "Rút bao lì xì"
+      },
+      "verticals": {
+        "allVerticals": "Tất cả ngành",
+        "fnb": "F&B nói chung",
+        "cafeMilktea": "Cà phê & Trà sữa",
+        "restaurant": "Nhà hàng & Quán ăn",
+        "retail": "Thời trang & Bán lẻ",
+        "beauty": "Spa & Làm đẹp"
+      },
+      "goals": {
+        "allGoals": "Tất cả mục tiêu",
+        "traffic": "Kéo khách mới",
+        "retention": "Tăng khách quay lại",
+        "leads": "Thu thập số điện thoại",
+        "clearance": "Xả kho & Bán chéo"
+      },
+      "sort": {
+        "popularity": "Phổ biến nhất",
+        "newest": "Mới nhất",
+        "duration": "Thời lượng chơi"
+      }
+    },
+    "card": {
+      "prototypeBadge": "Bản thử nghiệm M2",
+      "preview": "Xem trước",
+      "use": "Dùng mẫu",
+      "save": "Lưu mẫu",
+      "saved": "Đã lưu",
+      "usageTag": "{count} lượt dùng",
+      "skinsLabel": "Giao diện",
+      "playsLabel": "lượt chơi"
+    },
+    "drawer": {
+      "instantWin": "Instant-win (Trúng tức thì)",
+      "skillGame": "Skill game (Kỹ năng)",
+      "save": "Lưu mẫu",
+      "saved": "Đã lưu",
+      "expectedOutcomesTitle": "Chỉ số hiệu quả kỳ vọng",
+      "usageCount": "Số lượt sử dụng",
+      "usageHint": "Chiến dịch đã triển khai",
+      "setupTime": "Thời gian triển khai",
+      "setupTimeHint": "Gắn Brand Kit & chạy ngay",
+      "completionRate": "Tỷ lệ hoàn thành",
+      "completionHint": "Người chơi tương tác hết game",
+      "screens": {
+        "cover": "Bìa",
+        "game": "Màn chơi",
+        "win": "Trúng quà",
+        "lose": "Hụt quà"
+      },
+      "mockShopName": "Tiệm Cà Phê Mộc · Chi nhánh 1",
+      "viewTerms": "Xem thể lệ chi tiết",
+      "playing...": "Đang quay thưởng…",
+      "revealResult": "Xem màn kết quả",
+      "congrats": "Chúc mừng bạn đã trúng quà!",
+      "voucherCodeLabel": "Mã đổi quà tại quầy",
+      "playAgain": "Chơi lại từ đầu",
+      "consolationGift": "Bạn nhận được 1 mã ưu đãi giảm 10% tại quầy thu ngân.",
+      "backToCover": "Về màn bìa",
+      "runningRehearsal": "Đang diễn hoạt cảnh…",
+      "tryPlayInteractive": "Chơi thử tương tác ngay",
+      "playsCounter": "lượt đã phát",
+      "availableSkinsTitle": "Các biến thể giao diện sẵn có",
+      "recommendedDuration": "Thời lượng khuyến nghị",
+      "durationHint": "Tối ưu cho khách đứng tại quầy",
+      "recommendedWinRate": "Tỷ lệ trúng gợi ý",
+      "winRateHint": "Cân đối ngân sách quà tặng",
+      "complianceTitle": "Đảm bảo tính minh bạch & Pháp lý",
+      "complianceDesc": "Server tính toán kết quả ngẫu nhiên và trừ kho quà trước khi hiển thị; không thể can thiệp thủ công kết quả.",
+      "close": "Đóng",
+      "useThisTemplate": "Dùng mẫu này"
+    },
+    "createModal": {
+      "title": "Khởi tạo chương trình mới",
+      "subtitle": "Thiết lập tên và bộ nhận diện thương hiệu để bắt đầu chỉnh sửa.",
+      "nameLabel": "Tên chương trình",
+      "namePlaceholder": "Ví dụ: Vòng quay Tết 2026 - Chi nhánh 1",
+      "brandKitLabel": "Bộ nhận diện thương hiệu (Brand Kit)",
+      "defaultBrandKit": "Mặc định của quán",
+      "cancel": "Huỷ",
+      "startDesigning": "Tạo & Chuyển sang chỉnh sửa",
+      "creating": "Đang khởi tạo…",
+      "createdSuccess": "Khởi tạo chương trình thành công!",
+      "createFailed": "Không thể khởi tạo chương trình. Vui lòng thử lại.",
+      "m2FallbackNotice": "Mẫu M2 đang thử nghiệm. Hệ thống đã tạo bản nháp trên engine tương đương để bạn trải nghiệm!"
+    },
+    "empty": {
+      "title": "Không tìm thấy mẫu phù hợp",
+      "description": "Thử đổi từ khoá tìm kiếm hoặc đặt lại các bộ lọc về mặc định.",
+      "resetAction": "Đặt lại toàn bộ bộ lọc",
+      "savedTitle": "Chưa có mẫu nào được lưu",
+      "savedDescription": "Bấm vào biểu tượng bookmark trên bất kỳ mẫu nào để lưu lại danh sách xem sau.",
+      "showAllAction": "Xem tất cả mẫu"
+    }
   }
 }

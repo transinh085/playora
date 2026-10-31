@@ -1,7 +1,7 @@
 'use client';
 
 import { Mechanism, toCanvasPrizes } from '@playora/ui/campaign';
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import { useTranslations } from 'next-intl';
 import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { SCREEN_KEYS, type ScreenKey } from '@/features/canvas-editor/lib/model';
@@ -50,7 +50,7 @@ export function PhonePreview({
               <button
                 key={key}
                 type="button"
-                className={cn(
+                className={cx(
                   'rounded-full px-3 py-1 font-medium transition-all',
                   screen === key
                     ? 'bg-background text-foreground shadow-sm'

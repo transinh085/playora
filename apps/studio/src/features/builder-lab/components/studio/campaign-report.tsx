@@ -1,20 +1,11 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { Progress } from '@playora/ui/components/progress';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
-import { cn } from '@playora/ui/lib/utils';
-import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from 'lucide-react';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useFormatter, useLocale, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -119,8 +110,8 @@ export function PlaybookGoalBanner({
       : null;
 
   return (
-    <Card
-      className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5"
+    <div
+      className="rounded-3xl border border-teal-500/25 bg-teal-50/50 p-4 shadow-card dark:border-teal-500/30 dark:bg-teal-950/20"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
@@ -133,9 +124,9 @@ export function PlaybookGoalBanner({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <Caption>{tr('goalLabel')}</Caption>
-              <Badge variant="secondary" className="font-normal">
+              <Chip variant="subtle" color="neutral" className="font-normal">
                 {title}
-              </Badge>
+              </Chip>
             </div>
             <span className="block text-base font-semibold">{goal}</span>
             <Caption>
@@ -151,7 +142,7 @@ export function PlaybookGoalBanner({
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -282,12 +273,18 @@ export function DailyOutcomeCard({
   const locale = useLocale();
 
   return (
-    <Card className="rounded-2xl border" data-testid="daily-chart-card" data-print-card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      data-testid="daily-chart-card"
+      data-print-card
+    >
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </h3>
         {extra}
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-4">
         {loading ? (
           <Skeleton className="h-64 w-full" />
         ) : (
@@ -303,8 +300,8 @@ export function DailyOutcomeCard({
             }}
           />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -320,52 +317,60 @@ export function ChannelsTableCard({
   const rows = report?.byChannel ?? [];
 
   return (
-    <Card className="rounded-2xl border" data-testid="channel-table" data-print-card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      data-testid="channel-table"
+      data-print-card
+    >
+      <div className="border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </h3>
+      </div>
+      <div className="p-0">
         {loading ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {tr('empty')}
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tr('channel')}</TableHead>
-                  <TableHead className="text-right">{tr('plays')}</TableHead>
-                  <TableHead className="text-right">{tr('wins')}</TableHead>
-                  <TableHead className="text-right">{tr('visits')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="w-full overflow-x-auto">
+            <table className="bui-table w-full">
+              <thead>
+                <tr>
+                  <th>{tr('channel')}</th>
+                  <th className="text-right">{tr('plays')}</th>
+                  <th className="text-right">{tr('wins')}</th>
+                  <th className="text-right">{tr('visits')}</th>
+                </tr>
+              </thead>
+              <tbody>
                 {rows.map((row) => (
-                  <TableRow key={row.channel ?? '__direct__'}>
-                    <TableCell className="font-semibold">
+                  <tr key={row.channel ?? '__direct__'}>
+                    <td className="text-xs font-medium">
                       {resolveChannelLabel(row.channel, (k) => tr(`known.${k}`))}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    </td>
+                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                       {format.number(row.plays)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    </td>
+                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                       {format.number(row.wins)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
+                    </td>
+                    <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                       {format.number(row.visits)}
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -403,91 +408,101 @@ export function PrizesOutcomeCard({
         }));
 
   return (
-    <Card className="rounded-2xl border" data-testid="prize-stock" data-print-card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      data-testid="prize-stock"
+      data-print-card
+    >
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </h3>
         {showEditLink && (
           <Link
             href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-            className="text-xs text-primary hover:underline"
+            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
             data-print-hide
           >
             {t('stock.edit')}
           </Link>
         )}
-      </CardHeader>
-      <CardContent className="p-0">
+      </div>
+      <div className="p-0">
         {loading ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {tr('empty')}
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tr('name')}</TableHead>
-                  <TableHead className="text-right">{tr('unitCost')}</TableHead>
-                  <TableHead className="text-right">{tr('issued')}</TableHead>
-                  <TableHead className="text-right">{tr('redeemed')}</TableHead>
-                  <TableHead className="w-40">{tr('remaining')}</TableHead>
-                  {showRedeemedCost && (
-                    <TableHead className="text-right">{tr('redeemedCost')}</TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="w-full overflow-x-auto">
+            <table className="bui-table w-full">
+              <thead>
+                <tr>
+                  <th>{tr('name')}</th>
+                  <th className="text-right">{tr('unitCost')}</th>
+                  <th className="text-right">{tr('issued')}</th>
+                  <th className="text-right">{tr('redeemed')}</th>
+                  <th className="w-40">{tr('remaining')}</th>
+                  {showRedeemedCost && <th className="text-right">{tr('redeemedCost')}</th>}
+                </tr>
+              </thead>
+              <tbody>
                 {rows.map((row) => {
                   const percent = row.quantity
                     ? Math.round((row.remaining / row.quantity) * 100)
                     : 0;
                   return (
-                    <TableRow key={row.prizeId}>
-                      <TableCell>
+                    <tr key={row.prizeId}>
+                      <td>
                         <div className="flex flex-col">
-                          <span className="font-semibold">{row.name}</span>
-                          <Caption>
+                          <span className="text-xs font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                            {row.name}
+                          </span>
+                          <Caption className="text-[11px]">
                             {t('stock.issued', { issued: row.issued, redeemed: row.redeemed })}
                           </Caption>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      </td>
+                      <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                         {formatVnd(row.valueVnd, locale)}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      </td>
+                      <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                         {format.number(row.issued)}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">
+                      </td>
+                      <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                         {format.number(row.redeemed)}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div className="space-y-1">
-                          <Caption className="tabular-nums">
+                          <Caption className="tabular-nums text-[11px]">
                             {t('stock.left', { left: row.remaining, total: row.quantity })}
                           </Caption>
-                          <Progress
+                          <ProgressBar
                             value={percent}
-                            className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+                            aria-label={row.name}
+                            size="sm"
+                            className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
                           />
                         </div>
-                      </TableCell>
+                      </td>
                       {showRedeemedCost && (
-                        <TableCell className="text-right font-semibold tabular-nums">
+                        <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                           {formatVnd(row.redeemed * row.valueVnd, locale)}
-                        </TableCell>
+                        </td>
                       )}
-                    </TableRow>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -512,17 +527,19 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending || reportQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-72 w-full rounded-2xl" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-72 w-full rounded-lg" />
       </div>
     );
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        <p className="mb-4">{t('notFound')}</p>
+      <div className="py-12 text-center text-neutral-500">
+        <p className="mb-4 text-sm">{t('notFound')}</p>
         <Link href={routes.list}>
-          <Button>{t('backToList')}</Button>
+          <Button size="small" className="h-8 rounded-md text-xs">
+            {t('backToList')}
+          </Button>
         </Link>
       </div>
     );
@@ -549,8 +566,12 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
           backHref={routes.detail(campaign.id)}
           backLabel={tr('backToCampaign')}
           extra={
-            <Button className="gap-2 rounded-full" onClick={() => window.print()}>
-              <Printer className="size-4" />
+            <Button
+              size="small"
+              className="gap-2 rounded-md h-8 text-xs shadow-xs"
+              onClick={() => window.print()}
+            >
+              <Printer className="size-3.5" />
               {tr('printPdf')}
             </Button>
           }
@@ -561,24 +582,30 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
 
       <OutcomeMetricGrid campaign={campaign} report={report} />
 
-      <Card className="rounded-2xl border" data-testid="report-insights" data-print-card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{tr('insights.title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div
+        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+        data-testid="report-insights"
+        data-print-card
+      >
+        <div className="border-b border-border-button-default px-4 py-3">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {tr('insights.title')}
+          </h3>
+        </div>
+        <div className="space-y-3 p-4">
           {insights.map((insight) => (
             <div
               key={insight.key}
-              className="flex items-start gap-2.5 text-sm"
+              className="flex items-start gap-2.5 text-xs text-neutral-700 dark:text-[#D4D4D4]"
               data-testid="report-insight-item"
               data-insight-key={insight.key}
             >
-              <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
+              <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
               <span>{tr(`insights.${insight.key}`, insight.values)}</span>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <DailyOutcomeCard report={report} />

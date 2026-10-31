@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { ArrowLeft } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { ArrowLeft } from '@playora/ui/icons';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { TemplatesCatalog } from '@/features/templates';
 import { PLAYBOOK_KEYS, type PlaybookKey } from '../../lib/playbooks';
 import { GoalPicker } from './goal-picker';
 import { PlaybookSetupForm } from './playbook-setup';
-import { TemplateGallery } from './template-gallery';
 
 const isPlaybook = (value: string | null): value is PlaybookKey =>
   PLAYBOOK_KEYS.includes(value as PlaybookKey);
@@ -34,12 +34,12 @@ export function CreateCampaignFlow({ orgId }: { orgId: string }) {
     return (
       <div className="flex flex-col gap-4">
         <div>
-          <Button variant="outline" className="gap-2" onClick={() => go('')}>
+          <Button variant="secondary" className="gap-2" onClick={() => go('')}>
             <ArrowLeft className="size-4" />
             {t('backToGoals')}
           </Button>
         </div>
-        <TemplateGallery orgId={orgId} />
+        <TemplatesCatalog orgId={orgId} />
       </div>
     );
   }

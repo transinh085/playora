@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
 import { PlayProvider } from '@playora/ui/providers/play-provider';
 import { type BrandKitTheme, resolveGameTheme, type Skin } from '@playora/ui/theme/game-theme';
+import { cx } from '@playora/ui/utils/cx';
 import * as React from 'react';
 
 export type GameRootProps = React.ComponentProps<'div'> & {
@@ -25,7 +25,7 @@ function GameRoot({
   ...props
 }: GameRootProps) {
   const resolved = React.useMemo(() => resolveGameTheme({ skin, brand }), [skin, brand]);
-  const mergedClassName = cn('game-backdrop min-h-dvh font-sans antialiased', className);
+  const mergedClassName = cx('game-backdrop min-h-dvh font-sans antialiased', className);
   const mergedStyle = { ...resolved.vars, ...style } as React.CSSProperties;
 
   const content =
@@ -35,7 +35,7 @@ function GameRoot({
         'data-slot': 'game-root',
         'data-skin': resolved.skin,
         style: { ...mergedStyle, ...children.props.style },
-        className: cn(mergedClassName, children.props.className),
+        className: cx(mergedClassName, children.props.className),
       } as React.HTMLAttributes<HTMLElement>)
     ) : (
       <div

@@ -9,47 +9,25 @@ import {
   SetSubscriptionBody,
 } from '@playora/contracts';
 import { planLimits } from '@playora/core/billing';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { HintText } from '@playora/ui/components/base/input/hint-text';
+import { Input } from '@playora/ui/components/base/input/input';
+import { Label } from '@playora/ui/components/base/input/label';
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@playora/ui/components/dialog';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@playora/ui/components/form';
-import { Input } from '@playora/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@playora/ui/components/select';
-import { toast } from '@playora/ui/components/sonner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
-import { Textarea } from '@playora/ui/components/textarea';
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from '@playora/ui/components/base/modal/modal';
+import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { Textarea } from '@playora/ui/components/base/textarea/textarea';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { applyApiErrorToRHF } from '@playora/ui/form';
-import { Search } from 'lucide-react';
+import { Search } from '@playora/ui/icons';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
@@ -79,60 +57,66 @@ export function AdminView() {
       ) : (
         <TableCard
           toolbar={
-            <div className="relative max-w-md flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="max-w-md flex-1">
               <Input
                 type="search"
                 placeholder={t('search')}
                 aria-label={t('search')}
+                leadingIcon={Search}
                 value={search}
-                onChange={(e) => setSearch(e.target.value.trim())}
-                className="pl-9"
+                onChange={(val) => setSearch(val.trim())}
               />
             </div>
           }
         >
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('org')}</TableHead>
-                  <TableHead>{t('owner')}</TableHead>
-                  <TableHead>{t('plan')}</TableHead>
-                  <TableHead>{t('campaigns')}</TableHead>
-                  <TableHead>{t('redemptions')}</TableHead>
-                  <TableHead>{t('note')}</TableHead>
-                  <TableHead className="text-right">{tMembers('actionsColumn')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="w-full overflow-x-auto">
+            <table className="bui-table w-full">
+              <thead>
+                <tr>
+                  <th>{t('org')}</th>
+                  <th>{t('owner')}</th>
+                  <th>{t('plan')}</th>
+                  <th>{t('campaigns')}</th>
+                  <th>{t('redemptions')}</th>
+                  <th>{t('note')}</th>
+                  <th className="text-right">{tMembers('actionsColumn')}</th>
+                </tr>
+              </thead>
+              <tbody>
                 {(query.data?.items ?? []).length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <tr>
+                    <td colSpan={7} className="h-24 text-center text-text-secondary">
                       {t('empty')}
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ) : (
                   (query.data?.items ?? []).map((org) => {
                     const sub = org.subscription;
                     const lapsed = sub && sub.plan !== 'free' && org.plan === 'free';
                     const limit = planLimits(org.plan).maxRunningCampaigns;
                     return (
-                      <TableRow key={org.id}>
-                        <TableCell>
+                      <tr key={org.id}>
+                        <td>
                           <div className="flex flex-col">
-                            <span className="font-medium">{org.name}</span>
+                            <span className="font-medium text-text-primary">{org.name}</span>
                             <Caption>{org.slug}</Caption>
                           </div>
-                        </TableCell>
-                        <TableCell>{org.ownerEmail ?? <Caption>—</Caption>}</TableCell>
-                        <TableCell>
+                        </td>
+                        <td>{org.ownerEmail ?? <Caption>—</Caption>}</td>
+                        <td>
                           <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-1.5">
-                              <Badge variant={org.plan === 'free' ? 'secondary' : 'default'}>
+                              <Chip
+                                variant={org.plan === 'free' ? 'subtle' : 'bold'}
+                                color={org.plan === 'free' ? 'neutral' : 'orange'}
+                              >
                                 {tb(`plans.${org.plan}`)}
-                              </Badge>
-                              {lapsed && <Badge variant="destructive">{t('expired')}</Badge>}
+                              </Chip>
+                              {lapsed && (
+                                <Chip variant="subtle" color="rose">
+                                  {t('expired')}
+                                </Chip>
+                              )}
                             </div>
                             {sub?.currentPeriodEnd && (
                               <Caption>
@@ -142,19 +126,19 @@ export function AdminView() {
                               </Caption>
                             )}
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           {limit === null
                             ? tb('ofUnlimited', { used: org.usage.runningCampaigns })
                             : tb('ofLimit', { used: org.usage.runningCampaigns, limit })}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           {tb('ofLimit', {
                             used: format.number(org.usage.redemptionsThisMonth),
                             limit: format.number(planLimits(org.plan).redemptionsPerMonth),
                           })}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td>
                           {org.note ? (
                             <span className="line-clamp-1 max-w-[220px]" title={org.note}>
                               {org.note}
@@ -162,23 +146,31 @@ export function AdminView() {
                           ) : (
                             <Caption>—</Caption>
                           )}
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </td>
+                        <td className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditing(org)}>
+                            <Button
+                              variant="secondary"
+                              size="small"
+                              onClick={() => setEditing(org)}
+                            >
                               {t('setPlan')}
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setInvoicing(org)}>
+                            <Button
+                              variant="secondary"
+                              size="small"
+                              onClick={() => setInvoicing(org)}
+                            >
                               {t('recordInvoice')}
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     );
                   })
                 )}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </TableCard>
       )}
@@ -231,112 +223,102 @@ function SetPlanModal({ org, onClose }: { org: AdminOrg; onClose: () => void }) 
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('setPlanTitle', { org: org.name })}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="plan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{tb('invoicePlan')}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger aria-label={tb('invoicePlan')}>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PLAN_ORDER.map((plan) => (
-                        <SelectItem key={plan} value={plan}>
-                          {tb(`plans.${plan}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <Modal isOpen onOpenChange={(open) => !open && onClose()} size="sm">
+      <ModalHeader title={t('setPlanTitle', { org: org.name })} />
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <ModalBody className="space-y-4">
+          <Controller
+            control={form.control}
+            name="plan"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>{tb('invoicePlan')}</Label>
+                <Select
+                  aria-label={tb('invoicePlan')}
+                  selectedKey={field.value}
+                  onSelectionChange={(key) => {
+                    if (key) field.onChange(String(key));
+                  }}
+                  isInvalid={!!fieldState.error}
+                >
+                  {PLAN_ORDER.map((plan) => (
+                    <SelectItem key={plan} id={plan}>
+                      {tb(`plans.${plan}`)}
+                    </SelectItem>
+                  ))}
+                </Select>
+                {fieldState.error?.message && (
+                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                )}
+              </div>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('status')}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger aria-label={t('status')}>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">{t('statusActive')}</SelectItem>
-                      <SelectItem value="expired">{t('statusExpired')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Controller
+            control={form.control}
+            name="status"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>{t('status')}</Label>
+                <Select
+                  aria-label={t('status')}
+                  selectedKey={field.value}
+                  onSelectionChange={(key) => {
+                    if (key) field.onChange(String(key));
+                  }}
+                  isInvalid={!!fieldState.error}
+                >
+                  <SelectItem id="active">{t('statusActive')}</SelectItem>
+                  <SelectItem id="expired">{t('statusExpired')}</SelectItem>
+                </Select>
+                {fieldState.error?.message && (
+                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                )}
+              </div>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="currentPeriodEnd"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('periodEnd')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={isoToDay(field.value) ?? ''}
-                      onChange={(e) =>
-                        field.onChange(e.target.value ? dayToIso(e.target.value, 'end') : null)
-                      }
-                    />
-                  </FormControl>
-                  <FormDescription>{t('periodEndHint')}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Controller
+            control={form.control}
+            name="currentPeriodEnd"
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('periodEnd')}
+                type="date"
+                value={isoToDay(field.value) ?? ''}
+                onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : null)}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message ?? t('periodEndHint')}
+              />
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('noteLabel')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={3}
-                      maxLength={1000}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value || null)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t('cancel')}
-              </Button>
-              <Button type="submit" disabled={save.isPending}>
-                {t('save')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <Controller
+            control={form.control}
+            name="note"
+            render={({ field, fieldState }) => (
+              <Textarea
+                label={t('noteLabel')}
+                rows={3}
+                maxLength={1000}
+                value={field.value ?? ''}
+                onChange={(val) => field.onChange(val || null)}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
+              />
+            )}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button type="submit" disabled={save.isPending}>
+            {t('save')}
+          </Button>
+        </ModalFooter>
+      </form>
+    </Modal>
   );
 }
 
@@ -391,158 +373,128 @@ function RecordInvoiceModal({ org, onClose }: { org: AdminOrg; onClose: () => vo
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('invoiceTitle', { org: org.name })}</DialogTitle>
-        </DialogHeader>
-        <p className="text-xs text-muted-foreground">{t('invoiceHint')}</p>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="plan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{tb('invoicePlan')}</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(val) => {
-                      field.onChange(val);
-                      if (val === 'shop' || val === 'chain') {
-                        form.setValue('amountVnd', PLAN_PRICES[val].monthly);
-                      }
-                    }}
-                  >
-                    <FormControl>
-                      <SelectTrigger aria-label={tb('invoicePlan')}>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(['shop', 'chain'] as const).map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {tb(`plans.${value}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amountVnd"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('amount')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={1000}
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="periodStart"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('periodStart')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={isoToDay(field.value) ?? ''}
-                        onChange={(e) =>
-                          field.onChange(e.target.value ? dayToIso(e.target.value, 'start') : '')
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+    <Modal isOpen onOpenChange={(open) => !open && onClose()} size="sm">
+      <ModalHeader title={t('invoiceTitle', { org: org.name })} description={t('invoiceHint')} />
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <ModalBody className="space-y-4">
+          <Controller
+            control={form.control}
+            name="plan"
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1">
+                <Label>{tb('invoicePlan')}</Label>
+                <Select
+                  aria-label={tb('invoicePlan')}
+                  selectedKey={field.value}
+                  onSelectionChange={(key) => {
+                    if (!key) return;
+                    const val = String(key);
+                    field.onChange(val);
+                    if (val === 'shop' || val === 'chain') {
+                      form.setValue('amountVnd', PLAN_PRICES[val].monthly);
+                    }
+                  }}
+                  isInvalid={!!fieldState.error}
+                >
+                  {(['shop', 'chain'] as const).map((value) => (
+                    <SelectItem key={value} id={value}>
+                      {tb(`plans.${value}`)}
+                    </SelectItem>
+                  ))}
+                </Select>
+                {fieldState.error?.message && (
+                  <HintText isInvalid>{fieldState.error.message}</HintText>
                 )}
-              />
+              </div>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="periodEnd"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('periodEndInvoice')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        value={isoToDay(field.value) ?? ''}
-                        onChange={(e) =>
-                          field.onChange(e.target.value ? dayToIso(e.target.value, 'end') : '')
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <Controller
+            control={form.control}
+            name="amountVnd"
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('amount')}
+                type="number"
+                value={String(field.value ?? '')}
+                onChange={(val) => field.onChange(Number(val))}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
               />
-            </div>
+            )}
+          />
 
-            <FormField
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
               control={form.control}
-              name="paidAt"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('paidAt')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={isoToDay(field.value) ?? ''}
-                      onChange={(e) =>
-                        field.onChange(e.target.value ? dayToIso(e.target.value, 'start') : '')
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              name="periodStart"
+              render={({ field, fieldState }) => (
+                <Input
+                  label={t('periodStart')}
+                  type="date"
+                  value={isoToDay(field.value) ?? ''}
+                  onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
+                  isInvalid={!!fieldState.error}
+                  hint={fieldState.error?.message}
+                />
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
-              name="reference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('reference')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      maxLength={200}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value || null)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              name="periodEnd"
+              render={({ field, fieldState }) => (
+                <Input
+                  label={t('periodEndInvoice')}
+                  type="date"
+                  value={isoToDay(field.value) ?? ''}
+                  onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : '')}
+                  isInvalid={!!fieldState.error}
+                  hint={fieldState.error?.message}
+                />
               )}
             />
+          </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t('cancel')}
-              </Button>
-              <Button type="submit" disabled={record.isPending}>
-                {t('save')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <Controller
+            control={form.control}
+            name="paidAt"
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('paidAt')}
+                type="date"
+                value={isoToDay(field.value) ?? ''}
+                onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="reference"
+            render={({ field, fieldState }) => (
+              <Input
+                label={t('reference')}
+                maxLength={200}
+                value={field.value ?? ''}
+                onChange={(val) => field.onChange(val || null)}
+                isInvalid={!!fieldState.error}
+                hint={fieldState.error?.message}
+              />
+            )}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button type="submit" disabled={record.isPending}>
+            {t('save')}
+          </Button>
+        </ModalFooter>
+      </form>
+    </Modal>
   );
 }

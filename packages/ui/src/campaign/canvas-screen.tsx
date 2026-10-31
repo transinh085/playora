@@ -14,7 +14,7 @@ import {
   Trophy,
   Volume2,
   Zap,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { memo, type ReactNode, useEffect, useState } from 'react';
 import type { CanvasLabels } from './labels';
 import {

@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart2 } from 'lucide-react';
+import { BarChart2 } from '@playora/ui/icons';
 
 export interface DailyOutcomePoint {
   day: string;

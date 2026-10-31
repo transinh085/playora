@@ -1,13 +1,7 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@playora/ui/components/tooltip';
-import { ArrowLeft } from 'lucide-react';
+import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
+import { ArrowLeft } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
@@ -35,32 +29,23 @@ export function PageHeader({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex min-w-0 items-center gap-3">
         {backHref && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-9 rounded-xl shadow-xs"
-                  aria-label={backLabel}
-                  onClick={() => router.push(backHref)}
-                >
-                  <ArrowLeft className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              {backLabel && <TooltipContent>{backLabel}</TooltipContent>}
-            </Tooltip>
-          </TooltipProvider>
+          <IconButton
+            icon={ArrowLeft}
+            size="medium"
+            aria-label={backLabel ?? 'Back'}
+            title={backLabel}
+            onClick={() => router.push(backHref)}
+          />
         )}
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="m-0 text-xl font-bold tracking-tight text-foreground">{title}</h1>
+            <h1 className="m-0 text-title-2-semibold text-text-primary">{title}</h1>
             {tags}
           </div>
           {description && (
-            <p className="mt-0.5 block text-xs text-muted-foreground">{description}</p>
+            <p className="mt-0.5 block text-body-2-regular text-text-secondary">{description}</p>
           )}
         </div>
       </div>

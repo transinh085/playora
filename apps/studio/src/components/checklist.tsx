@@ -1,9 +1,9 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { Progress } from '@playora/ui/components/progress';
-import { CircleCheck, CircleDashed } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { CircleCheck, CircleDashed } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
 import Link from 'next/link';
 import type React from 'react';
@@ -38,14 +38,25 @@ export function Checklist({
   const nextKey = items.find((item) => !item.done)?.key;
 
   return (
-    <Card className="rounded-2xl border-border/80 shadow-xs" data-testid={testId}>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-bold">{title}</CardTitle>
-        {extra ?? <Caption>{`${done}/${items.length}`}</Caption>}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Progress value={percent} className="h-1.5" />
-        <ul className="m-0 flex list-none flex-col divide-y divide-border/60 p-0">
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+      data-testid={testId}
+    >
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{title}</h3>
+        {extra ?? (
+          <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
+            {`${done}/${items.length}`}
+          </span>
+        )}
+      </div>
+      <div className="space-y-4 p-5">
+        <ProgressBar
+          value={percent}
+          size="md"
+          aria-label={typeof title === 'string' ? title : 'Progress'}
+        />
+        <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
           {items.map((item) => (
             <li
               key={item.key}
@@ -55,40 +66,41 @@ export function Checklist({
             >
               <div className="flex items-center gap-3">
                 {item.done ? (
-                  <CircleCheck className="size-5 shrink-0 text-teal-600 dark:text-teal-400" />
+                  <CircleCheck className="size-4 shrink-0 text-accent-600" />
                 ) : (
-                  <CircleDashed className="size-5 shrink-0 text-muted-foreground/50" />
+                  <CircleDashed className="size-4 shrink-0 text-foreground-icon-tertiary" />
                 )}
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`m-0 text-sm ${
-                      item.done
-                        ? 'line-through text-muted-foreground'
-                        : 'font-medium text-foreground'
-                    }`}
+                    className={cx(
+                      'm-0 text-body-2-medium',
+                      item.done ? 'line-through text-text-tertiary' : 'text-text-primary',
+                    )}
                   >
                     {item.title}
                   </p>
                   {item.description && !item.done && (
-                    <Caption className="block mt-0.5">{item.description}</Caption>
+                    <Caption className="mt-0.5 block text-caption-1-medium">
+                      {item.description}
+                    </Caption>
                   )}
                 </div>
                 {!item.done && (
-                  <Button
-                    asChild
-                    size="sm"
-                    variant={item.key === nextKey ? 'default' : 'outline'}
-                    className="shadow-xs text-xs"
-                    tabIndex={-1}
-                  >
-                    <Link href={item.href as Route}>{item.action}</Link>
-                  </Button>
+                  <Link href={item.href as Route}>
+                    <Button
+                      size="small"
+                      variant={item.key === nextKey ? 'primary' : 'secondary'}
+                      tabIndex={-1}
+                    >
+                      {item.action}
+                    </Button>
+                  </Link>
                 )}
               </div>
             </li>
           ))}
         </ul>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

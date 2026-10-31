@@ -1,18 +1,11 @@
 'use client';
 
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Button } from '@playora/ui/components/button';
-import { QRCodeSvg } from '@playora/ui/components/qr-code';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@playora/ui/components/select';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { cn } from '@playora/ui/lib/utils';
-import { AlertTriangle, ArrowLeft, Printer } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+import { AlertTriangle, ArrowLeft, Printer } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -55,7 +48,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center p-8">
-        <Skeleton className="h-96 w-full max-w-md rounded-2xl" />
+        <Skeleton className="h-96 w-full max-w-md rounded-lg" />
       </div>
     );
   }
@@ -132,7 +125,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link href={routes.share(campaign.id)}>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="secondary" size="small" className="gap-2">
                 <ArrowLeft className="size-4" />
                 {t('print.back')}
               </Button>
@@ -141,32 +134,32 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{t('channels.title')}:</span>
               <Select
-                value={currentCh}
-                onValueChange={(val) => updateQueryParams(val, currentFormat)}
+                selectedKey={currentCh}
+                onSelectionChange={(val) => {
+                  if (val !== null) updateQueryParams(String(val), currentFormat);
+                }}
+                size="sm"
+                aria-label={t('channels.title')}
+                className="w-44"
               >
-                <SelectTrigger className="h-8 w-44 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {allChannels.map((ch) => (
-                    <SelectItem key={ch.value} value={ch.value}>
-                      {ch.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                {allChannels.map((ch) => (
+                  <SelectItem key={ch.value} id={ch.value}>
+                    {ch.label}
+                  </SelectItem>
+                ))}
               </Select>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
-                className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
+                className={cx(
+                  'rounded-md px-3 py-1 font-medium transition-all',
                   currentFormat === 'standee'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
                 )}
                 onClick={() => updateQueryParams(currentCh, 'standee')}
               >
@@ -174,11 +167,11 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
               </button>
               <button
                 type="button"
-                className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
+                className={cx(
+                  'rounded-md px-3 py-1 font-medium transition-all',
                   currentFormat === 'tent'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
                 )}
                 onClick={() => updateQueryParams(currentCh, 'tent')}
               >
@@ -186,8 +179,12 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
               </button>
             </div>
 
-            <Button className="gap-2 rounded-full" size="sm" onClick={() => window.print()}>
-              <Printer className="size-4" />
+            <Button
+              className="gap-2 rounded-md h-8 text-xs shadow-xs"
+              size="small"
+              onClick={() => window.print()}
+            >
+              <Printer className="size-3.5" />
               {t('print.printNow')}
             </Button>
           </div>
@@ -195,10 +192,13 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 
         {isDraft && (
           <div className="mt-3">
-            <Alert className="border-amber-500/30 bg-amber-500/10 text-xs text-amber-900 dark:text-amber-200">
-              <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400" />
-              <AlertTitle className="text-xs">{t('print.draftNotice')}</AlertTitle>
-            </Alert>
+            <div
+              role="alert"
+              className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200"
+            >
+              <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div className="text-xs font-medium">{t('print.draftNotice')}</div>
+            </div>
           </div>
         )}
       </header>
@@ -387,7 +387,7 @@ function FoldedTentCardA6Sheet({
 }) {
   const renderTentFace = (upsideDown = false) => (
     <div
-      className={cn(
+      className={cx(
         'relative flex h-[105mm] w-[148mm] flex-col justify-between overflow-hidden p-5',
         upsideDown && 'rotate-180',
       )}

@@ -1,32 +1,13 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@playora/ui/components/alert-dialog';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
-import { Progress } from '@playora/ui/components/progress';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
-import { Tabs, TabsList, TabsTrigger } from '@playora/ui/components/tabs';
-import { cn } from '@playora/ui/lib/utils';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Modal, ModalFooter, ModalHeader } from '@playora/ui/components/base/modal/modal';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Tab, TabList, Tabs } from '@playora/ui/components/base/tabs/tabs';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import {
   CircleX,
   ExternalLink,
@@ -38,10 +19,12 @@ import {
   Square,
   Trash2,
   TriangleAlert,
-} from 'lucide-react';
+} from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
 import { QueryError } from '@/components/query-error';
@@ -93,8 +76,8 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   if (query.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-96 w-full rounded-lg" />
       </div>
     );
   }
@@ -131,14 +114,14 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
         extra={<HeaderActions orgId={orgId} campaign={campaign} />}
       />
 
-      <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="h-10 rounded-full border bg-muted/50 p-1">
+      <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key))} className="w-full">
+        <TabList aria-label={campaign.name} className="w-fit">
           {TABS.map((key) => (
-            <TabsTrigger key={key} value={key} className="rounded-full text-xs">
+            <Tab key={key} id={key}>
               {t(`tabs.${key}`)}
-            </TabsTrigger>
+            </Tab>
           ))}
-        </TabsList>
+        </TabList>
       </Tabs>
 
       {tab === 'overview' && <OverviewTab orgId={orgId} campaign={campaign} />}
@@ -159,7 +142,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const reportLink = (
     <Link href={routes.report(campaign.id)}>
-      <Button variant="outline" size="sm" className="gap-2">
+      <Button variant="secondary" size="small" className="gap-2">
         <FileText className="size-4" />
         {t('viewReport')}
       </Button>
@@ -168,7 +151,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
-      <Button variant={phase === 'draft' ? 'default' : 'outline'} size="sm" className="gap-2">
+      <Button variant={phase === 'draft' ? 'primary' : 'secondary'} size="small" className="gap-2">
         <Pencil className="size-4" />
         {phase === 'draft' ? t('continueEditing') : t('editDesign')}
       </Button>
@@ -177,7 +160,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const share = (
     <Link href={routes.share(campaign.id)}>
-      <Button variant="outline" size="sm" className="gap-2">
+      <Button variant="secondary" size="small" className="gap-2">
         <Share2 className="size-4" />
         {t('share.action')}
       </Button>
@@ -200,7 +183,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
       {share}
       {phase === 'paused' ? (
         <Button
-          size="sm"
+          size="small"
           className="gap-2"
           disabled={resume.isPending}
           onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
@@ -209,8 +192,8 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
           {t('resume')}
         </Button>
       ) : (
-        <a href={routes.play(campaign.id)} target="_blank" rel="noreferrer">
-          <Button size="sm" className="gap-2">
+        <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
+          <Button size="small" className="gap-2">
             <ExternalLink className="size-4" />
             {t('openPlay')}
           </Button>
@@ -263,43 +246,52 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card className="rounded-2xl border" data-testid="draft-checklist">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      data-testid="draft-checklist"
+    >
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        </h3>
+      </div>
+      <div className="space-y-3 p-4">
         <Caption>{t('draft.hint')}</Caption>
         {issues.map((issue) => {
           const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
           return (
-            <div key={issue.id} className="flex items-center gap-2.5 text-sm">
+            <div key={issue.id} className="flex items-center gap-2.5 text-xs">
               <Icon
-                className={cn(
-                  'size-4 shrink-0',
-                  issue.level === 'error' ? 'text-destructive' : 'text-amber-500',
+                className={cx(
+                  'size-3.5 shrink-0',
+                  issue.level === 'error' ? 'text-rose-500' : 'text-amber-500',
                 )}
               />
-              <span className="flex-1">{tp(`issues.${issue.code}`, issue.params)}</span>
+              <span className="flex-1 text-neutral-700 dark:text-[#D4D4D4]">
+                {tp(`issues.${issue.code}`, issue.params)}
+              </span>
               <Link
                 href={routes.edit(campaign.id, issue.where.area === 'screens' ? 'quick' : 'rules')}
-                className="text-xs text-primary hover:underline font-medium"
+                className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
               >
                 {t('draft.fix')}
               </Link>
             </div>
           );
         })}
-        <div className="pt-2">
+        <div className="pt-1">
           <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="secondary"
+              size="small"
+              className="h-7 rounded-md px-2.5 text-xs shadow-xs"
+            >
               {t('rehearse')}
             </Button>
           </a>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -312,23 +304,27 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t('recent.title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('recent.title')}
+        </h3>
+      </div>
+      <div className="p-0">
         {plays.isPending ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : recent.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {t('recent.empty')}
+          </div>
         ) : (
           <PlaysTable campaign={campaign} rows={recent} compact />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -346,42 +342,39 @@ function PlaysTable({
   const prizeName = (id: string | null) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('players.time')}</TableHead>
-            {!compact && <TableHead>{t('players.player')}</TableHead>}
-            <TableHead>{t('players.outcome')}</TableHead>
-            <TableHead>{t('players.prize')}</TableHead>
-            {!compact && <TableHead>{t('players.code')}</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className="w-full overflow-x-auto">
+      <table className="bui-table w-full">
+        <thead>
+          <tr>
+            <th>{t('players.time')}</th>
+            {!compact && <th>{t('players.player')}</th>}
+            <th>{t('players.outcome')}</th>
+            <th>{t('players.prize')}</th>
+            {!compact && <th>{t('players.code')}</th>}
+          </tr>
+        </thead>
+        <tbody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="text-xs">
+            <tr key={row.id}>
+              <td className="text-xs">
                 {format.dateTime(new Date(row.at), { dateStyle: 'short', timeStyle: 'short' })}
-              </TableCell>
-              {!compact && (
-                <TableCell className="font-mono text-xs">{row.playerId.slice(0, 8)}</TableCell>
-              )}
-              <TableCell>
-                <Badge
-                  variant={row.outcome === 'win' ? 'default' : 'secondary'}
+              </td>
+              {!compact && <td className="font-mono text-xs">{row.playerId.slice(0, 8)}</td>}
+              <td>
+                <Chip
+                  variant={row.outcome === 'win' ? 'bold' : 'subtle'}
+                  color={row.outcome === 'win' ? 'lime' : 'neutral'}
                   className="text-[10px]"
                 >
                   {t(`outcome.${row.outcome}`)}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
-              {!compact && (
-                <TableCell className="font-mono text-xs">{row.voucherCode ?? '—'}</TableCell>
-              )}
-            </TableRow>
+                </Chip>
+              </td>
+              <td className="text-xs">{prizeName(row.prizeId)}</td>
+              {!compact && <td className="font-mono text-xs">{row.voucherCode ?? '—'}</td>}
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -396,17 +389,22 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
 
   return (
-    <Card className="rounded-2xl border" data-testid="prize-stock">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('stock.title')}</CardTitle>
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      data-testid="prize-stock"
+    >
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('stock.title')}
+        </h3>
         <Link
           href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-          className="text-xs text-primary hover:underline"
+          className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
         >
           {t('stock.edit')}
         </Link>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+      <div className="space-y-4 p-4">
         {campaign.prizes.map((prize) => {
           const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
           const issued = vouchers.filter((v) => v.prizeId === prize.id);
@@ -414,22 +412,28 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
           const percent = prize.quantity ? Math.round((left / prize.quantity) * 100) : 0;
           return (
             <div key={prize.id} className="space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">{prize.name}</span>
-                <Caption className="tabular-nums">
+              <div className="flex justify-between text-xs">
+                <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                  {prize.name}
+                </span>
+                <Caption className="tabular-nums text-[11px]">
                   {t('stock.left', { left, total: prize.quantity })}
                 </Caption>
               </div>
-              <Progress
+              <ProgressBar
                 value={percent}
-                className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+                aria-label={prize.name}
+                size="sm"
+                className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
               />
-              <Caption>{t('stock.issued', { issued: issued.length, redeemed })}</Caption>
+              <Caption className="text-[11px]">
+                {t('stock.issued', { issued: issued.length, redeemed })}
+              </Caption>
             </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -442,64 +446,67 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} />
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">{t('vouchers.title')}</CardTitle>
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {t('vouchers.title')}
+          </h3>
           <Link
             href={campaignRoutes(orgId).redeem}
-            className="text-xs text-primary hover:underline"
+            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
           >
             {t('vouchers.desk')}
           </Link>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        <div className="p-0">
           {vouchers.isPending ? (
-            <div className="p-4 space-y-2">
+            <div className="space-y-2 p-4">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
             </div>
           ) : (vouchers.data ?? []).length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
+            <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
               {t('vouchers.empty')}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('vouchers.code')}</TableHead>
-                    <TableHead>{t('players.prize')}</TableHead>
-                    <TableHead>{t('vouchers.issued')}</TableHead>
-                    <TableHead>{t('vouchers.status')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="w-full overflow-x-auto">
+              <table className="bui-table w-full">
+                <thead>
+                  <tr>
+                    <th>{t('vouchers.code')}</th>
+                    <th>{t('players.prize')}</th>
+                    <th>{t('vouchers.issued')}</th>
+                    <th>{t('vouchers.status')}</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {(vouchers.data ?? []).map((row) => (
-                    <TableRow key={row.code}>
-                      <TableCell className="font-mono text-xs">{row.code}</TableCell>
-                      <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
-                      <TableCell className="text-xs">
+                    <tr key={row.code}>
+                      <td className="font-mono text-xs font-medium">{row.code}</td>
+                      <td className="text-xs">{prizeName(row.prizeId)}</td>
+                      <td className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
                         {format.dateTime(new Date(row.issuedAt), {
                           dateStyle: 'short',
                           timeStyle: 'short',
                         })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={row.redeemedAt ? 'default' : 'secondary'}
+                      </td>
+                      <td>
+                        <Chip
+                          variant={row.redeemedAt ? 'bold' : 'subtle'}
+                          color={row.redeemedAt ? 'lime' : 'neutral'}
                           className="text-[10px]"
                         >
                           {row.redeemedAt ? t('vouchers.redeemed') : t('vouchers.pending')}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                        </Chip>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -508,25 +515,27 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const t = useTranslations('campaigns');
   const plays = useCampaignPlays(orgId, campaign.id);
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {t('players.title', { count: plays.data?.length ?? 0 })}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+        </h3>
+      </div>
+      <div className="p-0">
         {plays.isPending ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : (plays.data ?? []).length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {t('recent.empty')}
+          </div>
         ) : (
           <PlaysTable campaign={campaign} rows={plays.data ?? []} />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -541,6 +550,8 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const onActionError = useCampaignActionError(orgId);
   const end = useEndCampaign(orgId);
   const remove = useDeleteCampaign(orgId);
+  const [isEndOpen, setIsEndOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const extend = (value: string) => {
     const endsAt = localInputToIso(value);
@@ -552,122 +563,147 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   };
 
   return (
-    <div className="flex max-w-3xl flex-col gap-5">
-      <Card className="rounded-2xl border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t('settings.scheduleTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Caption>{t('settings.scheduleHint')}</Caption>
-          <Input
+    <div className="flex max-w-4xl flex-col">
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card divide-y divide-border-button-default">
+        {/* Schedule Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
+          <div className="max-w-md">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              {t('settings.scheduleTitle')}
+            </h3>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+              {t('settings.scheduleHint')}
+            </p>
+          </div>
+          <InputBase
             type="datetime-local"
             aria-label={t('settings.endsAt')}
             defaultValue={isoToLocalInput(campaign.rules.endsAt)}
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
-            className="w-64"
+            className="w-56"
+            fieldClassName="h-8 text-xs font-mono"
           />
-        </CardContent>
-      </Card>
+        </div>
 
-      {campaign.status === 'published' && phase !== 'ended' && (
-        <Card className="rounded-2xl border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">{t('settings.runTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-3">
+        {/* Lifecycle Status Section */}
+        {campaign.status === 'published' && phase !== 'ended' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
+            <div className="max-w-md">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+                {t('settings.runTitle')}
+              </h3>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                {t('settings.runHint')}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               {phase === 'paused' ? (
                 <Button
-                  className="gap-2 rounded-full"
+                  size="small"
+                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
                 >
-                  <Play className="size-4" />
+                  <Play className="size-3.5" />
                   {t('resume')}
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
-                  className="gap-2 rounded-full"
+                  variant="secondary"
+                  size="small"
+                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => pause.mutate(campaign.id)}
                 >
-                  <Pause className="size-4" />
+                  <Pause className="size-3.5" />
                   {t('settings.pause')}
                 </Button>
               )}
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="gap-2 rounded-full">
-                    <Square className="size-4" />
-                    {t('settings.end')}
+              <Button
+                variant="secondary"
+                size="small"
+                className="gap-2 rounded-md h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/30 dark:hover:bg-rose-950/20 shadow-xs"
+                onClick={() => setIsEndOpen(true)}
+              >
+                <Square className="size-3.5" />
+                {t('settings.end')}
+              </Button>
+              <Modal isOpen={isEndOpen} onOpenChange={setIsEndOpen} size="sm">
+                <ModalHeader title={t('settings.endConfirm')} />
+                <ModalFooter>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    className="h-8 rounded-md text-xs"
+                    onClick={() => setIsEndOpen(false)}
+                  >
+                    {tCommon('cancel')}
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('settings.endConfirm')}</AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground"
-                      onClick={() => end.mutate(campaign.id)}
-                    >
-                      {t('settings.end')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Caption>{t('settings.runHint')}</Caption>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="rounded-2xl border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t('settings.deleteTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="gap-2 rounded-full"
-                  disabled={isRunning(phase)}
-                >
-                  <Trash2 className="size-4" />
-                  {t('settings.delete')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {t('settings.deleteConfirm', { name: campaign.name })}
-                  </AlertDialogTitle>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground"
-                    onClick={async () => {
-                      await remove.mutateAsync(campaign.id);
-                      toast.success(t('settings.deleted'));
-                      router.push(campaignRoutes(orgId).list);
+                  <Button
+                    variant="danger"
+                    size="small"
+                    className="h-8 rounded-md text-xs"
+                    onClick={() => {
+                      end.mutate(campaign.id);
+                      setIsEndOpen(false);
                     }}
                   >
-                    {t('settings.delete')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Caption>
-              {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
-            </Caption>
+                    {t('settings.end')}
+                  </Button>
+                </ModalFooter>
+              </Modal>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Danger Zone: Delete Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-rose-50/20 dark:bg-rose-950/10">
+          <div className="max-w-md">
+            <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400">
+              {t('settings.deleteTitle')}
+            </h3>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+              {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
+            </p>
+          </div>
+          <Button
+            variant="danger"
+            size="small"
+            className="gap-2 rounded-md h-8 text-xs shadow-xs"
+            disabled={isRunning(phase)}
+            onClick={() => setIsDeleteOpen(true)}
+          >
+            <Trash2 className="size-3.5" />
+            {t('settings.delete')}
+          </Button>
+          <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen} size="sm">
+            <ModalHeader title={t('settings.deleteConfirm', { name: campaign.name })} />
+            <ModalFooter>
+              <Button
+                variant="secondary"
+                size="small"
+                className="h-8 rounded-md text-xs"
+                onClick={() => setIsDeleteOpen(false)}
+              >
+                {tCommon('cancel')}
+              </Button>
+              <Button
+                variant="danger"
+                size="small"
+                className="h-8 rounded-md text-xs"
+                onClick={async () => {
+                  await remove.mutateAsync(campaign.id);
+                  setIsDeleteOpen(false);
+                  toast.success(t('settings.deleted'));
+                  router.push(campaignRoutes(orgId).list);
+                }}
+              >
+                {t('settings.delete')}
+              </Button>
+            </ModalFooter>
+          </Modal>
+        </div>
+      </div>
     </div>
   );
 }

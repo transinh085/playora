@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export type JoinPanelProps = React.ComponentProps<'div'> & {
@@ -17,7 +17,7 @@ function JoinPanel({ qr, url, code, className, ...props }: JoinPanelProps) {
   return (
     <div
       data-slot="join-panel"
-      className={cn('flex items-center gap-[1.2em]', className)}
+      className={cx('flex items-center gap-[1.2em]', className)}
       {...props}
     >
       {qr && (

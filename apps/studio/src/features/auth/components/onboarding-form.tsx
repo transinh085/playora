@@ -2,29 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Slug } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@playora/ui/components/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@playora/ui/components/form';
-import { Input } from '@playora/ui/components/input';
-import { toast } from '@playora/ui/components/sonner';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Input } from '@playora/ui/components/base/input/input';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { authClient } from '@/lib/auth-client';
 
@@ -73,65 +57,52 @@ export function OnboardingForm() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col py-16">
-      <Card className="rounded-2xl border-border/80 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">{t('title')}</CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">
-            {t('description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('orgName')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="name"
-                        className="rounded-xl"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          const slug = slugify(e.target.value);
-                          form.setValue('slug', slug, { shouldValidate: true });
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('orgSlug')}</FormLabel>
-                    <FormControl>
-                      <Input id="slug" className="rounded-xl" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  className="rounded-full shadow-xs px-6"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  {t('submit')}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+        <div className="border-b border-separator-border px-6 py-4">
+          <h2 className="m-0 text-headline-semibold text-text-primary">{t('title')}</h2>
+          <p className="mt-1 m-0 text-body-2-regular text-text-secondary">{t('description')}</p>
+        </div>
+        <div className="p-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Input
+                  label={t('orgName')}
+                  value={field.value}
+                  onChange={(val) => {
+                    field.onChange(val);
+                    const slug = slugify(val);
+                    form.setValue('slug', slug, { shouldValidate: true });
+                  }}
+                  isInvalid={!!fieldState.error}
+                  hint={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="slug"
+              render={({ field, fieldState }) => (
+                <Input
+                  label={t('orgSlug')}
+                  value={field.value}
+                  onChange={field.onChange}
+                  isInvalid={!!fieldState.error}
+                  hint={fieldState.error?.message}
+                  inputClassName="font-mono"
+                />
+              )}
+            />
+            <div className="pt-2">
+              <Button type="submit" disabled={isSubmitting}>
+                {t('submit')}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Card } from '@playora/ui/components/card';
-import type { LucideIcon } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import type { LucideIcon } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -19,7 +19,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Consistent, delightful empty state following the Playora / Luma aesthetic.
+ * Consistent, delightful empty state following the Playora / BoardUI aesthetic.
  * Clean neutral surface, muted icon tile, clear typography, and a prominent call-to-action.
  */
 export function EmptyState({
@@ -35,36 +35,35 @@ export function EmptyState({
   const actionButton =
     actionText &&
     (actionHref ? (
-      <Button asChild className="shadow-xs">
-        <Link href={actionHref as Route}>{actionText}</Link>
-      </Button>
+      <Link href={actionHref as Route}>
+        <Button tabIndex={-1}>{actionText}</Button>
+      </Link>
     ) : onAction ? (
-      <Button className="shadow-xs" onClick={onAction}>
-        {actionText}
-      </Button>
+      <Button onClick={onAction}>{actionText}</Button>
     ) : null);
 
   return (
-    <Card
-      className={`rounded-2xl p-12 text-center shadow-xs ${
-        bordered ? 'border-border/80' : 'border-0 shadow-none'
-      }`}
+    <div
+      className={cx(
+        'rounded-3xl px-4 py-16 text-center',
+        bordered
+          ? 'border border-border-button-default bg-background-primary-default shadow-card'
+          : 'border-0 bg-transparent shadow-none',
+      )}
     >
-      <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Icon className="size-7 stroke-[1.75]" />
+      <div className="mx-auto flex max-w-md flex-col items-center justify-center">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary shadow-xs">
+          <Icon className="size-5 stroke-[1.75]" />
         </div>
-        <div className="space-y-1">
-          <h3 className="m-0 text-base font-semibold text-foreground">{title}</h3>
-          <p className="m-0 text-xs text-muted-foreground leading-relaxed">{description}</p>
-        </div>
+        <h3 className="m-0 mb-1 text-headline-semibold text-text-primary">{title}</h3>
+        <p className="m-0 max-w-sm text-body-regular text-text-secondary">{description}</p>
         {(actionButton || extra) && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-4 flex items-center gap-2">
             {actionButton}
             {extra}
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }

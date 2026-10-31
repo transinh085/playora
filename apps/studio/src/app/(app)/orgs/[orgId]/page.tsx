@@ -1,8 +1,5 @@
 import { meApi } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
-import { Plus } from 'lucide-react';
-import type { Metadata, Route } from 'next';
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/page-header';
@@ -25,18 +22,7 @@ export default async function OrgHomePage({ params }: { params: Promise<{ orgId:
   const t = await getTranslations('campaigns');
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title={t('home.title')}
-        description={t('home.subtitle')}
-        extra={
-          <Button asChild className="rounded-full">
-            <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
-              <Plus className="mr-1.5 size-4" />
-              {t('create')}
-            </Link>
-          </Button>
-        }
-      />
+      <PageHeader title={t('home.title')} description={t('home.subtitle')} />
       <RedemptionUsageBanner orgId={orgId} />
       <CampaignHome orgId={orgId} />
     </div>

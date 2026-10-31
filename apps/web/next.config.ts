@@ -12,7 +12,7 @@ const config: NextConfig = {
   outputFileTracingRoot: resolve(process.cwd(), '../..'),
   transpilePackages: ['@playora/ui'],
   experimental: {
-    optimizePackageImports: ['@playora/ui', 'lucide-react'],
+    optimizePackageImports: ['@playora/ui', '@hugeicons/react', '@hugeicons/core-free-icons'],
   },
 };
 

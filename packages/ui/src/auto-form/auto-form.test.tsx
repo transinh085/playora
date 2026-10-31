@@ -318,9 +318,7 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(htmlVi).toContain('data-widget="object"');
 
       // Component slots present
-      expect(htmlVi).toContain('data-slot="input"');
-      expect(htmlVi).toContain('data-slot="slider"');
-      expect(htmlVi).toContain('data-slot="switch"');
+      expect(htmlVi).toContain('data-rac=""');
       expect(htmlVi).toContain('data-slot="segmented"');
       expect(htmlVi).toContain('data-slot="color-picker"');
       expect(htmlVi).toContain('data-slot="localized-widget"');
@@ -352,8 +350,8 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(htmlVi).toContain('Thời gian tối đa là 180 giây');
       expect(htmlVi).toContain('Tiêu đề tiếng Việt không được để trống');
 
-      // Unsupported widget renders Alert instead of throwing
-      expect(htmlVi).toContain('data-slot="alert"');
+      // Unsupported widget renders fallback alert instead of throwing
+      expect(htmlVi).toContain('data-widget-fallback="unknown-fancy-widget"');
       expect(htmlVi).toContain('data-widget-unsupported="unknown-fancy-widget"');
       expect(htmlVi).toContain('Widget chưa hỗ trợ: unknown-fancy-widget');
 

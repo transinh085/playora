@@ -1,16 +1,10 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Progress } from '@playora/ui/components/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@playora/ui/components/select';
-import { cn } from '@playora/ui/lib/utils';
-import { Loader2, Upload as UploadIcon } from 'lucide-react';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { Loader2, Upload as UploadIcon } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 import type { CropPreset, FilterKind } from '../lib/asset-helpers';
@@ -45,16 +39,16 @@ export function AssetUploadToolbar({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+        <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5 text-xs">
           {filterOptions.map((opt) => (
             <button
               key={opt.value}
               type="button"
-              className={cn(
-                'rounded-full px-3 py-1 font-medium transition-all',
+              className={cx(
+                'rounded-lg px-3 py-1 font-medium transition-all',
                 filter === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
+                  ? 'bg-background-primary-default text-text-primary shadow-xs'
+                  : 'text-text-secondary hover:text-text-primary',
               )}
               onClick={() => onFilterChange(opt.value)}
             >
@@ -64,15 +58,16 @@ export function AssetUploadToolbar({
         </div>
 
         <div className="flex items-center gap-3">
-          <Select value={cropPreset} onValueChange={(val) => onCropPresetChange(val as CropPreset)}>
-            <SelectTrigger aria-label={t('assets.cropTitle')} className="w-40 rounded-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">{t('assets.cropNone')}</SelectItem>
-              <SelectItem value="1:1">{t('assets.cropSquare')}</SelectItem>
-              <SelectItem value="16:9">{t('assets.cropWide')}</SelectItem>
-            </SelectContent>
+          <Select
+            aria-label={t('assets.cropTitle')}
+            size="sm"
+            selectedKey={cropPreset}
+            onSelectionChange={(key) => key && onCropPresetChange(String(key) as CropPreset)}
+            className="w-36"
+          >
+            <SelectItem id="none">{t('assets.cropNone')}</SelectItem>
+            <SelectItem id="1:1">{t('assets.cropSquare')}</SelectItem>
+            <SelectItem id="16:9">{t('assets.cropWide')}</SelectItem>
           </Select>
 
           <input
@@ -91,15 +86,11 @@ export function AssetUploadToolbar({
 
           <Button
             type="button"
-            className="gap-2 rounded-full"
+            size="small"
             disabled={uploadProgress !== null}
+            leadingIcon={uploadProgress !== null ? Loader2 : UploadIcon}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploadProgress !== null ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <UploadIcon className="size-4" />
-            )}
             {uploadProgress !== null
               ? t('assets.uploading', { progress: uploadProgress })
               : t('assets.upload')}
@@ -107,7 +98,9 @@ export function AssetUploadToolbar({
         </div>
       </div>
 
-      {uploadProgress !== null && <Progress value={uploadProgress} className="h-1.5 w-full" />}
+      {uploadProgress !== null && (
+        <ProgressBar value={uploadProgress} aria-label={t('assets.upload')} size="sm" />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export interface LeaderboardEntry {
@@ -24,7 +24,7 @@ export type LeaderboardProps = React.ComponentProps<'ol'> & {
  */
 function Leaderboard({ entries, highlightId, className, ...props }: LeaderboardProps) {
   return (
-    <ol data-slot="leaderboard" className={cn('grid gap-[0.35em]', className)} {...props}>
+    <ol data-slot="leaderboard" className={cx('grid gap-[0.35em]', className)} {...props}>
       {entries.map((entry, i) => {
         const isTop3 = i < 3;
         return (
@@ -35,7 +35,7 @@ function Leaderboard({ entries, highlightId, className, ...props }: LeaderboardP
             style={{ animationDelay: `${i * 60}ms` }}
           >
             <span
-              className={cn(
+              className={cx(
                 'm-0 grid size-[1.6em] shrink-0 place-items-center rounded-full border-0 p-0 font-game text-[0.75em] font-bold tabular-nums',
                 isTop3 ? `${MEDAL_CLASSES[i]} text-stage` : 'bg-transparent text-game-muted',
               )}

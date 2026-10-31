@@ -1,26 +1,8 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@playora/ui/components/alert-dialog';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { AlertDialog, ModalTrigger } from '@playora/ui/components/base/modal/modal';
 import { useFormatter, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { TableCard } from '@/components/table-card';
@@ -55,7 +37,7 @@ export function PendingInvitationsTable({
   if (invitations.length === 0) {
     return (
       <TableCard>
-        <div className="py-8 text-center text-xs text-muted-foreground">
+        <div className="py-8 text-center text-body-2-regular text-text-secondary">
           {t('members.pendingEmpty')}
         </div>
       </TableCard>
@@ -64,91 +46,73 @@ export function PendingInvitationsTable({
 
   return (
     <TableCard>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('members.email')}</TableHead>
-              <TableHead>{t('members.role')}</TableHead>
-              <TableHead>{t('members.expiresAt')}</TableHead>
-              {canManage && (
-                <TableHead className="text-right">{t('members.actionsColumn')}</TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className="w-full overflow-x-auto">
+        <table className="bui-table w-full">
+          <thead>
+            <tr>
+              <th>{t('members.email')}</th>
+              <th>{t('members.role')}</th>
+              <th>{t('members.expiresAt')}</th>
+              {canManage && <th className="text-right">{t('members.actionsColumn')}</th>}
+            </tr>
+          </thead>
+          <tbody>
             {invitations.map((inv) => {
               const invRole: OrgRole = inv.role && isOrgRole(inv.role) ? inv.role : 'viewer';
 
               return (
-                <TableRow key={inv.id}>
-                  <TableCell className="font-semibold text-sm">{inv.email}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs font-normal">
+                <tr key={inv.id}>
+                  <td className="text-body-medium text-text-primary">{inv.email}</td>
+                  <td>
+                    <Chip variant="caption" color="neutral">
                       {t(`members.roles.${invRole}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
+                    </Chip>
+                  </td>
+                  <td>
                     <Caption>
                       {format.dateTime(new Date(inv.expiresAt), {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       })}
                     </Caption>
-                  </TableCell>
+                  </td>
                   {canManage && (
-                    <TableCell className="text-right">
+                    <td className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-full text-xs"
+                          variant="secondary"
+                          size="small"
                           disabled={busyId === inv.id}
                           onClick={() => onResendInvitation(inv.id, inv.email, invRole)}
                         >
                           {t('members.resend')}
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs"
-                              disabled={busyId === inv.id}
-                            >
-                              {t('members.cancelInvite')}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-2xl">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-base font-bold">
-                                {t('members.cancelInviteConfirm')}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-xs text-muted-foreground">
-                                {inv.email}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-full">
-                                {t('common.cancel')}
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
-                                onClick={() => onCancelInvitation(inv.id, inv.email)}
-                              >
-                                {t('common.delete')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <ModalTrigger>
+                          <Button
+                            variant="ghost"
+                            size="small"
+                            className="text-text-error-primary hover:bg-notification-error-background"
+                            disabled={busyId === inv.id}
+                          >
+                            {t('members.cancelInvite')}
+                          </Button>
+                          <AlertDialog
+                            title={t('members.cancelInviteConfirm')}
+                            description={inv.email}
+                            variant="danger"
+                            confirmLabel={t('common.delete')}
+                            cancelLabel={t('common.cancel')}
+                            onConfirm={() => onCancelInvitation(inv.id, inv.email)}
+                          />
+                        </ModalTrigger>
                       </div>
-                    </TableCell>
+                    </td>
                   )}
-                </TableRow>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </TableCard>
   );

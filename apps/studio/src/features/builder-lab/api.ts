@@ -182,6 +182,41 @@ export function useCampaignVouchers(orgId: string, campaignId: string) {
   return { ...query, data: query.data?.items };
 }
 
+export function useCampaignsReports(orgId: string, campaignIds: readonly string[]) {
+  const results = useQueries({
+    queries: campaignIds.map((campaignId) => ({
+      queryKey: routeKey(campaignsApi.report, { params: { orgId, campaignId } }),
+      queryFn: () => api.call(campaignsApi.report, { params: { orgId, campaignId } }),
+      enabled: Boolean(orgId && campaignId),
+    })),
+  });
+  const byId = new Map<string, CampaignReport>();
+  campaignIds.forEach((id, i) => {
+    const data = results[i]?.data;
+    if (data) byId.set(id, data);
+  });
+  return { data: byId, isPending: results.some((r) => r.isPending) };
+}
+
+export function useCampaignsVouchers(orgId: string, campaignIds: readonly string[]) {
+  const results = useQueries({
+    queries: campaignIds.map((campaignId) => ({
+      queryKey: routeKey(campaignsApi.vouchers, {
+        params: { orgId, campaignId },
+        query: { limit: 20 },
+      }),
+      queryFn: () =>
+        api.call(campaignsApi.vouchers, {
+          params: { orgId, campaignId },
+          query: { limit: 20 },
+        }),
+      enabled: Boolean(orgId && campaignId),
+    })),
+  });
+  const allVouchers = results.flatMap((r) => r.data?.items ?? []);
+  return { vouchers: allVouchers, isPending: results.some((r) => r.isPending) };
+}
+
 // ── Campaign Mutations ───────────────────────────────────────────────────────
 
 export interface CreateCampaignStarterInput {

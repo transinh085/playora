@@ -1,4 +1,4 @@
-import { Badge } from '@playora/ui/components/badge';
+import { Chip } from '@playora/ui/components/base/badges/chip';
 import type { Metadata } from 'next';
 import { Logo, LogoMark } from '@/components/logo';
 import { FoundationsShowcase } from './_components/foundations-showcase';
@@ -29,9 +29,9 @@ function Section({
     <section id={id} className="grid scroll-mt-20 gap-6 border-t border-border/80 py-12">
       <header className="grid max-w-3xl gap-2">
         <div>
-          <Badge variant="secondary" className="font-mono text-[11px]">
+          <Chip variant="caption" color="neutral" className="font-mono text-[11px]">
             {badge}
-          </Badge>
+          </Chip>
         </div>
         <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           {title}
@@ -59,9 +59,9 @@ export default function DesignSystemPage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <Logo className="text-xl" />
-            <Badge variant="outline" className="font-mono text-xs">
-              v2.0 · shadcn/ui luma · ADR-016
-            </Badge>
+            <Chip variant="caption" color="neutral" className="font-mono text-xs">
+              v2.0 · BoardUI · ADR-016
+            </Chip>
           </div>
           <nav className="hidden flex-wrap items-center gap-x-5 gap-y-1 text-xs font-medium lg:flex">
             {NAV_ITEMS.map(([id, label]) => (
@@ -82,9 +82,15 @@ export default function DesignSystemPage() {
         {/* Hero Overview */}
         <header className="grid gap-6 pb-12">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="default">PRD v4.3 Aligned</Badge>
-            <Badge variant="outline">Radix UI + Tailwind CSS v4</Badge>
-            <Badge variant="outline">OKLCH Perceptual Tokens</Badge>
+            <Chip variant="caption" color="blue">
+              PRD v4.3 Aligned
+            </Chip>
+            <Chip variant="caption" color="neutral">
+              React Aria + Tailwind CSS v4
+            </Chip>
+            <Chip variant="caption" color="neutral">
+              OKLCH Perceptual Tokens
+            </Chip>
           </div>
           <h1 className="type-display-lg max-w-4xl text-balance text-foreground">
             Studio yên tĩnh cho chủ quán. Game rực rỡ cho khách chơi. Quầy đổi quà 3 giây.

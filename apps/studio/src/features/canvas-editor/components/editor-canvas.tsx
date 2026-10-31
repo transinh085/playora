@@ -1,7 +1,7 @@
 'use client';
 
 import { type CanvasLabels, type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
-import { Badge } from '@playora/ui/components/badge';
+import { Badge } from '@playora/ui/components/base/badges/badge';
 import { type Dispatch, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
 import {
@@ -311,7 +311,9 @@ export function EditorCanvas({
         <div
           className="absolute inset-0"
           onPointerDown={() => dispatch({ type: 'select', id: null })}
-          onContextMenu={(e) => onContextMenu?.(e, null)}
+          onContextMenu={(e) => {
+            if (e.target === e.currentTarget) onContextMenu?.(e, null);
+          }}
           role="presentation"
         >
           {screen.elements.map((el) =>
@@ -470,7 +472,7 @@ export function EditorCanvas({
 
       {badge && (
         <div className="absolute left-1/2 -translate-x-1/2 -bottom-10 pointer-events-none">
-          <Badge variant="secondary" className="px-2 py-0.5 text-xs font-mono shadow">
+          <Badge color="neutral" className="px-2 py-0.5 text-xs font-mono shadow">
             {badge}
           </Badge>
         </div>

@@ -1,9 +1,9 @@
 'use client';
 
-import { Checkbox } from '@playora/ui/components/checkbox';
-import { Input } from '@playora/ui/components/input';
-import { RadioGroup, RadioGroupItem } from '@playora/ui/components/radio-group';
-import { Switch } from '@playora/ui/components/switch';
+import { Checkbox } from '@playora/ui/components/base/checkbox/checkbox';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Radio, RadioGroup } from '@playora/ui/components/base/radio/radio';
+import { Switch } from '@playora/ui/components/base/switch/switch';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
@@ -47,13 +47,14 @@ export function RulesSentencesStep({
     apply: (v: number) => void,
     max = 99,
   ): React.ReactNode => (
-    <Input
+    <InputBase
       type="number"
       aria-label={label}
       min={1}
       max={max}
       step={1}
-      className="inline-block w-20 text-center font-mono"
+      fieldClassName="inline-block w-20"
+      className="text-center font-mono"
       value={value}
       onChange={(e) => {
         const val = parseInt(e.target.value, 10);
@@ -62,19 +63,21 @@ export function RulesSentencesStep({
     />
   );
   const time = (value: string, label: string, apply: (v: string) => void) => (
-    <Input
+    <InputBase
       type="time"
       aria-label={label}
-      className="inline-block w-32 font-mono"
+      fieldClassName="inline-block w-32"
+      className="font-mono"
       value={value}
       onChange={(e) => e.target.value && apply(e.target.value)}
     />
   );
   const dateTime = (iso: string, label: string, apply: (iso: string) => void) => (
-    <Input
+    <InputBase
       type="datetime-local"
       aria-label={label}
-      className="inline-block w-56 font-mono text-xs"
+      fieldClassName="inline-block w-56"
+      className="font-mono text-xs"
       value={isoToLocalInput(iso)}
       onChange={(e) => {
         const next = localInputToIso(e.target.value);
@@ -113,8 +116,8 @@ export function RulesSentencesStep({
         <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('hoursLabel')}
-            checked={hours !== null}
-            onCheckedChange={(on) => onChange({ openingHours: on ? DEFAULT_HOURS : null })}
+            isSelected={hours !== null}
+            onChange={(on) => onChange({ openingHours: on ? DEFAULT_HOURS : null })}
           />
           {hours
             ? t.rich('hoursOn', {
@@ -137,8 +140,8 @@ export function RulesSentencesStep({
         <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('daysLabel')}
-            checked={rules.openDays !== null}
-            onCheckedChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
+            isSelected={rules.openDays !== null}
+            onChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
           />
           {rules.openDays !== null ? (
             <div className="flex flex-wrap items-center gap-3">
@@ -147,31 +150,26 @@ export function RulesSentencesStep({
                 {WEEKDAYS.map((d) => {
                   const isChecked = rules.openDays?.includes(d) ?? false;
                   return (
-                    <label
+                    <Checkbox
                       key={d}
-                      htmlFor={`rules-open-day-${d}`}
-                      className="flex cursor-pointer items-center gap-1.5 text-xs"
+                      isSelected={isChecked}
+                      onChange={(checked) => {
+                        const current = rules.openDays ?? [];
+                        let nextDays: number[];
+                        if (checked) {
+                          nextDays = [...current, d];
+                        } else {
+                          nextDays = current.filter((day) => day !== d);
+                        }
+                        if (nextDays.length > 0) {
+                          onChange({
+                            openDays: nextDays.length === 7 ? null : sortWeekdays(nextDays),
+                          });
+                        }
+                      }}
                     >
-                      <Checkbox
-                        id={`rules-open-day-${d}`}
-                        checked={isChecked}
-                        onCheckedChange={(checked) => {
-                          const current = rules.openDays ?? [];
-                          let nextDays: number[];
-                          if (checked) {
-                            nextDays = [...current, d];
-                          } else {
-                            nextDays = current.filter((day) => day !== d);
-                          }
-                          if (nextDays.length > 0) {
-                            onChange({
-                              openDays: nextDays.length === 7 ? null : sortWeekdays(nextDays),
-                            });
-                          }
-                        }}
-                      />
-                      <span>{tw(weekdayKey(d))}</span>
-                    </label>
+                      <span className="text-xs">{tw(weekdayKey(d))}</span>
+                    </Checkbox>
                   );
                 })}
               </div>
@@ -188,8 +186,8 @@ export function RulesSentencesStep({
         <div className="flex items-center gap-2">
           <Switch
             aria-label={t('pacingLabel')}
-            checked={rules.pacing}
-            onCheckedChange={(pacing) => onChange({ pacing })}
+            isSelected={rules.pacing}
+            onChange={(pacing) => onChange({ pacing })}
           />
           <span>{t('pacing')}</span>
         </div>
@@ -201,16 +199,14 @@ export function RulesSentencesStep({
         <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('budgetLabel')}
-            checked={rules.budgetVnd !== null}
-            onCheckedChange={(on) =>
-              onChange({ budgetVnd: on ? Math.max(totalValueVnd, 100_000) : null })
-            }
+            isSelected={rules.budgetVnd !== null}
+            onChange={(on) => onChange({ budgetVnd: on ? Math.max(totalValueVnd, 100_000) : null })}
           />
           {rules.budgetVnd !== null
             ? t.rich('budgetOn', {
                 amount: () => (
                   <div className="relative inline-block w-44">
-                    <Input
+                    <InputBase
                       aria-label={t('budgetLabel')}
                       type="text"
                       className="pr-6 font-mono"
@@ -236,8 +232,8 @@ export function RulesSentencesStep({
         <div className="flex items-center gap-2">
           <Switch
             aria-label={t('formLabel')}
-            checked={rules.collectForm}
-            onCheckedChange={(collectForm) => onChange({ collectForm })}
+            isSelected={rules.collectForm}
+            onChange={(collectForm) => onChange({ collectForm })}
           />
           <span>{t('form')}</span>
         </div>
@@ -249,8 +245,8 @@ export function RulesSentencesStep({
         <div className="flex items-center gap-2">
           <Switch
             aria-label={t('redeemFirst')}
-            checked={rules.requireRedeemBeforeReplay}
-            onCheckedChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
+            isSelected={rules.requireRedeemBeforeReplay}
+            onChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
           />
           <span>{t('redeemFirst')}</span>
         </div>
@@ -262,22 +258,22 @@ export function RulesSentencesStep({
         <div className="flex flex-col gap-2 w-full">
           <span className="font-medium text-sm">{t('antiFraud')}</span>
           <RadioGroup
+            aria-label={t('antiFraud')}
             value={rules.antiFraud}
-            onValueChange={(val) => onChange({ antiFraud: val as 'standard' | 'low' })}
+            onChange={(val) => onChange({ antiFraud: val as 'standard' | 'low' })}
             className="flex flex-col gap-2"
           >
             {(['standard', 'low'] as const).map((level) => (
-              <label
+              <Radio
                 key={level}
-                htmlFor={`anti-fraud-${level}`}
-                className="flex cursor-pointer items-start gap-2.5 rounded-xl border p-2.5 hover:bg-muted/30 transition-colors"
+                value={level}
+                className="items-start rounded-xl border p-2.5 hover:bg-muted/30 transition-colors"
               >
-                <RadioGroupItem value={level} id={`anti-fraud-${level}`} className="mt-0.5" />
                 <div className="flex flex-col gap-0.5">
                   <span className="font-medium text-xs">{t(`antiFraudLevels.${level}`)}</span>
                   <Caption>{t(`antiFraudHints.${level}`)}</Caption>
                 </div>
-              </label>
+              </Radio>
             ))}
           </RadioGroup>
         </div>
@@ -318,9 +314,11 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   );
 
   return (
-    <div className="mt-4 rounded-2xl border bg-muted/20 p-4">
-      <span className="font-semibold text-sm">{t('title')}</span>
-      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
+    <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+      <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+        {t('title')}
+      </span>
+      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
         {lines.map((line) => (
           <li key={line.key}>
             <span>{t(line.key, line.values)}</span>

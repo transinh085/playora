@@ -1,7 +1,5 @@
 'use client';
 
-import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
@@ -86,27 +84,30 @@ export function RulesPrizesPanel({
       </StepCard>
 
       {issues.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTitle>{t('issues.title')}</AlertTitle>
-          <AlertDescription className="mt-1">
+        <div
+          role="alert"
+          className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-destructive"
+        >
+          <div className="text-sm font-semibold">{t('issues.title')}</div>
+          <div className="mt-1">
             <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5 text-xs">
               {issues.map((issue) => (
                 <li key={issue.key}>{t(`issues.${issue.key}`, issue.values)}</li>
               ))}
             </ul>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       )}
 
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">{t('sim.title')}</CardTitle>
+      <div className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <div className="flex flex-row items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-white/10">
+          <h3 className="text-base font-semibold">{t('sim.title')}</h3>
           <Caption>{t('sim.extra')}</Caption>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="p-5">
           <SimulatorCard campaign={campaign} blocked={issues.length > 0} onRulesChange={setRules} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -124,17 +125,17 @@ function StepCard({
 }) {
   const t = useTranslations('builderLab.rules');
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
+    <div className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <div className="border-b border-neutral-200 px-5 py-4 dark:border-white/10">
         <div className="flex flex-col gap-0.5">
           <Caption>{t('steps.label', { step })}</Caption>
-          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+          <h3 className="text-base font-semibold">{title}</h3>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3 pt-0">
-        <p className="text-muted-foreground text-xs">{hint}</p>
+      </div>
+      <div className="flex flex-col gap-3 p-5">
+        <p className="text-neutral-500 text-xs dark:text-neutral-400">{hint}</p>
         {children}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

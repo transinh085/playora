@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export type GameButtonVariant = 'primary' | 'accent' | 'surface';
@@ -59,7 +59,7 @@ export function gameButtonVariants({
   size = 'md',
   className,
 }: GameButtonVariantOptions = {}): string {
-  return cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
+  return cx(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
 }
 
 export type GameButtonProps = React.ComponentProps<'button'> & {

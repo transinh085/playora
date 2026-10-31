@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import * as React from 'react';
 
 function toRgb(color: string, backdrop = '#ffffff'): [number, number, number] | null {
@@ -90,7 +90,7 @@ export function ColorPair({
 
   return (
     <div
-      className={cn(
+      className={cx(
         'flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs',
         className,
       )}

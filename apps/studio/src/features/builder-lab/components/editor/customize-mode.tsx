@@ -1,8 +1,7 @@
 'use client';
 
 import { toCanvasPrizes } from '@playora/ui/campaign';
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Info } from 'lucide-react';
+import { Info } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
@@ -35,10 +34,13 @@ export function CustomizeMode({
   return (
     <div className="flex h-full flex-col">
       <div className="lg:hidden">
-        <Alert className="rounded-none border-x-0 border-t-0">
-          <Info className="size-4" />
-          <AlertTitle className="text-xs">{t('customizeNarrow')}</AlertTitle>
-        </Alert>
+        <div
+          role="alert"
+          className="flex items-center gap-2 border-b border-border-button-default bg-background-secondary-default px-4 py-2.5 text-xs font-medium text-text-primary"
+        >
+          <Info className="size-4 shrink-0" />
+          <span>{t('customizeNarrow')}</span>
+        </div>
       </div>
       <div className="min-h-0 flex-1 overflow-x-auto">
         <div className="h-full min-w-[1000px]">
