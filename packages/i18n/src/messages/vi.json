@@ -210,7 +210,14 @@
     "expand": "Mở rộng thanh điều hướng",
     "openNav": "Mở danh mục điều hướng",
     "switchOrg": "Chuyển tổ chức",
-    "eventDetail": "Chi tiết chương trình"
+    "eventDetail": "Chi tiết chương trình",
+    "quickActions": "Thao tác nhanh",
+    "quickActionsPlaceholder": "Tìm trang, chương trình hoặc thao tác…",
+    "quickActionsEmpty": "Không tìm thấy mục phù hợp.",
+    "favorites": "Gần đây",
+    "database": "Danh sách",
+    "sort": "Sắp xếp",
+    "filters": "Bộ lọc"
   },
   "canvasLab": {
     "title": "Canvas editor",

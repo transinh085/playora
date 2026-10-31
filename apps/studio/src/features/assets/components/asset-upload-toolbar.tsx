@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@playora/ui/components/select';
+import { Loader2, Upload as UploadIcon } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { Loader2, Upload as UploadIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 import type { CropPreset, FilterKind } from '../lib/asset-helpers';
@@ -45,16 +45,16 @@ export function AssetUploadToolbar({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+        <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
           {filterOptions.map((opt) => (
             <button
               key={opt.value}
               type="button"
               className={cn(
-                'rounded-full px-3 py-1 font-medium transition-all',
+                'rounded-md px-3 py-1 font-medium transition-all',
                 filter === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
+                  ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
               )}
               onClick={() => onFilterChange(opt.value)}
             >
@@ -65,13 +65,22 @@ export function AssetUploadToolbar({
 
         <div className="flex items-center gap-3">
           <Select value={cropPreset} onValueChange={(val) => onCropPresetChange(val as CropPreset)}>
-            <SelectTrigger aria-label={t('assets.cropTitle')} className="w-40 rounded-full">
+            <SelectTrigger
+              aria-label={t('assets.cropTitle')}
+              className="h-8 w-36 rounded-md text-xs"
+            >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">{t('assets.cropNone')}</SelectItem>
-              <SelectItem value="1:1">{t('assets.cropSquare')}</SelectItem>
-              <SelectItem value="16:9">{t('assets.cropWide')}</SelectItem>
+            <SelectContent className="rounded-lg">
+              <SelectItem value="none" className="text-xs">
+                {t('assets.cropNone')}
+              </SelectItem>
+              <SelectItem value="1:1" className="text-xs">
+                {t('assets.cropSquare')}
+              </SelectItem>
+              <SelectItem value="16:9" className="text-xs">
+                {t('assets.cropWide')}
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -91,14 +100,15 @@ export function AssetUploadToolbar({
 
           <Button
             type="button"
-            className="gap-2 rounded-full"
+            size="sm"
+            className="gap-2 rounded-md h-8 text-xs font-medium shadow-xs"
             disabled={uploadProgress !== null}
             onClick={() => fileInputRef.current?.click()}
           >
             {uploadProgress !== null ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <UploadIcon className="size-4" />
+              <UploadIcon className="size-3.5" />
             )}
             {uploadProgress !== null
               ? t('assets.uploading', { progress: uploadProgress })

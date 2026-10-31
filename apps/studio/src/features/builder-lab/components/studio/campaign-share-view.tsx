@@ -43,7 +43,7 @@ import {
   Printer,
   Trash2,
   Users,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -101,8 +101,8 @@ export function CampaignShareView({
   if (campaignQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-64 w-full rounded-2xl" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-64 w-full rounded-lg" />
       </div>
     );
   }
@@ -237,23 +237,25 @@ export function CampaignShareView({
       )}
 
       {/* Preset and Custom Channels */}
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
+      <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
           <div>
-            <CardTitle className="text-base font-semibold">{t('channels.title')}</CardTitle>
-            <Caption>{t('channels.hint')}</Caption>
+            <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              {t('channels.title')}
+            </CardTitle>
+            <Caption className="text-[11px]">{t('channels.hint')}</Caption>
           </div>
           <Button
-            className="gap-1.5 rounded-full"
+            className="gap-1.5 rounded-md h-8 text-xs shadow-xs"
             size="sm"
             onClick={() => setIsAddModalOpen(true)}
           >
-            <Plus className="size-4" />
+            <Plus className="size-3.5" />
             {t('channels.add')}
           </Button>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-5 md:grid-cols-2">
+        <CardContent className="p-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {allChannels.map((channel) => (
               <ChannelCard
                 key={channel.key}
@@ -270,17 +272,17 @@ export function CampaignShareView({
       </Card>
 
       {/* Counter Staff Card */}
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
+      <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="flex flex-row items-center justify-between p-4">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <Users className="size-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              <Users className="size-4 text-teal-600 dark:text-teal-400" />
               {t('counterStaff.title')}
             </CardTitle>
-            <Caption>{t('counterStaff.description')}</Caption>
+            <Caption className="text-[11px]">{t('counterStaff.description')}</Caption>
           </div>
           <Link href={`/orgs/${orgId}/members` as Route}>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2 h-8 rounded-md text-xs shadow-xs">
               <ExternalLink className="size-3.5" />
               {t('counterStaff.action')}
             </Button>
@@ -289,10 +291,12 @@ export function CampaignShareView({
       </Card>
 
       {/* Traffic by Channel Table */}
-      <Card className="rounded-2xl border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t('report.title')}</CardTitle>
-          <Caption>{t('report.description')}</Caption>
+      <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+          <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {t('report.title')}
+          </CardTitle>
+          <Caption className="text-[11px]">{t('report.description')}</Caption>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -309,11 +313,17 @@ export function CampaignShareView({
               <TableBody>
                 {reportTableData.map((row) => (
                   <TableRow key={row.key}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.plays}</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.wins}</TableCell>
-                    <TableCell className="text-right tabular-nums">{row.visits}</TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
+                    <TableCell className="text-xs font-medium">{row.name}</TableCell>
+                    <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
+                      {row.plays}
+                    </TableCell>
+                    <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
+                      {row.wins}
+                    </TableCell>
+                    <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
+                      {row.visits}
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                       {row.rate}
                     </TableCell>
                   </TableRow>
@@ -326,13 +336,15 @@ export function CampaignShareView({
 
       {/* Add Custom Channel Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-lg border border-neutral-200 dark:border-white/10">
           <DialogHeader>
-            <DialogTitle>{t('channels.addTitle')}</DialogTitle>
+            <DialogTitle className="text-sm font-semibold">{t('channels.addTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <span className="text-xs font-semibold">{t('channels.channelName')}</span>
+              <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
+                {t('channels.channelName')}
+              </span>
               <Input
                 placeholder={t('channels.channelNamePlaceholder')}
                 value={newChannelName}
@@ -340,10 +352,13 @@ export function CampaignShareView({
                   setNewChannelName(e.target.value);
                   setNewChannelKey(slugifyChannelKey(e.target.value));
                 }}
+                className="h-8 rounded-md text-xs"
               />
             </div>
             <div className="space-y-1.5">
-              <span className="text-xs font-semibold">{t('channels.channelKey')}</span>
+              <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
+                {t('channels.channelKey')}
+              </span>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-mono text-muted-foreground">?ch=</span>
                 <Input
@@ -351,17 +366,24 @@ export function CampaignShareView({
                   onChange={(e) =>
                     setNewChannelKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
                   }
+                  className="h-8 rounded-md text-xs font-mono"
                 />
               </div>
-              <Caption>{t('channels.channelKeyHint')}</Caption>
+              <Caption className="text-[11px]">{t('channels.channelKeyHint')}</Caption>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-md text-xs"
+              onClick={() => setIsAddModalOpen(false)}
+            >
               {tc('settings.pause')}
             </Button>
             <Button
-              className="rounded-full"
+              size="sm"
+              className="h-8 rounded-md text-xs shadow-xs"
               disabled={!newChannelName.trim() || !newChannelKey.trim()}
               onClick={handleAddChannel}
             >
@@ -403,12 +425,17 @@ function ChannelCard({
   };
 
   return (
-    <Card className="rounded-2xl border" data-testid={`share-channel-${channel.key}`}>
+    <Card
+      className="rounded-lg border border-neutral-200 bg-white shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid={`share-channel-${channel.key}`}
+    >
       <CardContent className="space-y-3 p-4">
         {/* Channel Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">{channel.name}</span>
+            <span className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              {channel.name}
+            </span>
             <Badge variant="secondary" className="font-mono text-[10px]">
               ch={channel.key}
             </Badge>
@@ -419,20 +446,24 @@ function ChannelCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-destructive hover:bg-destructive/10"
+                  className="size-7 rounded-md text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="rounded-lg border border-neutral-200 dark:border-white/10">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t('channels.deleteConfirm')}</AlertDialogTitle>
+                  <AlertDialogTitle className="text-sm font-semibold">
+                    {t('channels.deleteConfirm')}
+                  </AlertDialogTitle>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>{t('links.copy')}</AlertDialogCancel>
+                  <AlertDialogCancel className="h-8 rounded-md text-xs">
+                    {t('links.copy')}
+                  </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={onDelete}
-                    className="bg-destructive text-destructive-foreground"
+                    className="h-8 rounded-md bg-destructive text-destructive-foreground text-xs"
                   >
                     {tc('settings.delete')}
                   </AlertDialogAction>
@@ -447,13 +478,13 @@ function ChannelCard({
           <Input
             value={playerLink}
             readOnly
-            className="h-8 font-mono text-xs"
+            className="h-8 rounded-md font-mono text-xs"
             data-testid={`channel-link-${channel.key}`}
           />
           <Button
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 shrink-0 text-xs"
+            className="h-8 rounded-md gap-1.5 shrink-0 text-xs shadow-xs"
             onClick={copyLink}
           >
             <Copy className="size-3.5" />
@@ -465,9 +496,9 @@ function ChannelCard({
         <div className="flex items-center gap-4 pt-1">
           <div
             ref={qrContainerRef}
-            className="flex size-28 shrink-0 items-center justify-center rounded-xl border bg-white p-2 shadow-xs"
+            className="flex size-24 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white p-2 shadow-xs dark:border-white/10 dark:bg-white"
           >
-            <QRCodeSvg value={playerLink} size={96} />
+            <QRCodeSvg value={playerLink} size={80} />
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -475,7 +506,7 @@ function ChannelCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 gap-1 text-[11px]"
+                className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
                 onClick={() =>
                   downloadCanvasQRCode(
                     qrContainerRef.current,
@@ -489,7 +520,7 @@ function ChannelCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 gap-1 text-[11px]"
+                className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
                 onClick={() =>
                   downloadSvgQRCode(
                     qrContainerRef.current,
@@ -514,7 +545,7 @@ function ChannelCard({
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-7 gap-1 text-[11px]"
+                  className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
                   data-testid={`print-standee-${channel.key}`}
                 >
                   <Printer className="size-3" />
@@ -532,7 +563,7 @@ function ChannelCard({
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-7 gap-1 text-[11px]"
+                  className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
                   data-testid={`print-tent-${channel.key}`}
                 >
                   <Printer className="size-3" />

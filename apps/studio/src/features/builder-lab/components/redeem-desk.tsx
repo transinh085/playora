@@ -17,7 +17,6 @@ import {
 } from '@playora/ui/components/alert-dialog';
 import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +36,14 @@ import { Input } from '@playora/ui/components/input';
 import { toast } from '@playora/ui/components/sonner';
 import { Textarea } from '@playora/ui/components/textarea';
 import { applyApiErrorToRHF } from '@playora/ui/form';
-import { AlertCircle, AlertTriangle, CheckCircle2, Gift, RotateCcw, ScanLine } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Gift,
+  RotateCcw,
+  ScanLine,
+} from '@playora/ui/icons';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -185,44 +191,44 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
   const data = code && !lookupError ? lookup.data : undefined;
 
   return (
-    <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex w-full flex-col gap-4">
-        <Card className="rounded-2xl border">
-          <CardContent className="p-4 sm:p-5">
-            <form onSubmit={submit} className="space-y-3">
-              <label htmlFor="redeem-code" className="block text-sm font-semibold">
-                {t('codeLabel')}
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <ScanLine className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="redeem-code"
-                    value={input}
-                    onChange={(e) => setInput(normalizeCode(e.target.value))}
-                    placeholder={t('codePlaceholder')}
-                    autoComplete="off"
-                    autoCapitalize="characters"
-                    spellCheck={false}
-                    autoFocus
-                    className="h-11 pl-9 font-mono text-base tracking-widest uppercase"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="rounded-full px-6"
-                  disabled={lookup.isFetching || input.length < 4}
-                >
-                  {t('check')}
-                </Button>
+        <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+          <form onSubmit={submit} className="space-y-3">
+            <label
+              htmlFor="redeem-code"
+              className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
+            >
+              {t('codeLabel')}
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <ScanLine className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+                <Input
+                  id="redeem-code"
+                  value={input}
+                  onChange={(e) => setInput(normalizeCode(e.target.value))}
+                  placeholder={t('codePlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  autoFocus
+                  className="h-10 rounded-md pl-9 font-mono text-sm tracking-widest uppercase"
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
+              <Button
+                type="submit"
+                className="h-10 rounded-md px-5 text-xs font-medium"
+                disabled={lookup.isFetching || input.length < 4}
+              >
+                {t('check')}
+              </Button>
+            </div>
+          </form>
+        </div>
 
         {planBlocked && (
-          <Alert variant="destructive" data-testid="redeem-plan-limit">
+          <Alert variant="destructive" className="rounded-lg" data-testid="redeem-plan-limit">
             <AlertCircle className="size-4" />
             <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -233,7 +239,7 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
               </div>
               {canSeePlan && (
                 <Link href={billingPath(orgId)}>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="h-8 rounded-md text-xs">
                     {tBilling('viewPlan')}
                   </Button>
                 </Link>
@@ -243,25 +249,27 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
         )}
 
         {justRedeemed ? (
-          <Card className="rounded-2xl border p-6 text-center">
-            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-              <CheckCircle2 className="size-8" />
+          <div className="rounded-lg border border-neutral-200 bg-white p-6 text-center shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+            <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+              <CheckCircle2 className="size-6" />
             </div>
-            <h3 className="text-lg font-bold">{t('successTitle')}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              {t('successTitle')}
+            </h3>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
               {t('successBody', { prize: justRedeemed.prizeName })}
             </p>
-            <Button size="lg" className="mt-5 w-full rounded-full" onClick={startOver}>
+            <Button className="mt-4 w-full h-8 rounded-md text-xs" onClick={startOver}>
               {t('newCode')}
             </Button>
-          </Card>
+          </div>
         ) : notFound ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="rounded-lg">
             <AlertCircle className="size-4" />
             <AlertTitle>{t('notFound', { code })}</AlertTitle>
           </Alert>
         ) : lookupError ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="rounded-lg">
             <AlertCircle className="size-4" />
             <AlertTitle>
               {lookupError instanceof ApiError && tErrors.has(lookupError.code)
@@ -270,220 +278,266 @@ export function RedeemDesk({ orgId }: { orgId: string }) {
             </AlertTitle>
           </Alert>
         ) : data ? (
-          <Card className="rounded-2xl border">
-            <CardContent className="space-y-4 p-5">
-              <div className="flex items-center gap-3">
-                {data.prize.image ? (
-                  // biome-ignore lint/performance/noImgElement: prize image
-                  <img
-                    src={data.prize.image}
-                    alt=""
-                    width={64}
-                    height={64}
-                    className="size-16 shrink-0 rounded-xl border object-cover"
-                  />
-                ) : (
-                  <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
-                    <Gift className="size-8" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <h4 className="truncate text-base font-bold">{data.prize.name}</h4>
-                  <span className="font-mono text-sm text-muted-foreground">{data.code}</span>
+          <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-xs space-y-4 dark:border-white/10 dark:bg-[#0A0A0A]">
+            <div className="flex items-center gap-3">
+              {data.prize.image ? (
+                // biome-ignore lint/performance/noImgElement: prize image
+                <img
+                  src={data.prize.image}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="size-14 shrink-0 rounded-md border border-neutral-200 object-cover dark:border-white/10"
+                />
+              ) : (
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-neutral-600 dark:bg-white/5 dark:text-neutral-300">
+                  <Gift className="size-6" />
                 </div>
-              </div>
-
-              {data.rehearsal && (
-                <Alert>
-                  <AlertCircle className="size-4" />
-                  <AlertTitle>{t('rehearsalNote')}</AlertTitle>
-                </Alert>
               )}
-
-              <div className="divide-y rounded-xl border p-3 text-xs">
-                <div className="flex justify-between py-1.5">
-                  <span className="text-muted-foreground">{t('campaign')}</span>
-                  <span className="font-medium">{data.campaign.name}</span>
-                </div>
-                {data.playerName && (
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-muted-foreground">{t('player')}</span>
-                    <span className="font-medium">{data.playerName}</span>
-                  </div>
-                )}
-                <div className="flex justify-between py-1.5">
-                  <span className="text-muted-foreground">{t('issuedAt')}</span>
-                  <span>{time(data.issuedAt)}</span>
-                </div>
-                {data.expiresAt && (
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-muted-foreground">{t('expiresAt')}</span>
-                    <span>{time(data.expiresAt)}</span>
-                  </div>
-                )}
-                {data.redeemedByName && (
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-muted-foreground">{t('redeemedBy')}</span>
-                    <span>{data.redeemedByName}</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-muted-foreground">{t('status')}</span>
-                  <div className="flex items-center gap-1.5">
-                    {data.status === 'redeemed' && data.redeemedAt ? (
-                      <Badge variant="secondary">
-                        {t('redeemedAt', { time: time(data.redeemedAt) })}
-                      </Badge>
-                    ) : data.status === 'expired' ? (
-                      <Badge variant="secondary" className="text-amber-600">
-                        {t('expired')}
-                      </Badge>
-                    ) : data.status === 'void' ? (
-                      <Badge variant="destructive">{t('void')}</Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-emerald-500/30 text-emerald-600">
-                        {t('notRedeemed')}
-                      </Badge>
-                    )}
-                    {data.rehearsal && (
-                      <Badge variant="outline" className="border-amber-500/40 text-amber-600">
-                        {t('rehearsal')}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+              <div className="min-w-0">
+                <h4 className="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {data.prize.name}
+                </h4>
+                <span className="font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                  {data.code}
+                </span>
               </div>
+            </div>
 
-              {data.status === 'redeemed' ? (
-                <div className="space-y-3">
-                  <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
-                    <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
-                    <AlertTitle>
-                      {data.redeemedAt
-                        ? t('alreadyRedeemed', {
-                            code: data.code,
-                            time: time(data.redeemedAt),
-                          })
-                        : t('alreadyRedeemedShort', { code: data.code })}
-                    </AlertTitle>
-                  </Alert>
-                  {canReopen && (
-                    <Button
+            {data.rehearsal && (
+              <Alert className="rounded-lg">
+                <AlertCircle className="size-4" />
+                <AlertTitle>{t('rehearsalNote')}</AlertTitle>
+              </Alert>
+            )}
+
+            <div className="divide-y divide-neutral-200 rounded-md border border-neutral-200 p-3 text-xs dark:divide-white/10 dark:border-white/10">
+              <div className="flex justify-between py-1.5">
+                <span className="text-neutral-500 dark:text-neutral-400">{t('campaign')}</span>
+                <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                  {data.campaign.name}
+                </span>
+              </div>
+              {data.playerName && (
+                <div className="flex justify-between py-1.5">
+                  <span className="text-neutral-500 dark:text-neutral-400">{t('player')}</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                    {data.playerName}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between py-1.5">
+                <span className="text-neutral-500 dark:text-neutral-400">{t('issuedAt')}</span>
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  {time(data.issuedAt)}
+                </span>
+              </div>
+              {data.expiresAt && (
+                <div className="flex justify-between py-1.5">
+                  <span className="text-neutral-500 dark:text-neutral-400">{t('expiresAt')}</span>
+                  <span className="text-neutral-700 dark:text-neutral-300">
+                    {time(data.expiresAt)}
+                  </span>
+                </div>
+              )}
+              {data.redeemedByName && (
+                <div className="flex justify-between py-1.5">
+                  <span className="text-neutral-500 dark:text-neutral-400">{t('redeemedBy')}</span>
+                  <span className="text-neutral-700 dark:text-neutral-300">
+                    {data.redeemedByName}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-neutral-500 dark:text-neutral-400">{t('status')}</span>
+                <div className="flex items-center gap-1.5">
+                  {data.status === 'redeemed' && data.redeemedAt ? (
+                    <Badge variant="secondary" className="rounded-sm text-[10px]">
+                      {t('redeemedAt', { time: time(data.redeemedAt) })}
+                    </Badge>
+                  ) : data.status === 'expired' ? (
+                    <Badge variant="secondary" className="rounded-sm text-[10px] text-amber-600">
+                      {t('expired')}
+                    </Badge>
+                  ) : data.status === 'void' ? (
+                    <Badge variant="destructive" className="rounded-sm text-[10px]">
+                      {t('void')}
+                    </Badge>
+                  ) : (
+                    <Badge
                       variant="outline"
-                      className="w-full gap-2 rounded-full"
-                      onClick={() => setReopenOpen(true)}
+                      className="rounded-sm text-[10px] border-emerald-500/30 text-emerald-600"
                     >
-                      <RotateCcw className="size-4" />
-                      {t('reopen')}
-                    </Button>
+                      {t('notRedeemed')}
+                    </Badge>
+                  )}
+                  {data.rehearsal && (
+                    <Badge
+                      variant="outline"
+                      className="rounded-sm text-[10px] border-amber-500/40 text-amber-600"
+                    >
+                      {t('rehearsal')}
+                    </Badge>
                   )}
                 </div>
-              ) : data.status === 'expired' ? (
-                <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+              </div>
+            </div>
+
+            {data.status === 'redeemed' ? (
+              <div className="space-y-3">
+                <Alert className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
                   <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
-                  <AlertTitle>{t('expiredAlert', { code: data.code })}</AlertTitle>
+                  <AlertTitle>
+                    {data.redeemedAt
+                      ? t('alreadyRedeemed', {
+                          code: data.code,
+                          time: time(data.redeemedAt),
+                        })
+                      : t('alreadyRedeemedShort', { code: data.code })}
+                  </AlertTitle>
                 </Alert>
-              ) : data.status === 'void' ? (
-                <Alert variant="destructive">
-                  <AlertCircle className="size-4" />
-                  <AlertTitle>{t('voidAlert', { code: data.code })}</AlertTitle>
-                </Alert>
-              ) : (
-                canRedeem && (
+                {canReopen && (
                   <Button
-                    size="lg"
-                    className="w-full rounded-full"
-                    onClick={() => setConfirmOpen(true)}
-                    disabled={redeem.isPending}
+                    variant="outline"
+                    className="w-full gap-2 rounded-md h-8 text-xs"
+                    onClick={() => setReopenOpen(true)}
                   >
-                    {t('confirm')}
+                    <RotateCcw className="size-3.5" />
+                    {t('reopen')}
                   </Button>
-                )
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </div>
+            ) : data.status === 'expired' ? (
+              <Alert className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+                <AlertTitle>{t('expiredAlert', { code: data.code })}</AlertTitle>
+              </Alert>
+            ) : data.status === 'void' ? (
+              <Alert variant="destructive" className="rounded-lg">
+                <AlertCircle className="size-4" />
+                <AlertTitle>{t('voidAlert', { code: data.code })}</AlertTitle>
+              </Alert>
+            ) : (
+              canRedeem && (
+                <Button
+                  className="w-full rounded-md h-9 text-xs font-medium"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={redeem.isPending}
+                >
+                  {t('confirm')}
+                </Button>
+              )
+            )}
+          </div>
         ) : null}
       </div>
 
       <div>
-        <Card className="rounded-2xl border">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base font-semibold">{t('sessionTitle')}</CardTitle>
-            <Caption>{session.length}</Caption>
-          </CardHeader>
-          <CardContent className="p-4">
+        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+          <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              {t('sessionTitle')}
+            </h3>
+            <span className="rounded-sm bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-white/10 dark:text-neutral-300">
+              {session.length}
+            </span>
+          </div>
+          <div className="p-0">
             {session.length === 0 ? (
-              <div className="py-6 text-center text-xs text-muted-foreground">
-                {t('sessionEmpty')}
-              </div>
+              <div className="py-8 text-center text-xs text-neutral-400">{t('sessionEmpty')}</div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-neutral-200 dark:divide-white/10">
                 {session.map((entry) => (
-                  <div key={entry.code} className="flex items-center justify-between gap-3 py-2.5">
+                  <div
+                    key={entry.code}
+                    className="flex items-center justify-between gap-3 px-4 py-2.5"
+                  >
                     <div className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">
+                      <span className="block truncate text-xs font-medium text-neutral-900 dark:text-neutral-100">
                         {entry.prizeName}
                       </span>
                       <Caption className="truncate">{entry.campaignName}</Caption>
                     </div>
                     <div className="text-right">
-                      <span className="block font-mono text-xs font-semibold">{entry.code}</span>
+                      <span className="block font-mono text-[11px] font-semibold text-neutral-700 dark:text-neutral-300">
+                        {entry.code}
+                      </span>
                       <Caption>{time(entry.at)}</Caption>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
           <AlertDialogHeader>
-            <AlertDialogTitle>{data && t('confirmTitle', { code: data.code })}</AlertDialogTitle>
-            <AlertDialogDescription>{t('confirmBody')}</AlertDialogDescription>
+            <AlertDialogTitle className="text-sm font-semibold">
+              {data && t('confirmTitle', { code: data.code })}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t('confirmBody')}
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmRedeem}>{t('confirmOk')}</AlertDialogAction>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="h-8 rounded-md text-xs">{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction className="h-8 rounded-md text-xs" onClick={handleConfirmRedeem}>
+              {t('confirmOk')}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Reopen Modal */}
       <Dialog open={reopenOpen} onOpenChange={setReopenOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
           <DialogHeader>
-            <DialogTitle>{data ? t('reopenTitle', { code: data.code }) : t('reopen')}</DialogTitle>
+            <DialogTitle className="text-sm font-semibold">
+              {data ? t('reopenTitle', { code: data.code }) : t('reopen')}
+            </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground">{t('reopenDescription')}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('reopenDescription')}</p>
           <Form {...reopenForm}>
-            <form onSubmit={reopenForm.handleSubmit(submitReopen)} className="space-y-4">
+            <form onSubmit={reopenForm.handleSubmit(submitReopen)} className="space-y-4 pt-1">
               <FormField
                 control={reopenForm.control}
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('reopenReasonLabel')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('reopenReasonLabel')}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={3}
                         maxLength={500}
                         placeholder={t('reopenReasonPlaceholder')}
+                        className="rounded-md text-xs resize-none"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setReopenOpen(false)}>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-md text-xs"
+                  onClick={() => setReopenOpen(false)}
+                >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={reopen.isPending}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 rounded-md text-xs"
+                  disabled={reopen.isPending}
+                >
                   {t('reopenSubmit')}
                 </Button>
               </DialogFooter>

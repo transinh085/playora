@@ -2,7 +2,7 @@
 
 import { Button } from '@playora/ui/components/button';
 import { Card } from '@playora/ui/components/card';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@playora/ui/icons';
 import type { Route } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -46,20 +46,24 @@ export function EmptyState({
 
   return (
     <Card
-      className={`rounded-2xl p-12 text-center shadow-xs ${
-        bordered ? 'border-border/80' : 'border-0 shadow-none'
+      className={`rounded-lg py-16 px-4 text-center shadow-xs ${
+        bordered
+          ? 'border border-neutral-200 dark:border-white/10'
+          : 'border-0 shadow-none bg-transparent'
       }`}
     >
-      <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Icon className="size-7 stroke-[1.75]" />
+      <div className="mx-auto flex max-w-md flex-col items-center justify-center">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-400 shadow-xs dark:border-white/10 dark:bg-white/5 dark:text-[#737373]">
+          <Icon className="size-5 stroke-[1.75]" />
         </div>
-        <div className="space-y-1">
-          <h3 className="m-0 text-base font-semibold text-foreground">{title}</h3>
-          <p className="m-0 text-xs text-muted-foreground leading-relaxed">{description}</p>
-        </div>
+        <h3 className="m-0 mb-1 text-base font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {title}
+        </h3>
+        <p className="m-0 max-w-sm text-sm leading-relaxed text-neutral-500 dark:text-[#A3A3A3]">
+          {description}
+        </p>
         {(actionButton || extra) && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-4 flex items-center gap-2">
             {actionButton}
             {extra}
           </div>

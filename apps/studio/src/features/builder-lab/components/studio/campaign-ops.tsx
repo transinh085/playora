@@ -26,7 +26,6 @@ import {
   TableRow,
 } from '@playora/ui/components/table';
 import { Tabs, TabsList, TabsTrigger } from '@playora/ui/components/tabs';
-import { cn } from '@playora/ui/lib/utils';
 import {
   CircleX,
   ExternalLink,
@@ -38,7 +37,8 @@ import {
   Square,
   Trash2,
   TriangleAlert,
-} from 'lucide-react';
+} from '@playora/ui/icons';
+import { cn } from '@playora/ui/lib/utils';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
@@ -93,8 +93,8 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   if (query.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-96 w-full rounded-lg" />
       </div>
     );
   }
@@ -132,9 +132,13 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
       />
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="h-10 rounded-full border bg-muted/50 p-1">
+        <TabsList className="h-9 rounded-lg border border-neutral-200 bg-neutral-100/70 p-1 dark:border-white/10 dark:bg-white/5">
           {TABS.map((key) => (
-            <TabsTrigger key={key} value={key} className="rounded-full text-xs">
+            <TabsTrigger
+              key={key}
+              value={key}
+              className="rounded-md px-3 text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-xs dark:data-[state=active]:bg-[#171717] dark:data-[state=active]:text-[#FAFAFA]"
+            >
               {t(`tabs.${key}`)}
             </TabsTrigger>
           ))}
@@ -263,37 +267,42 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card className="rounded-2xl border" data-testid="draft-checklist">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="draft-checklist"
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 p-4">
         <Caption>{t('draft.hint')}</Caption>
         {issues.map((issue) => {
           const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
           return (
-            <div key={issue.id} className="flex items-center gap-2.5 text-sm">
+            <div key={issue.id} className="flex items-center gap-2.5 text-xs">
               <Icon
                 className={cn(
-                  'size-4 shrink-0',
-                  issue.level === 'error' ? 'text-destructive' : 'text-amber-500',
+                  'size-3.5 shrink-0',
+                  issue.level === 'error' ? 'text-rose-500' : 'text-amber-500',
                 )}
               />
-              <span className="flex-1">{tp(`issues.${issue.code}`, issue.params)}</span>
+              <span className="flex-1 text-neutral-700 dark:text-[#D4D4D4]">
+                {tp(`issues.${issue.code}`, issue.params)}
+              </span>
               <Link
                 href={routes.edit(campaign.id, issue.where.area === 'screens' ? 'quick' : 'rules')}
-                className="text-xs text-primary hover:underline font-medium"
+                className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
               >
                 {t('draft.fix')}
               </Link>
             </div>
           );
         })}
-        <div className="pt-2">
+        <div className="pt-1">
           <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="h-7 rounded-md px-2.5 text-xs shadow-xs">
               {t('rehearse')}
             </Button>
           </a>
@@ -312,18 +321,22 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t('recent.title')}</CardTitle>
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('recent.title')}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {plays.isPending ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : recent.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {t('recent.empty')}
+          </div>
         ) : (
           <PlaysTable campaign={campaign} rows={recent} compact />
         )}
@@ -396,17 +409,22 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
 
   return (
-    <Card className="rounded-2xl border" data-testid="prize-stock">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('stock.title')}</CardTitle>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="prize-stock"
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('stock.title')}
+        </CardTitle>
         <Link
           href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-          className="text-xs text-primary hover:underline"
+          className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
         >
           {t('stock.edit')}
         </Link>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-4">
         {campaign.prizes.map((prize) => {
           const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
           const issued = vouchers.filter((v) => v.prizeId === prize.id);
@@ -414,17 +432,21 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
           const percent = prize.quantity ? Math.round((left / prize.quantity) * 100) : 0;
           return (
             <div key={prize.id} className="space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">{prize.name}</span>
-                <Caption className="tabular-nums">
+              <div className="flex justify-between text-xs">
+                <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                  {prize.name}
+                </span>
+                <Caption className="tabular-nums text-[11px]">
                   {t('stock.left', { left, total: prize.quantity })}
                 </Caption>
               </div>
               <Progress
                 value={percent}
-                className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+                className={cn('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
               />
-              <Caption>{t('stock.issued', { issued: issued.length, redeemed })}</Caption>
+              <Caption className="text-[11px]">
+                {t('stock.issued', { issued: issued.length, redeemed })}
+              </Caption>
             </div>
           );
         })}
@@ -442,24 +464,26 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} />
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">{t('vouchers.title')}</CardTitle>
+      <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+          <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {t('vouchers.title')}
+          </CardTitle>
           <Link
             href={campaignRoutes(orgId).redeem}
-            className="text-xs text-primary hover:underline"
+            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
           >
             {t('vouchers.desk')}
           </Link>
         </CardHeader>
         <CardContent className="p-0">
           {vouchers.isPending ? (
-            <div className="p-4 space-y-2">
+            <div className="space-y-2 p-4">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
             </div>
           ) : (vouchers.data ?? []).length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
+            <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
               {t('vouchers.empty')}
             </div>
           ) : (
@@ -476,9 +500,9 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
                 <TableBody>
                   {(vouchers.data ?? []).map((row) => (
                     <TableRow key={row.code}>
-                      <TableCell className="font-mono text-xs">{row.code}</TableCell>
+                      <TableCell className="font-mono text-xs font-medium">{row.code}</TableCell>
                       <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
-                      <TableCell className="text-xs">
+                      <TableCell className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
                         {format.dateTime(new Date(row.issuedAt), {
                           dateStyle: 'short',
                           timeStyle: 'short',
@@ -508,20 +532,22 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const t = useTranslations('campaigns');
   const plays = useCampaignPlays(orgId, campaign.id);
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {t('players.title', { count: plays.data?.length ?? 0 })}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {plays.isPending ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : (plays.data ?? []).length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {t('recent.empty')}
+          </div>
         ) : (
           <PlaysTable campaign={campaign} rows={plays.data ?? []} />
         )}
@@ -552,65 +578,84 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   };
 
   return (
-    <div className="flex max-w-3xl flex-col gap-5">
-      <Card className="rounded-2xl border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t('settings.scheduleTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Caption>{t('settings.scheduleHint')}</Caption>
+    <div className="flex max-w-4xl flex-col">
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
+        {/* Schedule Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
+          <div className="max-w-md">
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              {t('settings.scheduleTitle')}
+            </h3>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+              {t('settings.scheduleHint')}
+            </p>
+          </div>
           <Input
             type="datetime-local"
             aria-label={t('settings.endsAt')}
             defaultValue={isoToLocalInput(campaign.rules.endsAt)}
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
-            className="w-64"
+            className="h-8 w-56 rounded-md text-xs font-mono"
           />
-        </CardContent>
-      </Card>
+        </div>
 
-      {campaign.status === 'published' && phase !== 'ended' && (
-        <Card className="rounded-2xl border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">{t('settings.runTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-3">
+        {/* Lifecycle Status Section */}
+        {campaign.status === 'published' && phase !== 'ended' && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
+            <div className="max-w-md">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+                {t('settings.runTitle')}
+              </h3>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                {t('settings.runHint')}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               {phase === 'paused' ? (
                 <Button
-                  className="gap-2 rounded-full"
+                  size="sm"
+                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
                 >
-                  <Play className="size-4" />
+                  <Play className="size-3.5" />
                   {t('resume')}
                 </Button>
               ) : (
                 <Button
                   variant="outline"
-                  className="gap-2 rounded-full"
+                  size="sm"
+                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => pause.mutate(campaign.id)}
                 >
-                  <Pause className="size-4" />
+                  <Pause className="size-3.5" />
                   {t('settings.pause')}
                 </Button>
               )}
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="gap-2 rounded-full">
-                    <Square className="size-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 rounded-md h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/30 dark:hover:bg-rose-950/20 shadow-xs"
+                  >
+                    <Square className="size-3.5" />
                     {t('settings.end')}
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-lg border border-neutral-200 dark:border-white/10">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t('settings.endConfirm')}</AlertDialogTitle>
+                    <AlertDialogTitle className="text-sm font-semibold">
+                      {t('settings.endConfirm')}
+                    </AlertDialogTitle>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                    <AlertDialogCancel className="h-8 rounded-md text-xs">
+                      {tCommon('cancel')}
+                    </AlertDialogCancel>
                     <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground"
+                      className="h-8 rounded-md bg-destructive text-destructive-foreground text-xs"
                       onClick={() => end.mutate(campaign.id)}
                     >
                       {t('settings.end')}
@@ -618,56 +663,57 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Caption>{t('settings.runHint')}</Caption>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="rounded-2xl border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t('settings.deleteTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="gap-2 rounded-full"
-                  disabled={isRunning(phase)}
-                >
-                  <Trash2 className="size-4" />
-                  {t('settings.delete')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {t('settings.deleteConfirm', { name: campaign.name })}
-                  </AlertDialogTitle>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground"
-                    onClick={async () => {
-                      await remove.mutateAsync(campaign.id);
-                      toast.success(t('settings.deleted'));
-                      router.push(campaignRoutes(orgId).list);
-                    }}
-                  >
-                    {t('settings.delete')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Caption>
-              {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
-            </Caption>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Danger Zone: Delete Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-rose-50/20 dark:bg-rose-950/10">
+          <div className="max-w-md">
+            <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400">
+              {t('settings.deleteTitle')}
+            </h3>
+            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+              {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
+            </p>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2 rounded-md h-8 text-xs shadow-xs"
+                disabled={isRunning(phase)}
+              >
+                <Trash2 className="size-3.5" />
+                {t('settings.delete')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="rounded-lg border border-neutral-200 dark:border-white/10">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-sm font-semibold">
+                  {t('settings.deleteConfirm', { name: campaign.name })}
+                </AlertDialogTitle>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="h-8 rounded-md text-xs">
+                  {tCommon('cancel')}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="h-8 rounded-md bg-destructive text-destructive-foreground text-xs"
+                  onClick={async () => {
+                    await remove.mutateAsync(campaign.id);
+                    toast.success(t('settings.deleted'));
+                    router.push(campaignRoutes(orgId).list);
+                  }}
+                >
+                  {t('settings.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
     </div>
   );
 }

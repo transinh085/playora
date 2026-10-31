@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@playora/ui/components/tooltip';
-import { CircleHelp } from 'lucide-react';
+import { CircleHelp } from '@playora/ui/icons';
 import type React from 'react';
 import { IconTile, type Tone } from './icon-tile';
 
@@ -37,13 +37,13 @@ export function MetricCard({
 }: MetricCardItem & { loading?: boolean }) {
   if (loading) {
     return (
-      <Card className="rounded-2xl border-border/80 p-5 shadow-xs">
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-2 flex-1">
+      <Card className="rounded-lg border-neutral-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-[#0A0A0A]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-8 w-16" />
           </div>
-          <Skeleton className="size-11 rounded-xl" />
+          <Skeleton className="size-9 rounded-md" />
         </div>
       </Card>
     );
@@ -53,32 +53,48 @@ export function MetricCard({
     <Card
       data-testid={testId}
       data-highlighted={highlighted ? 'true' : undefined}
-      className={`rounded-2xl p-5 shadow-xs transition-shadow hover:shadow-md ${
-        highlighted ? 'border-primary ring-1 ring-primary/20' : 'border-border/80'
+      className={`flex flex-col justify-between gap-3 rounded-lg bg-white p-3 shadow-sm transition-colors dark:bg-[#0A0A0A] ${
+        highlighted
+          ? 'border-emerald-500/60 ring-1 ring-emerald-500/20'
+          : 'border-neutral-200 dark:border-white/10'
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
-            {tooltip && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="cursor-help text-muted-foreground hover:text-foreground">
-                      <CircleHelp className="size-3" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>{tooltip}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">{value}</p>
-          {subtext && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtext}</p>}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-sm font-medium text-neutral-600 dark:text-[#A3A3A3]">
+            {label}
+          </span>
+          {tooltip && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help text-neutral-400 hover:text-neutral-700 dark:hover:text-[#FAFAFA]">
+                    <CircleHelp className="size-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{tooltip}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <IconTile tone={tone}>{icon}</IconTile>
       </div>
+      <div className="flex items-center gap-3">
+        <p
+          className={`text-[28px] leading-9 font-semibold tracking-tight tabular-nums ${
+            highlighted
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-neutral-900 dark:text-[#FAFAFA]'
+          }`}
+        >
+          {value}
+        </p>
+      </div>
+      {subtext && (
+        <p className="line-clamp-2 text-[13px] leading-5 font-normal text-neutral-500 dark:text-[#A3A3A3]">
+          {subtext}
+        </p>
+      )}
     </Card>
   );
 }

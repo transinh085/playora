@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@playora/ui/components/tooltip';
-import { ArrowLeft, Braces, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Braces, RotateCcw } from '@playora/ui/icons';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -134,15 +134,17 @@ export function CanvasEditor({ orgId }: { orgId: string }) {
         />
 
         <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
-          <AlertDialogContent className="rounded-2xl">
+          <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
             <AlertDialogHeader>
-              <AlertDialogTitle>{t('reset')}</AlertDialogTitle>
-              <AlertDialogDescription>{t('resetConfirm')}</AlertDialogDescription>
+              <AlertDialogTitle className="text-sm font-semibold">{t('reset')}</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+                {t('resetConfirm')}
+              </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-full">Hủy</AlertDialogCancel>
+            <AlertDialogFooter className="gap-2 sm:gap-2">
+              <AlertDialogCancel className="h-8 rounded-md text-xs">Hủy</AlertDialogCancel>
               <AlertDialogAction
-                className="rounded-full"
+                className="h-8 rounded-md text-xs"
                 onClick={() => {
                   setDoc(createDemoDoc());
                   setConfirmResetOpen(false);

@@ -17,7 +17,7 @@ export function Caption({
   const italicClass = italic ? 'italic' : '';
   return (
     <span
-      className={`text-xs leading-normal ${colorClass} ${italicClass} ${className}`.trim()}
+      className={`text-[13px] leading-5 ${colorClass} ${italicClass} ${className}`.trim()}
       {...props}
     >
       {children}

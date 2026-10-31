@@ -1,5 +1,5 @@
 import { Button } from '@playora/ui/components/button';
-import { Plus } from 'lucide-react';
+import { Plus } from '@playora/ui/icons';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
@@ -19,7 +19,7 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgI
         title={t('title')}
         description={t('subtitle')}
         extra={
-          <Button asChild className="rounded-full">
+          <Button asChild size="sm">
             <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
               <Plus className="mr-1.5 size-4" />
               {t('create')}

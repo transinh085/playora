@@ -102,7 +102,7 @@ export function PendingInvitationsTable({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 rounded-full text-xs"
+                          className="h-8 rounded-md text-xs"
                           disabled={busyId === inv.id}
                           onClick={() => onResendInvitation(inv.id, inv.email, invRole)}
                         >
@@ -113,27 +113,27 @@ export function PendingInvitationsTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs rounded-md"
                               disabled={busyId === inv.id}
                             >
                               {t('members.cancelInvite')}
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-2xl">
+                          <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-base font-bold">
+                              <AlertDialogTitle className="text-sm font-semibold">
                                 {t('members.cancelInviteConfirm')}
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-xs text-muted-foreground">
+                              <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
                                 {inv.email}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-full">
+                            <AlertDialogFooter className="gap-2 sm:gap-2">
+                              <AlertDialogCancel className="h-8 rounded-md text-xs">
                                 {t('common.cancel')}
                               </AlertDialogCancel>
                               <AlertDialogAction
-                                className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
+                                className="h-8 rounded-md bg-destructive text-xs text-white hover:bg-destructive/90"
                                 onClick={() => onCancelInvitation(inv.id, inv.email)}
                               >
                                 {t('common.delete')}

@@ -1,7 +1,7 @@
 'use client';
 
+import { CircleIcon } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { CircleIcon } from 'lucide-react';
 import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
 import * as React from 'react';
 

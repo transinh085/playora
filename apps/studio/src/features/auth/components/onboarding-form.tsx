@@ -20,7 +20,7 @@ import {
 } from '@playora/ui/components/form';
 import { Input } from '@playora/ui/components/input';
 import { toast } from '@playora/ui/components/sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '@playora/ui/icons';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -73,14 +73,14 @@ export function OnboardingForm() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col py-16">
-      <Card className="rounded-2xl border-border/80 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">{t('title')}</CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">
+      <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="border-b border-neutral-200 px-6 py-4 dark:border-white/10">
+          <CardTitle className="text-base font-semibold">{t('title')}</CardTitle>
+          <CardDescription className="text-xs text-neutral-500 dark:text-neutral-400">
             {t('description')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -88,11 +88,11 @@ export function OnboardingForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('orgName')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('orgName')}</FormLabel>
                     <FormControl>
                       <Input
                         id="name"
-                        className="rounded-xl"
+                        className="h-9 rounded-md text-xs"
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -101,7 +101,7 @@ export function OnboardingForm() {
                         }}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -110,21 +110,21 @@ export function OnboardingForm() {
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('orgSlug')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('orgSlug')}</FormLabel>
                     <FormControl>
-                      <Input id="slug" className="rounded-xl" {...field} />
+                      <Input id="slug" className="h-9 rounded-md text-xs font-mono" {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
               <div className="pt-2">
                 <Button
                   type="submit"
-                  className="rounded-full shadow-xs px-6"
+                  className="h-9 rounded-md text-xs font-medium shadow-xs px-6"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {isSubmitting && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
                   {t('submit')}
                 </Button>
               </div>

@@ -16,7 +16,7 @@ import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
 import { Card, CardContent } from '@playora/ui/components/card';
 import { Separator } from '@playora/ui/components/separator';
-import { CircleAlert, CircleCheck, Film, LoaderCircle, Music, Trash2 } from 'lucide-react';
+import { CircleAlert, CircleCheck, Film, LoaderCircle, Music, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { formatBytes } from '../lib/asset-helpers';
@@ -60,27 +60,29 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
 
   const thumbUrl = asset.variants.cropped?.url ?? asset.variants.w320?.url ?? asset.url;
   const placeholderTile = (icon: React.ReactNode) => (
-    <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+    <div className="flex size-12 items-center justify-center rounded-md bg-neutral-100 text-neutral-500 dark:bg-white/5 dark:text-neutral-400">
       {icon}
     </div>
   );
 
   return (
-    <Card className="flex flex-col overflow-hidden rounded-2xl border">
-      <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b bg-muted/30">
+    <Card className="flex flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b border-neutral-200 bg-neutral-50/50 dark:border-white/10 dark:bg-white/[0.02]">
         {asset.kind === 'image' ? (
           // biome-ignore lint/performance/noImgElement: presigned S3 URLs are dynamic
           <img src={thumbUrl} alt={asset.id} className="size-full object-cover" />
         ) : asset.kind === 'audio' ? (
-          placeholderTile(<Music className="size-6" />)
+          placeholderTile(<Music className="size-5" />)
         ) : (
-          placeholderTile(<Film className="size-6" />)
+          placeholderTile(<Film className="size-5" />)
         )}
       </div>
 
-      <CardContent className="flex flex-1 flex-col p-4">
+      <CardContent className="flex flex-1 flex-col p-3.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-semibold">{asset.mime}</span>
+          <span className="truncate text-xs font-semibold text-neutral-900 dark:text-neutral-100">
+            {asset.mime}
+          </span>
           {renderStatusTag(asset.status)}
         </div>
 
@@ -94,11 +96,15 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
         </div>
 
         <div className="mt-auto pt-2">
-          <Separator className="my-2.5" />
+          <Separator className="my-2" />
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1">
               {Object.keys(asset.variants).map((key) => (
-                <Badge key={key} variant="secondary" className="text-[10px] font-normal">
+                <Badge
+                  key={key}
+                  variant="secondary"
+                  className="rounded-sm px-1.5 py-0 text-[10px] font-normal"
+                >
                   {key}
                 </Badge>
               ))}
@@ -109,22 +115,28 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="size-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive"
                   aria-label={t('common.delete')}
                   disabled={isRemoving}
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-3.5" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t('assets.deleteConfirm')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('common.delete')}</AlertDialogDescription>
+                  <AlertDialogTitle className="text-sm font-semibold">
+                    {t('assets.deleteConfirm')}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {t('common.delete')}
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                <AlertDialogFooter className="gap-2 sm:gap-2">
+                  <AlertDialogCancel className="h-8 rounded-md text-xs">
+                    {t('common.cancel')}
+                  </AlertDialogCancel>
                   <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    className="h-8 rounded-md bg-destructive text-xs text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => onRemove(asset.id)}
                   >
                     {t('common.delete')}

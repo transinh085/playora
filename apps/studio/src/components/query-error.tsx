@@ -2,7 +2,7 @@
 
 import { Alert, AlertTitle } from '@playora/ui/components/alert';
 import { Button } from '@playora/ui/components/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import type React from 'react';
 
@@ -13,14 +13,21 @@ export function QueryError({ onRetry, title }: { onRetry?: () => void; title?: R
   return (
     <Alert
       variant="destructive"
-      className="rounded-2xl border-destructive/20 bg-destructive/5 flex items-center justify-between gap-4 p-4"
+      className="flex items-center justify-between gap-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3.5"
     >
-      <div className="flex items-center gap-3">
-        <AlertCircle className="size-5 shrink-0 text-destructive" />
-        <AlertTitle className="m-0 text-sm font-medium">{title ?? t('unknownError')}</AlertTitle>
+      <div className="flex items-center gap-2.5">
+        <AlertCircle className="size-4 shrink-0 text-destructive" />
+        <AlertTitle className="m-0 text-xs font-medium text-destructive">
+          {title ?? t('unknownError')}
+        </AlertTitle>
       </div>
       {onRetry && (
-        <Button size="sm" variant="outline" className="shrink-0" onClick={onRetry}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 shrink-0 rounded-md px-2.5 text-xs shadow-xs"
+          onClick={onRetry}
+        >
           {t('retry')}
         </Button>
       )}

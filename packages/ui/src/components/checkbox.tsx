@@ -1,7 +1,7 @@
 'use client';
 
+import { CheckIcon } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { CheckIcon } from 'lucide-react';
 import { Checkbox as CheckboxPrimitive } from 'radix-ui';
 import * as React from 'react';
 
@@ -10,7 +10,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        'peer size-4 shrink-0 rounded-sm border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary',
+        'peer size-3.5 shrink-0 rounded-[4px] border border-[#D4D4D4] bg-white transition-all outline-none hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-[#171717] data-[state=checked]:bg-[#171717] data-[state=checked]:text-white dark:border-white/[0.22] dark:bg-transparent dark:hover:border-white/40 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:border-[#FAFAFA] dark:data-[state=checked]:bg-[#FAFAFA] dark:data-[state=checked]:text-[#0A0A0A]',
         className,
       )}
       {...props}
@@ -19,7 +19,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none"
       >
-        <CheckIcon className="size-3.5" />
+        <CheckIcon className="size-2.5 stroke-[2.2]" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );

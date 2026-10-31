@@ -10,8 +10,8 @@ import { GameRoot } from '@playora/ui/game/game-root';
 import { JoinPanel } from '@playora/ui/game/join-panel';
 import { Leaderboard } from '@playora/ui/game/leaderboard';
 import { TeamBar } from '@playora/ui/game/team-bar';
+import { Gift, ShieldCheck } from '@playora/ui/icons';
 import { type BrandKitTheme, type Skin, skins } from '@playora/ui/theme';
-import { Gift, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 const SKIN_LABEL: Record<Skin, string> = {

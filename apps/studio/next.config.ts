@@ -22,7 +22,7 @@ const config: NextConfig = {
   ],
   typedRoutes: true,
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['@playora/ui', '@hugeicons/react', '@hugeicons/core-free-icons'],
   },
   env: {
     NEXT_PUBLIC_PLAY_URL:

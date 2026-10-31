@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@playora/ui/components/button';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from '@playora/ui/icons';
 import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {

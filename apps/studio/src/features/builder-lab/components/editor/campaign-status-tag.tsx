@@ -2,7 +2,7 @@
 
 import type { CampaignListItem } from '@playora/contracts';
 import { Badge } from '@playora/ui/components/badge';
-import { CircleAlert, CircleCheck, PencilLine } from 'lucide-react';
+import { CircleAlert, CircleCheck, PencilLine } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 
 export function hasUnpublishedChanges(

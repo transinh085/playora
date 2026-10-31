@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@playora/ui/components/select';
 import { toast } from '@playora/ui/components/sonner';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -90,37 +90,43 @@ export function InviteMemberDialog({
   return (
     <>
       <Button
-        className="rounded-full shadow-xs gap-2"
+        size="sm"
+        className="h-8 rounded-md shadow-xs gap-1.5 text-xs"
         onClick={() => {
           form.reset({ email: '', role: defaultRole });
           setOpen(true);
         }}
       >
-        <UserPlus className="size-4" />
+        <UserPlus className="size-3.5" />
         {t('members.invite')}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogContent className="max-w-md rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">{t('members.invite')}</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogTitle className="text-sm font-semibold">{t('members.invite')}</DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
               {t('members.inviteDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-1">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('members.email')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('members.email')}</FormLabel>
                     <FormControl>
-                      <Input type="email" autoComplete="email" className="rounded-xl" {...field} />
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        className="h-8 rounded-md text-xs"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -130,37 +136,43 @@ export function InviteMemberDialog({
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('members.role')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('members.role')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger id="invite-role" className="rounded-xl">
+                        <SelectTrigger id="invite-role" className="h-8 rounded-md text-xs">
                           <SelectValue placeholder={t('members.role')} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="rounded-xl">
+                      <SelectContent className="rounded-lg">
                         {assignableRoles.map((role) => (
-                          <SelectItem key={role} value={role}>
+                          <SelectItem key={role} value={role} className="text-xs">
                             {t(`members.roles.${role}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full"
+                  size="sm"
+                  className="h-8 rounded-md text-xs"
                   onClick={() => setOpen(false)}
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button type="submit" className="rounded-full shadow-xs" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 rounded-md text-xs shadow-xs"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
                   {t('members.sendInvite')}
                 </Button>
               </div>

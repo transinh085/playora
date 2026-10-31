@@ -12,7 +12,7 @@ import {
 } from '@playora/ui/components/alert-dialog';
 import { Card, CardContent } from '@playora/ui/components/card';
 import { Input } from '@playora/ui/components/input';
-import { Check } from 'lucide-react';
+import { Check } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
@@ -123,14 +123,20 @@ export function QuickEditPanel({
       </Section>
 
       <AlertDialog open={!!pendingSkin} onOpenChange={(open) => !open && setPendingSkin(null)}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('skinConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('skinConfirm')}</AlertDialogDescription>
+            <AlertDialogTitle className="text-sm font-semibold">
+              {t('skinConfirmTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t('skinConfirm')}
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full">{tCommon('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSkin} className="rounded-full">
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="h-8 rounded-md text-xs">
+              {tCommon('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSkin} className="h-8 rounded-md text-xs">
               {t('skinConfirmOk')}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -179,22 +185,22 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
             key={skin.key}
             onClick={() => onPick(skin.key)}
             data-testid={`skin-${skin.key}`}
-            className={`cursor-pointer overflow-hidden rounded-2xl transition-all ${
+            className={`cursor-pointer overflow-hidden rounded-lg transition-all shadow-xs ${
               active
-                ? 'border-2 border-primary ring-2 ring-primary/20'
-                : 'border border-border hover:border-foreground/30'
+                ? 'border-neutral-900 ring-1 ring-neutral-900/10 dark:border-white dark:ring-white/20'
+                : 'border-neutral-200 hover:border-neutral-400 dark:border-white/10 dark:hover:border-white/20'
             }`}
           >
-            <div className="relative h-24 w-full bg-muted/40">
+            <div className="relative h-20 w-full bg-neutral-100/50 dark:bg-white/5">
               {cover && <FitScreen screen={cover} brand={skin.brand} />}
               {active && (
-                <span className="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                  <Check className="size-3" />
+                <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-neutral-900 text-white shadow-xs dark:bg-white dark:text-neutral-900">
+                  <Check className="size-2.5" />
                 </span>
               )}
             </div>
             <CardContent className="p-2">
-              <span className="block truncate text-center text-xs font-medium">
+              <span className="block truncate text-center text-xs font-medium text-neutral-900 dark:text-neutral-100">
                 {t(`skins.${skin.key}`)}
               </span>
             </CardContent>

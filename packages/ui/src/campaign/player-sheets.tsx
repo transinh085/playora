@@ -5,7 +5,7 @@ import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
 import { QRCodeSvg } from '@playora/ui/components/qr-code';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@playora/ui/components/sheet';
-import { Check, ChevronDown, Copy, Gift, Info, Loader2 } from 'lucide-react';
+import { Check, ChevronDown, Copy, Gift, Info, Loader2 } from '@playora/ui/icons';
 import { type ReactNode, useEffect, useState } from 'react';
 import type { CampaignPlayerLabels } from './labels';
 

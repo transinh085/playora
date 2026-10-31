@@ -318,9 +318,11 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   );
 
   return (
-    <div className="mt-4 rounded-2xl border bg-muted/20 p-4">
-      <span className="font-semibold text-sm">{t('title')}</span>
-      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
+    <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+      <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+        {t('title')}
+      </span>
+      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
         {lines.map((line) => (
           <li key={line.key}>
             <span>{t(line.key, line.values)}</span>

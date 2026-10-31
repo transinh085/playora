@@ -65,7 +65,7 @@ Phiên bản lấy từ `package.json` (pin chính xác, `bunfig.toml` có `exac
 | Package manager, runtime, test | **Bun 1.4.4** | [ADR-001](../adr/001-monorepo-bun-turborepo.md), [ADR-002](../adr/002-nestjs-on-bun.md) |
 | Monorepo | **Turborepo 2.11** | Cache task `build/lint/test/typecheck` |
 | Frontend | **Next.js 16.4** (App Router) + **React 19.3** | Studio, Play, Web; `output: 'standalone'` |
-| UI | **shadcn/ui (style luma)** + Radix UI + Tailwind CSS 4.3 + `@playora/ui/{components,providers,theme,form,game}`; toast `sonner`; icon `lucide-react` | [ADR-016](../adr/016-shadcn-luma-ui.md) (thay [ADR-013](../adr/013-antd-ui.md), [D-29](../product/decisions.md)) |
+| UI | **shadcn/ui (style luma)** + Radix UI + Tailwind CSS 4.3 + `@playora/ui/{components,providers,theme,form,game,icons}`; toast `sonner`; icon Hugeicons (`@hugeicons/react` + `@hugeicons/core-free-icons`) | [ADR-016](../adr/016-shadcn-luma-ui.md) (thay [ADR-013](../adr/013-antd-ui.md), [D-29](../product/decisions.md)) |
 | Data fetching | **TanStack Query 5** qua `@playora/api-client/react` (typed từ contract, không codegen) | [ADR-008](../adr/008-contract-first-api.md) |
 | Form | `react-hook-form` + `@hookform/resolvers/zod` + shadcn `Form` (`@playora/ui/form`); game config dùng `AutoForm` sinh từ zod (M2, BLD-02) | [ADR-016](../adr/016-shadcn-luma-ui.md) |
 | i18n | **next-intl 4** (vi chuẩn, en) | Studio và Play |

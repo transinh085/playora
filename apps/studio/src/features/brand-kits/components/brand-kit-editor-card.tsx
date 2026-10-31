@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@playora/ui/components/select';
-import { Plus } from 'lucide-react';
+import { Plus } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
@@ -103,14 +103,14 @@ export function HexColorInput({
         type="color"
         value={safePickerColor}
         onChange={(e) => onChange?.(e.target.value)}
-        className="h-9 w-10 shrink-0 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
+        className="size-8 shrink-0 cursor-pointer rounded-md border border-neutral-200 bg-transparent p-0.5 shadow-xs dark:border-white/10"
         aria-label="Pick color"
       />
       <Input
         id={id}
         value={hexValue}
         onChange={(e) => onChange?.(e.target.value)}
-        className="font-mono"
+        className="h-8 rounded-md font-mono text-xs"
       />
     </div>
   );
@@ -157,9 +157,9 @@ export function BrandKitEditorCard({
   ] as const;
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base font-semibold">
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-5 py-3.5 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {editingId ? t('brandKits.edit') : t('brandKits.new')}
         </CardTitle>
         {editingId ? (
@@ -168,23 +168,25 @@ export function BrandKitEditorCard({
             variant="ghost"
             size="sm"
             onClick={onResetToNew}
-            className="h-8 gap-1 text-xs"
+            className="h-7 gap-1 rounded-md text-xs"
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-3" />
             {t('brandKits.new')}
           </Button>
         ) : null}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-5">
         <div className="grid gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('brandKits.name')}</FormLabel>
+                <FormLabel className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
+                  {t('brandKits.name')}
+                </FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input className="h-8 rounded-md text-xs" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -273,13 +275,24 @@ export function BrandKitEditorCard({
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-white/10">
             {editingId && (
-              <Button type="button" variant="outline" onClick={onResetToNew}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-md text-xs shadow-xs"
+                onClick={onResetToNew}
+              >
                 {t('common.cancel')}
               </Button>
             )}
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              size="sm"
+              className="h-8 rounded-md text-xs shadow-xs"
+              disabled={isSubmitting}
+            >
               {editingId ? t('common.save') : t('common.create')}
             </Button>
           </div>

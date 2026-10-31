@@ -3,7 +3,16 @@
 import { Button } from '@playora/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
 import { Skeleton } from '@playora/ui/components/skeleton';
-import { CircleAlert, Clock, Gift, Pause, PencilLine, Play, Radio, Sparkles } from 'lucide-react';
+import {
+  CircleAlert,
+  Clock,
+  Gift,
+  Pause,
+  PencilLine,
+  Play,
+  Radio,
+  Sparkles,
+} from '@playora/ui/icons';
 import Link from 'next/link';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -38,6 +47,15 @@ const RECENT_LIMIT = 5;
 const ENDING_SOON_MS = 3 * 86_400_000;
 const LOW_STOCK_SHARE = 0.2;
 
+const ROW_GRADIENTS = [
+  'from-emerald-400 to-cyan-500',
+  'from-rose-400 to-red-500',
+  'from-amber-400 to-orange-500',
+  'from-blue-400 to-indigo-500',
+  'from-fuchsia-400 to-purple-500',
+  'from-cyan-400 to-blue-500',
+] as const;
+
 type Attention = {
   key: string;
   icon: typeof Clock;
@@ -64,10 +82,10 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   if (campaigns.isPending || brandKits.isPending || members.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-28 w-full rounded-lg" />
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Skeleton className="h-64 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-lg" />
+          <Skeleton className="h-64 rounded-lg" />
         </div>
       </div>
     );
@@ -255,25 +273,39 @@ export function CampaignHome({ orgId }: { orgId: string }) {
 function AttentionCard({ items }: { items: Attention[] }) {
   const t = useTranslations('campaigns.home');
   return (
-    <Card className="rounded-2xl border" data-testid="home-attention">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('attention.title')}</CardTitle>
-        <Caption>{items.length}</Caption>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="home-attention"
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('attention.title')}
+        </CardTitle>
+        <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium tabular-nums text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
+          {items.length}
+        </span>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 p-4">
         {items.map(({ key, icon: Icon, tone, text, href, action }) => {
           const colorClass =
             tone === 'error'
-              ? 'text-destructive'
+              ? 'text-rose-500'
               : tone === 'warning'
                 ? 'text-amber-500'
                 : 'text-blue-500';
           return (
-            <div key={key} className="flex items-center gap-2.5 text-sm">
-              <Icon className={`size-4 shrink-0 ${colorClass}`} />
-              <span className="min-w-0 flex-1 truncate">{text}</span>
+            <div key={key} className="flex items-center gap-2.5 text-xs">
+              <Icon className={`size-3.5 shrink-0 ${colorClass}`} />
+              <span className="min-w-0 flex-1 truncate text-neutral-700 dark:text-[#D4D4D4]">
+                {text}
+              </span>
               <Link href={href as never}>
-                <Button variant="outline" size="sm" tabIndex={-1} className="h-7 text-xs">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  tabIndex={-1}
+                  className="h-7 rounded-md px-2.5 text-xs shadow-xs"
+                >
                   {action}
                 </Button>
               </Link>
@@ -301,55 +333,75 @@ function RecentCampaigns({
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card className="rounded-2xl border" data-testid="home-campaigns">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('campaigns')}</CardTitle>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="home-campaigns"
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('campaigns')}
+        </CardTitle>
         {total > 0 && (
-          <Link href={routes.list} className="text-xs text-primary hover:underline">
+          <Link
+            href={routes.list}
+            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
+          >
             {t('allCampaigns', { count: total })}
           </Link>
         )}
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-0">
         {rows.length === 0 ? (
-          <div className="py-6 text-center text-xs text-muted-foreground">{t('noCampaigns')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {t('noCampaigns')}
+          </div>
         ) : (
-          <ul className="m-0 divide-y list-none p-0">
-            {rows.map(({ campaign, phase }) => {
+          <ul className="m-0 divide-y divide-neutral-200 p-0 list-none dark:divide-white/10">
+            {rows.map(({ campaign, phase }, idx) => {
               const isDraft = phase === 'draft';
               const plays = statsById.get(campaign.id)?.plays;
+              const gradient = ROW_GRADIENTS[idx % ROW_GRADIENTS.length];
               return (
-                <li key={campaign.id} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
+                <li
+                  key={campaign.id}
+                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-neutral-50/60 dark:hover:bg-white/[0.02]"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={`size-7 shrink-0 rounded-md bg-gradient-to-br ${gradient} shadow-xs`}
+                    />
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={isDraft ? routes.edit(campaign.id) : routes.detail(campaign.id)}
-                          className="font-semibold hover:underline"
+                          className="truncate text-xs font-medium text-neutral-900 hover:underline dark:text-[#FAFAFA]"
                         >
                           {campaign.name}
                         </Link>
                         <PhaseTag phase={phase} />
                       </div>
-                      <Caption>
+                      <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-[#A3A3A3]">
                         {campaignPeriod(format, campaign)}
                         {!isDraft && plays !== undefined
                           ? ` · ${t('plays', { count: plays })}`
                           : ''}
-                      </Caption>
+                      </p>
                     </div>
-                    <Link
-                      href={
-                        isDraft
-                          ? routes.edit(campaign.id)
-                          : `${routes.detail(campaign.id)}?tab=share`
-                      }
-                    >
-                      <Button variant="outline" size="sm" tabIndex={-1} className="h-8 text-xs">
-                        {isDraft ? t('continueEditing') : t('share')}
-                      </Button>
-                    </Link>
                   </div>
+                  <Link
+                    href={
+                      isDraft ? routes.edit(campaign.id) : `${routes.detail(campaign.id)}?tab=share`
+                    }
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      tabIndex={-1}
+                      className="h-7 rounded-md px-2.5 text-xs shadow-xs"
+                    >
+                      {isDraft ? t('continueEditing') : t('share')}
+                    </Button>
+                  </Link>
                 </li>
               );
             })}
@@ -380,21 +432,26 @@ function TemplateTeaser({ orgId }: { orgId: string }) {
   );
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('templates')}</CardTitle>
-        <Link href={href} className="text-xs text-primary hover:underline">
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('templates')}
+        </CardTitle>
+        <Link
+          href={href}
+          className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
+        >
           {t('allTemplates')}
         </Link>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4">
         <div className="grid grid-cols-2 gap-3">
           {covers.map((c) => (
             <Link key={`${c.templateKey}:${c.skinKey}`} href={href} className="block group">
-              <div className="h-[200px] overflow-hidden rounded-xl border bg-muted transition-transform group-hover:scale-[1.02]">
+              <div className="h-[200px] overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 transition-transform group-hover:scale-[1.02] dark:border-white/10 dark:bg-white/5">
                 <FitScreen screen={c.screen} brand={c.brand} />
               </div>
-              <Caption className="mt-1.5 block text-center truncate">
+              <Caption className="mt-1.5 block text-center truncate text-[11px]">
                 {tl(`templates.${c.templateKey}`)} · {tl(`skins.${c.skinKey}`)}
               </Caption>
             </Link>

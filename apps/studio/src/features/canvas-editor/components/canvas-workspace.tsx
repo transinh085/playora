@@ -59,7 +59,7 @@ import {
   X,
   ZoomIn,
   ZoomOut,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import {
   type ReactNode,
@@ -539,7 +539,10 @@ export function CanvasWorkspace({
               }}
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 rounded-2xl" align="start">
+          <DropdownMenuContent
+            className="w-56 rounded-lg border border-neutral-200 bg-white p-1 shadow-md dark:border-white/10 dark:bg-[#0A0A0A]"
+            align="start"
+          >
             {targetElement && targetId ? (
               <>
                 <DropdownMenuItem

@@ -3,7 +3,7 @@
 import type { OrgBilling } from '@playora/contracts';
 import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
 import { Button } from '@playora/ui/components/button';
-import { AlertCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, AlertTriangle } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useOrgBillingIfAllowed } from '../api';

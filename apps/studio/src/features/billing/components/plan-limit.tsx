@@ -5,7 +5,7 @@ import { ErrorCode } from '@playora/contracts';
 import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
 import { Button } from '@playora/ui/components/button';
 import { toast } from '@playora/ui/components/sonner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';

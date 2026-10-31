@@ -2,7 +2,7 @@
 
 import { Button } from '@playora/ui/components/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@playora/ui/components/popover';
-import { ImagePlus, Upload as UploadIcon } from 'lucide-react';
+import { ImagePlus, Upload as UploadIcon } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -57,17 +57,20 @@ export function PrizeImagePicker({
         <button
           type="button"
           aria-label={t('changeImage', { name })}
-          className="flex size-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted/30 p-1 text-muted-foreground hover:border-foreground/40 transition-colors"
+          className="flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed border-neutral-200 bg-neutral-50/50 p-1 text-neutral-400 hover:border-neutral-400 transition-colors dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
         >
           {value ? (
             // biome-ignore lint/performance/noImgElement: data URLs / inline SVG
             <img src={value} alt="" className="size-full object-contain" />
           ) : (
-            <ImagePlus className="size-6" />
+            <ImagePlus className="size-5" />
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-60 p-3 space-y-3 rounded-2xl" align="start">
+      <PopoverContent
+        className="w-60 p-3 space-y-3 rounded-lg border border-neutral-200 bg-white shadow-md dark:border-white/10 dark:bg-[#0A0A0A]"
+        align="start"
+      >
         <Caption>{t('presets')}</Caption>
         <div className="grid grid-cols-4 gap-2">
           {IMAGE_PRESETS.map((preset) => (
@@ -79,10 +82,10 @@ export function PrizeImagePicker({
                 onChange(preset.src);
                 setOpen(false);
               }}
-              className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg border p-1 transition-colors ${
+              className={`flex aspect-square cursor-pointer items-center justify-center rounded-md border p-1 transition-colors ${
                 value === preset.src
-                  ? 'border-primary ring-2 ring-primary/20 bg-muted/60'
-                  : 'border-border bg-muted/30 hover:border-foreground/30'
+                  ? 'border-neutral-900 bg-neutral-100 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/10 dark:ring-white/20'
+                  : 'border-neutral-200 bg-neutral-50/50 hover:border-neutral-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20'
               }`}
             >
               {/* biome-ignore lint/performance/noImgElement: inline SVG data URLs */}
@@ -104,9 +107,9 @@ export function PrizeImagePicker({
             size="sm"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-full"
+            className="w-full h-8 rounded-md text-xs"
           >
-            <UploadIcon className="mr-1.5 size-4" />
+            <UploadIcon className="mr-1.5 size-3.5" />
             {t('upload')}
           </Button>
         </div>

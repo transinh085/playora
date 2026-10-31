@@ -11,7 +11,7 @@ import {
 } from '@playora/ui/components/card';
 import { Skeleton } from '@playora/ui/components/skeleton';
 import { toast } from '@playora/ui/components/sonner';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -88,11 +88,11 @@ export function AcceptInvitationCard() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
-      <Card className="w-full max-w-md rounded-2xl border-border/80 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">{t('auth.inviteTitle')}</CardTitle>
+      <Card className="w-full max-w-md rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="border-b border-neutral-200 px-6 py-4 dark:border-white/10">
+          <CardTitle className="text-base font-semibold">{t('auth.inviteTitle')}</CardTitle>
           {invitation && (
-            <CardDescription className="text-xs text-muted-foreground">
+            <CardDescription className="text-xs text-neutral-500 dark:text-neutral-400">
               {t('auth.inviteDescription', {
                 inviter: invitation.inviterEmail,
                 organization: invitation.organizationName,
@@ -101,23 +101,23 @@ export function AcceptInvitationCard() {
             </CardDescription>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-6">
           {(sessionPending || invitationQuery.isPending) && (
             <div className="space-y-2 py-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="h-4 w-3/4 rounded-md" />
             </div>
           )}
 
           {invitationQuery.isError && (
-            <Alert variant="destructive" className="rounded-xl">
+            <Alert variant="destructive" className="rounded-lg">
               <AlertCircle className="size-4" />
               <AlertTitle className="text-xs">{t('auth.inviteError')}</AlertTitle>
             </Alert>
           )}
 
           {actionError && (
-            <Alert variant="destructive" className="rounded-xl">
+            <Alert variant="destructive" className="rounded-lg">
               <AlertCircle className="size-4" />
               <AlertTitle className="text-xs">{actionError}</AlertTitle>
             </Alert>
@@ -128,20 +128,26 @@ export function AcceptInvitationCard() {
               <>
                 <Button
                   variant="outline"
-                  className="rounded-full"
+                  size="sm"
+                  className="h-8 rounded-md text-xs"
                   disabled={submitting}
                   onClick={onDecline}
                 >
                   {t('auth.declineInvite')}
                 </Button>
-                <Button className="rounded-full shadow-xs" disabled={submitting} onClick={onAccept}>
-                  {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                <Button
+                  size="sm"
+                  className="h-8 rounded-md text-xs shadow-xs"
+                  disabled={submitting}
+                  onClick={onAccept}
+                >
+                  {submitting && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
                   {t('auth.acceptInvite')}
                 </Button>
               </>
             )}
             {invitationQuery.isError && (
-              <Button className="w-full rounded-full" onClick={onSwitchAccount}>
+              <Button size="sm" className="w-full h-8 rounded-md text-xs" onClick={onSwitchAccount}>
                 {t('auth.switchAccount')}
               </Button>
             )}

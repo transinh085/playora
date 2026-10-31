@@ -48,10 +48,10 @@ export function BrandKitsManager({ orgId }: { orgId: string }) {
   if (kitsQuery.isPending || assetsQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-lg" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-32 rounded-2xl" />
-          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-lg" />
+          <Skeleton className="h-32 rounded-lg" />
         </div>
       </div>
     );

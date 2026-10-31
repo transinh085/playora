@@ -1,7 +1,7 @@
 'use client';
 
+import { XIcon } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { XIcon } from 'lucide-react';
 import { Dialog as SheetPrimitive } from 'radix-ui';
 import * as React from 'react';
 

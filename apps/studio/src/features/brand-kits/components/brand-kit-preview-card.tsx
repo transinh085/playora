@@ -27,8 +27,10 @@ export function BrandKitPreviewCard({
   const bgAsset = imageAssets.find((a) => a.id === watchedTokens?.backgroundAssetId);
 
   return (
-    <Card className="h-fit rounded-2xl p-6">
-      <h3 className="mb-4 text-base font-semibold">{t('brandKits.previewTitle')}</h3>
+    <Card className="h-fit rounded-lg border border-neutral-200 bg-white p-4 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+        {t('brandKits.previewTitle')}
+      </h3>
       <GameRoot
         brand={{
           primary: watchedTokens?.colors?.primary,
@@ -46,7 +48,7 @@ export function BrandKitPreviewCard({
               }
             : undefined
         }
-        className="flex min-h-80 flex-col items-center justify-between rounded-xl p-6 text-center"
+        className="flex min-h-80 flex-col items-center justify-between rounded-md p-6 text-center"
       >
         <div className="flex flex-col items-center gap-3">
           {logoAsset && (

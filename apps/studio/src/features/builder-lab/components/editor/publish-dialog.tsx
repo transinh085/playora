@@ -15,7 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@playora/ui/components/
 import { QRCodeSvg } from '@playora/ui/components/qr-code';
 import { Separator } from '@playora/ui/components/separator';
 import { toast } from '@playora/ui/components/sonner';
-import { cn } from '@playora/ui/lib/utils';
 import {
   CircleX,
   Copy,
@@ -32,7 +31,8 @@ import {
   Users,
   Wallet,
   Wand2,
-} from 'lucide-react';
+} from '@playora/ui/icons';
+import { cn } from '@playora/ui/lib/utils';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -245,10 +245,10 @@ export function PublishDialog({
                   <button
                     type="button"
                     className={cn(
-                      'rounded-full px-3 py-1 text-xs font-medium border transition-all',
+                      'rounded-md px-2.5 py-1 text-xs font-medium border transition-all',
                       campaign.compliance?.promotionType === 'purchase_linked'
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-border text-foreground hover:bg-muted',
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                        : 'border-neutral-200 text-neutral-700 hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-300 dark:hover:bg-white/5',
                     )}
                     onClick={() =>
                       onFix({
@@ -264,10 +264,10 @@ export function PublishDialog({
                   <button
                     type="button"
                     className={cn(
-                      'rounded-full px-3 py-1 text-xs font-medium border transition-all',
+                      'rounded-md px-2.5 py-1 text-xs font-medium border transition-all',
                       campaign.compliance?.promotionType === 'not_linked'
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-border text-foreground hover:bg-muted',
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                        : 'border-neutral-200 text-neutral-700 hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-300 dark:hover:bg-white/5',
                     )}
                     onClick={() =>
                       onFix({
@@ -375,15 +375,21 @@ export function PublishDialog({
             </div>
           ) : (
             <div className="flex w-full items-center justify-end gap-2">
-              <Button variant="outline" onClick={onClose}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-md text-xs"
+                onClick={onClose}
+              >
                 {t('cancel')}
               </Button>
               <Button
-                className="gap-2 rounded-full"
+                size="sm"
+                className="h-8 gap-1.5 rounded-md text-xs font-medium shadow-xs"
                 disabled={!canPublish || publish.isPending}
                 onClick={doPublish}
               >
-                <Rocket className="size-4" />
+                <Rocket className="size-3.5" />
                 {campaign.version > 0
                   ? t('publishAgain', { version: campaign.version + 1 })
                   : t('publish')}

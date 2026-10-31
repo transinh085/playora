@@ -13,8 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@playora/ui/components/table';
+import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { useFormatter, useLocale, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -120,7 +120,7 @@ export function PlaybookGoalBanner({
 
   return (
     <Card
-      className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5"
+      className="rounded-lg border border-teal-500/25 bg-teal-50/50 p-4 shadow-xs dark:border-teal-500/30 dark:bg-teal-950/20"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
@@ -282,12 +282,18 @@ export function DailyOutcomeCard({
   const locale = useLocale();
 
   return (
-    <Card className="rounded-2xl border" data-testid="daily-chart-card" data-print-card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="daily-chart-card"
+      data-print-card
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </CardTitle>
         {extra}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4">
         {loading ? (
           <Skeleton className="h-64 w-full" />
         ) : (
@@ -320,18 +326,26 @@ export function ChannelsTableCard({
   const rows = report?.byChannel ?? [];
 
   return (
-    <Card className="rounded-2xl border" data-testid="channel-table" data-print-card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="channel-table"
+      data-print-card
+    >
+      <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {loading ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {tr('empty')}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -346,16 +360,16 @@ export function ChannelsTableCard({
               <TableBody>
                 {rows.map((row) => (
                   <TableRow key={row.channel ?? '__direct__'}>
-                    <TableCell className="font-semibold">
+                    <TableCell className="text-xs font-medium">
                       {resolveChannelLabel(row.channel, (k) => tr(`known.${k}`))}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                       {format.number(row.plays)}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                       {format.number(row.wins)}
                     </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
+                    <TableCell className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                       {format.number(row.visits)}
                     </TableCell>
                   </TableRow>
@@ -403,13 +417,19 @@ export function PrizesOutcomeCard({
         }));
 
   return (
-    <Card className="rounded-2xl border" data-testid="prize-stock" data-print-card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+    <Card
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+      data-testid="prize-stock"
+      data-print-card
+    >
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {tr('title')}
+        </CardTitle>
         {showEditLink && (
           <Link
             href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-            className="text-xs text-primary hover:underline"
+            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
             data-print-hide
           >
             {t('stock.edit')}
@@ -418,12 +438,14 @@ export function PrizesOutcomeCard({
       </CardHeader>
       <CardContent className="p-0">
         {loading ? (
-          <div className="p-4 space-y-2">
+          <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-8 w-full" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
+            {tr('empty')}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -448,34 +470,36 @@ export function PrizesOutcomeCard({
                     <TableRow key={row.prizeId}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-semibold">{row.name}</span>
-                          <Caption>
+                          <span className="text-xs font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                            {row.name}
+                          </span>
+                          <Caption className="text-[11px]">
                             {t('stock.issued', { issued: row.issued, redeemed: row.redeemed })}
                           </Caption>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                         {formatVnd(row.valueVnd, locale)}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
+                      <TableCell className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
                         {format.number(row.issued)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">
+                      <TableCell className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                         {format.number(row.redeemed)}
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Caption className="tabular-nums">
+                          <Caption className="tabular-nums text-[11px]">
                             {t('stock.left', { left: row.remaining, total: row.quantity })}
                           </Caption>
                           <Progress
                             value={percent}
-                            className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+                            className={cn('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
                           />
                         </div>
                       </TableCell>
                       {showRedeemedCost && (
-                        <TableCell className="text-right font-semibold tabular-nums">
+                        <TableCell className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
                           {formatVnd(row.redeemed * row.valueVnd, locale)}
                         </TableCell>
                       )}
@@ -512,17 +536,19 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending || reportQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-72 w-full rounded-2xl" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-72 w-full rounded-lg" />
       </div>
     );
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        <p className="mb-4">{t('notFound')}</p>
+      <div className="py-12 text-center text-neutral-500">
+        <p className="mb-4 text-sm">{t('notFound')}</p>
         <Link href={routes.list}>
-          <Button>{t('backToList')}</Button>
+          <Button size="sm" className="h-8 rounded-md text-xs">
+            {t('backToList')}
+          </Button>
         </Link>
       </div>
     );
@@ -549,8 +575,12 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
           backHref={routes.detail(campaign.id)}
           backLabel={tr('backToCampaign')}
           extra={
-            <Button className="gap-2 rounded-full" onClick={() => window.print()}>
-              <Printer className="size-4" />
+            <Button
+              size="sm"
+              className="gap-2 rounded-md h-8 text-xs shadow-xs"
+              onClick={() => window.print()}
+            >
+              <Printer className="size-3.5" />
               {tr('printPdf')}
             </Button>
           }
@@ -561,19 +591,25 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
 
       <OutcomeMetricGrid campaign={campaign} report={report} />
 
-      <Card className="rounded-2xl border" data-testid="report-insights" data-print-card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{tr('insights.title')}</CardTitle>
+      <Card
+        className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+        data-testid="report-insights"
+        data-print-card
+      >
+        <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+          <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {tr('insights.title')}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 p-4">
           {insights.map((insight) => (
             <div
               key={insight.key}
-              className="flex items-start gap-2.5 text-sm"
+              className="flex items-start gap-2.5 text-xs text-neutral-700 dark:text-[#D4D4D4]"
               data-testid="report-insight-item"
               data-insight-key={insight.key}
             >
-              <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
+              <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
               <span>{tr(`insights.${insight.key}`, insight.values)}</span>
             </div>
           ))}

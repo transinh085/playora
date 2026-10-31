@@ -98,12 +98,12 @@ export function RulesPrizesPanel({
         </Alert>
       )}
 
-      <Card className="rounded-2xl border">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
+      <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-white/10">
           <CardTitle className="text-base font-semibold">{t('sim.title')}</CardTitle>
           <Caption>{t('sim.extra')}</Caption>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5">
           <SimulatorCard campaign={campaign} blocked={issues.length > 0} onRulesChange={setRules} />
         </CardContent>
       </Card>
@@ -124,15 +124,15 @@ function StepCard({
 }) {
   const t = useTranslations('builderLab.rules');
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
+    <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="border-b border-neutral-200 px-5 py-4 dark:border-white/10">
         <div className="flex flex-col gap-0.5">
           <Caption>{t('steps.label', { step })}</Caption>
           <CardTitle className="text-base font-semibold">{title}</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3 pt-0">
-        <p className="text-muted-foreground text-xs">{hint}</p>
+      <CardContent className="flex flex-col gap-3 p-5">
+        <p className="text-neutral-500 text-xs dark:text-neutral-400">{hint}</p>
         {children}
       </CardContent>
     </Card>

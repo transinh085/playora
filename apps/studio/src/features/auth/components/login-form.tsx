@@ -13,7 +13,7 @@ import {
 } from '@playora/ui/components/form';
 import { Input } from '@playora/ui/components/input';
 import { toast } from '@playora/ui/components/sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -107,26 +107,31 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   }
 
   return (
-    <Card className="w-full max-w-sm rounded-2xl border-border/80 shadow-md">
-      <CardHeader className="text-center pb-2">
-        <CardTitle className="text-xl font-bold">
+    <Card className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="text-center pb-2 pt-6">
+        <CardTitle className="text-base font-semibold">
           {mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6 pt-2">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5">
             {mode === 'sign-up' && (
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('name')}</FormLabel>
+                    <FormLabel className="text-xs font-medium">{t('name')}</FormLabel>
                     <FormControl>
-                      <Input id="name" autoComplete="name" className="rounded-xl" {...field} />
+                      <Input
+                        id="name"
+                        autoComplete="name"
+                        className="h-9 rounded-md text-xs"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -136,17 +141,17 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('email')}</FormLabel>
+                  <FormLabel className="text-xs font-medium">{t('email')}</FormLabel>
                   <FormControl>
                     <Input
                       id="email"
                       type="email"
                       autoComplete="email"
-                      className="rounded-xl"
+                      className="h-9 rounded-md text-xs"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
@@ -155,47 +160,47 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('password')}</FormLabel>
+                  <FormLabel className="text-xs font-medium">{t('password')}</FormLabel>
                   <FormControl>
                     <Input
                       id="password"
                       type="password"
                       autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-                      className="rounded-xl"
+                      className="h-9 rounded-md text-xs"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )}
             />
 
             {error && (
-              <div className="rounded-xl bg-destructive/10 p-3 text-xs font-medium text-destructive">
+              <div className="rounded-md bg-destructive/10 p-2.5 text-xs font-medium text-destructive">
                 {error}
               </div>
             )}
             {magicLinkSentTo && (
-              <div className="rounded-xl bg-teal-500/10 p-3 text-xs font-medium text-teal-800 dark:text-teal-200">
+              <div className="rounded-md bg-teal-500/10 p-2.5 text-xs font-medium text-teal-800 dark:text-teal-200">
                 {t('magicLinkSent', { email: magicLinkSentTo })}
               </div>
             )}
 
-            <div className="pt-2 flex flex-col gap-3">
+            <div className="pt-2 flex flex-col gap-2.5">
               <Button
                 type="submit"
-                className="w-full rounded-full shadow-xs"
+                className="w-full h-9 rounded-md text-xs font-medium shadow-xs"
                 disabled={isSubmitting || isSendingLink}
               >
-                {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {isSubmitting && <Loader2 className="mr-2 size-3.5 animate-spin" />}
                 {mode === 'sign-in' ? t('signIn') : t('signUp')}
               </Button>
 
-              <div className="relative my-2 text-center text-xs text-muted-foreground">
+              <div className="relative my-1 text-center text-xs text-neutral-400">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
+                  <span className="w-full border-t border-neutral-200 dark:border-white/10" />
                 </div>
-                <span className="relative bg-card px-2 text-[11px] uppercase tracking-wider">
+                <span className="relative bg-white px-2 text-[10px] uppercase tracking-wider text-neutral-400 dark:bg-[#0A0A0A]">
                   {t('orDivider')}
                 </span>
               </div>
@@ -203,11 +208,11 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-full shadow-xs"
+                className="w-full h-9 rounded-md text-xs font-medium shadow-xs"
                 disabled={isSubmitting || isSendingLink}
                 onClick={onSendMagicLink}
               >
-                {isSendingLink && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {isSendingLink && <Loader2 className="mr-2 size-3.5 animate-spin" />}
                 {t('sendMagicLink')}
               </Button>
 
@@ -215,7 +220,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full rounded-full shadow-xs"
+                  className="w-full h-9 rounded-md text-xs font-medium shadow-xs"
                   disabled={isSubmitting || isSendingLink}
                   onClick={onGoogleSignIn}
                 >
@@ -226,7 +231,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full rounded-full text-xs text-muted-foreground"
+                className="w-full h-8 rounded-md text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
                 onClick={() => {
                   setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
                   form.reset();

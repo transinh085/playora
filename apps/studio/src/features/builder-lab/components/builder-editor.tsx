@@ -6,7 +6,6 @@ import { Button } from '@playora/ui/components/button';
 import { Input } from '@playora/ui/components/input';
 import { Separator } from '@playora/ui/components/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
-import { cn } from '@playora/ui/lib/utils';
 import {
   ArrowLeft,
   CloudAlert,
@@ -18,7 +17,8 @@ import {
   Play,
   Rocket,
   Zap,
-} from 'lucide-react';
+} from '@playora/ui/icons';
+import { cn } from '@playora/ui/lib/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -109,7 +109,7 @@ function EditorShell({
   const organizerName = myOrgs.data?.items.find((o) => o.id === orgId)?.name;
 
   const modeSwitch = (
-    <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+    <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
       {[
         { value: 'quick' as const, label: t('modes.quick'), icon: Zap },
         { value: 'customize' as const, label: t('modes.customize'), icon: PencilRuler },
@@ -122,10 +122,10 @@ function EditorShell({
             key={item.value}
             type="button"
             className={cn(
-              'flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-all',
+              'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all',
               isActive
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-white text-neutral-900 shadow-xs dark:bg-white/10 dark:text-neutral-100'
+                : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200',
             )}
             onClick={() => setMode(item.value)}
           >
@@ -180,13 +180,17 @@ function EditorShell({
             onClick={() => void flush()}
             aria-label={t('rehearse')}
           >
-            <Button variant="outline" size="sm" className="gap-1.5">
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-md text-xs">
               <Play className="size-3.5" />
               <span className="hidden lg:inline">{t('rehearse')}</span>
             </Button>
           </a>
 
-          <Button size="sm" className="gap-1.5 rounded-full" onClick={() => setPublishing(true)}>
+          <Button
+            size="sm"
+            className="h-8 gap-1.5 rounded-md text-xs font-medium shadow-xs"
+            onClick={() => setPublishing(true)}
+          >
             <Rocket className="size-3.5" />
             <span>{t('publish')}</span>
           </Button>

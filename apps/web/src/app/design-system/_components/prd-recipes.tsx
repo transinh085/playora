@@ -35,7 +35,7 @@ import {
   TrendingUp,
   Users,
   XCircle,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { useState } from 'react';
 
 const PLAYBOOKS = [

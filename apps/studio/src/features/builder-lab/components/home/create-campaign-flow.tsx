@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@playora/ui/components/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@playora/ui/icons';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PLAYBOOK_KEYS, type PlaybookKey } from '../../lib/playbooks';

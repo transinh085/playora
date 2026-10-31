@@ -134,12 +134,12 @@ export function MembersTable({
                         onValueChange={(val) => onRoleChange(member.id, val as OrgRole)}
                       >
                         <SelectTrigger
-                          className="w-36 rounded-xl text-xs h-8"
+                          className="w-36 rounded-md text-xs h-8"
                           aria-label={`${t('members.role')} ${member.user.email}`}
                         >
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl">
+                        <SelectContent className="rounded-lg">
                           {assignableRoles.map((role) => (
                             <SelectItem key={role} value={role} className="text-xs">
                               {t(`members.roles.${role}`)}
@@ -158,27 +158,27 @@ export function MembersTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs rounded-md"
                               disabled={busyId === member.id}
                             >
                               {t('members.remove')}
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-2xl">
+                          <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-base font-bold">
+                              <AlertDialogTitle className="text-sm font-semibold">
                                 {t('members.removeConfirm')}
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-xs text-muted-foreground">
+                              <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
                                 {member.user.name} ({member.user.email})
                               </AlertDialogDescription>
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-full">
+                            <AlertDialogFooter className="gap-2 sm:gap-2">
+                              <AlertDialogCancel className="h-8 rounded-md text-xs">
                                 {t('common.cancel')}
                               </AlertDialogCancel>
                               <AlertDialogAction
-                                className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
+                                className="h-8 rounded-md bg-destructive text-xs text-white hover:bg-destructive/90"
                                 onClick={() => onRemoveMember(member.id)}
                               >
                                 {t('common.delete')}

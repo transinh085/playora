@@ -1,6 +1,6 @@
 import { meApi } from '@playora/contracts';
 import { Button } from '@playora/ui/components/button';
-import { Plus } from 'lucide-react';
+import { Plus } from '@playora/ui/icons';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -29,7 +29,7 @@ export default async function OrgHomePage({ params }: { params: Promise<{ orgId:
         title={t('home.title')}
         description={t('home.subtitle')}
         extra={
-          <Button asChild className="rounded-full">
+          <Button asChild size="sm">
             <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
               <Plus className="mr-1.5 size-4" />
               {t('create')}

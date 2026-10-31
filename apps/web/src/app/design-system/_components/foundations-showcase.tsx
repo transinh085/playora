@@ -11,7 +11,7 @@ import {
   Store,
   TicketCheck,
   TrendingUp,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { ColorPair } from './color-pair';
 
 const COLOR_ROLES = [
@@ -137,34 +137,40 @@ const TYPE_SPECIMENS = [
     sample: 'Trúng 1 Ly Trà Sữa Ô Long Kem Phô Mai!',
   },
   {
-    token: 'type-page-title',
-    spec: 'Sans · 20px / 1.35 · 700 · -0.015em',
-    use: 'PageHeader trên mọi trang Studio (Danh sách chương trình, Tổng quan)',
-    sample: 'Vòng quay Lộc Xuân Trà Sữa Hà · Tết 2027',
-  },
-  {
-    token: 'type-section-title',
-    spec: 'Sans · 16px / 1.4 · 600 · -0.01em',
-    use: 'CardTitle, DialogTitle, tiêu đề bước trong Luật & Giải',
-    sample: 'Hiệu quả kinh doanh & Nhịp phát quà hôm nay',
-  },
-  {
     token: 'type-metric',
-    spec: 'Sans · 26px / 1.2 · 700 · tabular-nums',
+    spec: 'Sans · 28px / 36px (1.75rem) · 600 · -0.02em · tabular-nums',
     use: 'Số liệu chính trong MetricCard (Khách tới quầy, Chi phí quà)',
     sample: '312 khách · 1.420.000 ₫ (71%)',
   },
   {
+    token: 'type-page-title',
+    spec: 'Sans · 22px / 30px (1.375rem) · 600 · -0.015em',
+    use: 'PageHeader & Drawer title trên Studio',
+    sample: 'Vòng quay Lộc Xuân Trà Sữa Hà · Tết 2027',
+  },
+  {
+    token: 'type-section-title',
+    spec: 'Sans · 16px / 24px (1rem) · 600 · -0.01em',
+    use: 'CardTitle, DialogTitle, tiêu đề khối tính năng',
+    sample: 'Hiệu quả kinh doanh & Nhịp phát quà hôm nay',
+  },
+  {
     token: 'type-body',
-    spec: 'Sans · 14px / 1.5 · 400',
-    use: 'Nội dung mặc định, dòng bảng, câu luật tự nhiên, nhãn form',
+    spec: 'Sans · 14px / 22px (0.875rem) · 400–500',
+    use: 'Button, Input, Select, mục Sidebar, dòng bảng, menu item, nội dung chuẩn',
     sample: 'Với ngân sách 2.000.000đ, bạn phát được khoảng 400 phần quà trong 20 ngày.',
   },
   {
     token: 'type-caption',
-    spec: 'Sans · 12px / 1.4 · 400',
-    use: 'Chú thích dưới trường nhập, mốc so sánh ước tính, thời gian cập nhật',
+    spec: 'Sans · 13px / 20px (0.8125rem) · 400–500',
+    use: 'Tiêu đề nhóm Accordion Sidebar, chip lọc, mô tả thẻ (CardDescription), chú thích phụ',
     sample: 'Ước tính theo mốc 120 khách/ngày thường bạn nhập · Cập nhật 2 phút trước',
+  },
+  {
+    token: 'type-micro-badge',
+    spec: 'Sans · 12px / 16px (0.75rem) · 500',
+    use: 'Nhãn phân loại & trạng thái pastel trong bảng dữ liệu (text-xs font-medium)',
+    sample: 'Vòng quay · Đang chạy · Skin Tết',
   },
   {
     token: 'type-code-voucher',
@@ -178,29 +184,28 @@ const RADIUS_STEPS = [
   {
     token: '--radius-sm',
     cls: 'rounded-sm',
+    val: '4px',
+    usedBy: 'Checkbox (14×14px .cbox), ô màu đại diện nhỏ trong menu chọn tổ chức',
+  },
+  {
+    token: '--radius-md',
+    cls: 'rounded-md',
     val: '6px',
-    usedBy: 'Checkbox, chấm chỉ báo nhỏ',
+    usedBy:
+      'Chuẩn Control & Tag Louis CRM: Button, Input, SelectTrigger, Textarea, mục Sidebar, Badge 10px, DropdownMenuItem',
   },
   {
     token: '--radius-lg',
     cls: 'rounded-lg',
     val: '8px',
     usedBy:
-      'Thành phần con bên trong (TabsTrigger, SelectItem, DropdownMenuItem, Tooltip, Button xs)',
+      'Khung chứa & Menu nổi Louis CRM: Card, TableCard, MetricCard, DropdownMenuContent, SelectContent, Dialog, Toast',
   },
   {
     token: '--radius-xl',
     cls: 'rounded-xl',
-    val: '12px',
-    usedBy:
-      'Thống nhất mọi Control & Menu: Button, Input, Select, Textarea, TabsList, Popover, Alert, IconTile',
-  },
-  {
-    token: '--radius-2xl',
-    cls: 'rounded-2xl',
-    val: '16px',
-    usedBy:
-      'Khung chứa chính (Concentric Container): Card, TableCard, MetricCard, Dialog, AlertDialog',
+    val: '10px',
+    usedBy: 'Ô biểu tượng lớn (60×60px avatar badge trong Drawer), khung nhóm đặc biệt',
   },
   {
     token: '--radius-3xl',
@@ -212,38 +217,39 @@ const RADIUS_STEPS = [
     token: '--radius-4xl',
     cls: 'rounded-full',
     val: '9999px',
-    usedBy: 'Chỉ dùng cho chỉ báo: Badge trạng thái, Switch, Avatar, Progress, Slider',
+    usedBy: 'Avatar tròn, chấm trạng thái, Switch, Progress, Slider',
   },
 ] as const;
 
 const ELEVATION_STEPS = [
   {
-    name: 'Flat Canvas',
-    cls: 'bg-background border border-border/60',
-    token: 'none',
-    usedBy: 'Nền trang Studio (--background), vùng trống quanh bàn làm việc',
+    name: 'Hairline Border (0.5px)',
+    cls: 'bg-background border border-neutral-200 dark:border-white/10',
+    token: 'border (0.5px)',
+    usedBy:
+      'Viền mảnh chuẩn Louis CRM (#E5E5E5 sáng / rgba(255,255,255,0.10) tối) cho Sidebar, Header, lưới bảng và vạch ngăn',
   },
   {
     name: 'Subtle Card (shadow-xs)',
-    cls: 'bg-card border border-border/80 shadow-xs',
+    cls: 'bg-card border border-neutral-200 dark:border-white/10 shadow-xs',
     token: '--shadow-xs',
-    usedBy: 'Card, MetricCard, TableCard, Input, Button outline',
+    usedBy: 'Card, MetricCard, TableCard, Input, Button outline (rounded-md / rounded-lg)',
   },
   {
-    name: 'Interactive Hover (shadow-md)',
-    cls: 'bg-card border border-border/80 shadow-md',
-    token: '--shadow-md',
-    usedBy: 'Thẻ Playbook khi di chuột, Popover, DropdownMenu, SelectContent',
-  },
-  {
-    name: 'Modal & Floating Chrome (shadow-lg)',
-    cls: 'bg-popover border border-border/80 shadow-lg',
+    name: 'Floating Dropdown (shadow-lg)',
+    cls: 'bg-popover border border-neutral-200 dark:border-white/10 shadow-lg',
     token: '--shadow-lg',
-    usedBy: 'Dialog Phát hành, Sheet chi tiết, khung điện thoại Builder',
+    usedBy: 'DropdownMenu, SelectContent, Popover, Toast (nền #FFFFFF sáng / #171717 tối)',
+  },
+  {
+    name: 'Drawer & Modal (shadow-2xl)',
+    cls: 'bg-popover border border-neutral-200 dark:border-white/10 shadow-2xl',
+    token: 'shadow-2xl',
+    usedBy: 'Slide-over Drawer chi tiết chương trình, Dialog Phát hành',
   },
   {
     name: 'Luma Glass (luma-glass)',
-    cls: 'luma-glass border border-border/80 shadow-sm',
+    cls: 'luma-glass border border-neutral-200 dark:border-white/10 shadow-sm',
     token: 'backdrop-blur(12px)',
     usedBy: 'Thanh công cụ nổi trên Canvas Builder, Header dính trên điện thoại',
   },
@@ -435,9 +441,11 @@ export function FoundationsShowcase() {
           <div className="mt-2 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-foreground">
-                Hệ biểu tượng (Lucide Icons · 16px trong nút/nhãn, 20px trong IconTile)
+                Hệ biểu tượng (Hugeicons · 16px trong nút/nhãn, 20px trong IconTile)
               </span>
-              <span className="font-mono text-[11px] text-muted-foreground">lucide-react</span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                @hugeicons/react · @playora/ui/icons
+              </span>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-foreground">
               {[

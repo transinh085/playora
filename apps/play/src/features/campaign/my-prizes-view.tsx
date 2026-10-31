@@ -3,7 +3,7 @@
 import type { PublicCampaign } from '@playora/contracts';
 import { LiveClock, VoucherList } from '@playora/ui/campaign';
 import { Button } from '@playora/ui/components/button';
-import { Gift } from 'lucide-react';
+import { Gift } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';

@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@playora/ui/components/tooltip';
-import { CalendarClock, Coins, Gift, Percent, Users } from 'lucide-react';
+import { CalendarClock, Coins, Gift, Percent, Users } from '@playora/ui/icons';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
@@ -90,7 +90,7 @@ export function SimulatorCard({
               min={1}
               max={MAX_PLAYERS_PER_DAY}
               step={50}
-              className="inline-block w-28 font-mono"
+              className="inline-block h-8 w-24 rounded-md font-mono text-xs"
               value={playersPerDay}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
@@ -249,7 +249,7 @@ function WarningAlert({
             type="button"
             size="sm"
             variant="outline"
-            className="rounded-full"
+            className="h-7 rounded-md text-xs"
             onClick={() => onRulesChange({ pacing: true })}
           >
             {t('applyPacing')}

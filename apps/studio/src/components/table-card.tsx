@@ -17,9 +17,13 @@ export function TableCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="overflow-hidden rounded-2xl border border-border/80 p-0 shadow-xs">
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
       {header}
-      {toolbar && <div className="p-4 border-b border-border/60">{toolbar}</div>}
+      {toolbar && (
+        <div className="flex min-h-[48px] items-center justify-between border-b border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-[#0A0A0A]">
+          {toolbar}
+        </div>
+      )}
       {children}
     </Card>
   );

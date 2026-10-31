@@ -2,7 +2,7 @@
 
 import type { PublicCampaign } from '@playora/contracts';
 import { Button } from '@playora/ui/components/button';
-import { AlertCircle, Clock, PauseCircle } from 'lucide-react';
+import { AlertCircle, Clock, PauseCircle } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useMemo } from 'react';

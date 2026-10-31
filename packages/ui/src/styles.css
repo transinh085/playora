@@ -99,53 +99,94 @@
   --duration-slow: 320ms;
   --duration-stage: 640ms;
 
-  /* ── 2. Studio / Semantic (shadcn / luma style) ─────────────────────────────── */
-  --radius: 0.75rem;
-  --background: var(--ink-50);
-  --foreground: var(--ink-950);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--ink-950);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--ink-950);
-  --primary: var(--teal-600);
-  --primary-active: var(--teal-700);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: var(--ink-100);
-  --secondary-foreground: var(--ink-900);
-  --muted: var(--ink-100);
-  --muted-foreground: var(--ink-500);
-  --accent: var(--ink-100);
-  --accent-foreground: var(--ink-900);
-  --destructive: oklch(0.577 0.235 27);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: var(--ink-200);
-  --input: var(--ink-200);
-  --ring: var(--teal-500);
+  /* ── 2. Studio / Semantic (Louis CRM 1-to-1 neutral system) ─────────────────── */
+  --radius: 0.375rem; /* 6px rounded-md default for controls */
+  --border-hairline: 0.5px;
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-active: #0a0a0a;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --border: #e5e5e5;
+  --border-hover: #d4d4d4;
+  --input: #e5e5e5;
+  --ring: #3b82f6;
 
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: var(--ink-900);
-  --sidebar-primary: var(--teal-600);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: var(--teal-50);
-  --sidebar-accent-foreground: var(--teal-700);
-  --sidebar-border: var(--ink-200);
-  --sidebar-ring: var(--teal-500);
+  /* Louis CRM Text Hierarchy */
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+  --text-faint: #a3a3a3;
 
-  --chart-1: var(--teal-600);
-  --chart-2: var(--violet-500);
-  --chart-3: var(--spotlight-500);
-  --chart-4: var(--team-4);
-  --chart-5: var(--team-7);
+  /* Louis CRM Sidebar: bg-neutral-50 (#fafafa), active bg-neutral-200/80, footer bg-neutral-100 */
+  --sidebar: #fafafa;
+  --sidebar-foreground: #525252;
+  --sidebar-primary: #171717;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: rgb(229 229 229 / 0.8);
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #3b82f6;
 
-  --success: oklch(0.56 0.15 152);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.75 0.16 70);
-  --warning-foreground: oklch(0.28 0.07 60);
-  --info: oklch(0.56 0.16 255);
-  --info-foreground: oklch(0.985 0 0);
+  --chart-1: #10b981;
+  --chart-2: #3b82f6;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #f43f5e;
+
+  --success: #16a34a;
+  --success-foreground: #fafafa;
+  --warning: #d97706;
+  --warning-foreground: #fafafa;
+  --info: #2563eb;
+  --info-foreground: #fafafa;
   /* "On air": a campaign that is actively running right now. */
-  --live: oklch(0.6 0.23 25);
-  --live-foreground: oklch(0.985 0 0);
+  --live: #10b981;
+  --live-foreground: #fafafa;
+
+  /* ── Wensity Primitive Surface Tokens ───────────────────────────────────────── */
+  --primitive-motion-fast: 80ms;
+  --primitive-motion-fast-exit: 60ms;
+  --primitive-motion-moderate: 160ms;
+  --primitive-motion-moderate-exit: 120ms;
+  --primitive-motion-slow: 240ms;
+  --primitive-motion-slow-exit: 160ms;
+  --primitive-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+  --primitive-radius-control: 0.75rem;
+  --primitive-control-solid: #171717;
+  --primitive-control-solid-hover: #262626;
+  --primitive-control-solid-active: #0a0a0a;
+  --primitive-control-solid-foreground: #fafafa;
+
+  --primitive-surface-elevated: #ffffff;
+  --primitive-control-face: var(--primitive-surface-elevated);
+
+  --primitive-shadow-drop:
+    0 1px 1px -0.5px rgba(10, 10, 10, 0.1), 0 2px 4px -1px rgba(10, 10, 10, 0.06);
+  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(10, 10, 10, 0.1);
+  --primitive-edge: rgba(10, 10, 10, 0.1);
+  --primitive-catchlight: rgba(10, 10, 10, 0.06);
+  --primitive-tint-hover: rgba(10, 10, 10, 0.045);
+  --primitive-tint-press: rgba(10, 10, 10, 0.06);
+  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
+
+  --primitive-destructive: #dc2626;
+  --primitive-destructive-hover: #b91c1c;
+  --primitive-destructive-active: #991b1b;
+  --primitive-destructive-foreground: #ffffff;
 
   /* ── 3. Game (default skin: classic) ───────────────────────────────────────────── */
   --game-bg: var(--stage-950);
@@ -164,50 +205,79 @@
 }
 
 .dark {
-  --background: var(--ink-950);
-  --foreground: var(--ink-50);
-  --card: oklch(0.19 0.012 255);
-  --card-foreground: var(--ink-50);
-  --popover: oklch(0.19 0.012 255);
-  --popover-foreground: var(--ink-50);
-  --primary: var(--teal-400);
-  --primary-active: var(--teal-300);
-  --primary-foreground: var(--ink-950);
-  --secondary: var(--ink-900);
-  --secondary-foreground: var(--ink-50);
-  --muted: var(--ink-900);
-  --muted-foreground: var(--ink-400);
-  --accent: var(--ink-900);
-  --accent-foreground: var(--ink-50);
-  --destructive: oklch(0.704 0.191 22);
-  --destructive-foreground: var(--ink-950);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: var(--teal-400);
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #0a0a0a;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-active: #e5e5e5;
+  --primary-foreground: #0a0a0a;
+  --secondary: #171717;
+  --secondary-foreground: #fafafa;
+  --muted: #171717;
+  --muted-foreground: #737373;
+  --accent: rgb(255 255 255 / 0.05);
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: rgb(255 255 255 / 0.1);
+  --border-hover: rgb(255 255 255 / 0.3);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: #3b82f6;
 
-  --sidebar: oklch(0.18 0.012 255);
-  --sidebar-foreground: var(--ink-50);
-  --sidebar-primary: var(--teal-400);
-  --sidebar-primary-foreground: var(--ink-950);
-  --sidebar-accent: oklch(0.29 0.05 192 / 40%);
-  --sidebar-accent-foreground: var(--teal-300);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--teal-400);
+  /* Louis CRM Dark Text Hierarchy */
+  --text-primary: #fafafa;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-faint: #525252;
 
-  --chart-1: var(--teal-400);
-  --chart-2: var(--violet-400);
-  --chart-3: var(--spotlight-400);
-  --chart-4: var(--team-4);
-  --chart-5: var(--team-7);
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #a3a3a3;
+  --sidebar-primary: #fafafa;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #171717;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: #3b82f6;
 
-  --success: oklch(0.72 0.16 152);
-  --success-foreground: var(--ink-950);
-  --warning: oklch(0.8 0.15 75);
-  --warning-foreground: var(--ink-950);
-  --info: oklch(0.7 0.14 255);
-  --info-foreground: var(--ink-950);
-  --live: oklch(0.66 0.22 25);
-  --live-foreground: oklch(0.99 0 0);
+  --chart-1: #34d399;
+  --chart-2: #60a5fa;
+  --chart-3: #fbbf24;
+  --chart-4: #a78bfa;
+  --chart-5: #fb7185;
+
+  --success: #22c55e;
+  --success-foreground: #0a0a0a;
+  --warning: #f59e0b;
+  --warning-foreground: #0a0a0a;
+  --info: #3b82f6;
+  --info-foreground: #0a0a0a;
+  --live: #34d399;
+  --live-foreground: #0a0a0a;
+
+  /* ── Wensity Primitive Dark Surface Tokens ──────────────────────────────────── */
+  --primitive-control-solid: #f5f3ee;
+  --primitive-control-solid-hover: #ffffff;
+  --primitive-control-solid-active: #e8e4da;
+  --primitive-control-solid-foreground: #151719;
+
+  --primitive-surface-elevated: #171717;
+  --primitive-control-face: #171717;
+
+  --primitive-shadow-drop: 0 1px 1px -0.5px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(0, 0, 0, 0.5);
+  --primitive-edge: rgba(255, 255, 255, 0.09);
+  --primitive-catchlight: rgba(255, 255, 255, 0.16);
+  --primitive-tint-hover: rgba(255, 255, 255, 0.06);
+  --primitive-tint-press: rgba(0, 0, 0, 0.2);
+  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
+
+  --primitive-destructive: #ef4444;
+  --primitive-destructive-hover: #dc2626;
+  --primitive-destructive-active: #b91c1c;
+  --primitive-destructive-foreground: #ffffff;
 }
 
 /* ── Skins (theme packs). Keys match `skins` in lib/game-theme.ts. ─────────────────── */
@@ -345,14 +415,19 @@
   --color-medal-silver: var(--medal-silver);
   --color-medal-bronze: var(--medal-bronze);
 
-  /* Unified concentric geometry ladder (--radius: 0.75rem = 12px) */
-  --radius-sm: 0.375rem; /* 6px: Checkbox */
-  --radius-md: 0.5rem; /* 8px: Kbd, compact chips */
-  --radius-lg: 0.5rem; /* 8px: Inner items (TabsTrigger, SelectItem, DropdownMenuItem, Tooltip, Button xs) */
-  --radius-xl: 0.75rem; /* 12px: Unified Control Radius (Button, Input, Select, Textarea, TabsList, Popover, Alert, IconTile) */
-  --radius-2xl: 1rem; /* 16px: Surface Containers (Card, TableCard, MetricCard, Dialog, AlertDialog) */
-  --radius-3xl: 1.5rem; /* 24px: Phone frames, hero containers */
-  --radius-4xl: 9999px; /* pill: Badge, Switch, Avatar, Progress, Slider */
+  /* 1-to-1 Louis CRM Radius Scale:
+     rounded-sm = 4px (Checkbox, mini swatches)
+     rounded-md = 6px (Buttons, Inputs, Selects, Sidebar items, Badges, Filter chips)
+     rounded-lg = 8px (Cards, Popovers, Dropdowns, Dialogs, Toast, TableCard)
+     rounded-xl = 10px (Large avatar badges)
+     rounded-2xl = 12px (Panels, Modals) */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-xl: 0.625rem; /* 10px */
+  --radius-2xl: 0.75rem; /* 12px */
+  --radius-3xl: 1rem; /* 16px */
+  --radius-4xl: 9999px; /* pill */
   --radius-game: var(--game-radius);
 
   /* Stage type scale, in container-height units of <Stage>. */
@@ -369,7 +444,9 @@
   --text-stage-hero: 18cqh;
   --text-stage-hero--line-height: 1;
 
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   /* Damped spring with one overshoot; used for score pops and reveals. */
   --ease-spring: linear(
@@ -395,6 +472,9 @@
   --animate-live-pulse: live-pulse 1.6s var(--ease-in-out) infinite;
   --animate-score-pop: score-pop var(--duration-slow) var(--ease-spring);
   --animate-rise-in: rise-in var(--duration-stage) var(--ease-out) both;
+  --animate-crm-fade-in: crm-fade-in 0.24s var(--ease-std) both;
+  --animate-crm-chip-in: crm-chip-in 0.26s var(--ease-out) both;
+  --animate-crm-row-in: crm-row-in 0.3s var(--ease-out) both;
 
   @keyframes live-pulse {
     0%,
@@ -423,70 +503,130 @@
       transform: none;
     }
   }
+  @keyframes crm-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes crm-chip-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes crm-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes themeFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes crmTabIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
-/* Luma layered elevation scale */
+/* Louis CRM elevation scale */
 @theme {
-  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.04);
-  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
-  --shadow-lg: 0 12px 32px -4px rgb(15 23 42 / 0.12), 0 4px 12px -2px rgb(15 23 42 / 0.06);
+  --shadow-2xs: 0 1px 1px 0 rgb(0 0 0 / 0.03);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
-/* ── Typography Scale Utilities (Vietnamese diacritic-safe) ───────────────────── */
+/* ── Typography Scale Utilities (1-to-1 Louis CRM Scale) ──────────────────────── */
 @utility type-display-lg {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.2vw + 1rem, 3.25rem);
-  font-weight: 700;
+  font-size: clamp(1.75rem, 2.8vw + 1rem, 2.75rem);
+  font-weight: 600;
   line-height: 1.15;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.02em;
 }
 
 @utility type-display-md {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 2vw + 0.75rem, 2.25rem);
-  font-weight: 700;
+  font-size: clamp(1.375rem, 1.8vw + 0.75rem, 2rem);
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.016em;
 }
 
+/* 22px / 30px font-semibold — Drawer & Page Title */
 @utility type-page-title {
   font-family: var(--font-sans);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.875rem;
   letter-spacing: -0.015em;
 }
 
+/* 16px / 24px font-semibold — Section & Card Header */
 @utility type-section-title {
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5rem;
   letter-spacing: -0.01em;
 }
 
+/* 28px / 36px font-semibold tabular-nums — Overview KPI Metric Value */
 @utility type-metric {
   font-family: var(--font-sans);
-  font-size: 1.625rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 2.25rem;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
+/* 14px / 20px font-normal — Standard UI, Sidebar, Toolbar & Table Cell Text */
 @utility type-body {
   font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.375rem;
 }
 
+/* 13px / 20px font-normal — Secondary Caption, Group Header & Card Description */
 @utility type-caption {
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.25rem;
+}
+
+/* 12px / 16px font-medium — Pastel Category Pill & Status Tag */
+@utility type-micro-badge {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
 }
 
 @utility type-code-voucher {
@@ -518,6 +658,71 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* 1-to-1 Louis CRM Focus Ring (#3b82f6 1.5px outline, inputs use border color change instead) */
+  :focus-visible {
+    outline: 1.5px solid #3b82f6;
+    outline-offset: 1px;
+    border-radius: 6px;
+  }
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+  }
+
+  /* Theme switching crossfade & View Transitions (1-to-1 Louis CRM) */
+  html.theme-fade,
+  html.theme-fade *,
+  html.theme-fade *::before,
+  html.theme-fade *::after {
+    transition:
+      background-color 0.45s var(--ease-std),
+      border-color 0.45s var(--ease-std),
+      color 0.45s var(--ease-std),
+      fill 0.45s var(--ease-std),
+      stroke 0.45s var(--ease-std),
+      box-shadow 0.45s var(--ease-std) !important;
+  }
+  html.theme-freeze *:not(.theme-icon),
+  html.theme-freeze *:not(.theme-icon)::before,
+  html.theme-freeze *:not(.theme-icon)::after {
+    transition: none !important;
+  }
+  ::view-transition-old(root) {
+    animation: none;
+    mix-blend-mode: normal;
+    z-index: 1;
+  }
+  ::view-transition-new(root) {
+    animation: themeFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+    mix-blend-mode: normal;
+    z-index: 2;
+  }
+
+  /* Sun / Moon morph */
+  .theme-icon {
+    position: absolute;
+    transition:
+      transform 0.55s var(--ease-out),
+      opacity 0.3s var(--ease-std);
+  }
+  .theme-icon.icon-sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+  }
+  .theme-icon.icon-moon {
+    opacity: 1;
+    transform: none;
+  }
+  html.dark .theme-icon.icon-sun {
+    opacity: 1;
+    transform: none;
+  }
+  html.dark .theme-icon.icon-moon {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.4);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,
@@ -525,6 +730,377 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Wensity Primitives Surface System & Component Styles ───────────────────── */
+@layer components {
+  [data-surface] {
+    --surface-tint: transparent;
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--surface-rim, transparent);
+    border-top-color: var(--surface-rim-top, var(--surface-rim, transparent));
+    background-color: var(--surface-face, transparent);
+    background-image: linear-gradient(var(--surface-tint), var(--surface-tint));
+    box-shadow: var(--surface-depth, none);
+  }
+
+  [data-surface="control"] {
+    --surface-face: var(--primitive-control-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-catchlight);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+
+  [data-surface="fill"] {
+    --surface-face: var(--primitive-control-solid);
+    --surface-rim: color-mix(in srgb, var(--surface-face) 88%, black);
+    --surface-rim-top: color-mix(in srgb, var(--surface-face) 80%, white);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+
+  [data-surface="flat"] {
+    --surface-face: transparent;
+    --surface-rim: transparent;
+    --surface-rim-top: transparent;
+    --surface-depth: 0 0 #0000;
+  }
+
+  @media (hover: hover) {
+    [data-surface]:where(button, a[href], summary, label, [role="button"]):where(
+        :not(:disabled, [data-disabled], [aria-disabled="true"])
+      ):hover {
+      --surface-tint: var(--primitive-tint-hover);
+    }
+  }
+  [data-surface][data-preview~="hover"] {
+    --surface-tint: var(--primitive-tint-hover);
+  }
+
+  :is([data-surface="control"], [data-surface="fill"]):where(
+    button,
+    a[href],
+    summary,
+    [role="button"]
+  ):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):active,
+  :is([data-surface="control"], [data-surface="fill"])[data-preview~="active"] {
+    --surface-tint: var(--primitive-tint-press);
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: var(--primitive-shadow-recess);
+  }
+
+  [data-surface="flat"]:where(button, a[href], summary, [role="button"]):where(
+    :not(:disabled, [data-disabled], [aria-disabled="true"])
+  ):active,
+  [data-surface="flat"][data-preview~="active"] {
+    --surface-tint: var(--primitive-tint-press);
+  }
+
+  [data-surface][data-surface]:is(:disabled, [data-disabled], [aria-disabled="true"]) {
+    --surface-tint: transparent;
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: 0 0 #0000;
+  }
+
+  /* ── Wensity Button Icon Micro-Interactions ───────────────────────────── */
+  .btn-icon-motion {
+    display: inline-flex;
+    flex-shrink: 0;
+    transform-origin: center;
+    transform: translateZ(0);
+  }
+
+  .btn-icon-motion--arrow {
+    transition: transform var(--primitive-motion-moderate) var(--primitive-ease);
+  }
+
+  @keyframes button-trash-shake {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    24% {
+      transform: translate3d(-0.5px, -1px, 0) rotate(-4deg);
+    }
+    48% {
+      transform: translate3d(0.5px, -1px, 0) rotate(3deg);
+    }
+    72% {
+      transform: translate3d(-0.25px, -0.5px, 0) rotate(-1.5deg);
+    }
+  }
+
+  @keyframes button-mail-lift {
+    0% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    46% {
+      transform: translate3d(2px, -2px, 0) rotate(-5deg);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+  }
+
+  @keyframes button-download-tick {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    46% {
+      transform: translate3d(0, 2.5px, 0);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .wensity-button:hover .btn-icon-motion--trash,
+    [data-slot="button"]:hover .btn-icon-motion--trash {
+      animation: button-trash-shake 340ms var(--primitive-ease) both;
+    }
+    .wensity-button:hover .btn-icon-motion--mail,
+    [data-slot="button"]:hover .btn-icon-motion--mail {
+      animation: button-mail-lift 320ms var(--primitive-ease) both;
+    }
+    .wensity-button:hover .btn-icon-motion--arrow,
+    [data-slot="button"]:hover .btn-icon-motion--arrow {
+      transform: translate3d(2px, 0, 0);
+    }
+    .wensity-button:active .btn-icon-motion--arrow,
+    [data-slot="button"]:active .btn-icon-motion--arrow {
+      transform: translate3d(1px, 0, 0);
+    }
+    .wensity-button:hover .btn-icon-motion--download,
+    [data-slot="button"]:hover .btn-icon-motion--download {
+      animation: button-download-tick 300ms var(--primitive-ease) both;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-icon-motion {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+}
+
+/* 1-to-1 Louis CRM 0.5px Hairline Borders (borderWidth.DEFAULT = 0.5px) */
+@layer utilities {
+  .border {
+    border-width: 0.5px;
+  }
+  .border-t {
+    border-top-width: 0.5px;
+  }
+  .border-r {
+    border-right-width: 0.5px;
+  }
+  .border-b {
+    border-bottom-width: 0.5px;
+  }
+  .border-l {
+    border-left-width: 0.5px;
+  }
+  .border-x {
+    border-inline-width: 0.5px;
+  }
+  .border-y {
+    border-block-width: 0.5px;
+  }
+  :where(.divide-y > :not(:last-child)) {
+    border-bottom-width: 0.5px;
+  }
+  :where(.divide-x > :not(:last-child)) {
+    border-right-width: 0.5px;
+  }
+
+  /* ── 1-to-1 Louis CRM Side-Drawer Styles ──────────────────────────── */
+  .crm-drawer,
+  #side-drawer {
+    transition:
+      transform 0.44s var(--ease-drawer),
+      box-shadow 0.44s var(--ease-std);
+    box-shadow: -10px 0 30px -15px rgba(0, 0, 0, 0.1);
+  }
+  .dark .crm-drawer,
+  .dark #side-drawer {
+    box-shadow: -10px 0 30px -15px rgba(0, 0, 0, 0.4);
+  }
+  .crm-drawer.translate-x-full,
+  #side-drawer.translate-x-full {
+    box-shadow: none !important;
+    transition-duration: 0.32s;
+  }
+  .crm-drawer.is-resizing,
+  #side-drawer.is-resizing {
+    transition: none !important;
+  }
+
+  /* Drawer Tab Underline Indicator */
+  .crm-tab-indicator,
+  #tab-indicator {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1.5px;
+    transition:
+      transform 0.34s var(--ease-out),
+      width 0.34s var(--ease-out);
+  }
+  .tab-enter {
+    animation: crmTabIn 0.3s var(--ease-out) both;
+  }
+
+  /* Table active row highlight when drawer is open */
+  .row-active {
+    background-color: rgb(250 250 250) !important;
+  }
+  .dark .row-active {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Drag & Drop Visual cues */
+  .drag-over-col {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+  }
+  .drag-over-row {
+    box-shadow: inset 0 1px 0 0 #3b82f6;
+  }
+
+  /* Header sort / filter column indicators */
+  .col-ind {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transform: scale(0.6);
+    width: 0;
+    overflow: hidden;
+    transition:
+      opacity 0.2s var(--ease-std),
+      transform 0.3s var(--ease-out),
+      width 0.3s var(--ease-out);
+  }
+  .col-ind.on {
+    opacity: 1;
+    transform: none;
+    width: auto;
+    overflow: visible;
+  }
+
+  /* Dropdown & Popover transitions (1-to-1 Louis CRM) */
+  .dropdown-menu {
+    will-change: transform, opacity;
+  }
+  .dropdown-hidden {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.14s var(--ease-std),
+      transform 0.16s var(--ease-std),
+      visibility 0s linear 0.16s;
+  }
+  .dropdown-menu.flip.dropdown-hidden {
+    transform: translateY(4px) scale(0.97);
+  }
+  .dropdown-visible {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 0.18s var(--ease-std),
+      transform 0.26s var(--ease-out),
+      visibility 0s;
+  }
+  .pop-body {
+    overflow: hidden;
+  }
+
+  /* Hairline Checkbox */
+  .cbox {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 0.5px solid #d4d4d4;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition:
+      background-color 0.15s var(--ease-std),
+      border-color 0.15s var(--ease-std);
+  }
+  .dark .cbox {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: transparent;
+  }
+  .cbox svg {
+    width: 10px;
+    height: 10px;
+    stroke: #fff;
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity 0.15s var(--ease-std),
+      transform 0.25s var(--ease-out);
+  }
+  .dark .cbox svg {
+    stroke: #0a0a0a;
+  }
+  .cbox.on {
+    background: #171717;
+    border-color: #171717;
+  }
+  .dark .cbox.on {
+    background: #fafafa;
+    border-color: #fafafa;
+  }
+  .cbox.on svg {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Segmented control & direction icon */
+  .seg-thumb {
+    transition: transform 0.28s var(--ease-out);
+  }
+  .dir-icon {
+    transition: transform 0.32s var(--ease-out);
+  }
+  .dir-desc .dir-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Floating Toast notification */
+  .crm-toast {
+    transform: translate(-50%, 10px) scale(0.98);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s var(--ease-std),
+      transform 0.32s var(--ease-out);
+  }
+  .crm-toast.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Hide native scrollbars globally while preserving scrollability */
+  .scrollbar-none,
+  .no-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    &::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
     }
   }
 }

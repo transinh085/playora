@@ -25,7 +25,7 @@ import {
   ImageUp,
   Maximize2,
   Trash2,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { type Dispatch, memo, type ReactNode, useRef, useState } from 'react';
 import { toast } from 'sonner';

@@ -46,7 +46,7 @@ import {
 } from '@playora/ui/components/table';
 import { Textarea } from '@playora/ui/components/textarea';
 import { applyApiErrorToRHF } from '@playora/ui/form';
-import { Search } from 'lucide-react';
+import { Search } from '@playora/ui/icons';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';

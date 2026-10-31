@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from '@playora/ui/components/select';
 import { Skeleton } from '@playora/ui/components/skeleton';
+import { AlertTriangle, ArrowLeft, Printer } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { AlertTriangle, ArrowLeft, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -55,7 +55,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center p-8">
-        <Skeleton className="h-96 w-full max-w-md rounded-2xl" />
+        <Skeleton className="h-96 w-full max-w-md rounded-lg" />
       </div>
     );
   }
@@ -159,14 +159,14 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
                 className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
+                  'rounded-md px-3 py-1 font-medium transition-all',
                   currentFormat === 'standee'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
                 )}
                 onClick={() => updateQueryParams(currentCh, 'standee')}
               >
@@ -175,10 +175,10 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
               <button
                 type="button"
                 className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
+                  'rounded-md px-3 py-1 font-medium transition-all',
                   currentFormat === 'tent'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
                 )}
                 onClick={() => updateQueryParams(currentCh, 'tent')}
               >
@@ -186,8 +186,12 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
               </button>
             </div>
 
-            <Button className="gap-2 rounded-full" size="sm" onClick={() => window.print()}>
-              <Printer className="size-4" />
+            <Button
+              className="gap-2 rounded-md h-8 text-xs shadow-xs"
+              size="sm"
+              onClick={() => window.print()}
+            >
+              <Printer className="size-3.5" />
               {t('print.printNow')}
             </Button>
           </div>

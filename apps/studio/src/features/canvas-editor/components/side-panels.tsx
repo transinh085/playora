@@ -29,7 +29,7 @@ import {
   Type,
   Unlock,
   Volume2,
-} from 'lucide-react';
+} from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { type Dispatch, memo, useState } from 'react';
 import { Caption } from '@/components/caption';

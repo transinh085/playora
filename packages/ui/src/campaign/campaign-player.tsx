@@ -2,7 +2,7 @@
 
 import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
 import { Button } from '@playora/ui/components/button';
-import { Gift } from 'lucide-react';
+import { Gift } from '@playora/ui/icons';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
 import { type CanvasRuntime, CanvasScreen } from './canvas-screen';

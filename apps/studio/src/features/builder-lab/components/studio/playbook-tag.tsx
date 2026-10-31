@@ -2,7 +2,7 @@
 
 import type { PlaybookKey } from '@playora/contracts';
 import { Badge } from '@playora/ui/components/badge';
-import { Target } from 'lucide-react';
+import { Target } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 
 /** Which goal-led playbook a campaign started from (docs/product/specs/playbooks.md); nothing if none. */

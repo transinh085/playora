@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@playora/ui/components/tooltip';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
@@ -43,7 +43,7 @@ export function PageHeader({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="size-9 rounded-xl shadow-xs"
+                  className="size-9 rounded-md shadow-xs"
                   aria-label={backLabel}
                   onClick={() => router.push(backHref)}
                 >
@@ -56,11 +56,15 @@ export function PageHeader({
         )}
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="m-0 text-xl font-bold tracking-tight text-foreground">{title}</h1>
+            <h1 className="m-0 text-[22px] leading-7 font-semibold tracking-tight text-neutral-900 dark:text-[#FAFAFA]">
+              {title}
+            </h1>
             {tags}
           </div>
           {description && (
-            <p className="mt-0.5 block text-xs text-muted-foreground">{description}</p>
+            <p className="mt-0.5 block text-[13px] leading-5 text-neutral-500 dark:text-[#A3A3A3]">
+              {description}
+            </p>
           )}
         </div>
       </div>

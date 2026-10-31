@@ -18,8 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@playora/ui/components/table';
+import { Check, Copy, Gem, Info } from '@playora/ui/icons';
 import { cn } from '@playora/ui/lib/utils';
-import { Check, Copy, Gem, Info } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
@@ -49,10 +49,10 @@ export function BillingView({ orgId }: { orgId: string }) {
       />
       {query.isPending ? (
         <div className="space-y-4">
-          <Skeleton className="h-48 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-lg" />
           <div className="grid gap-5 lg:grid-cols-2">
-            <Skeleton className="h-48 rounded-2xl" />
-            <Skeleton className="h-48 rounded-2xl" />
+            <Skeleton className="h-48 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
           </div>
         </div>
       ) : query.isError ? (
@@ -111,20 +111,25 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
       : null;
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t('currentPlan')}</CardTitle>
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('currentPlan')}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-4">
         <div className="flex items-center gap-3">
           <IconTile tone="primary">
             <Gem className="size-5" />
           </IconTile>
           <div>
-            <h4 className="m-0 text-base font-semibold" data-testid="billing-plan">
+            <h4
+              className="m-0 text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]"
+              data-testid="billing-plan"
+            >
               {t(`plans.${plan}`)}
             </h4>
-            <Caption>
+            <Caption className="text-[11px]">
               {plan === 'free'
                 ? t('freeForever')
                 : periodEnd
@@ -134,20 +139,28 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
           </div>
         </div>
 
-        <div className="space-y-2 rounded-xl border p-3">
-          <Caption className="font-medium">{t('limitsTitle')}</Caption>
-          <div className="divide-y text-sm">
+        <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50/50 p-3 dark:border-white/10 dark:bg-white/5">
+          <Caption className="font-medium text-neutral-700 dark:text-[#D4D4D4]">
+            {t('limitsTitle')}
+          </Caption>
+          <div className="divide-y divide-neutral-200 text-xs dark:divide-white/10">
             <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">{t('limitRunning')}</span>
-              <span className="font-medium">{limits.maxRunningCampaigns ?? t('unlimited')}</span>
+              <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('limitRunning')}</span>
+              <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                {limits.maxRunningCampaigns ?? t('unlimited')}
+              </span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">{t('limitRedemptions')}</span>
-              <span className="font-medium">{format.number(limits.redemptionsPerMonth)}</span>
+              <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('limitRedemptions')}</span>
+              <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                {format.number(limits.redemptionsPerMonth)}
+              </span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">{t('limitWatermark')}</span>
-              <span className="font-medium">{limits.watermark ? t('yes') : t('no')}</span>
+              <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('limitWatermark')}</span>
+              <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+                {limits.watermark ? t('yes') : t('no')}
+              </span>
             </div>
           </div>
         </div>
@@ -162,11 +175,13 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
   const { usage, limits } = billing;
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t('usageTitle')}</CardTitle>
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('usageTitle')}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 p-4">
         <UsageBar
           testId="usage-campaigns"
           label={t('runningCampaigns')}
@@ -185,11 +200,11 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
             limits.redemptionsHardLimit,
           )}
         />
-        <div className="flex flex-col gap-1">
-          <Caption>
+        <div className="flex flex-col gap-1 pt-1">
+          <Caption className="text-[11px]">
             {t('usageSince', { date: format.dateTime(new Date(usage.monthStart), DAY) })}
           </Caption>
-          <Caption>
+          <Caption className="text-[11px]">
             {t('graceNote', { hardLimit: format.number(limits.redemptionsHardLimit) })}
           </Caption>
         </div>
@@ -216,16 +231,16 @@ function UsageBar({
 
   const progressClass =
     level === 'blocked' || level === 'limit'
-      ? '[&>div]:bg-destructive'
+      ? '[&>div]:bg-rose-500'
       : level === 'warning'
         ? '[&>div]:bg-amber-500'
-        : '[&>div]:bg-primary';
+        : '[&>div]:bg-teal-600 dark:[&>div]:bg-teal-500';
 
   return (
-    <div data-testid={testId} data-level={level} className="space-y-2">
-      <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span>{label}</span>
-        <span className="font-semibold">
+    <div data-testid={testId} data-level={level} className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <span className="font-medium text-neutral-700 dark:text-[#D4D4D4]">{label}</span>
+        <span className="font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
           {limit === null
             ? t('ofUnlimited', { used: format.number(used) })
             : t('ofLimit', { used: format.number(used), limit: format.number(limit) })}
@@ -233,7 +248,7 @@ function UsageBar({
       </div>
       <Progress
         value={limit === null ? 0 : usagePercent(used, limit)}
-        className={cn('h-2', progressClass)}
+        className={cn('h-1.5', progressClass)}
         aria-label={label}
       />
     </div>
@@ -257,151 +272,180 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
   };
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t('upgradeTitle')}</CardTitle>
-        <Caption>{t('upgradeHint')}</Caption>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLAN_ORDER.map((plan) => {
-            const limits = planLimits(plan);
-            const price = PLAN_PRICES[plan];
-            const isSelected = plan !== 'free' && plan === selected;
-            return (
-              <div
-                key={plan}
-                className={cn(
-                  'flex flex-col gap-3 rounded-2xl border p-4 transition-all',
-                  isSelected ? 'border-primary ring-1 ring-primary' : 'border-border',
-                )}
-                data-testid={`plan-option-${plan}`}
-              >
-                <div className="flex items-center justify-between">
-                  <h5 className="m-0 text-sm font-semibold">{t(`plans.${plan}`)}</h5>
-                  {plan === current && <Badge variant="default">{t('currentTag')}</Badge>}
-                </div>
-                <div>
-                  <span className="text-2xl font-bold">{vnd(price.monthly)}</span>
-                  <span className="ml-1 text-xs text-muted-foreground">{t('perMonth')}</span>
-                  {price.yearly > 0 && (
-                    <Caption className="block">
-                      {t('perYear', { price: vnd(price.yearly) })}
-                    </Caption>
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col gap-1.5 text-xs text-muted-foreground">
-                  {[
-                    limits.maxRunningCampaigns === null
-                      ? t('featureCampaignsUnlimited')
-                      : t('featureCampaigns', { count: limits.maxRunningCampaigns }),
-                    t('featureRedemptions', { count: format.number(limits.redemptionsPerMonth) }),
-                    limits.watermark ? t('featureWatermark') : t('featureNoWatermark'),
-                  ].map((feature) => (
-                    <div key={feature} className="flex items-center gap-2">
-                      <Check className="size-3.5 shrink-0 text-primary" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                {plan !== 'free' && (
-                  <Button
-                    className="w-full rounded-full"
-                    variant={isSelected ? 'default' : 'outline'}
-                    onClick={() => setSelected(plan)}
-                  >
-                    {isSelected ? t('chosen') : t('choose')}
-                  </Button>
+    <div className="flex flex-col gap-4 pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-[#FAFAFA]">
+            {t('upgradeTitle')}
+          </h3>
+          <p className="text-xs text-neutral-500 dark:text-[#A3A3A3]">{t('upgradeHint')}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {PLAN_ORDER.map((plan) => {
+          const limits = planLimits(plan);
+          const price = PLAN_PRICES[plan];
+          const isSelected = plan !== 'free' && plan === selected;
+          return (
+            <div
+              key={plan}
+              className={cn(
+                'flex flex-col gap-3 rounded-lg border bg-white p-5 shadow-xs transition-all dark:bg-[#0A0A0A]',
+                isSelected
+                  ? 'border-teal-600 ring-2 ring-teal-600/20 dark:border-teal-400'
+                  : 'border-neutral-200 dark:border-white/10',
+              )}
+              data-testid={`plan-option-${plan}`}
+            >
+              <div className="flex items-center justify-between">
+                <h5 className="m-0 text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+                  {t(`plans.${plan}`)}
+                </h5>
+                {plan === current && (
+                  <Badge variant="default" className="text-[10px]">
+                    {t('currentTag')}
+                  </Badge>
                 )}
               </div>
-            );
-          })}
+              <div>
+                <span className="text-xl font-bold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
+                  {vnd(price.monthly)}
+                </span>
+                <span className="ml-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                  {t('perMonth')}
+                </span>
+                {price.yearly > 0 && (
+                  <Caption className="block text-[11px]">
+                    {t('perYear', { price: vnd(price.yearly) })}
+                  </Caption>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col gap-2 text-xs text-neutral-600 dark:text-[#A3A3A3] py-2">
+                {[
+                  limits.maxRunningCampaigns === null
+                    ? t('featureCampaignsUnlimited')
+                    : t('featureCampaigns', { count: limits.maxRunningCampaigns }),
+                  t('featureRedemptions', { count: format.number(limits.redemptionsPerMonth) }),
+                  limits.watermark ? t('featureWatermark') : t('featureNoWatermark'),
+                ].map((feature) => (
+                  <div key={feature} className="flex items-center gap-2">
+                    <Check className="size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+              {plan !== 'free' && (
+                <Button
+                  className="w-full rounded-md h-8 text-xs font-medium shadow-xs"
+                  variant={isSelected ? 'default' : 'outline'}
+                  onClick={() => setSelected(plan)}
+                >
+                  {isSelected ? t('chosen') : t('choose')}
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-5 py-3.5 dark:border-white/10">
+          <span className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+            {t('payTitle', { plan: t(`plans.${selected}`) })}
+          </span>
+          <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
+            <button
+              type="button"
+              className={cn(
+                'rounded-md px-3 py-1 font-medium transition-all',
+                cycle === 'monthly'
+                  ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
+              )}
+              onClick={() => setCycle('monthly')}
+            >
+              {t('payMonthly')}
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'rounded-md px-3 py-1 font-medium transition-all',
+                cycle === 'yearly'
+                  ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
+              )}
+              onClick={() => setCycle('yearly')}
+            >
+              {t('payYearly')}
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-sm font-semibold">
-              {t('payTitle', { plan: t(`plans.${selected}`) })}
+        <div
+          className="divide-y divide-neutral-200 px-5 text-xs dark:divide-white/10"
+          data-testid="manual-payment"
+        >
+          <div className="flex justify-between py-3">
+            <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('payBank')}</span>
+            <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+              {MANUAL_PAYMENT.bankName}
             </span>
-            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
-              <button
-                type="button"
-                className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
-                  cycle === 'monthly' ? 'bg-background shadow-sm' : 'text-muted-foreground',
-                )}
-                onClick={() => setCycle('monthly')}
+          </div>
+          <div className="flex items-center justify-between py-3">
+            <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('payAccount')}</span>
+            <div className="flex items-center gap-1.5 font-mono font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+              <span>{MANUAL_PAYMENT.accountNumber}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 text-neutral-400 hover:text-neutral-700 dark:hover:text-[#FAFAFA]"
+                onClick={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
               >
-                {t('payMonthly')}
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  'rounded-full px-3 py-1 font-medium transition-all',
-                  cycle === 'yearly' ? 'bg-background shadow-sm' : 'text-muted-foreground',
-                )}
-                onClick={() => setCycle('yearly')}
-              >
-                {t('payYearly')}
-              </button>
+                <Copy className="size-3" />
+              </Button>
             </div>
           </div>
-
-          <div
-            className="divide-y rounded-2xl border bg-card p-4 text-sm"
-            data-testid="manual-payment"
-          >
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">{t('payBank')}</span>
-              <span className="font-medium">{MANUAL_PAYMENT.bankName}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground">{t('payAccount')}</span>
-              <div className="flex items-center gap-1.5 font-mono font-semibold">
-                <span>{MANUAL_PAYMENT.accountNumber}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
-                >
-                  <Copy className="size-3" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">{t('payHolder')}</span>
-              <span className="font-medium">{MANUAL_PAYMENT.accountName}</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">{t('payAmount')}</span>
-              <span className="font-semibold">{vnd(PLAN_PRICES[selected][cycle])}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-muted-foreground">{t('payNote')}</span>
-              <div className="flex items-center gap-1.5 font-mono text-xs">
-                <code className="rounded bg-muted px-1.5 py-0.5">
-                  {MANUAL_PAYMENT.transferNote(slug, selected)}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
-                >
-                  <Copy className="size-3" />
-                </Button>
-              </div>
+          <div className="flex justify-between py-3">
+            <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('payHolder')}</span>
+            <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
+              {MANUAL_PAYMENT.accountName}
+            </span>
+          </div>
+          <div className="flex justify-between py-3">
+            <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('payAmount')}</span>
+            <span className="font-semibold text-neutral-900 dark:text-[#FAFAFA] tabular-nums">
+              {vnd(PLAN_PRICES[selected][cycle])}
+            </span>
+          </div>
+          <div className="flex items-center justify-between py-3">
+            <span className="text-neutral-500 dark:text-[#A3A3A3]">{t('payNote')}</span>
+            <div className="flex items-center gap-1.5 font-mono text-xs">
+              <code className="rounded bg-neutral-100 px-1.5 py-0.5 text-neutral-900 dark:bg-white/10 dark:text-[#FAFAFA]">
+                {MANUAL_PAYMENT.transferNote(slug, selected)}
+              </code>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 text-neutral-400 hover:text-neutral-700 dark:hover:text-[#FAFAFA]"
+                onClick={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
+              >
+                <Copy className="size-3" />
+              </Button>
             </div>
           </div>
+        </div>
 
-          <Alert>
+        <div className="p-4 border-t border-neutral-200 bg-neutral-50/50 dark:border-white/10 dark:bg-white/5">
+          <Alert className="border-neutral-200 dark:border-white/10">
             <Info className="size-4" />
-            <AlertTitle>{t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}</AlertTitle>
+            <AlertTitle className="text-xs">
+              {t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}
+            </AlertTitle>
           </Alert>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -411,9 +455,11 @@ function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
   const day = (iso: string) => format.dateTime(new Date(iso), DAY);
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t('invoicesTitle')}</CardTitle>
+    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+          {t('invoicesTitle')}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -430,25 +476,32 @@ function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
             <TableBody>
               {invoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={5}
+                    className="h-24 text-center text-xs text-neutral-400 dark:text-[#737373]"
+                  >
                     {t('invoicesEmpty')}
                   </TableCell>
                 </TableRow>
               ) : (
                 invoices.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell>
+                    <TableCell className="text-xs">
                       {t('periodRange', {
                         start: day(inv.periodStart),
                         end: day(inv.periodEnd),
                       })}
                     </TableCell>
-                    <TableCell>{t(`plans.${inv.plan}`)}</TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="text-xs font-medium">{t(`plans.${inv.plan}`)}</TableCell>
+                    <TableCell className="text-right text-xs font-semibold tabular-nums">
                       {format.number(inv.amountVnd, { style: 'currency', currency: 'VND' })}
                     </TableCell>
-                    <TableCell>{day(inv.paidAt)}</TableCell>
-                    <TableCell>{inv.reference ?? <Caption>—</Caption>}</TableCell>
+                    <TableCell className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                      {day(inv.paidAt)}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {inv.reference ?? <Caption>—</Caption>}
+                    </TableCell>
                   </TableRow>
                 ))
               )}

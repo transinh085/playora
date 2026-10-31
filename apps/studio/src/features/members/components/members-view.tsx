@@ -37,8 +37,8 @@ export function MembersView({ orgId }: { orgId: string }) {
   if (query.isPending) {
     return (
       <div className="flex flex-col gap-5 py-4 space-y-3">
-        <Skeleton className="h-8 w-48 rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-2xl" />
+        <Skeleton className="h-8 w-48 rounded-md" />
+        <Skeleton className="h-64 w-full rounded-lg" />
       </div>
     );
   }
@@ -161,22 +161,27 @@ export function MembersView({ orgId }: { orgId: string }) {
             {canLeave && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="rounded-full" disabled={busyId === 'leave'}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-md text-xs"
+                    disabled={busyId === 'leave'}
+                  >
                     {t('members.leave')}
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-2xl">
+                <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-base font-bold">
+                    <AlertDialogTitle className="text-sm font-semibold">
                       {t('members.leaveConfirm')}
                     </AlertDialogTitle>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-full">
+                  <AlertDialogFooter className="gap-2 sm:gap-2">
+                    <AlertDialogCancel className="h-8 rounded-md text-xs">
                       {t('common.cancel')}
                     </AlertDialogCancel>
                     <AlertDialogAction
-                      className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
+                      className="h-8 rounded-md bg-destructive text-xs text-white hover:bg-destructive/90"
                       onClick={onLeaveOrg}
                     >
                       {t('members.leave')}

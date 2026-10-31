@@ -4,7 +4,7 @@ import { assetsApi, type ErrorCode } from '@playora/contracts';
 import { Card } from '@playora/ui/components/card';
 import { Skeleton } from '@playora/ui/components/skeleton';
 import { toast } from '@playora/ui/components/sonner';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
@@ -83,7 +83,10 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       {query.isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[0, 1, 2].map((i) => (
-            <Card key={i} className="flex flex-col overflow-hidden rounded-2xl border p-0">
+            <Card
+              key={i}
+              className="flex flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+            >
               <Skeleton className="aspect-video w-full rounded-none" />
               <div className="space-y-2 p-4">
                 <Skeleton className="h-4 w-2/3" />

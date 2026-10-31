@@ -19,7 +19,7 @@ import { Input } from '@playora/ui/components/input';
 import { toast } from '@playora/ui/components/sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
 import { applyApiErrorToRHF } from '@playora/ui/form';
-import { ArrowLeft, Coins, Gift, Percent, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Coins, Gift, Percent, Plus, Trash2 } from '@playora/ui/icons';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -191,17 +191,19 @@ export function PlaybookSetupForm({
       </div>
 
       <div className="grid items-start gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card className="rounded-2xl border">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-white/10">
             <div>
               <Caption>{t('setup.title')}</Caption>
               <CardTitle className="text-base font-semibold">
                 {t(`items.${playbook}.title`)}
               </CardTitle>
             </div>
-            <Badge variant="secondary">{t(`items.${playbook}.goal`)}</Badge>
+            <Badge variant="secondary" className="rounded-sm text-[10px]">
+              {t(`items.${playbook}.goal`)}
+            </Badge>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5">
             <Form {...form}>
               <form
                 id="playbook-setup"
@@ -505,13 +507,13 @@ export function SuggestionCard({
   const zero = suggestion?.prizes.filter((p) => p.quantity === 0) ?? [];
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
+    <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+      <CardHeader className="border-b border-neutral-200 px-5 py-4 dark:border-white/10">
         <CardTitle className="text-base font-semibold">{t('title')}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-5">
         {suggestion === null ? (
-          <Alert>
+          <Alert className="rounded-lg">
             <AlertTitle>{t('invalid')}</AlertTitle>
           </Alert>
         ) : (
@@ -548,7 +550,7 @@ export function SuggestionCard({
               />
             </div>
             {suggestion.tooFewPrizes ? (
-              <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+              <Alert className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
                 <AlertTitle>{t('tooFew')}</AlertTitle>
               </Alert>
             ) : (
@@ -557,7 +559,7 @@ export function SuggestionCard({
             {zero.map((p) => (
               <Alert
                 key={p.id}
-                className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+                className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
               >
                 <AlertTitle>{t('zeroPrize', { name: p.name })}</AlertTitle>
               </Alert>
@@ -570,7 +572,7 @@ export function SuggestionCard({
           <Button
             type="submit"
             form="playbook-setup"
-            className="w-full rounded-full"
+            className="w-full h-9 rounded-md text-xs font-medium shadow-xs"
             disabled={pending || suggestion === null || suggestion.totalPrizes === 0}
           >
             {t('create')}

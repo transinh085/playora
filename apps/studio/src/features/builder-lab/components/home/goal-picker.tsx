@@ -2,10 +2,8 @@
 
 import { Badge } from '@playora/ui/components/badge';
 import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { CalendarRange, Repeat, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { CalendarRange, Repeat, Sparkles, Target, TrendingUp } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
-import { Caption } from '@/components/caption';
 import { IconTile, type Tone } from '@/components/icon-tile';
 import { PLAYBOOK_KEYS, PLAYBOOKS, type PlaybookKey } from '../../lib/playbooks';
 
@@ -30,54 +28,58 @@ export function GoalPicker({
   const tl = useTranslations('builderLab.home');
 
   return (
-    <Card className="rounded-2xl border">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Target className="size-4" />
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-neutral-900 dark:text-[#FAFAFA]">
+          <Target className="size-5 text-teal-600 dark:text-teal-400" />
           {t('title')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <Caption>{t('hint')}</Caption>
-        <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(260px,1fr))]">
-          {PLAYBOOK_KEYS.map((key) => {
-            const pb = PLAYBOOKS[key];
-            const { Icon, tone } = LOOK[key];
-            const title = t(`items.${key}.title`);
-            return (
-              <Card
-                key={key}
-                role="button"
-                tabIndex={0}
-                aria-label={title}
-                data-testid={`playbook-${key}`}
-                onClick={() => onPick(key)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onPick(key);
-                  }
-                }}
-                className="flex cursor-pointer flex-col rounded-2xl border transition-all hover:border-primary/50 hover:shadow-sm"
-              >
-                <CardContent className="flex h-full flex-col gap-3.5 p-4 sm:p-5">
-                  <div className="flex items-center gap-3">
-                    <IconTile tone={tone}>
-                      <Icon className="size-5" />
-                    </IconTile>
-                    <div className="min-w-0">
-                      <span className="block truncate text-base font-semibold">{title}</span>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        <Badge variant="secondary" className="font-normal">
-                          {tl(`templates.${pb.templateKey}`)}
-                        </Badge>
-                        <Badge variant="outline" className="font-normal">
-                          {t('daysTag', { days: pb.days })}
-                        </Badge>
-                      </div>
+        </h2>
+        <p className="text-xs text-neutral-500 dark:text-[#A3A3A3]">{t('hint')}</p>
+      </div>
+
+      <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
+        {PLAYBOOK_KEYS.map((key) => {
+          const pb = PLAYBOOKS[key];
+          const { Icon, tone } = LOOK[key];
+          const title = t(`items.${key}.title`);
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: interactive card
+            <div
+              key={key}
+              role="button"
+              tabIndex={0}
+              aria-label={title}
+              data-testid={`playbook-${key}`}
+              onClick={() => onPick(key)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onPick(key);
+                }
+              }}
+              className="group flex cursor-pointer flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:border-white/10 dark:bg-[#0A0A0A] dark:hover:border-white/25"
+            >
+              <div className="space-y-3.5">
+                <div className="flex items-center gap-3">
+                  <IconTile tone={tone}>
+                    <Icon className="size-5" />
+                  </IconTile>
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+                      {title}
+                    </span>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      <Badge variant="secondary" className="font-normal text-[10px]">
+                        {tl(`templates.${pb.templateKey}`)}
+                      </Badge>
+                      <Badge variant="outline" className="font-normal text-[10px]">
+                        {t('daysTag', { days: pb.days })}
+                      </Badge>
                     </div>
                   </div>
+                </div>
 
+                <div className="space-y-2.5 pt-1">
                   <Line label={t('goalLabel')} icon={<Target className="size-3.5" />}>
                     {t(`items.${key}.goal`)}
                   </Line>
@@ -87,30 +89,36 @@ export function GoalPicker({
                   <Line label={t('metricLabel')} icon={<TrendingUp className="size-3.5" />}>
                     {t(`items.${key}.metric`)}
                   </Line>
+                </div>
+              </div>
 
-                  <Button
-                    className="mt-auto w-full rounded-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPick(key);
-                    }}
-                  >
-                    {t('choose')}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full rounded-md h-8 text-xs font-medium shadow-xs group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-[#FAFAFA] dark:group-hover:text-neutral-900 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPick(key);
+                }}
+              >
+                {t('choose')}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 p-4">
-          <span className="text-xs text-muted-foreground">{t('customTitle')}</span>
-          <Button variant="link" onClick={onCustom} className="h-auto p-0 text-xs">
-            {t('custom')}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50/70 p-3.5 dark:border-white/10 dark:bg-white/5">
+        <span className="text-xs text-neutral-600 dark:text-[#A3A3A3]">{t('customTitle')}</span>
+        <Button
+          variant="link"
+          onClick={onCustom}
+          className="h-auto p-0 text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
+        >
+          {t('custom')} →
+        </Button>
+      </div>
+    </div>
   );
 }
 

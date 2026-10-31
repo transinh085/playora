@@ -2,7 +2,7 @@
 
 import { toCanvasPrizes } from '@playora/ui/campaign';
 import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Info } from 'lucide-react';
+import { Info } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
