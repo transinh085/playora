@@ -1,13 +1,8 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Input } from '@playora/ui/components/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@playora/ui/components/tooltip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
 import { ArrowDown, ArrowUp, Gift, Plus, Trash2 } from '@playora/ui/icons';
 import { useLocale, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -73,140 +68,131 @@ export function PrizeListStep({
           <span>{t('empty')}</span>
         </div>
       ) : (
-        <TooltipProvider>
-          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
-            {prizes.map((prize, index) => (
-              <div
-                key={prize.id}
-                className="flex items-start gap-3 p-3.5 hover:bg-neutral-50/50 dark:hover:bg-white/[0.02]"
-              >
-                <PrizeImagePicker
-                  orgId={orgId}
-                  value={prize.image}
-                  name={prize.name}
-                  onChange={(image) => update(index, { image })}
-                />
-                <div className="grid min-w-0 flex-1 gap-2.5 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-                  <Field label={t('name')} className="col-span-full">
-                    <Input
-                      value={prize.name}
-                      maxLength={60}
-                      placeholder={t('namePlaceholder')}
-                      className={`h-8 rounded-md text-xs ${!prize.name.trim() ? 'border-destructive' : ''}`}
-                      onChange={(e) => update(index, { name: e.target.value })}
-                    />
-                  </Field>
-                  <Field label={t('quantity')}>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={1_000_000}
-                      step={1}
-                      value={prize.quantity}
-                      className="h-8 rounded-md text-xs"
+        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
+          {prizes.map((prize, index) => (
+            <div
+              key={prize.id}
+              className="flex items-start gap-3 p-3.5 hover:bg-neutral-50/50 dark:hover:bg-white/[0.02]"
+            >
+              <PrizeImagePicker
+                orgId={orgId}
+                value={prize.image}
+                name={prize.name}
+                onChange={(image) => update(index, { image })}
+              />
+              <div className="grid min-w-0 flex-1 gap-2.5 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+                <Field label={t('name')} className="col-span-full">
+                  <InputBase
+                    value={prize.name}
+                    maxLength={60}
+                    placeholder={t('namePlaceholder')}
+                    aria-invalid={!prize.name.trim() || undefined}
+                    className="text-xs"
+                    onChange={(e) => update(index, { name: e.target.value })}
+                  />
+                </Field>
+                <Field label={t('quantity')}>
+                  <InputBase
+                    type="number"
+                    min={0}
+                    max={1_000_000}
+                    step={1}
+                    value={prize.quantity}
+                    className="text-xs"
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(val)) update(index, { quantity: val });
+                    }}
+                  />
+                </Field>
+                <Field label={t('value')}>
+                  <div className="relative">
+                    <InputBase
+                      type="text"
+                      value={groupDigits(prize.valueVnd, locale)}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!Number.isNaN(val)) update(index, { quantity: val });
+                        const val = parseDigits(e.target.value);
+                        if (val !== null) update(index, { valueVnd: val });
                       }}
+                      className="pr-6 text-xs"
                     />
-                  </Field>
-                  <Field label={t('value')}>
+                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
+                      đ
+                    </span>
+                  </div>
+                </Field>
+                {perPrize && (
+                  <Field label={t('probability')}>
                     <div className="relative">
-                      <Input
-                        type="text"
-                        value={groupDigits(prize.valueVnd, locale)}
+                      <InputBase
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={toPercent(prize.probability ?? 0)}
+                        aria-invalid={totals.probabilityPercent > 100 || undefined}
+                        className="text-xs pr-6"
                         onChange={(e) => {
-                          const val = parseDigits(e.target.value);
-                          if (val !== null) update(index, { valueVnd: val });
+                          const val = parseFloat(e.target.value);
+                          if (!Number.isNaN(val)) update(index, { probability: fromPercent(val) });
                         }}
-                        className="h-8 rounded-md pr-6 text-xs"
                       />
                       <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                        đ
+                        %
                       </span>
                     </div>
                   </Field>
-                  {perPrize && (
-                    <Field label={t('probability')}>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={0.5}
-                          value={toPercent(prize.probability ?? 0)}
-                          className={`h-8 rounded-md text-xs pr-6 ${
-                            totals.probabilityPercent > 100 ? 'border-destructive' : ''
-                          }`}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            if (!Number.isNaN(val))
-                              update(index, { probability: fromPercent(val) });
-                          }}
-                        />
-                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                          %
-                        </span>
-                      </div>
-                    </Field>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-7 rounded-md"
-                        aria-label={t('moveUp')}
-                        disabled={index === 0}
-                        onClick={() => move(index, -1)}
-                      >
-                        <ArrowUp className="size-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-xs">{t('moveUp')}</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-7 rounded-md"
-                        aria-label={t('moveDown')}
-                        disabled={index === prizes.length - 1}
-                        onClick={() => move(index, 1)}
-                      >
-                        <ArrowDown className="size-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-xs">{t('moveDown')}</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        aria-label={t('remove')}
-                        onClick={() => remove(index)}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-xs">{t('remove')}</TooltipContent>
-                  </Tooltip>
-                </div>
+                )}
               </div>
-            ))}
-          </div>
-        </TooltipProvider>
+              <div className="flex flex-col gap-1">
+                <TooltipTrigger>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    className="size-7 rounded-md p-0"
+                    aria-label={t('moveUp')}
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </Button>
+                  <Tooltip>{t('moveUp')}</Tooltip>
+                </TooltipTrigger>
+                <TooltipTrigger>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    className="size-7 rounded-md p-0"
+                    aria-label={t('moveDown')}
+                    disabled={index === prizes.length - 1}
+                    onClick={() => move(index, 1)}
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </Button>
+                  <Tooltip>{t('moveDown')}</Tooltip>
+                </TooltipTrigger>
+                <TooltipTrigger>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    className="size-7 rounded-md p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={t('remove')}
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                  <Tooltip>{t('remove')}</Tooltip>
+                </TooltipTrigger>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <Button
         type="button"
-        variant="outline"
-        size="sm"
+        variant="secondary"
+        size="small"
         onClick={add}
         className="h-8 w-full border-dashed rounded-md text-xs font-medium"
       >

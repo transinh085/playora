@@ -1,18 +1,9 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@playora/ui/components/alert-dialog';
-import { Button } from '@playora/ui/components/button';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { AlertDialog, ModalTrigger } from '@playora/ui/components/base/modal/modal';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -37,8 +28,8 @@ export function MembersView({ orgId }: { orgId: string }) {
   if (query.isPending) {
     return (
       <div className="flex flex-col gap-5 py-4 space-y-3">
-        <Skeleton className="h-8 w-48 rounded-md" />
-        <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -159,36 +150,18 @@ export function MembersView({ orgId }: { orgId: string }) {
         extra={
           <>
             {canLeave && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 rounded-md text-xs"
-                    disabled={busyId === 'leave'}
-                  >
-                    {t('members.leave')}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-sm font-semibold">
-                      {t('members.leaveConfirm')}
-                    </AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="gap-2 sm:gap-2">
-                    <AlertDialogCancel className="h-8 rounded-md text-xs">
-                      {t('common.cancel')}
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="h-8 rounded-md bg-destructive text-xs text-white hover:bg-destructive/90"
-                      onClick={onLeaveOrg}
-                    >
-                      {t('members.leave')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <ModalTrigger>
+                <Button variant="secondary" size="small" disabled={busyId === 'leave'}>
+                  {t('members.leave')}
+                </Button>
+                <AlertDialog
+                  title={t('members.leaveConfirm')}
+                  variant="danger"
+                  confirmLabel={t('members.leave')}
+                  cancelLabel={t('common.cancel')}
+                  onConfirm={onLeaveOrg}
+                />
+              </ModalTrigger>
             )}
             {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
           </>

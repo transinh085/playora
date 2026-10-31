@@ -1,6 +1,6 @@
 'use client';
 
-import { TooltipProvider } from '@playora/ui/components/tooltip';
+import { DirectionProvider } from '@playora/ui/components/foundations/direction/direction';
 import type { ReactNode } from 'react';
 
 export type StudioThemeMode = 'light' | 'dark';
@@ -12,5 +12,5 @@ export interface StudioProviderProps {
 }
 
 export function StudioProvider({ children }: StudioProviderProps) {
-  return <TooltipProvider>{children}</TooltipProvider>;
+  return <DirectionProvider locale="vi-VN">{children}</DirectionProvider>;
 }

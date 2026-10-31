@@ -1,9 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type Database, type DbOrTx, schema, type Tx } from '@playora/db';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
 const { brandKits, consents, events, guestListEntries, players } = schema;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type EventRow = typeof events.$inferSelect;
 export type GuestRow = typeof guestListEntries.$inferSelect;
@@ -22,10 +24,13 @@ export class PublicRepository {
   constructor(@Inject(DB) private readonly db: Database) {}
 
   async findEventBySlug(slug: string, tx: DbOrTx = this.db) {
+    const slugOrIdMatch = UUID_RE.test(slug)
+      ? or(eq(events.slug, slug), eq(events.id, slug))
+      : eq(events.slug, slug);
     const [row] = await tx
       .select()
       .from(events)
-      .where(and(eq(events.slug, slug), isNull(events.deletedAt)));
+      .where(and(slugOrIdMatch, isNull(events.deletedAt)));
     return row;
   }
 

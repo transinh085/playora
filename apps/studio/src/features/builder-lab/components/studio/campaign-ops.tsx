@@ -1,31 +1,13 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@playora/ui/components/alert-dialog';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
-import { Progress } from '@playora/ui/components/progress';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
-import { Tabs, TabsList, TabsTrigger } from '@playora/ui/components/tabs';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Modal, ModalFooter, ModalHeader } from '@playora/ui/components/base/modal/modal';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Tab, TabList, Tabs } from '@playora/ui/components/base/tabs/tabs';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import {
   CircleX,
   ExternalLink,
@@ -38,10 +20,11 @@ import {
   Trash2,
   TriangleAlert,
 } from '@playora/ui/icons';
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
 import { QueryError } from '@/components/query-error';
@@ -131,18 +114,14 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
         extra={<HeaderActions orgId={orgId} campaign={campaign} />}
       />
 
-      <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="h-9 rounded-lg border border-neutral-200 bg-neutral-100/70 p-1 dark:border-white/10 dark:bg-white/5">
+      <Tabs selectedKey={tab} onSelectionChange={(key) => setTab(String(key))} className="w-full">
+        <TabList aria-label={campaign.name} className="w-fit">
           {TABS.map((key) => (
-            <TabsTrigger
-              key={key}
-              value={key}
-              className="rounded-md px-3 text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-xs dark:data-[state=active]:bg-[#171717] dark:data-[state=active]:text-[#FAFAFA]"
-            >
+            <Tab key={key} id={key}>
               {t(`tabs.${key}`)}
-            </TabsTrigger>
+            </Tab>
           ))}
-        </TabsList>
+        </TabList>
       </Tabs>
 
       {tab === 'overview' && <OverviewTab orgId={orgId} campaign={campaign} />}
@@ -163,7 +142,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const reportLink = (
     <Link href={routes.report(campaign.id)}>
-      <Button variant="outline" size="sm" className="gap-2">
+      <Button variant="secondary" size="small" className="gap-2">
         <FileText className="size-4" />
         {t('viewReport')}
       </Button>
@@ -172,7 +151,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
-      <Button variant={phase === 'draft' ? 'default' : 'outline'} size="sm" className="gap-2">
+      <Button variant={phase === 'draft' ? 'primary' : 'secondary'} size="small" className="gap-2">
         <Pencil className="size-4" />
         {phase === 'draft' ? t('continueEditing') : t('editDesign')}
       </Button>
@@ -181,7 +160,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const share = (
     <Link href={routes.share(campaign.id)}>
-      <Button variant="outline" size="sm" className="gap-2">
+      <Button variant="secondary" size="small" className="gap-2">
         <Share2 className="size-4" />
         {t('share.action')}
       </Button>
@@ -204,7 +183,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
       {share}
       {phase === 'paused' ? (
         <Button
-          size="sm"
+          size="small"
           className="gap-2"
           disabled={resume.isPending}
           onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
@@ -213,8 +192,8 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
           {t('resume')}
         </Button>
       ) : (
-        <a href={routes.play(campaign.id)} target="_blank" rel="noreferrer">
-          <Button size="sm" className="gap-2">
+        <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
+          <Button size="small" className="gap-2">
             <ExternalLink className="size-4" />
             {t('openPlay')}
           </Button>
@@ -267,23 +246,23 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card
-      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="draft-checklist"
     >
-      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
-        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 p-4">
+        </h3>
+      </div>
+      <div className="space-y-3 p-4">
         <Caption>{t('draft.hint')}</Caption>
         {issues.map((issue) => {
           const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
           return (
             <div key={issue.id} className="flex items-center gap-2.5 text-xs">
               <Icon
-                className={cn(
+                className={cx(
                   'size-3.5 shrink-0',
                   issue.level === 'error' ? 'text-rose-500' : 'text-amber-500',
                 )}
@@ -302,13 +281,17 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
         })}
         <div className="pt-1">
           <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm" className="h-7 rounded-md px-2.5 text-xs shadow-xs">
+            <Button
+              variant="secondary"
+              size="small"
+              className="h-7 rounded-md px-2.5 text-xs shadow-xs"
+            >
               {t('rehearse')}
             </Button>
           </a>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -321,13 +304,13 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (
-    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
-        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {t('recent.title')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+        </h3>
+      </div>
+      <div className="p-0">
         {plays.isPending ? (
           <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
@@ -340,8 +323,8 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
         ) : (
           <PlaysTable campaign={campaign} rows={recent} compact />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -359,42 +342,39 @@ function PlaysTable({
   const prizeName = (id: string | null) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('players.time')}</TableHead>
-            {!compact && <TableHead>{t('players.player')}</TableHead>}
-            <TableHead>{t('players.outcome')}</TableHead>
-            <TableHead>{t('players.prize')}</TableHead>
-            {!compact && <TableHead>{t('players.code')}</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className="w-full overflow-x-auto">
+      <table className="bui-table w-full">
+        <thead>
+          <tr>
+            <th>{t('players.time')}</th>
+            {!compact && <th>{t('players.player')}</th>}
+            <th>{t('players.outcome')}</th>
+            <th>{t('players.prize')}</th>
+            {!compact && <th>{t('players.code')}</th>}
+          </tr>
+        </thead>
+        <tbody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="text-xs">
+            <tr key={row.id}>
+              <td className="text-xs">
                 {format.dateTime(new Date(row.at), { dateStyle: 'short', timeStyle: 'short' })}
-              </TableCell>
-              {!compact && (
-                <TableCell className="font-mono text-xs">{row.playerId.slice(0, 8)}</TableCell>
-              )}
-              <TableCell>
-                <Badge
-                  variant={row.outcome === 'win' ? 'default' : 'secondary'}
+              </td>
+              {!compact && <td className="font-mono text-xs">{row.playerId.slice(0, 8)}</td>}
+              <td>
+                <Chip
+                  variant={row.outcome === 'win' ? 'bold' : 'subtle'}
+                  color={row.outcome === 'win' ? 'lime' : 'neutral'}
                   className="text-[10px]"
                 >
                   {t(`outcome.${row.outcome}`)}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
-              {!compact && (
-                <TableCell className="font-mono text-xs">{row.voucherCode ?? '—'}</TableCell>
-              )}
-            </TableRow>
+                </Chip>
+              </td>
+              <td className="text-xs">{prizeName(row.prizeId)}</td>
+              {!compact && <td className="font-mono text-xs">{row.voucherCode ?? '—'}</td>}
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -409,22 +389,22 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
 
   return (
-    <Card
-      className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]"
+    <div
+      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="prize-stock"
     >
-      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
-        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {t('stock.title')}
-        </CardTitle>
+        </h3>
         <Link
           href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
           className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
         >
           {t('stock.edit')}
         </Link>
-      </CardHeader>
-      <CardContent className="space-y-4 p-4">
+      </div>
+      <div className="space-y-4 p-4">
         {campaign.prizes.map((prize) => {
           const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
           const issued = vouchers.filter((v) => v.prizeId === prize.id);
@@ -440,9 +420,11 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
                   {t('stock.left', { left, total: prize.quantity })}
                 </Caption>
               </div>
-              <Progress
+              <ProgressBar
                 value={percent}
-                className={cn('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
+                aria-label={prize.name}
+                size="sm"
+                className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
               />
               <Caption className="text-[11px]">
                 {t('stock.issued', { issued: issued.length, redeemed })}
@@ -450,8 +432,8 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
             </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -464,19 +446,19 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} />
-      <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
-          <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
             {t('vouchers.title')}
-          </CardTitle>
+          </h3>
           <Link
             href={campaignRoutes(orgId).redeem}
             className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
           >
             {t('vouchers.desk')}
           </Link>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        <div className="p-0">
           {vouchers.isPending ? (
             <div className="space-y-2 p-4">
               <Skeleton className="h-8 w-full" />
@@ -487,43 +469,44 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
               {t('vouchers.empty')}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('vouchers.code')}</TableHead>
-                    <TableHead>{t('players.prize')}</TableHead>
-                    <TableHead>{t('vouchers.issued')}</TableHead>
-                    <TableHead>{t('vouchers.status')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="w-full overflow-x-auto">
+              <table className="bui-table w-full">
+                <thead>
+                  <tr>
+                    <th>{t('vouchers.code')}</th>
+                    <th>{t('players.prize')}</th>
+                    <th>{t('vouchers.issued')}</th>
+                    <th>{t('vouchers.status')}</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {(vouchers.data ?? []).map((row) => (
-                    <TableRow key={row.code}>
-                      <TableCell className="font-mono text-xs font-medium">{row.code}</TableCell>
-                      <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
-                      <TableCell className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                    <tr key={row.code}>
+                      <td className="font-mono text-xs font-medium">{row.code}</td>
+                      <td className="text-xs">{prizeName(row.prizeId)}</td>
+                      <td className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
                         {format.dateTime(new Date(row.issuedAt), {
                           dateStyle: 'short',
                           timeStyle: 'short',
                         })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={row.redeemedAt ? 'default' : 'secondary'}
+                      </td>
+                      <td>
+                        <Chip
+                          variant={row.redeemedAt ? 'bold' : 'subtle'}
+                          color={row.redeemedAt ? 'lime' : 'neutral'}
                           className="text-[10px]"
                         >
                           {row.redeemedAt ? t('vouchers.redeemed') : t('vouchers.pending')}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                        </Chip>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -532,13 +515,13 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const t = useTranslations('campaigns');
   const plays = useCampaignPlays(orgId, campaign.id);
   return (
-    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-white/10">
-        <CardTitle className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
           {t('players.title', { count: plays.data?.length ?? 0 })}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+        </h3>
+      </div>
+      <div className="p-0">
         {plays.isPending ? (
           <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
@@ -551,8 +534,8 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
         ) : (
           <PlaysTable campaign={campaign} rows={plays.data ?? []} />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -567,6 +550,8 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const onActionError = useCampaignActionError(orgId);
   const end = useEndCampaign(orgId);
   const remove = useDeleteCampaign(orgId);
+  const [isEndOpen, setIsEndOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const extend = (value: string) => {
     const endsAt = localInputToIso(value);
@@ -579,7 +564,7 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
 
   return (
     <div className="flex max-w-4xl flex-col">
-      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card divide-y divide-border-button-default">
         {/* Schedule Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
           <div className="max-w-md">
@@ -590,13 +575,14 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
               {t('settings.scheduleHint')}
             </p>
           </div>
-          <Input
+          <InputBase
             type="datetime-local"
             aria-label={t('settings.endsAt')}
             defaultValue={isoToLocalInput(campaign.rules.endsAt)}
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
-            className="h-8 w-56 rounded-md text-xs font-mono"
+            className="w-56"
+            fieldClassName="h-8 text-xs font-mono"
           />
         </div>
 
@@ -614,7 +600,7 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
             <div className="flex flex-wrap items-center gap-2">
               {phase === 'paused' ? (
                 <Button
-                  size="sm"
+                  size="small"
                   className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
                 >
@@ -623,8 +609,8 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="secondary"
+                  size="small"
                   className="gap-2 rounded-md h-8 text-xs shadow-xs"
                   onClick={() => pause.mutate(campaign.id)}
                 >
@@ -633,36 +619,39 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
                 </Button>
               )}
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+              <Button
+                variant="secondary"
+                size="small"
+                className="gap-2 rounded-md h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/30 dark:hover:bg-rose-950/20 shadow-xs"
+                onClick={() => setIsEndOpen(true)}
+              >
+                <Square className="size-3.5" />
+                {t('settings.end')}
+              </Button>
+              <Modal isOpen={isEndOpen} onOpenChange={setIsEndOpen} size="sm">
+                <ModalHeader title={t('settings.endConfirm')} />
+                <ModalFooter>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 rounded-md h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/30 dark:hover:bg-rose-950/20 shadow-xs"
+                    variant="secondary"
+                    size="small"
+                    className="h-8 rounded-md text-xs"
+                    onClick={() => setIsEndOpen(false)}
                   >
-                    <Square className="size-3.5" />
+                    {tCommon('cancel')}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="small"
+                    className="h-8 rounded-md text-xs"
+                    onClick={() => {
+                      end.mutate(campaign.id);
+                      setIsEndOpen(false);
+                    }}
+                  >
                     {t('settings.end')}
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-lg border border-neutral-200 dark:border-white/10">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-sm font-semibold">
-                      {t('settings.endConfirm')}
-                    </AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="h-8 rounded-md text-xs">
-                      {tCommon('cancel')}
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="h-8 rounded-md bg-destructive text-destructive-foreground text-xs"
-                      onClick={() => end.mutate(campaign.id)}
-                    >
-                      {t('settings.end')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                </ModalFooter>
+              </Modal>
             </div>
           </div>
         )}
@@ -677,41 +666,42 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
               {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
             </p>
           </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <Button
+            variant="danger"
+            size="small"
+            className="gap-2 rounded-md h-8 text-xs shadow-xs"
+            disabled={isRunning(phase)}
+            onClick={() => setIsDeleteOpen(true)}
+          >
+            <Trash2 className="size-3.5" />
+            {t('settings.delete')}
+          </Button>
+          <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen} size="sm">
+            <ModalHeader title={t('settings.deleteConfirm', { name: campaign.name })} />
+            <ModalFooter>
               <Button
-                variant="destructive"
-                size="sm"
-                className="gap-2 rounded-md h-8 text-xs shadow-xs"
-                disabled={isRunning(phase)}
+                variant="secondary"
+                size="small"
+                className="h-8 rounded-md text-xs"
+                onClick={() => setIsDeleteOpen(false)}
               >
-                <Trash2 className="size-3.5" />
+                {tCommon('cancel')}
+              </Button>
+              <Button
+                variant="danger"
+                size="small"
+                className="h-8 rounded-md text-xs"
+                onClick={async () => {
+                  await remove.mutateAsync(campaign.id);
+                  setIsDeleteOpen(false);
+                  toast.success(t('settings.deleted'));
+                  router.push(campaignRoutes(orgId).list);
+                }}
+              >
                 {t('settings.delete')}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-lg border border-neutral-200 dark:border-white/10">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-sm font-semibold">
-                  {t('settings.deleteConfirm', { name: campaign.name })}
-                </AlertDialogTitle>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="h-8 rounded-md text-xs">
-                  {tCommon('cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  className="h-8 rounded-md bg-destructive text-destructive-foreground text-xs"
-                  onClick={async () => {
-                    await remove.mutateAsync(campaign.id);
-                    toast.success(t('settings.deleted'));
-                    router.push(campaignRoutes(orgId).list);
-                  }}
-                >
-                  {t('settings.delete')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            </ModalFooter>
+          </Modal>
         </div>
       </div>
     </div>

@@ -1,29 +1,20 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
-import { Checkbox } from '@playora/ui/components/checkbox';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@playora/ui/components/form';
-import { Input } from '@playora/ui/components/input';
-import { toast } from '@playora/ui/components/sonner';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Checkbox } from '@playora/ui/components/base/checkbox/checkbox';
+import { HintText } from '@playora/ui/components/base/input/hint-text';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Label } from '@playora/ui/components/base/input/label';
+import { toast } from '@playora/ui/components/base/toast/toast';
+import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
 import { applyApiErrorToRHF } from '@playora/ui/form';
 import { ArrowLeft, Coins, Gift, Percent, Plus, Trash2 } from '@playora/ui/icons';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
-import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
@@ -184,302 +175,302 @@ export function PlaybookSetupForm({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Button variant="outline" className="gap-2" onClick={onBack}>
+        <Button variant="secondary" className="gap-2" onClick={onBack}>
           <ArrowLeft className="size-4" />
           {t('backToGoals')}
         </Button>
       </div>
 
       <div className="grid items-start gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-white/10">
+        <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+          <div className="flex flex-row items-center justify-between border-b border-border-button-default px-5 py-4">
             <div>
               <Caption>{t('setup.title')}</Caption>
-              <CardTitle className="text-base font-semibold">
-                {t(`items.${playbook}.title`)}
-              </CardTitle>
+              <h3 className="text-base font-semibold">{t(`items.${playbook}.title`)}</h3>
             </div>
-            <Badge variant="secondary" className="rounded-sm text-[10px]">
+            <Chip variant="caption" color="neutral">
               {t(`items.${playbook}.goal`)}
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-5">
-            <Form {...form}>
-              <form
-                id="playbook-setup"
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
-              >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('setup.name')}</FormLabel>
-                      <FormControl>
-                        <Input maxLength={120} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="budgetVnd"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('setup.budget')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step={1000}
-                          min={0}
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>{t('setup.budgetHint')}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-semibold">{t('setup.prizes')}</span>
-                    <Caption className="block">{t('setup.prizesHint')}</Caption>
+            </Chip>
+          </div>
+          <div className="p-5">
+            <form id="playbook-setup" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <Controller
+                control={form.control}
+                name="name"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="setup-name">{t('setup.name')}</Label>
+                    <InputBase id="setup-name" maxLength={120} {...field} />
+                    {fieldState.error?.message && (
+                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                    )}
                   </div>
-
-                  <div className="space-y-2">
-                    {fields.map((fieldItem, index) => {
-                      const quantity = suggestion?.prizes[index]?.quantity;
-                      return (
-                        <div
-                          key={fieldItem.id}
-                          className="flex items-center gap-2 rounded-xl border bg-muted/30 p-3"
-                          data-testid="playbook-prize"
-                        >
-                          <div className="grid min-w-0 flex-1 gap-2 grid-cols-[minmax(0,1fr)_160px]">
-                            <FormField
-                              control={form.control}
-                              name={`prizes.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      placeholder={t('setup.prizeName')}
-                                      aria-label={t('setup.prizeName')}
-                                      maxLength={120}
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`prizes.${index}.costVnd`}
-                              render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      step={1000}
-                                      min={0}
-                                      aria-label={t('setup.prizeCost')}
-                                      {...field}
-                                      onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <Badge
-                            variant={quantity === 0 ? 'destructive' : 'secondary'}
-                            className="shrink-0 tabular-nums"
-                            data-testid="playbook-prize-quantity"
-                          >
-                            {quantity === undefined
-                              ? '—'
-                              : t('suggestion.quantity', { count: quantity })}
-                          </Badge>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                disabled={fields.length <= 1}
-                                onClick={() => remove(index)}
-                                aria-label={t('setup.removePrize')}
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>{t('setup.removePrize')}</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      );
-                    })}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full gap-2 border-dashed"
-                      disabled={fields.length >= 20}
-                      onClick={() => {
-                        const current = form.getValues('prizes') ?? [];
-                        const weight =
-                          current.length > 0
-                            ? current.reduce((s, p) => s + (p.weight ?? 0), 0) / current.length
-                            : 1;
-                        append({
-                          name: t('setup.newPrize', { n: current.length + 1 }),
-                          costVnd: 10_000,
-                          weight,
-                          image: 'gift',
-                        });
-                      }}
-                    >
-                      <Plus className="size-4" />
-                      {t('setup.addPrize')}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('setup.startDate')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('setup.endDate')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="openingHours.start"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('setup.hoursStart')}</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} value={field.value ?? ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="openingHours.end"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('setup.hoursEnd')}</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} value={field.value ?? ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {initial.openDays !== null && (
-                  <FormField
-                    control={form.control}
-                    name="openDays"
-                    render={({ field }) => {
-                      const currentDays = field.value ?? [];
-                      return (
-                        <FormItem>
-                          <FormLabel>{t('setup.openDays')}</FormLabel>
-                          <div className="flex flex-wrap gap-4 pt-1">
-                            {WEEKDAYS.map((d) => {
-                              const checked = currentDays.includes(d);
-                              return (
-                                <label
-                                  key={d}
-                                  htmlFor={`open-day-${d}`}
-                                  className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-                                >
-                                  <Checkbox
-                                    id={`open-day-${d}`}
-                                    checked={checked}
-                                    onCheckedChange={(val) => {
-                                      if (val) {
-                                        field.onChange([...currentDays, d]);
-                                      } else {
-                                        field.onChange(currentDays.filter((x) => x !== d));
-                                      }
-                                    }}
-                                  />
-                                  <span>{tw(weekdayKey(d))}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
                 )}
+              />
 
-                <FormField
+              <Controller
+                control={form.control}
+                name="budgetVnd"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="setup-budget">{t('setup.budget')}</Label>
+                    <InputBase
+                      id="setup-budget"
+                      type="number"
+                      step={1000}
+                      min={0}
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                    <HintText>{t('setup.budgetHint')}</HintText>
+                    {fieldState.error?.message && (
+                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                    )}
+                  </div>
+                )}
+              />
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-semibold">{t('setup.prizes')}</span>
+                  <Caption className="block">{t('setup.prizesHint')}</Caption>
+                </div>
+
+                <div className="space-y-2">
+                  {fields.map((fieldItem, index) => {
+                    const quantity = suggestion?.prizes[index]?.quantity;
+                    return (
+                      <div
+                        key={fieldItem.id}
+                        className="flex items-center gap-2 rounded-xl border bg-muted/30 p-3"
+                        data-testid="playbook-prize"
+                      >
+                        <div className="grid min-w-0 flex-1 gap-2 grid-cols-[minmax(0,1fr)_160px]">
+                          <Controller
+                            control={form.control}
+                            name={`prizes.${index}.name`}
+                            render={({ field, fieldState }) => (
+                              <div className="space-y-0">
+                                <InputBase
+                                  placeholder={t('setup.prizeName')}
+                                  aria-label={t('setup.prizeName')}
+                                  maxLength={120}
+                                  {...field}
+                                />
+                                {fieldState.error?.message && (
+                                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                                )}
+                              </div>
+                            )}
+                          />
+
+                          <Controller
+                            control={form.control}
+                            name={`prizes.${index}.costVnd`}
+                            render={({ field, fieldState }) => (
+                              <div className="space-y-0">
+                                <InputBase
+                                  type="number"
+                                  step={1000}
+                                  min={0}
+                                  aria-label={t('setup.prizeCost')}
+                                  {...field}
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                                {fieldState.error?.message && (
+                                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                                )}
+                              </div>
+                            )}
+                          />
+                        </div>
+
+                        <Chip
+                          variant="subtle"
+                          color={quantity === 0 ? 'rose' : 'neutral'}
+                          className="shrink-0 tabular-nums"
+                          data-testid="playbook-prize-quantity"
+                        >
+                          {quantity === undefined
+                            ? '—'
+                            : t('suggestion.quantity', { count: quantity })}
+                        </Chip>
+
+                        <TooltipTrigger>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="small"
+                            className="size-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            disabled={fields.length <= 1}
+                            onClick={() => remove(index)}
+                            aria-label={t('setup.removePrize')}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                          <Tooltip>{t('setup.removePrize')}</Tooltip>
+                        </TooltipTrigger>
+                      </div>
+                    );
+                  })}
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full gap-2 border-dashed"
+                    disabled={fields.length >= 20}
+                    onClick={() => {
+                      const current = form.getValues('prizes') ?? [];
+                      const weight =
+                        current.length > 0
+                          ? current.reduce((s, p) => s + (p.weight ?? 0), 0) / current.length
+                          : 1;
+                      append({
+                        name: t('setup.newPrize', { n: current.length + 1 }),
+                        costVnd: 10_000,
+                        weight,
+                        image: 'gift',
+                      });
+                    }}
+                  >
+                    <Plus className="size-4" />
+                    {t('setup.addPrize')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
                   control={form.control}
-                  name="guestsPerDay"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('setup.guests')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={100_000}
-                          step={10}
-                          className="max-w-xs"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>{t('setup.guestsHint')}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
+                  name="startDate"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-start-date">{t('setup.startDate')}</Label>
+                      <InputBase id="setup-start-date" type="date" {...field} />
+                      {fieldState.error?.message && (
+                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                      )}
+                    </div>
                   )}
                 />
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+
+                <Controller
+                  control={form.control}
+                  name="endDate"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-end-date">{t('setup.endDate')}</Label>
+                      <InputBase id="setup-end-date" type="date" {...field} />
+                      {fieldState.error?.message && (
+                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                      )}
+                    </div>
+                  )}
+                />
+
+                <Controller
+                  control={form.control}
+                  name="openingHours.start"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-hours-start">{t('setup.hoursStart')}</Label>
+                      <InputBase
+                        id="setup-hours-start"
+                        type="time"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                      {fieldState.error?.message && (
+                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                      )}
+                    </div>
+                  )}
+                />
+
+                <Controller
+                  control={form.control}
+                  name="openingHours.end"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-hours-end">{t('setup.hoursEnd')}</Label>
+                      <InputBase
+                        id="setup-hours-end"
+                        type="time"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                      {fieldState.error?.message && (
+                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                      )}
+                    </div>
+                  )}
+                />
+              </div>
+
+              {initial.openDays !== null && (
+                <Controller
+                  control={form.control}
+                  name="openDays"
+                  render={({ field, fieldState }) => {
+                    const currentDays = field.value ?? [];
+                    return (
+                      <div className="flex flex-col gap-1.5">
+                        <Label>{t('setup.openDays')}</Label>
+                        <div className="flex flex-wrap gap-4 pt-1">
+                          {WEEKDAYS.map((d) => {
+                            const checked = currentDays.includes(d);
+                            return (
+                              <Checkbox
+                                key={d}
+                                isSelected={checked}
+                                onChange={(val) => {
+                                  if (val) {
+                                    field.onChange([...currentDays, d]);
+                                  } else {
+                                    field.onChange(currentDays.filter((x) => x !== d));
+                                  }
+                                }}
+                              >
+                                {tw(weekdayKey(d))}
+                              </Checkbox>
+                            );
+                          })}
+                        </div>
+                        {fieldState.error?.message && (
+                          <HintText isInvalid>{fieldState.error.message}</HintText>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              )}
+
+              <Controller
+                control={form.control}
+                name="guestsPerDay"
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="setup-guests">{t('setup.guests')}</Label>
+                    <InputBase
+                      id="setup-guests"
+                      type="number"
+                      min={1}
+                      max={100_000}
+                      step={10}
+                      fieldClassName="max-w-xs"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                    <HintText>{t('setup.guestsHint')}</HintText>
+                    {fieldState.error?.message && (
+                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                    )}
+                  </div>
+                )}
+              />
+            </form>
+          </div>
+        </div>
 
         <div className="xl:sticky xl:top-4">
           <SuggestionCard
@@ -507,15 +498,18 @@ export function SuggestionCard({
   const zero = suggestion?.prizes.filter((p) => p.quantity === 0) ?? [];
 
   return (
-    <Card className="rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-      <CardHeader className="border-b border-neutral-200 px-5 py-4 dark:border-white/10">
-        <CardTitle className="text-base font-semibold">{t('title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 p-5">
+    <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <div className="border-b border-border-button-default px-5 py-4">
+        <h3 className="text-base font-semibold">{t('title')}</h3>
+      </div>
+      <div className="space-y-4 p-5">
         {suggestion === null ? (
-          <Alert className="rounded-lg">
-            <AlertTitle>{t('invalid')}</AlertTitle>
-          </Alert>
+          <div
+            role="alert"
+            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-sm font-medium"
+          >
+            {t('invalid')}
+          </div>
         ) : (
           <div className="space-y-4" data-testid="playbook-suggestion">
             <p className="text-sm font-semibold">
@@ -550,19 +544,23 @@ export function SuggestionCard({
               />
             </div>
             {suggestion.tooFewPrizes ? (
-              <Alert className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
-                <AlertTitle>{t('tooFew')}</AlertTitle>
-              </Alert>
+              <div
+                role="alert"
+                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-900 dark:text-amber-200"
+              >
+                {t('tooFew')}
+              </div>
             ) : (
               <Caption>{t('risk', { percent: Math.round(suggestion.risk * 100) })}</Caption>
             )}
             {zero.map((p) => (
-              <Alert
+              <div
                 key={p.id}
-                className="rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+                role="alert"
+                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-900 dark:text-amber-200"
               >
-                <AlertTitle>{t('zeroPrize', { name: p.name })}</AlertTitle>
-              </Alert>
+                {t('zeroPrize', { name: p.name })}
+              </div>
             ))}
             <RulesSummary rules={suggestion.rules} prizes={suggestion.prizes} />
           </div>
@@ -579,7 +577,7 @@ export function SuggestionCard({
           </Button>
           <Caption className="text-center">{t('editLater')}</Caption>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

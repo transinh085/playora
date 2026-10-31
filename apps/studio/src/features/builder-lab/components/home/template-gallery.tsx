@@ -1,25 +1,18 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
+import { Badge } from '@playora/ui/components/base/badges/badge';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { InputBase } from '@playora/ui/components/base/input/input';
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@playora/ui/components/dialog';
-import { Input } from '@playora/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@playora/ui/components/select';
-import { toast } from '@playora/ui/components/sonner';
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from '@playora/ui/components/base/modal/modal';
+import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { Check, Sparkles } from '@playora/ui/icons';
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -135,7 +128,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
           <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
             <button
               type="button"
-              className={cn(
+              className={cx(
                 'rounded-md px-3 py-1 font-medium transition-all',
                 mechanic === 'all'
                   ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
@@ -149,7 +142,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               <button
                 key={key}
                 type="button"
-                className={cn(
+                className={cx(
                   'rounded-md px-3 py-1 font-medium transition-all',
                   mechanic === key
                     ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
@@ -172,7 +165,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               key={key}
               type="button"
               onClick={() => setOccasion(key)}
-              className={cn(
+              className={cx(
                 'rounded-md px-2.5 py-1 text-xs font-medium transition-all border',
                 occasion === key
                   ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-[#FAFAFA] dark:text-neutral-900 dark:border-[#FAFAFA] shadow-xs'
@@ -201,7 +194,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               aria-pressed={active}
               aria-label={`${t(`templates.${c.templateKey}`)} · ${t(`skins.${c.skin.key}`)}`}
               data-testid={`template-${key}`}
-              className={cn(
+              className={cx(
                 'group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white text-left shadow-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:bg-[#0A0A0A]',
                 active
                   ? 'border-teal-600 ring-2 ring-teal-600/30 dark:border-teal-400'
@@ -211,7 +204,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               <div className="relative h-[230px] overflow-hidden bg-neutral-100 dark:bg-neutral-900">
                 {cover && <FitScreen screen={cover} brand={c.skin.brand} />}
                 <div className="absolute left-2.5 top-2.5">
-                  <Badge variant="secondary" className="text-[10px] shadow-xs">
+                  <Badge color="neutral" className="text-[10px] shadow-xs">
                     {t(`templates.${c.templateKey}`)}
                   </Badge>
                 </div>
@@ -230,7 +223,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
                   {t(`templates.${c.templateKey}`)}
                 </p>
                 <span
-                  className={cn(
+                  className={cx(
                     'mt-1 inline-flex h-7 w-full items-center justify-center rounded-md px-3 text-xs font-medium transition-colors shadow-xs',
                     active
                       ? 'bg-teal-600 text-white dark:bg-teal-500'
@@ -255,6 +248,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
           <Caption className="text-[11px]">{picked ? name : t('namePlaceholder')}</Caption>
         </div>
         <Button
+          size="small"
           className="h-8 rounded-md text-xs font-medium shadow-xs"
           disabled={!picked}
           onClick={() => setModalOpen(true)}
@@ -263,14 +257,10 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
         </Button>
       </div>
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-lg border border-neutral-200 dark:border-white/10">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">{t('modalTitle')}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-2">
-            <p className="text-xs text-muted-foreground">{t('modalSubtitle')}</p>
-
+      <Modal isOpen={modalOpen} onOpenChange={setModalOpen} size="sm">
+        <ModalHeader title={t('modalTitle')} description={t('modalSubtitle')} />
+        <ModalBody>
+          <div className="flex flex-col gap-4">
             {activeChoice && activeCover && (
               <div className="flex items-center gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
                 <div className="h-[90px] w-[60px] shrink-0 overflow-hidden rounded-md border border-neutral-200 shadow-xs dark:border-white/10">
@@ -283,7 +273,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
                   <Caption className="mb-1 block text-[11px]">
                     {t(`skins.${activeChoice.skin.key}`)}
                   </Caption>
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge color="neutral" className="text-[10px]">
                     {t(`occasions.${activeChoice.skin.occasion}`)}
                   </Badge>
                 </div>
@@ -294,7 +284,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
                 {t('nameLabel')}
               </span>
-              <Input
+              <InputBase
                 aria-label={t('nameLabel')}
                 placeholder={t('namePlaceholder')}
                 value={name}
@@ -303,7 +293,7 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') submit();
                 }}
-                className="h-8 rounded-md text-xs"
+                className="text-xs"
               />
             </div>
 
@@ -311,46 +301,47 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
                 {t('brandKitLabel')}
               </span>
-              <Select value={selectedBrandKitId} onValueChange={setSelectedBrandKitId}>
-                <SelectTrigger className="h-8 w-full rounded-md text-xs">
-                  <SelectValue placeholder={t('defaultBrandKit')} />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg">
-                  {(brandKits.data?.items ?? []).map((kit) => (
-                    <SelectItem key={kit.id} value={kit.id} className="text-xs">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="size-3.5 shrink-0 rounded-full border border-neutral-200 dark:border-white/10"
-                          style={{ background: kit.tokens.colors.primary }}
-                        />
-                        <span>{kit.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <Select
+                size="sm"
+                aria-label={t('brandKitLabel')}
+                placeholder={t('defaultBrandKit')}
+                selectedKey={selectedBrandKitId ?? null}
+                onSelectionChange={(key) => key !== null && setSelectedBrandKitId(String(key))}
+              >
+                {(brandKits.data?.items ?? []).map((kit) => (
+                  <SelectItem key={kit.id} id={kit.id} textValue={kit.name}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="size-3.5 shrink-0 rounded-full border border-neutral-200 dark:border-white/10"
+                        style={{ background: kit.tokens.colors.primary }}
+                      />
+                      <span>{kit.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 rounded-md text-xs"
-              onClick={() => setModalOpen(false)}
-            >
-              {t('back')}
-            </Button>
-            <Button
-              size="sm"
-              className="h-8 rounded-md text-xs shadow-xs"
-              disabled={!name.trim() || create.isPending}
-              onClick={submit}
-            >
-              {t('createButton')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="secondary"
+            size="small"
+            className="h-8 rounded-md text-xs"
+            onClick={() => setModalOpen(false)}
+          >
+            {t('back')}
+          </Button>
+          <Button
+            size="small"
+            className="h-8 rounded-md text-xs shadow-xs"
+            disabled={!name.trim() || create.isPending}
+            onClick={submit}
+          >
+            {t('createButton')}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Toaster } from '@playora/ui/components/sonner';
+import { Toaster } from '@playora/ui/components/base/toast/toast';
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';

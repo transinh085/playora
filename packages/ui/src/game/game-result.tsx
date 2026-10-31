@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export type GameOutcomeKind = 'win' | 'lose' | 'out_of_stock';
@@ -35,7 +35,7 @@ function GameResult({
     <div
       data-slot="game-result"
       data-outcome={outcome}
-      className={cn(
+      className={cx(
         'w-full rounded-game border border-game-border bg-game-surface px-4 py-3 text-center text-game-fg backdrop-blur-sm',
         className,
       )}

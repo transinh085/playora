@@ -1,7 +1,6 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { Card } from '@playora/ui/components/card';
+import { Chip } from '@playora/ui/components/base/badges/chip';
 import {
   AlertTriangle,
   CalendarDays,
@@ -349,12 +348,12 @@ export function FoundationsShowcase() {
               <strong>Be Vietnam Pro / Google Sans</strong> cho bàn làm việc mật độ cao.
             </p>
           </div>
-          <Badge variant="outline" className="font-mono text-xs">
+          <Chip variant="caption" color="neutral" className="font-mono text-xs">
             Kiểm dấu: Ầ Ẩ Ẫ Ậ Ắ Ặ Ữ Ỹ ổ ợ ự Đ ₫
-          </Badge>
+          </Chip>
         </div>
 
-        <Card className="overflow-hidden p-0">
+        <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border/80 bg-muted/50 text-xs text-muted-foreground">
@@ -387,7 +386,7 @@ export function FoundationsShowcase() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* 4. Radius, Elevation & Icons */}

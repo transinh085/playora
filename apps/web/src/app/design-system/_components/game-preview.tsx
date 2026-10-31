@@ -1,8 +1,8 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { QRCodeSvg } from '@playora/ui/components/qr-code';
-import { Switch } from '@playora/ui/components/switch';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Switch } from '@playora/ui/components/base/switch/switch';
+import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
 import { Countdown } from '@playora/ui/game/countdown';
 import { GameButton } from '@playora/ui/game/game-button';
 import { GameResult } from '@playora/ui/game/game-result';
@@ -63,12 +63,13 @@ function SkinShowcaseCard({
       className="grid min-h-0 w-full content-start gap-5 rounded-3xl border-4 border-foreground/15 p-6 shadow-lg"
     >
       <div className="flex items-center justify-between gap-2">
-        <Badge
-          variant="secondary"
+        <Chip
+          variant="caption"
+          color="neutral"
           className="m-0 border-0 bg-[var(--game-surface)] px-3 py-1 font-game text-xs font-bold text-[var(--game-fg)]"
         >
           {badgeLabel}: {SKIN_LABEL[skin]}
-        </Badge>
+        </Chip>
         <div className="text-3xl">
           <Countdown seconds={4} />
         </div>
@@ -169,17 +170,9 @@ export function GamePreview() {
             </button>
           ))}
         </div>
-        <label
-          htmlFor="brand-kit-toggle"
-          className="flex cursor-pointer items-center gap-2 text-sm"
-        >
-          <Switch
-            id="brand-kit-toggle"
-            checked={branded}
-            onCheckedChange={(checked) => setBranded(checked)}
-          />
-          <span>Áp Brand Kit quán mẫu (Đỏ #E30613 · Tương phản tự động WCAG)</span>
-        </label>
+        <Switch isSelected={branded} onChange={setBranded}>
+          Áp Brand Kit quán mẫu (Đỏ #E30613 · Tương phản tự động WCAG)
+        </Switch>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

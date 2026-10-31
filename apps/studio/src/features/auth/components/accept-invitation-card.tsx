@@ -1,17 +1,9 @@
 'use client';
 
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Button } from '@playora/ui/components/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@playora/ui/components/card';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
-import { AlertCircle, Loader2 } from '@playora/ui/icons';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { toast } from '@playora/ui/components/base/toast/toast';
+import { AlertCircle } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -88,72 +80,66 @@ export function AcceptInvitationCard() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
-      <Card className="w-full max-w-md rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
-        <CardHeader className="border-b border-neutral-200 px-6 py-4 dark:border-white/10">
-          <CardTitle className="text-base font-semibold">{t('auth.inviteTitle')}</CardTitle>
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+        <div className="border-b border-separator-border px-6 py-4">
+          <h2 className="m-0 text-headline-semibold text-text-primary">{t('auth.inviteTitle')}</h2>
           {invitation && (
-            <CardDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 m-0 text-body-2-regular text-text-secondary">
               {t('auth.inviteDescription', {
                 inviter: invitation.inviterEmail,
                 organization: invitation.organizationName,
                 role: t(`members.roles.${roleKey}`),
               })}
-            </CardDescription>
+            </p>
           )}
-        </CardHeader>
-        <CardContent className="space-y-4 p-6">
+        </div>
+        <div className="space-y-4 p-6">
           {(sessionPending || invitationQuery.isPending) && (
             <div className="space-y-2 py-2">
-              <Skeleton className="h-4 w-full rounded-md" />
-              <Skeleton className="h-4 w-3/4 rounded-md" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
             </div>
           )}
 
           {invitationQuery.isError && (
-            <Alert variant="destructive" className="rounded-lg">
-              <AlertCircle className="size-4" />
-              <AlertTitle className="text-xs">{t('auth.inviteError')}</AlertTitle>
-            </Alert>
+            <div
+              role="alert"
+              className="flex items-center gap-2.5 rounded-2xl border border-border-button-default bg-notification-error-background p-4 text-text-error-primary"
+            >
+              <AlertCircle className="size-4 shrink-0" />
+              <span className="text-body-2-medium">{t('auth.inviteError')}</span>
+            </div>
           )}
 
           {actionError && (
-            <Alert variant="destructive" className="rounded-lg">
-              <AlertCircle className="size-4" />
-              <AlertTitle className="text-xs">{actionError}</AlertTitle>
-            </Alert>
+            <div
+              role="alert"
+              className="flex items-center gap-2.5 rounded-2xl border border-border-button-default bg-notification-error-background p-4 text-text-error-primary"
+            >
+              <AlertCircle className="size-4 shrink-0" />
+              <span className="text-body-2-medium">{actionError}</span>
+            </div>
           )}
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
             {invitation && (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-md text-xs"
-                  disabled={submitting}
-                  onClick={onDecline}
-                >
+                <Button variant="secondary" size="small" disabled={submitting} onClick={onDecline}>
                   {t('auth.declineInvite')}
                 </Button>
-                <Button
-                  size="sm"
-                  className="h-8 rounded-md text-xs shadow-xs"
-                  disabled={submitting}
-                  onClick={onAccept}
-                >
-                  {submitting && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
+                <Button size="small" disabled={submitting} onClick={onAccept}>
                   {t('auth.acceptInvite')}
                 </Button>
               </>
             )}
             {invitationQuery.isError && (
-              <Button size="sm" className="w-full h-8 rounded-md text-xs" onClick={onSwitchAccount}>
+              <Button size="small" className="w-full" onClick={onSwitchAccount}>
                 {t('auth.switchAccount')}
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

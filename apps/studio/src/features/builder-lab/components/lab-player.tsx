@@ -11,11 +11,11 @@ import {
   type PlayerFormValues,
   type PlayerVoucher,
 } from '@playora/ui/campaign';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { toast } from '@playora/ui/components/sonner';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
-import { ArrowLeft, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { toast } from '@playora/ui/components/base/toast/toast';
+import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { ArrowLeft, ExternalLink, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -46,11 +46,11 @@ function playerClient(token: string) {
 export function LabPlayer({
   orgId,
   campaignId,
-  rehearsal,
+  rehearsal = true,
 }: {
   orgId: string;
   campaignId: string;
-  rehearsal: boolean;
+  rehearsal?: boolean;
 }) {
   const t = useTranslations('builderLab.player');
   const campaign = useCampaign(orgId, campaignId);
@@ -84,7 +84,7 @@ export function LabPlayer({
             <Button>{t('errors.openRehearsal')}</Button>
           </Link>
           <Link href={routes.edit(campaignId)}>
-            <Button variant="outline">{t('backToEditor')}</Button>
+            <Button variant="secondary">{t('backToEditor')}</Button>
           </Link>
         </div>
       </div>
@@ -281,27 +281,27 @@ function PlayerSession({
   return (
     <>
       <div className="flex items-center gap-2 border-b bg-card px-4 py-2.5 max-[479px]:hidden">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={routes.edit(campaign.id)}>
-              <Button variant="ghost" size="icon" className="size-8" aria-label={t('backToEditor')}>
-                <ArrowLeft className="size-4" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>{t('backToEditor')}</TooltipContent>
-        </Tooltip>
+        <TooltipTrigger>
+          <Link
+            href={routes.edit(campaign.id)}
+            aria-label={t('backToEditor')}
+            className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <Tooltip>{t('backToEditor')}</Tooltip>
+        </TooltipTrigger>
 
         <span className="min-w-0 truncate text-sm font-semibold">{campaign.name}</span>
 
         {rehearsal ? (
-          <Badge variant="outline" className="border-amber-500/40 text-amber-600">
+          <Chip variant="caption" color="yellow">
             {t('rehearsal')}
-          </Badge>
+          </Chip>
         ) : (
-          <Badge variant="outline" className="border-emerald-500/30 text-emerald-600">
+          <Chip variant="caption" color="lime">
             {t('live')}
-          </Badge>
+          </Chip>
         )}
 
         <div className="flex-1" />
@@ -313,8 +313,8 @@ function PlayerSession({
         )}
 
         <Button
-          variant="outline"
-          size="sm"
+          variant="secondary"
+          size="small"
           className="gap-1.5"
           onClick={() => player.current?.openVouchers()}
         >
@@ -322,18 +322,26 @@ function PlayerSession({
           {t('myPrizes')}
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          variant="secondary"
+          size="small"
           className="gap-1.5"
           onClick={() => player.current?.restart()}
         >
           <RotateCcw className="size-3.5" />
           {t('restart')}
         </Button>
-        <Button variant="outline" size="sm" className="gap-1.5" onClick={newPlayer}>
+        <Button variant="secondary" size="small" className="gap-1.5" onClick={newPlayer}>
           <UserPlus className="size-3.5" />
           {t('newPlayer')}
         </Button>
+        {campaign.status === 'published' && (
+          <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
+            <Button size="small" className="gap-1.5">
+              <ExternalLink className="size-3.5" />
+              {t('live')}
+            </Button>
+          </a>
+        )}
       </div>
 
       <div className="flex min-h-0 flex-1 items-center justify-center min-[480px]:p-6">
@@ -364,12 +372,13 @@ function PlayerSession({
           />
 
           {rehearsal && (
-            <Badge
-              variant="outline"
-              className="absolute left-2 top-2 z-10 border-amber-500/40 bg-card/80 text-amber-600 backdrop-blur-xs min-[480px]:hidden"
+            <Chip
+              variant="caption"
+              color="yellow"
+              className="absolute left-2 top-2 z-10 min-[480px]:hidden"
             >
               {t('rehearsal')}
-            </Badge>
+            </Chip>
           )}
         </div>
       </div>

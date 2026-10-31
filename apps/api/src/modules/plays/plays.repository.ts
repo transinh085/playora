@@ -23,6 +23,8 @@ export interface PublishedCampaign {
   organizationName: string;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Data access for the play engine (ADR-012 §4). The slug lookup resolves the organization; every
  * other method takes `organizationId` first and filters every table it reads by it.
@@ -33,8 +35,11 @@ export class PlaysRepository {
 
   // ── Campaign lookup ──────────────────────────────────────────────────────────
 
-  /** The current published version of a campaign by slug; nothing when never published or deleted. */
+  /** The current published version of a campaign by slug (or campaign id); nothing when never published or deleted. */
   async findPublishedBySlug(slug: string): Promise<PublishedCampaign | undefined> {
+    const slugOrIdMatch = UUID_RE.test(slug)
+      ? or(eq(events.slug, slug), eq(events.id, slug))
+      : eq(events.slug, slug);
     const [row] = await this.db
       .select({
         event: events,
@@ -61,7 +66,7 @@ export class PlaysRepository {
       )
       .where(
         and(
-          eq(events.slug, slug),
+          slugOrIdMatch,
           isNull(events.deletedAt),
           sql`jsonb_exists(${gameVersions.config}, 'rules')`,
         ),

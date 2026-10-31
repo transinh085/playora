@@ -1,4 +1,4 @@
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 /** Playora mark: a play button under a spotlight. Colours follow `--primary` and `--spotlight-400`. */
@@ -8,7 +8,7 @@ function LogoMark({ className, ...props }: React.ComponentProps<'svg'>) {
       viewBox="0 0 32 32"
       role="img"
       aria-label="Playora"
-      className={cn('size-8 shrink-0', className)}
+      className={cx('size-8 shrink-0', className)}
       {...props}
     >
       <rect width="32" height="32" rx="9" fill="var(--primary)" />
@@ -26,7 +26,7 @@ function Logo({ className, ...props }: React.ComponentProps<'span'>) {
   return (
     <span
       data-slot="logo"
-      className={cn('inline-flex items-center gap-2 font-display text-lg font-semibold', className)}
+      className={cx('inline-flex items-center gap-2 font-display text-lg font-semibold', className)}
       {...props}
     >
       <LogoMark className="size-[1.6em]" aria-hidden />

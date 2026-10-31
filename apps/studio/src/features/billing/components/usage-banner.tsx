@@ -1,8 +1,7 @@
 'use client';
 
 import type { OrgBilling } from '@playora/contracts';
-import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
-import { Button } from '@playora/ui/components/button';
+import { Button } from '@playora/ui/components/base/buttons/button';
 import { AlertCircle, AlertTriangle } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -38,7 +37,7 @@ export function RedemptionUsageAlert({
 
   const action = withLink ? (
     <Link href={billingPath(orgId)}>
-      <Button variant="outline" size="sm" tabIndex={-1} className="shrink-0">
+      <Button variant="secondary" size="small" tabIndex={-1} className="shrink-0">
         {t('viewPlan')}
       </Button>
     </Link>
@@ -46,40 +45,45 @@ export function RedemptionUsageAlert({
 
   if (level === 'blocked') {
     return (
-      <Alert variant="destructive" data-testid="redemption-usage-banner">
-        <AlertCircle className="size-4" />
+      <div
+        role="alert"
+        className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-background-notification-error-secondary p-4 text-text-error-primary"
+        data-testid="redemption-usage-banner"
+      >
+        <AlertCircle className="mt-0.5 size-4 shrink-0" />
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <AlertTitle>{t('redemptionsBlocked')}</AlertTitle>
-            <AlertDescription>{t('redemptionsBlockedBody')}</AlertDescription>
+            <p className="text-sm font-semibold">{t('redemptionsBlocked')}</p>
+            <p className="text-xs opacity-90">{t('redemptionsBlockedBody')}</p>
           </div>
           {action}
         </div>
-      </Alert>
+      </div>
     );
   }
 
   return (
-    <Alert
-      className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+    <div
+      role="alert"
+      className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
       data-testid="redemption-usage-banner"
     >
-      <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+      <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <AlertTitle>
+          <p className="text-sm font-semibold">
             {level === 'limit'
               ? t('redemptionsLimit', { limit })
               : t('redemptionsWarning', { percent: usagePercent(used, limit), used, limit })}
-          </AlertTitle>
-          <AlertDescription className="text-amber-800/90 dark:text-amber-300/80">
+          </p>
+          <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
             {level === 'limit'
               ? t('redemptionsLimitBody', { left: redemptionsLeft(used, hardLimit) })
               : t('redemptionsWarningBody', { limit, hardLimit })}
-          </AlertDescription>
+          </p>
         </div>
         {action}
       </div>
-    </Alert>
+    </div>
   );
 }

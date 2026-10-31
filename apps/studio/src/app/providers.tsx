@@ -1,6 +1,6 @@
 'use client';
 
-import { TooltipProvider } from '@playora/ui/components/tooltip';
+import { DirectionProvider } from '@playora/ui/components/foundations/direction/direction';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { useState } from 'react';
@@ -27,9 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <TooltipProvider>
+      <DirectionProvider locale="vi">
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </TooltipProvider>
+      </DirectionProvider>
     </ThemeProvider>
   );
 }

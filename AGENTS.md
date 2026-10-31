@@ -21,7 +21,7 @@ Read `docs/engineering/conventions.md` §3 before adding a feature, and the spec
 
 ## Stack
 
-Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · shadcn/ui (luma style) + Radix UI + Tailwind v4 · Biome · TypeScript 6 (not 7).
+Bun 1.4 workspaces + Turborepo · Next.js 16 (studio, play, web) · NestJS 12 on Bun (api, worker) · Drizzle + PostgreSQL · Valkey/Redis + BullMQ · Better Auth · zod 4 · BoardUI (`react-aria-components` + `@remixicon/react` + Tailwind v4) · Biome · TypeScript 6 (not 7).
 
 ## Commands
 
@@ -45,7 +45,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 3. **DB** — schema in `packages/db/src/schema/`, then `bun run db:generate`; commit the generated SQL.
 4. **API** — `apps/api/src/modules/<feature>/`: repository (every method takes `organizationId` first and filters by it) → service → controller using only `@Route(contract)` + `@Args()`.
 5. **Integration test** — `apps/api/test/<feature>.e2e.test.ts` with `createTestApp()`; must cover happy path, 400, 401 and **cross-tenant 403/404**.
-6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use `react-hook-form` + `zod` + shadcn `Form` (`@playora/ui/form`); toast via `sonner` (`toast.success` / `toast.error`); all text via next-intl with keys in **both** `vi.json` and `en.json`.
+6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use `react-hook-form` + `zod` + BoardUI inputs (`@playora/ui/components/base/input/input`, `@playora/ui/form`); toast via `@playora/ui/components/base/toast/toast` (`toast.success` / `toast.error`); all text via next-intl with keys in **both** `vi.json` and `en.json`.
 7. **E2E** for the main user flow in `tooling/e2e/tests/`.
 
 ## Hard rules
@@ -57,7 +57,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun run --cwd packages/auth generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
-- UI: use shadcn/ui components from `@playora/ui/components` and helpers from `@playora/ui/{providers,theme,form,game}` (ADR-016); toast via `sonner` (`toast.*`); luma style aesthetics with unified control radius (`rounded-xl` for buttons, inputs, selects) and soft cards (`rounded-2xl`).
+- UI: use BoardUI components from `@playora/ui/components/base/*` (`@playora/ui/components`) and helpers from `@playora/ui/{providers,theme,form,game,utils/cx}` (ADR-017); toast via `@playora/ui/components/base/toast/toast` (`toast.*`); style with BoardUI semantic tokens (`bg-background-primary-default`, `text-text-primary`, `border-border-button-default`, `rounded-2lg` for controls, `rounded-3xl` for cards/modals) and composite typography utilities (`text-body-medium`, `text-title-2-semibold`, etc.).
 - Before any UI work, read `docs/engineering/design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 

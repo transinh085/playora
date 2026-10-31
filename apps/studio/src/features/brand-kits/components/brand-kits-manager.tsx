@@ -7,9 +7,8 @@ import {
   CreateBrandKitBody,
   type ErrorCode,
 } from '@playora/contracts';
-import { Form } from '@playora/ui/components/form';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { applyApiErrorToRHF } from '@playora/ui/form';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -48,10 +47,10 @@ export function BrandKitsManager({ orgId }: { orgId: string }) {
   if (kitsQuery.isPending || assetsQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-48 w-full rounded-lg" />
+        <Skeleton className="h-48 w-full" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-32 rounded-lg" />
-          <Skeleton className="h-32 rounded-lg" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
       </div>
     );
@@ -152,34 +151,27 @@ export function BrandKitsManagerInner({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="flex flex-col gap-6">
-            <BrandKitEditorCard
-              form={form}
-              editingId={kit?.id ?? null}
-              imageAssets={imageAssets}
-              audioAssets={audioAssets}
-              isSubmitting={create.isPending || update.isPending}
-              onResetToNew={onResetToNew}
-            />
-
-            <BrandKitList
-              items={kits}
-              isRemoving={isRemoving}
-              onEdit={onEdit}
-              onRemove={onRemove}
-            />
-          </div>
-
-          <BrandKitPreviewCard
-            control={form.control}
-            initialValues={initialValues}
+    <form onSubmit={form.handleSubmit(handleSubmit)}>
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="flex flex-col gap-6">
+          <BrandKitEditorCard
+            form={form}
+            editingId={kit?.id ?? null}
             imageAssets={imageAssets}
+            audioAssets={audioAssets}
+            isSubmitting={create.isPending || update.isPending}
+            onResetToNew={onResetToNew}
           />
+
+          <BrandKitList items={kits} isRemoving={isRemoving} onEdit={onEdit} onRemove={onRemove} />
         </div>
-      </form>
-    </Form>
+
+        <BrandKitPreviewCard
+          control={form.control}
+          initialValues={initialValues}
+          imageAssets={imageAssets}
+        />
+      </div>
+    </form>
   );
 }

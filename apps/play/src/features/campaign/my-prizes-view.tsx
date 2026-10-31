@@ -2,9 +2,8 @@
 
 import type { PublicCampaign } from '@playora/contracts';
 import { LiveClock, VoucherList } from '@playora/ui/campaign';
-import { Button } from '@playora/ui/components/button';
+import { ButtonLink } from '@playora/ui/components/base/buttons/button';
 import { Gift } from '@playora/ui/icons';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { CampaignFrame } from './campaign-frame';
@@ -51,9 +50,9 @@ function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
           <Gift className="size-10 opacity-30" />
           <p className="text-sm">{t('noSession')}</p>
-          <Button asChild className="mt-2 rounded-full px-6">
-            <Link href={gameHref}>{t('playNow')}</Link>
-          </Button>
+          <ButtonLink href={gameHref} className="mt-2 rounded-full px-6">
+            {t('playNow')}
+          </ButtonLink>
         </div>
       ) : (
         <>
@@ -65,9 +64,9 @@ function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'
             loading={me.loading || me.state === null}
             labels={labels}
           />
-          <Button asChild variant="outline" className="w-full rounded-full mt-2">
-            <Link href={gameHref}>{t('backToGame')}</Link>
-          </Button>
+          <ButtonLink href={gameHref} variant="secondary" className="w-full rounded-full mt-2">
+            {t('backToGame')}
+          </ButtonLink>
         </>
       )}
     </div>

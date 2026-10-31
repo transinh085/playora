@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export function formatSeconds(seconds: number): string {
@@ -27,7 +27,7 @@ function Countdown({ seconds, urgentAt = 5, className, style, ...props }: Countd
       data-urgent={urgent || undefined}
       role="timer"
       aria-live={urgent ? 'assertive' : 'off'}
-      className={cn(
+      className={cx(
         'm-0 inline-block border-0 bg-transparent p-0 font-game text-[1em] font-extrabold leading-none tabular-nums text-game-primary data-urgent:text-game-urgent',
         className,
       )}
@@ -39,7 +39,7 @@ function Countdown({ seconds, urgentAt = 5, className, style, ...props }: Countd
     >
       <span
         key={urgent ? value : 'steady'}
-        className={cn('inline-block', urgent && 'animate-score-pop')}
+        className={cx('inline-block', urgent && 'animate-score-pop')}
       >
         {value}
       </span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 export type TeamBarProps = React.ComponentProps<'div'> & {
@@ -28,7 +28,7 @@ function TeamBar({
     <div
       data-slot="team-bar"
       data-leading={leading || undefined}
-      className={cn('grid gap-[0.3em]', className)}
+      className={cx('grid gap-[0.3em]', className)}
       style={{ '--tile': `var(--team-${((team - 1) % 8) + 1})`, ...style } as React.CSSProperties}
       {...props}
     >

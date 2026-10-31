@@ -1,110 +1,93 @@
 'use client';
 
 import { toCanvasPrizes } from '@playora/ui/campaign';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Card, CardContent } from '@playora/ui/components/card';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@playora/ui/components/dropdown-menu';
-import { Input } from '@playora/ui/components/input';
-import { Progress } from '@playora/ui/components/progress';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import { toast } from '@playora/ui/components/sonner';
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+} from '@playora/ui/components/base/drawer/drawer';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
+  Dropdown,
+  DropdownDivider,
+  DropdownItem,
+  DropdownPopover,
+  DropdownTrigger,
+} from '@playora/ui/components/base/dropdown/dropdown';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Tab, TabList, Tabs } from '@playora/ui/components/base/tabs/tabs';
+import { toast } from '@playora/ui/components/base/toast/toast';
+import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { Search, Sparkles } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import {
-  Activity,
-  ArrowUp,
-  ArrowUpDown,
-  Briefcase,
-  Building2,
-  Calendar,
-  Check,
-  Copy,
-  ExternalLink,
-  Eye,
-  GripVertical,
-  Hash,
-  LayoutGrid,
-  ListOrdered,
-  MoreVertical,
-  Pencil,
-  Plus,
-  Save,
-  Search,
-  Settings,
-  SlidersHorizontal,
-  Sparkles,
-  Tags,
-} from '@playora/ui/icons';
-import { cn } from '@playora/ui/lib/utils';
+  RiArrowDownLine,
+  RiArrowUpLine,
+  RiExternalLinkLine,
+  RiEyeLine,
+  RiFileCopyLine,
+  RiGridLine,
+  RiMore2Fill,
+  RiPencilLine,
+  RiQrCodeLine,
+  RiSearchLine,
+  RiSidebarUnfoldLine,
+  RiTableLine,
+} from '@remixicon/react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { EmptyState } from '@/components/empty-state';
 import { QueryError } from '@/components/query-error';
 import { TableCard } from '@/components/table-card';
-import { type CampaignListItem, useCampaignStats, useCampaigns } from '../../api';
+import {
+  type CampaignListItem,
+  type CampaignStats,
+  useCampaigns,
+  useCampaignsStats,
+} from '../../api';
 import { type CampaignPhase, campaignPhase } from '../../lib/phase';
 import { campaignRoutes } from '../../lib/routes';
+import { formatVnd } from '../../lib/rules-format';
 import { buildScreens } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 import { campaignPeriod } from './campaign-period';
 import { PhaseTag } from './phase-tag';
 
-const PHASES: CampaignPhase[] = ['live', 'scheduled', 'draft', 'paused', 'ended'];
-
-const ROW_GRADIENTS = [
-  'from-emerald-400 to-cyan-500',
-  'from-rose-400 to-red-500',
-  'from-amber-400 to-orange-500',
-  'from-blue-400 to-indigo-500',
-  'from-fuchsia-400 to-purple-500',
-  'from-cyan-400 to-blue-500',
-] as const;
+const PHASES: readonly CampaignPhase[] = ['live', 'scheduled', 'draft', 'paused', 'ended'] as const;
 
 type ViewMode = 'table' | 'grid';
-type RowDensity = 'compact' | 'default' | 'comfortable';
-type SortKey = 'name' | 'template' | 'status' | 'period' | null;
+type SortKey = 'name' | 'template' | 'status' | 'period' | 'plays' | null;
 type SortDir = 'asc' | 'desc';
-
-const DENSITY_HEIGHT_CLASS: Record<RowDensity, string> = {
-  compact: 'h-[36px]',
-  default: 'h-[44px]',
-  comfortable: 'h-[56px]',
-};
 
 export function CampaignList({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns');
+  const th = useTranslations('campaigns.home');
   const tl = useTranslations('builderLab.home');
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
+
   const query = useCampaigns(orgId);
+  const campaigns = query.data ?? [];
+  const campaignIds = useMemo(() => campaigns.map((c) => c.id), [campaigns]);
+  const { data: statsById } = useCampaignsStats(orgId, campaignIds);
+
   const routes = campaignRoutes(orgId);
   const [phase, setPhase] = useState<CampaignPhase | 'all'>('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('table');
-  const [density, setDensity] = useState<RowDensity>('default');
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [isViewDirty, setIsViewDirty] = useState(true);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
 
   const toggleSort = (key: Exclude<SortKey, null>) => {
-    setIsViewDirty(true);
     if (sortKey !== key) {
       setSortKey(key);
       setSortDir('asc');
@@ -116,27 +99,46 @@ export function CampaignList({ orgId }: { orgId: string }) {
     }
   };
 
+  const handleCopyLink = async (campaign: { id: string; slug: string; status: string }) => {
+    try {
+      const url =
+        campaign.status === 'draft'
+          ? `${window.location.origin}${routes.rehearsal(campaign.id)}`
+          : routes.play(campaign.slug);
+      await navigator.clipboard.writeText(url);
+      toast.success(t('linkCopied'));
+    } catch {
+      // Fallback ignore
+    }
+  };
+
   if (query.isPending) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-64 w-full rounded-lg" />
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-10 w-96 rounded-xl" />
+        <Skeleton className="h-72 w-full rounded-3xl" />
       </div>
     );
   }
-  if (query.isError) return <QueryError onRetry={() => query.refetch()} />;
 
-  const rows = (query.data ?? []).map((campaign) => ({
+  if (query.isError) {
+    return <QueryError onRetry={() => query.refetch()} />;
+  }
+
+  const rows = campaigns.map((campaign) => ({
     campaign,
     phase: campaignPhase(campaign, now),
   }));
+
   const count = (value: CampaignPhase) => rows.filter((row) => row.phase === value).length;
   const needle = search.trim().toLowerCase();
+
   const filtered = rows.filter(
     (row) =>
       (phase === 'all' || row.phase === phase) &&
       (!needle || row.campaign.name.toLowerCase().includes(needle)),
   );
+
   const visible = [...filtered].sort((a, b) => {
     if (!sortKey) return 0;
     const mul = sortDir === 'asc' ? 1 : -1;
@@ -149,20 +151,19 @@ export function CampaignList({ orgId }: { orgId: string }) {
     if (sortKey === 'status') {
       return a.phase.localeCompare(b.phase) * mul;
     }
+    if (sortKey === 'plays') {
+      const aPlays = statsById?.get(a.campaign.id)?.plays ?? 0;
+      const bPlays = statsById?.get(b.campaign.id)?.plays ?? 0;
+      return (aPlays - bPlays) * mul;
+    }
     const aStart = new Date(a.campaign.rules.startsAt).getTime();
     const bStart = new Date(b.campaign.rules.startsAt).getTime();
     return (aStart - bStart) * mul;
   });
 
-  const handleCopyLink = async (campaignId: string) => {
-    try {
-      const url = `${window.location.origin}${routes.play(campaignId)}`;
-      await navigator.clipboard.writeText(url);
-      toast.success(t('linkCopied'));
-    } catch {
-      // Fallback
-    }
-  };
+  const selectedCampaign = campaigns.find((c) => c.id === selectedCampaignId) ?? null;
+  const selectedPhase = selectedCampaign ? campaignPhase(selectedCampaign, now) : 'draft';
+  const selectedStats = selectedCampaign ? statsById?.get(selectedCampaign.id) : undefined;
 
   if (rows.length === 0) {
     return (
@@ -176,648 +177,557 @@ export function CampaignList({ orgId }: { orgId: string }) {
     );
   }
 
-  const activeFilterCount = (phase !== 'all' ? 1 : 0) + (needle ? 1 : 0);
-
   return (
-    <TableCard
-      toolbar={
-        <div className="flex w-full flex-wrap items-center justify-between gap-3">
-          {/* Left: Filter (n) + Filter Chips + Add Filter (+) */}
-          <div className="flex flex-wrap items-center gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                setPhase('all');
-                setIsViewDirty(true);
-              }}
-              className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-neutral-600 transition-all duration-150 hover:bg-neutral-100 active:scale-[0.97] dark:text-[#A3A3A3] dark:hover:bg-white/5"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="text-sm font-normal">
-                Filter (<span className="tabular-nums">{activeFilterCount}</span>)
-              </span>
-            </button>
+    <div className="flex flex-col gap-4">
+      {/* 1. BoardUI Underline Tabs with Count Badges */}
+      <Tabs
+        selectedKey={phase}
+        onSelectionChange={(key) => setPhase(String(key) as CampaignPhase | 'all')}
+      >
+        <TabList aria-label={t('title')}>
+          <Tab id="all" count={rows.length}>
+            {t('all')}
+          </Tab>
+          {PHASES.map((tab) => {
+            const tabCount = count(tab);
+            if (tabCount === 0 && phase !== tab) return null;
+            return (
+              <Tab key={tab} id={tab} count={tabCount}>
+                {t(`phase.${tab}`)}
+              </Tab>
+            );
+          })}
+        </TabList>
+      </Tabs>
 
-            <div className="flex flex-wrap items-center gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setPhase('all');
-                  setIsViewDirty(true);
-                }}
-                className={cn(
-                  'flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-[13px] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.96]',
-                  phase === 'all'
-                    ? 'border-neutral-200 bg-neutral-100 font-medium text-neutral-900 dark:border-white/10 dark:bg-white/10 dark:text-[#FAFAFA]'
-                    : 'border-transparent font-normal text-neutral-500 hover:bg-neutral-100 dark:text-[#737373] dark:hover:bg-white/5',
-                )}
-              >
-                <span>{t('all')}</span>
-                <span className="text-xs opacity-70 tabular-nums">{rows.length}</span>
-              </button>
-              {PHASES.filter((value) => count(value) > 0).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    setPhase(value);
-                    setIsViewDirty(true);
-                  }}
-                  className={cn(
-                    'flex h-8 animate-crm-chip-in cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-[13px] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.96]',
-                    phase === value
-                      ? 'border-neutral-200 bg-neutral-100 font-medium text-neutral-900 dark:border-white/10 dark:bg-white/10 dark:text-[#FAFAFA]'
-                      : 'border-transparent font-normal text-neutral-500 hover:bg-neutral-100 dark:text-[#737373] dark:hover:bg-white/5',
-                  )}
-                >
-                  <span>{t(`phase.${value}`)}</span>
-                  <span className="text-xs opacity-70 tabular-nums">{count(value)}</span>
-                </button>
-              ))}
-            </div>
-
-            <Link
-              href={routes.create}
-              title={t('create')}
-              aria-label={t('create')}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md p-1.5 text-neutral-500 transition-all duration-150 hover:bg-neutral-100 active:scale-95 dark:text-[#737373] dark:hover:bg-white/5"
-            >
-              <Plus className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {/* Right: Search + Layout + Sort + View Settings + Divider + Save */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-48">
-              <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-              <Input
+      {/* 2. Main Campaign TableCard */}
+      <TableCard
+        toolbar={
+          <div className="flex w-full flex-wrap items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="w-full sm:w-72">
+              <InputBase
+                size="small"
                 placeholder={t('search')}
                 aria-label={t('search')}
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setIsViewDirty(true);
-                }}
-                className="h-8 rounded-md border-neutral-200 bg-white pl-8 text-[13px] shadow-none transition-all duration-150 dark:border-white/10 dark:bg-[#0A0A0A]"
+                onChange={(e) => setSearch(e.target.value)}
+                leadingIcon={RiSearchLine}
               />
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-neutral-600 transition-all duration-150 hover:bg-neutral-100 active:scale-[0.97] dark:text-[#A3A3A3] dark:hover:bg-white/5"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="hidden text-sm font-normal sm:block">Layout</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setViewMode(viewMode === 'table' ? 'grid' : 'table');
-                    setIsViewDirty(true);
-                  }}
-                  className="justify-between"
-                >
-                  <span>{viewMode === 'table' ? t('viewGrid') : t('viewTable')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {(
-                  [
-                    { key: 'compact', label: 'Compact (36px)' },
-                    { key: 'default', label: 'Default (44px)' },
-                    { key: 'comfortable', label: 'Comfortable (56px)' },
-                  ] as const
-                ).map((item) => (
-                  <DropdownMenuItem
-                    key={item.key}
-                    onClick={() => {
-                      setDensity(item.key);
-                      setIsViewDirty(true);
-                    }}
-                    className="justify-between"
-                  >
-                    <span>{item.label}</span>
-                    {density === item.key && <Check className="h-3.5 w-3.5 text-blue-500" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-all duration-150 hover:bg-neutral-100 active:scale-[0.97] dark:hover:bg-white/5',
-                    sortKey
-                      ? 'bg-neutral-100 font-medium text-neutral-900 dark:bg-white/10 dark:text-[#FAFAFA]'
-                      : 'text-neutral-600 dark:text-[#A3A3A3]',
-                  )}
-                >
-                  <ArrowUpDown className="h-4 w-4" />
-                  <span className="hidden text-sm font-normal sm:block">
-                    Sort{sortKey ? ` (1)` : ''}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {(
-                  [
-                    { key: 'name', label: t('columns.name') },
-                    { key: 'template', label: 'Template' },
-                    { key: 'status', label: t('columns.status') },
-                    { key: 'period', label: t('columns.period') },
-                  ] as const
-                ).map((item) => (
-                  <DropdownMenuItem
-                    key={item.key}
-                    onClick={() => toggleSort(item.key)}
-                    className="justify-between"
-                  >
-                    <span>{item.label}</span>
-                    {sortKey === item.key && (
-                      <ArrowUp
-                        className={cn(
-                          'h-3.5 w-3.5 text-blue-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                          sortDir === 'desc' && 'rotate-180',
-                        )}
-                      />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-                {sortKey && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortKey(null);
-                        setIsViewDirty(true);
-                      }}
-                    >
-                      Clear sort
-                    </DropdownMenuItem>
-                  </>
+            {/* View Mode Controls */}
+            <div className="flex items-center rounded-lg border border-border-button-default bg-background-secondary-default p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                aria-label={t('viewTable')}
+                className={cx(
+                  'flex size-7 items-center justify-center rounded-md cursor-pointer transition-colors',
+                  viewMode === 'table'
+                    ? 'bg-background-primary-default text-text-primary shadow-xs'
+                    : 'text-text-tertiary hover:text-text-primary',
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode(viewMode === 'table' ? 'grid' : 'table');
-                setIsViewDirty(true);
-              }}
-              className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-neutral-600 transition-all duration-150 hover:bg-neutral-100 active:scale-[0.97] dark:text-[#A3A3A3] dark:hover:bg-white/5"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden text-sm font-normal lg:block">View Settings</span>
-            </button>
-
-            <div className="mx-1 hidden h-[18px] w-[0.5px] bg-neutral-200 sm:block dark:bg-white/10" />
-
-            <button
-              type="button"
-              title="Save view"
-              aria-label="Save view"
-              onClick={() => {
-                setIsViewDirty(false);
-              }}
-              className="relative hidden h-8 w-8 cursor-pointer items-center justify-center rounded-md p-2 text-neutral-500 transition-all duration-150 hover:bg-neutral-100 active:scale-95 sm:flex dark:text-[#737373] dark:hover:bg-white/5"
-            >
-              <Save className="h-4 w-4" />
-              <span
-                className={cn(
-                  'absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                  isViewDirty ? 'scale-100 opacity-100' : 'scale-0 opacity-0',
+              >
+                <RiTableLine className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                aria-label={t('viewGrid')}
+                className={cx(
+                  'flex size-7 items-center justify-center rounded-md cursor-pointer transition-colors',
+                  viewMode === 'grid'
+                    ? 'bg-background-primary-default text-text-primary shadow-xs'
+                    : 'text-text-tertiary hover:text-text-primary',
                 )}
-              />
-            </button>
+              >
+                <RiGridLine className="size-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      }
-    >
-      {visible.length === 0 ? (
-        <EmptyState
-          bordered={false}
-          icon={Search}
-          title={t('noMatchTitle')}
-          description={t('noMatchSubtitle')}
-          actionText={t('clearFilters')}
-          onAction={() => {
-            setSearch('');
-            setPhase('all');
-          }}
-        />
-      ) : viewMode === 'table' ? (
-        <div className="overflow-x-auto" data-testid="campaign-table">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {/* Col 1: Numbering (#) */}
-                <TableHead className="relative w-[52px] text-center">
-                  <span className="text-sm font-medium text-neutral-500 dark:text-[#737373]">
-                    #
-                  </span>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
-
-                {/* Col 2: Campaign Name */}
-                <TableHead className="relative">
-                  <div className="flex items-center justify-between gap-2 px-1">
+        }
+      >
+        {visible.length === 0 ? (
+          <EmptyState
+            bordered={false}
+            icon={Search}
+            title={t('noMatchTitle')}
+            description={t('noMatchSubtitle')}
+            actionText={t('clearFilters')}
+            onAction={() => {
+              setSearch('');
+              setPhase('all');
+            }}
+          />
+        ) : viewMode === 'table' ? (
+          <div className="w-full overflow-x-auto" data-testid="campaign-table">
+            <table className="bui-table w-full">
+              <thead>
+                <tr>
+                  <th className="w-12 text-center text-caption-1-medium text-text-tertiary">#</th>
+                  <th>
                     <button
                       type="button"
                       onClick={() => toggleSort('name')}
-                      className="flex cursor-pointer items-center gap-2 text-left transition-opacity hover:opacity-80"
+                      className="inline-flex items-center gap-1.5 cursor-pointer font-medium hover:text-text-primary"
                     >
-                      <Building2 className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                      <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                        {t('columns.name')}
-                      </span>
-                      <ArrowUp
-                        className={cn(
-                          'h-3.5 w-3.5 shrink-0 text-blue-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                          sortKey === 'name' ? 'scale-100 opacity-100' : 'w-0 scale-75 opacity-0',
-                          sortKey === 'name' && sortDir === 'desc' && 'rotate-180',
-                        )}
-                      />
+                      <span>{t('columns.name')}</span>
+                      {sortKey === 'name' &&
+                        (sortDir === 'asc' ? (
+                          <RiArrowUpLine className="size-3.5 text-accent-500" />
+                        ) : (
+                          <RiArrowDownLine className="size-3.5 text-accent-500" />
+                        ))}
                     </button>
-                    <Link
-                      href={routes.create}
-                      aria-label={t('create')}
-                      className="rounded p-0.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-white/10 dark:hover:text-[#FAFAFA]"
+                  </th>
+                  <th>{tl('mechanicsLabel')}</th>
+                  <th>
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('status')}
+                      className="inline-flex items-center gap-1.5 cursor-pointer font-medium hover:text-text-primary"
                     >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
+                      <span>{t('columns.status')}</span>
+                      {sortKey === 'status' &&
+                        (sortDir === 'asc' ? (
+                          <RiArrowUpLine className="size-3.5 text-accent-500" />
+                        ) : (
+                          <RiArrowDownLine className="size-3.5 text-accent-500" />
+                        ))}
+                    </button>
+                  </th>
+                  <th>
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('period')}
+                      className="inline-flex items-center gap-1.5 cursor-pointer font-medium hover:text-text-primary"
+                    >
+                      <span>{t('columns.period')}</span>
+                      {sortKey === 'period' &&
+                        (sortDir === 'asc' ? (
+                          <RiArrowUpLine className="size-3.5 text-accent-500" />
+                        ) : (
+                          <RiArrowDownLine className="size-3.5 text-accent-500" />
+                        ))}
+                    </button>
+                  </th>
+                  <th className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('plays')}
+                      className="ml-auto inline-flex items-center gap-1.5 cursor-pointer font-medium hover:text-text-primary"
+                    >
+                      <span>{t('columns.plays')}</span>
+                      {sortKey === 'plays' &&
+                        (sortDir === 'asc' ? (
+                          <RiArrowUpLine className="size-3.5 text-accent-500" />
+                        ) : (
+                          <RiArrowDownLine className="size-3.5 text-accent-500" />
+                        ))}
+                    </button>
+                  </th>
+                  <th>{t('columns.stock')}</th>
+                  <th className="text-right">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map(({ campaign, phase: rowPhase }, idx) => {
+                  const campaignStats = statsById?.get(campaign.id);
+                  const totalPrizes = campaign.prizes.reduce((sum, p) => sum + p.quantity, 0);
+                  const remainingPrizes = Object.values(
+                    campaignStats?.remainingByPrize ?? {},
+                  ).reduce((a, b) => a + b, 0);
+                  const stockPercent = totalPrizes
+                    ? Math.round((remainingPrizes / totalPrizes) * 100)
+                    : 0;
+                  const isSelected = selectedCampaignId === campaign.id;
 
-                {/* Col 3: Categories / Template */}
-                <TableHead className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('template')}
-                    className="flex w-full cursor-pointer items-center gap-2 px-1 text-left transition-opacity hover:opacity-80"
-                  >
-                    <Tags className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                    <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                      Template
-                    </span>
-                    <ArrowUp
-                      className={cn(
-                        'h-3.5 w-3.5 shrink-0 text-blue-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                        sortKey === 'template' ? 'scale-100 opacity-100' : 'w-0 scale-75 opacity-0',
-                        sortKey === 'template' && sortDir === 'desc' && 'rotate-180',
-                      )}
-                    />
-                  </button>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
+                  const categoryTone =
+                    campaign.templateKey === 'spin-wheel'
+                      ? ('orange' as const)
+                      : campaign.templateKey === 'scratch-card'
+                        ? ('cyan' as const)
+                        : ('purple' as const);
 
-                {/* Col 4: Status */}
-                <TableHead className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('status')}
-                    className="flex w-full cursor-pointer items-center gap-2 px-1 text-left transition-opacity hover:opacity-80"
-                  >
-                    <Activity className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                    <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                      {t('columns.status')}
-                    </span>
-                    <ArrowUp
-                      className={cn(
-                        'h-3.5 w-3.5 shrink-0 text-blue-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                        sortKey === 'status' ? 'scale-100 opacity-100' : 'w-0 scale-75 opacity-0',
-                        sortKey === 'status' && sortDir === 'desc' && 'rotate-180',
-                      )}
-                    />
-                  </button>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
+                  const skinTone =
+                    campaign.skinKey === 'tet'
+                      ? ('rose' as const)
+                      : campaign.skinKey === 'grand-opening'
+                        ? ('purple' as const)
+                        : ('blue' as const);
 
-                {/* Col 5: Period */}
-                <TableHead className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('period')}
-                    className="flex w-full cursor-pointer items-center gap-2 px-1 text-left transition-opacity hover:opacity-80"
-                  >
-                    <Calendar className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                    <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                      {t('columns.period')}
-                    </span>
-                    <ArrowUp
-                      className={cn(
-                        'h-3.5 w-3.5 shrink-0 text-blue-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                        sortKey === 'period' ? 'scale-100 opacity-100' : 'w-0 scale-75 opacity-0',
-                        sortKey === 'period' && sortDir === 'desc' && 'rotate-180',
-                      )}
-                    />
-                  </button>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
-
-                {/* Col 6: Plays */}
-                <TableHead className="relative text-right">
-                  <div className="flex items-center justify-end gap-2 px-1">
-                    <Hash className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                    <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                      {t('columns.plays')}
-                    </span>
-                  </div>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
-
-                {/* Col 7: Stock */}
-                <TableHead className="relative w-40">
-                  <div className="flex items-center gap-2 px-1">
-                    <Briefcase className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#737373]" />
-                    <span className="truncate text-sm font-normal text-neutral-900 dark:text-[#FAFAFA]">
-                      {t('columns.stock')}
-                    </span>
-                  </div>
-                  <div className="group absolute top-0 right-0 z-30 flex h-full w-[10px] translate-x-1/2 cursor-col-resize justify-center">
-                    <div className="h-full w-[2px] transition-colors duration-200 group-hover:bg-blue-500" />
-                  </div>
-                </TableHead>
-
-                {/* Col 8: Actions */}
-                <TableHead className="w-20 text-right" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visible.map(({ campaign, phase: rowPhase }, idx) => {
-                const grad = ROW_GRADIENTS[idx % ROW_GRADIENTS.length];
-                const categoryTone =
-                  campaign.templateKey === 'spin-wheel'
-                    ? ('orange' as const)
-                    : campaign.templateKey === 'scratch-card'
-                      ? ('teal' as const)
-                      : ('purple' as const);
-                const skinTone =
-                  campaign.skinKey === 'tet'
-                    ? ('rose' as const)
-                    : campaign.skinKey === 'grand-opening'
-                      ? ('indigo' as const)
-                      : ('blue' as const);
-
-                return (
-                  <TableRow
-                    key={campaign.id}
-                    style={{ animationDelay: `${Math.min(idx * 25, 250)}ms` }}
-                    className={cn(
-                      'group animate-crm-row-in transition-[height,background-color] duration-[340ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
-                      DENSITY_HEIGHT_CLASS[density],
-                    )}
-                  >
-                    {/* Col 1: Row number + GripVertical on hover */}
-                    <TableCell
-                      className={cn(
-                        'w-[52px] text-center transition-[height,padding] duration-[340ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
-                        DENSITY_HEIGHT_CLASS[density],
+                  return (
+                    <tr
+                      key={campaign.id}
+                      className={cx(
+                        'transition-colors hover:bg-background-secondary-default/60',
+                        isSelected && 'bg-background-secondary-default ring-1 ring-accent-500/30',
                       )}
                     >
-                      <div className="relative flex items-center justify-center">
-                        <span className="text-sm font-normal text-neutral-500 tabular-nums group-hover:hidden dark:text-[#A3A3A3]">
-                          {idx + 1}
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className="hidden items-center justify-center rounded p-1 text-neutral-400 group-hover:flex dark:text-[#737373]"
+                      {/* # index */}
+                      <td className="w-12 text-center text-caption-1-regular text-text-tertiary tabular-nums">
+                        {idx + 1}
+                      </td>
+
+                      {/* Name + Brand swatch */}
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCampaignId(campaign.id)}
+                          className="flex items-center gap-2.5 text-left cursor-pointer group/name"
                         >
-                          <GripVertical className="h-4 w-4" />
-                        </span>
-                      </div>
-                    </TableCell>
+                          <div
+                            aria-hidden="true"
+                            className="size-3.5 shrink-0 rounded-full border border-border-button-default"
+                            style={{ backgroundColor: campaign.brand.primary }}
+                          />
+                          <span className="font-medium text-text-primary group-hover/name:text-accent-600 transition-colors">
+                            {campaign.name}
+                          </span>
+                        </button>
+                      </td>
 
-                    {/* Col 2: Gradient swatch + Campaign Link */}
-                    <TableCell>
-                      <div className="flex items-center gap-2 px-1">
-                        <div
-                          aria-hidden="true"
-                          className={`h-4 w-4 shrink-0 rounded-md bg-gradient-to-tr ${grad} shadow-2xs`}
-                        />
-                        <Link
-                          href={
-                            rowPhase === 'draft'
-                              ? routes.edit(campaign.id)
-                              : routes.detail(campaign.id)
-                          }
-                          className="truncate text-sm font-medium text-neutral-900 transition-colors hover:underline dark:text-[#FAFAFA]"
-                        >
-                          {campaign.name}
-                        </Link>
-                      </div>
-                    </TableCell>
+                      {/* Template & Skin chips */}
+                      <td>
+                        <div className="flex items-center gap-1.5">
+                          <Chip variant="subtle" color={categoryTone}>
+                            {tl(`templates.${campaign.templateKey}`)}
+                          </Chip>
+                          <Chip variant="subtle" color={skinTone}>
+                            {tl(`skins.${campaign.skinKey}`)}
+                          </Chip>
+                        </div>
+                      </td>
 
-                    {/* Col 3: Pastel Category Tags */}
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 px-1">
-                        <Badge variant={categoryTone}>
-                          {tl(`templates.${campaign.templateKey}`)}
-                        </Badge>
-                        <Badge variant={skinTone}>{tl(`skins.${campaign.skinKey}`)}</Badge>
-                      </div>
-                    </TableCell>
-
-                    {/* Col 4: Status */}
-                    <TableCell>
-                      <div className="px-1">
+                      {/* Status */}
+                      <td>
                         <PhaseTag phase={rowPhase} />
-                      </div>
-                    </TableCell>
+                      </td>
 
-                    {/* Col 5: Period */}
-                    <TableCell>
-                      <span className="px-1 text-sm font-normal text-neutral-600 dark:text-[#A3A3A3]">
-                        {campaignPeriod(format, campaign)}
-                      </span>
-                    </TableCell>
+                      {/* Period */}
+                      <td>
+                        <span className="text-body-medium text-text-secondary">
+                          {campaignPeriod(format, campaign)}
+                        </span>
+                      </td>
 
-                    {/* Col 6: Plays */}
-                    <TableCell className="text-right">
-                      <div className="px-1">
-                        <PlaysCell campaign={campaign} phase={rowPhase} />
-                      </div>
-                    </TableCell>
+                      {/* Plays */}
+                      <td className="text-right tabular-nums text-body-medium font-medium text-text-primary">
+                        {rowPhase === 'draft' ? (
+                          <span className="text-text-tertiary">—</span>
+                        ) : (
+                          format.number(campaignStats?.plays ?? 0)
+                        )}
+                      </td>
 
-                    {/* Col 7: Stock */}
-                    <TableCell>
-                      <div className="px-1">
-                        <StockCell campaign={campaign} phase={rowPhase} />
-                      </div>
-                    </TableCell>
+                      {/* Stock */}
+                      <td>
+                        {rowPhase === 'draft' ? (
+                          <span className="text-caption-1-regular text-text-tertiary">—</span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-caption-1-regular tabular-nums text-text-secondary">
+                              {remainingPrizes}/{totalPrizes}
+                            </span>
+                            <Chip
+                              variant="subtle"
+                              color={
+                                stockPercent >= 60 ? 'lime' : stockPercent >= 20 ? 'yellow' : 'rose'
+                              }
+                            >
+                              {stockPercent}%
+                            </Chip>
+                          </div>
+                        )}
+                      </td>
 
-                    {/* Col 8: Actions */}
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link href={routes.edit(campaign.id)} aria-label={t('edit')}>
-                              <Button variant="ghost" size="icon" className="size-7 rounded-md">
-                                <Pencil className="size-3.5" />
-                              </Button>
-                            </Link>
+                      {/* Actions */}
+                      <td className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <TooltipTrigger>
+                            <IconButton
+                              size="small"
+                              icon={RiSidebarUnfoldLine}
+                              aria-label={t('quickView')}
+                              onClick={() => setSelectedCampaignId(campaign.id)}
+                            />
+                            <Tooltip>{t('quickView')}</Tooltip>
                           </TooltipTrigger>
-                          <TooltipContent>{t('edit')}</TooltipContent>
-                        </Tooltip>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-7 rounded-md">
-                              <MoreVertical className="size-3.5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={routes.edit(campaign.id)} className="gap-2">
-                                <Pencil className="size-3.5" />
-                                {t('edit')}
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={routes.detail(campaign.id)} className="gap-2">
-                                <Eye className="size-3.5" />
-                                {t('openOps')}
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={routes.play(campaign.id)}
-                                target="_blank"
-                                rel="noreferrer"
+                          <Dropdown>
+                            <DropdownTrigger
+                              aria-label={t('actions')}
+                              className="inline-flex size-8 items-center justify-center rounded-2lg border border-border-button-default bg-background-primary-default text-foreground-icon-primary shadow-xs hover:bg-background-secondary-hover"
+                            >
+                              <RiMore2Fill className="size-4" />
+                            </DropdownTrigger>
+                            <DropdownPopover
+                              aria-label={t('actions')}
+                              placement="bottom end"
+                              className="w-48"
+                            >
+                              <DropdownItem
+                                onSelect={() => setSelectedCampaignId(campaign.id)}
                                 className="gap-2"
                               >
-                                <ExternalLink className="size-3.5" />
-                                {t('openPlay')}
+                                <RiSidebarUnfoldLine className="size-4" />
+                                <span>{t('quickView')}</span>
+                              </DropdownItem>
+                              <Link
+                                href={routes.edit(campaign.id) as Route}
+                                className="flex w-full items-center gap-2 rounded-2lg p-2 text-body-medium text-text-primary hover:bg-background-secondary-hover"
+                              >
+                                <RiPencilLine className="size-4" />
+                                <span>{t('edit')}</span>
+                              </Link>
+                              <Link
+                                href={routes.detail(campaign.id) as Route}
+                                className="flex w-full items-center gap-2 rounded-2lg p-2 text-body-medium text-text-primary hover:bg-background-secondary-hover"
+                              >
+                                <RiEyeLine className="size-4" />
+                                <span>{t('openOps')}</span>
+                              </Link>
+                              <a
+                                href={
+                                  rowPhase === 'draft'
+                                    ? routes.rehearsal(campaign.id)
+                                    : routes.play(campaign.slug)
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex w-full items-center gap-2 rounded-2lg p-2 text-body-medium text-text-primary hover:bg-background-secondary-hover"
+                              >
+                                <RiExternalLinkLine className="size-4" />
+                                <span>{rowPhase === 'draft' ? t('rehearse') : t('openPlay')}</span>
                               </a>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleCopyLink(campaign.id)}
-                              className="gap-2"
-                            >
-                              <Copy className="size-3.5" />
-                              {t('copyLink')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-            {/* Sticky Table Footer Row (1-to-1 Louis CRM) */}
-            <TableFooter>
-              <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
-                <TableCell className="text-center text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                  -
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 px-1 text-sm font-normal text-neutral-500 tabular-nums dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Total: {visible.length}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 px-1 text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Count</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 px-1 text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Count</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 px-1 text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Count</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-2 px-1 text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Count</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 px-1 text-sm font-normal text-neutral-500 dark:text-[#A3A3A3]">
-                    <ListOrdered className="h-4 w-4 shrink-0" />
-                    <span>Count</span>
-                  </div>
-                </TableCell>
-                <TableCell />
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
-      ) : (
-        <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map(({ campaign, phase: rowPhase }, idx) => (
-            <div
-              key={campaign.id}
-              style={{ animationDelay: `${Math.min(idx * 35, 280)}ms` }}
-              className="animate-crm-row-in"
-            >
+                              <DropdownDivider />
+                              <DropdownItem
+                                onSelect={() => handleCopyLink(campaign)}
+                                className="gap-2"
+                              >
+                                <RiFileCopyLine className="size-4" />
+                                <span>{t('copyLink')}</span>
+                              </DropdownItem>
+                            </DropdownPopover>
+                          </Dropdown>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Grid Cards View */
+          <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {visible.map(({ campaign, phase: rowPhase }) => (
               <CampaignGridCard
+                key={campaign.id}
                 campaign={campaign}
                 phase={rowPhase}
+                stats={statsById?.get(campaign.id)}
                 routes={routes}
                 format={format}
+                onSelect={() => setSelectedCampaignId(campaign.id)}
                 onCopyLink={handleCopyLink}
               />
-            </div>
-          ))}
-        </div>
-      )}
-    </TableCard>
+            ))}
+          </div>
+        )}
+      </TableCard>
+
+      {/* 3. Side Drawer: Quick Inspection Panel */}
+      <Drawer
+        placement="end"
+        size="lg"
+        isOpen={Boolean(selectedCampaign)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCampaignId(null);
+        }}
+      >
+        {selectedCampaign && (
+          <>
+            <DrawerHeader
+              title={selectedCampaign.name}
+              description={
+                <div className="mt-1 flex items-center gap-2">
+                  <PhaseTag phase={selectedPhase} />
+                  <span className="text-caption-1-regular text-text-tertiary">
+                    {tl(`templates.${selectedCampaign.templateKey}`)} ·{' '}
+                    {tl(`skins.${selectedCampaign.skinKey}`)}
+                  </span>
+                </div>
+              }
+            />
+
+            <DrawerBody className="flex flex-col gap-5 py-4">
+              {/* Phone Mockup Canvas Preview */}
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-separator-border bg-background-secondary-default/40 p-4">
+                <div className="relative aspect-[9/16] w-full max-w-[210px] overflow-hidden rounded-2xl border border-border-button-default bg-background-primary-default shadow-card">
+                  <FitScreen
+                    screen={
+                      buildScreens(selectedCampaign.templateKey, selectedCampaign.skinKey).cover
+                    }
+                    brand={selectedCampaign.brand}
+                    prizes={toCanvasPrizes(selectedCampaign)}
+                  />
+                </div>
+                <p className="mt-2 text-caption-1-regular text-text-tertiary">
+                  {campaignPeriod(format, selectedCampaign)}
+                </p>
+              </div>
+
+              {/* Outcome Performance Metrics */}
+              {selectedPhase !== 'draft' ? (
+                <div className="flex flex-col gap-2">
+                  <span className="text-caption-1-semibold text-text-primary">
+                    {th('trends.title')}
+                  </span>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
+                      <span className="text-caption-1-regular text-text-secondary">
+                        {t('columns.plays')}
+                      </span>
+                      <p className="text-title-2-semibold text-text-primary tabular-nums">
+                        {format.number(selectedStats?.plays ?? 0)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
+                      <span className="text-caption-1-regular text-text-secondary">
+                        {th('trends.redeemed')}
+                      </span>
+                      <p className="text-title-2-semibold text-accent-600 dark:text-accent-400 tabular-nums">
+                        {format.number(selectedStats?.redeemed ?? 0)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
+                      <span className="text-caption-1-regular text-text-secondary">
+                        {th('statCards.prizeCostCaption')}
+                      </span>
+                      <p className="text-title-2-semibold text-text-primary tabular-nums">
+                        {formatVnd(selectedStats?.redeemedValueVnd ?? 0)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
+                      <span className="text-caption-1-regular text-text-secondary">
+                        {t('columns.stock')}
+                      </span>
+                      <p className="text-title-2-semibold text-text-primary tabular-nums">
+                        {Object.values(selectedStats?.remainingByPrize ?? {}).reduce(
+                          (a, b) => a + b,
+                          0,
+                        )}
+                        /{selectedCampaign.prizes.reduce((sum, p) => sum + p.quantity, 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border-button-default bg-background-secondary-default/50 p-4 text-center">
+                  <p className="text-caption-1-medium text-text-secondary">{t('draft.hint')}</p>
+                </div>
+              )}
+
+              {/* Share & QR Access Link */}
+              <div className="flex flex-col gap-2 rounded-2xl border border-border-button-default bg-background-primary-default p-4 shadow-card">
+                <span className="text-caption-1-semibold text-text-primary">{t('openShare')}</span>
+                <div className="flex items-center gap-2">
+                  <InputBase
+                    readOnly
+                    size="small"
+                    value={
+                      selectedPhase === 'draft'
+                        ? `${typeof window !== 'undefined' ? window.location.origin : ''}${routes.rehearsal(selectedCampaign.id)}`
+                        : routes.play(selectedCampaign.slug)
+                    }
+                    fieldClassName="min-w-0 flex-1"
+                    className="text-caption-1-regular select-all"
+                  />
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    leadingIcon={RiFileCopyLine}
+                    className="shrink-0"
+                    onClick={() => handleCopyLink(selectedCampaign)}
+                  >
+                    {t('copyLink')}
+                  </Button>
+                  <a
+                    href={
+                      selectedPhase === 'draft'
+                        ? routes.rehearsal(selectedCampaign.id)
+                        : routes.play(selectedCampaign.slug)
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border-button-default bg-background-secondary-default text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    <RiExternalLinkLine className="size-4" />
+                  </a>
+                </div>
+                <div className="mt-1 flex items-center justify-between pt-2 border-t border-separator-border">
+                  <Link
+                    href={routes.share(selectedCampaign.id) as Route}
+                    className="inline-flex items-center gap-1.5 text-caption-1-medium text-accent-600 hover:underline dark:text-accent-400"
+                  >
+                    <RiQrCodeLine className="size-4" />
+                    <span>{t('openShare')} (Standee / Tent)</span>
+                  </Link>
+                </div>
+              </div>
+            </DrawerBody>
+
+            <DrawerFooter className="gap-2 border-t border-separator-border pt-3">
+              <Link href={routes.detail(selectedCampaign.id) as Route}>
+                <Button variant="primary" leadingIcon={RiEyeLine}>
+                  {t('openOps')}
+                </Button>
+              </Link>
+              <Link href={routes.edit(selectedCampaign.id) as Route}>
+                <Button variant="secondary" leadingIcon={RiPencilLine}>
+                  {t('edit')}
+                </Button>
+              </Link>
+              <Button variant="ghost" onClick={() => setSelectedCampaignId(null)}>
+                Đóng
+              </Button>
+            </DrawerFooter>
+          </>
+        )}
+      </Drawer>
+    </div>
   );
 }
 
 function CampaignGridCard({
   campaign,
   phase,
+  stats,
   routes,
   format,
+  onSelect,
   onCopyLink,
 }: {
   campaign: CampaignListItem;
   phase: CampaignPhase;
+  stats?: CampaignStats;
   routes: ReturnType<typeof campaignRoutes>;
   format: ReturnType<typeof useFormatter>;
-  onCopyLink: (id: string) => void;
+  onSelect: () => void;
+  onCopyLink: (campaign: CampaignListItem) => void;
 }) {
   const t = useTranslations('campaigns');
   const tl = useTranslations('builderLab.home');
-  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
-    enabled: phase !== 'draft',
-  });
   const total = campaign.prizes.reduce((sum, prize) => sum + prize.quantity, 0);
-  const left = Object.values(stats.data?.remainingByPrize ?? {}).reduce((a, b) => a + b, 0);
+  const left = Object.values(stats?.remainingByPrize ?? {}).reduce((a, b) => a + b, 0);
   const percent = total ? Math.round((left / total) * 100) : 0;
 
   return (
-    <Card className="flex flex-col overflow-hidden rounded-lg border border-neutral-200 dark:border-white/10">
-      <div className="relative h-[180px] overflow-hidden bg-muted">
+    <div className="group flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card transition-all duration-200 hover:shadow-dropdown">
+      {/* Cover Canvas Screen */}
+      <div className="relative h-[180px] overflow-hidden bg-background-tertiary-default">
         <FitScreen
           screen={buildScreens(campaign.templateKey, campaign.skinKey).cover}
           brand={campaign.brand}
@@ -828,101 +738,77 @@ function CampaignGridCard({
         </div>
       </div>
 
-      <CardContent className="flex flex-1 flex-col gap-2 p-3.5">
+      {/* Info Body */}
+      <div className="flex flex-1 flex-col gap-2 p-4">
         <div>
-          <Link
-            href={phase === 'draft' ? routes.edit(campaign.id) : routes.detail(campaign.id)}
-            className="line-clamp-1 text-sm font-medium hover:underline"
+          <button
+            type="button"
+            onClick={onSelect}
+            className="line-clamp-1 text-left text-body-medium font-semibold text-text-primary group-hover:text-accent-600 transition-colors cursor-pointer"
           >
             {campaign.name}
-          </Link>
+          </button>
           <Caption className="block">
             {tl(`templates.${campaign.templateKey}`)} · {tl(`skins.${campaign.skinKey}`)}
           </Caption>
         </div>
 
-        <div className="text-[13px] text-muted-foreground">{campaignPeriod(format, campaign)}</div>
+        <div className="text-caption-1-regular text-text-secondary">
+          {campaignPeriod(format, campaign)}
+        </div>
 
         {phase !== 'draft' && (
           <div className="pt-1">
-            <div className="mb-1 flex items-center justify-between text-[13px] text-muted-foreground">
+            <div className="mb-1 flex items-center justify-between text-caption-1-regular text-text-secondary">
               <span>{t('columns.stock')}</span>
-              <span className="font-medium tabular-nums">
+              <span className="font-medium tabular-nums text-text-primary">
                 {left}/{total}
               </span>
             </div>
-            <Progress
+            <ProgressBar
               value={percent}
-              className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+              aria-label={t('columns.stock')}
+              size="sm"
+              className={cx('h-1.5', percent < 20 && '[&>div]:bg-notification-error-background')}
             />
           </div>
         )}
 
-        <div className="mt-auto flex items-center gap-1.5 pt-2">
-          <Link href={routes.edit(campaign.id)} className="flex-1">
+        {/* Action row */}
+        <div className="mt-auto flex items-center gap-1.5 pt-3">
+          <Link href={routes.edit(campaign.id) as Route} className="flex-1">
             <Button
-              variant={phase === 'draft' ? 'default' : 'outline'}
-              size="sm"
-              className="w-full gap-1.5 rounded-md text-[13px]"
+              variant={phase === 'draft' ? 'primary' : 'secondary'}
+              size="small"
+              className="w-full"
+              leadingIcon={RiPencilLine}
             >
-              <Pencil className="size-3.5" />
               {t('edit')}
             </Button>
           </Link>
-          <Link href={routes.detail(campaign.id)}>
-            <Button variant="outline" size="sm" className="gap-1.5 rounded-md text-[13px]">
-              <Eye className="size-3.5" />
-              {t('openOps')}
-            </Button>
+          <TooltipTrigger>
+            <IconButton
+              size="small"
+              icon={RiSidebarUnfoldLine}
+              aria-label={t('quickView')}
+              onClick={onSelect}
+            />
+            <Tooltip>{t('quickView')}</Tooltip>
+          </TooltipTrigger>
+          <Link href={routes.detail(campaign.id) as Route}>
+            <IconButton size="small" icon={RiEyeLine} aria-label={t('openOps')} />
           </Link>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-8 rounded-md"
-                onClick={() => onCopyLink(campaign.id)}
-              >
-                <Copy className="size-3" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('copyLink')}</TooltipContent>
-          </Tooltip>
+          <TooltipTrigger>
+            <IconButton
+              size="small"
+              icon={RiFileCopyLine}
+              aria-label={t('copyLink')}
+              onClick={() => onCopyLink(campaign)}
+            />
+            <Tooltip>{t('copyLink')}</Tooltip>
+          </TooltipTrigger>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PlaysCell({ campaign, phase }: { campaign: CampaignListItem; phase: CampaignPhase }) {
-  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
-    enabled: phase !== 'draft',
-  });
-  if (phase === 'draft') return <Caption>—</Caption>;
-  return (
-    <span className="text-sm font-medium text-neutral-900 tabular-nums dark:text-[#FAFAFA]">
-      {stats.data?.plays ?? '…'}
-    </span>
-  );
-}
-
-/** Prizes left over prizes stocked; amber under 20 % so running low is visible at a glance. */
-function StockCell({ campaign, phase }: { campaign: CampaignListItem; phase: CampaignPhase }) {
-  const stats = useCampaignStats(campaign.organizationId, campaign.id, {
-    enabled: phase !== 'draft',
-  });
-  if (phase === 'draft') return <Caption>—</Caption>;
-  const total = campaign.prizes.reduce((sum, prize) => sum + prize.quantity, 0);
-  const left = Object.values(stats.data?.remainingByPrize ?? {}).reduce((a, b) => a + b, 0);
-  const percent = total ? Math.round((left / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-normal text-neutral-900 tabular-nums dark:text-[#FAFAFA]">
-        {left}/{total}
-      </span>
-      <Badge variant={percent >= 60 ? 'success' : percent >= 20 ? 'warning' : 'rose'}>
-        {percent}%
-      </Badge>
+      </div>
     </div>
   );
 }

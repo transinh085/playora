@@ -1,4 +1,4 @@
-import { Button } from '@playora/ui/components/button';
+import { ButtonLink } from '@playora/ui/components/base/buttons/button';
 import { Logo } from '@/components/logo';
 
 export default function Landing() {
@@ -13,13 +13,12 @@ export default function Landing() {
         skin theo mùa, kiểm soát tỷ lệ và kho giải minh bạch, báo cáo tức thì.
       </p>
       <div>
-        <Button
-          asChild
-          size="lg"
+        <ButtonLink
+          href="mailto:hello@playora.vn"
           className="h-12 rounded-full px-6 text-base font-semibold shadow-md"
         >
-          <a href="mailto:hello@playora.vn">Đặt lịch demo</a>
-        </Button>
+          Đặt lịch demo
+        </ButtonLink>
       </div>
     </main>
   );

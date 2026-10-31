@@ -1,11 +1,18 @@
 'use client';
 
 import type { CampaignPrize, CampaignRules, PlayResult, VoucherStatus } from '@playora/contracts';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { QRCodeSvg } from '@playora/ui/components/qr-code';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@playora/ui/components/sheet';
-import { Check, ChevronDown, Copy, Gift, Info, Loader2 } from '@playora/ui/icons';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button, ButtonLink } from '@playora/ui/components/base/buttons/button';
+import { Drawer, DrawerBody, DrawerHeader } from '@playora/ui/components/base/drawer/drawer';
+import { Spinner } from '@playora/ui/components/base/spinner/spinner';
+import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+import {
+  RiArrowDownSLine,
+  RiCheckLine,
+  RiFileCopyLine,
+  RiGiftLine,
+  RiInformationLine,
+} from '@remixicon/react';
 import { type ReactNode, useEffect, useState } from 'react';
 import type { CampaignPlayerLabels } from './labels';
 
@@ -55,35 +62,27 @@ export function VoucherStatusTag({
   switch (voucherStatusOf(voucher)) {
     case 'redeemed':
       return (
-        <Badge variant="secondary" data-status="redeemed" className="font-normal text-xs">
+        <Chip variant="caption" color="neutral" data-status="redeemed">
           {l.redeemed}
-        </Badge>
+        </Chip>
       );
     case 'expired':
       return (
-        <Badge
-          variant="outline"
-          data-status="expired"
-          className="border-amber-500/50 text-amber-600 dark:text-amber-400 font-normal text-xs"
-        >
+        <Chip variant="caption" color="yellow" data-status="expired">
           {l.expired}
-        </Badge>
+        </Chip>
       );
     case 'void':
       return (
-        <Badge variant="destructive" data-status="void" className="font-normal text-xs">
+        <Chip variant="caption" color="rose" data-status="void">
           {l.void}
-        </Badge>
+        </Chip>
       );
     default:
       return (
-        <Badge
-          variant="default"
-          data-status="issued"
-          className="bg-teal-600 hover:bg-teal-600 text-white font-normal text-xs"
-        >
+        <Chip variant="caption" color="cyan" data-status="issued">
           {l.notRedeemed}
-        </Badge>
+        </Chip>
       );
   }
 }
@@ -104,11 +103,11 @@ export function LiveClock({ labels }: { labels: CampaignPlayerLabels }) {
   return (
     <div
       data-testid="voucher-live-clock"
-      className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1 text-xs text-teal-800 dark:border-teal-400/20 dark:bg-teal-950/40 dark:text-teal-200"
+      className="inline-flex items-center gap-2 rounded-full bg-status-cyan-background px-3 py-1 text-caption-1-medium text-status-cyan-text"
     >
       <span className="relative flex size-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-teal-500" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-accent-600" />
       </span>
       <span className="font-mono tabular-nums">{labels.vouchers.liveClock(now)}</span>
     </div>
@@ -137,15 +136,15 @@ export function VoucherList({
   if (loading && vouchers.length === 0) {
     return (
       <div className="flex justify-center py-6">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <Spinner size="md" />
       </div>
     );
   }
   if (vouchers.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground">
-        <Gift className="size-8 opacity-40" />
-        <p className="text-sm">{l.empty}</p>
+      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-text-tertiary">
+        <RiGiftLine className="size-8 opacity-40" />
+        <p className="text-body-regular">{l.empty}</p>
       </div>
     );
   }
@@ -156,7 +155,7 @@ export function VoucherList({
         return (
           <div
             key={voucher.code}
-            className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-xs"
+            className="flex items-center gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3 shadow-xs"
             data-testid="voucher-row"
             data-status={status}
             style={{ opacity: status === 'issued' ? 1 : 0.6 }}
@@ -164,20 +163,18 @@ export function VoucherList({
             {voucher.prizeImage ? (
               <img src={voucher.prizeImage} alt="" className="size-10 rounded-lg object-cover" />
             ) : (
-              <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <Gift className="size-5" />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-background-secondary-default text-icon-secondary">
+                <RiGiftLine className="size-5" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">
+              <p className="truncate text-body-semibold text-text-primary">
                 {voucher.prizeName ?? l.unknownPrize}
               </p>
-              <div className="flex items-center gap-1.5 font-mono text-xs">
+              <div className="flex items-center gap-1.5 font-mono text-caption-1-medium">
                 <span
                   className={
-                    status !== 'issued'
-                      ? 'line-through text-muted-foreground'
-                      : 'font-medium text-foreground'
+                    status !== 'issued' ? 'line-through text-text-tertiary' : 'text-text-primary'
                   }
                 >
                   {voucher.code}
@@ -186,20 +183,24 @@ export function VoucherList({
                   <button
                     type="button"
                     onClick={() => handleCopy(voucher.code)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-icon-secondary hover:text-text-primary transition-colors"
                     aria-label="Copy"
                   >
                     {copiedCode === voucher.code ? (
-                      <Check className="size-3 text-teal-600" />
+                      <RiCheckLine className="size-3.5 text-accent-600" />
                     ) : (
-                      <Copy className="size-3" />
+                      <RiFileCopyLine className="size-3.5" />
                     )}
                   </button>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">{l.issuedAt(voucher.issuedAt)}</p>
+              <p className="text-caption-1-regular text-text-tertiary">
+                {l.issuedAt(voucher.issuedAt)}
+              </p>
               {status === 'issued' && voucher.expiresAt && (
-                <p className="text-xs text-muted-foreground">{l.expiresAt(voucher.expiresAt)}</p>
+                <p className="text-caption-1-regular text-text-tertiary">
+                  {l.expiresAt(voucher.expiresAt)}
+                </p>
               )}
             </div>
             <VoucherStatusTag voucher={voucher} labels={labels} />
@@ -225,23 +226,15 @@ export function PhoneSheet({
   size?: number | string;
 }) {
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="bottom"
-        className="max-h-[85vh] rounded-t-3xl border-t border-border bg-card px-4 pb-6 pt-4 overflow-y-auto"
-      >
-        {title ? (
-          <SheetHeader className="mb-3 text-left">
-            <SheetTitle className="text-base font-semibold">{title}</SheetTitle>
-          </SheetHeader>
-        ) : (
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sheet</SheetTitle>
-          </SheetHeader>
-        )}
-        {children}
-      </SheetContent>
-    </Sheet>
+    <Drawer
+      isOpen={open}
+      onOpenChange={(v) => !v && onClose()}
+      placement="bottom"
+      aria-label={typeof title === 'string' ? title : 'Sheet'}
+    >
+      {title ? <DrawerHeader title={title} /> : null}
+      <DrawerBody>{children}</DrawerBody>
+    </Drawer>
   );
 }
 
@@ -273,16 +266,16 @@ export function NoticeContent({
 
   return (
     <div className="flex flex-col items-center gap-3 py-4 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Info className="size-6" />
+      <div className="flex size-12 items-center justify-center rounded-full bg-status-cyan-background text-accent-600">
+        <RiInformationLine className="size-6" />
       </div>
-      <h3 className="text-lg font-bold text-foreground">{notice.title}</h3>
-      <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground">
+      <h3 className="text-title-3-semibold text-text-primary">{notice.title}</h3>
+      <div className="flex flex-col items-center gap-1 text-body-regular text-text-secondary">
         <span>{notice.body}</span>
         {extraText && (
           <span
             data-testid={kind === 'noTurns' ? 'next-turn-notice' : 'open-days-notice'}
-            className="text-xs text-muted-foreground"
+            className="text-caption-1-regular text-text-tertiary"
           >
             {extraText}
           </span>
@@ -359,22 +352,19 @@ export function RulesSheet({
     <PhoneSheet open={open} onClose={onClose} title={l.title}>
       <div className="flex flex-col gap-4">
         {rehearsal && (
-          <Badge
-            variant="outline"
-            className="w-fit border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-          >
+          <Chip variant="caption" color="yellow" className="w-fit">
             {l.rehearsalNote}
-          </Badge>
+          </Chip>
         )}
-        <ul className="m-0 flex flex-col gap-2 pl-5 text-sm text-foreground">
+        <ul className="m-0 flex flex-col gap-2 pl-5 text-body-regular text-text-primary">
           {lines.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
         {prizes.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <h4 className="text-sm font-semibold text-foreground">{l.prizes}</h4>
-            <ul className="m-0 flex flex-col gap-1 pl-5 text-sm text-muted-foreground">
+            <h4 className="text-body-semibold text-text-primary">{l.prizes}</h4>
+            <ul className="m-0 flex flex-col gap-1 pl-5 text-body-regular text-text-secondary">
               {prizes.map((prize) => (
                 <li key={prize.id}>
                   {prize.quantity === undefined
@@ -386,9 +376,13 @@ export function RulesSheet({
           </div>
         )}
         {terms && (
-          <details className="rounded-xl border border-border bg-muted/30 p-3 text-sm">
-            <summary className="cursor-pointer font-medium text-foreground">{l.fullTerms}</summary>
-            <p className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{terms}</p>
+          <details className="rounded-xl border border-separator-border bg-background-secondary-default p-3 text-body-regular">
+            <summary className="cursor-pointer text-body-medium text-text-primary">
+              {l.fullTerms}
+            </summary>
+            <p className="mt-2 whitespace-pre-wrap text-caption-1-regular text-text-secondary">
+              {terms}
+            </p>
           </details>
         )}
         <Button className="w-full rounded-full" onClick={onClose}>
@@ -425,9 +419,9 @@ export function MyPrizesSheet({
         </div>
         <VoucherList vouchers={vouchers} loading={loading} labels={labels} />
         {pageHref && (
-          <Button variant="link" asChild className="w-full">
-            <a href={pageHref}>{l.openPage}</a>
-          </Button>
+          <ButtonLink variant="ghost" href={pageHref} className="w-full">
+            {l.openPage}
+          </ButtonLink>
         )}
       </div>
     </PhoneSheet>
@@ -469,8 +463,7 @@ export function VoucherCard({
   if (!expanded) {
     return (
       <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
-        <Button className="rounded-full gap-2 shadow-lg" onClick={onToggle}>
-          <Gift size={16} />
+        <Button leadingIcon={RiGiftLine} className="rounded-full shadow-lg" onClick={onToggle}>
           {labels.voucher.show}
         </Button>
       </div>
@@ -479,28 +472,28 @@ export function VoucherCard({
 
   return (
     <div className="absolute inset-x-3 bottom-3 z-10">
-      <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-card p-4 shadow-xl">
+      <div className="flex flex-col items-center gap-2.5 rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-dropdown">
         <div className="flex w-full items-center justify-between">
-          <span className="text-xs text-muted-foreground">{labels.voucher.title}</span>
+          <span className="text-caption-1-medium text-text-secondary">{labels.voucher.title}</span>
           <button
             type="button"
             onClick={onToggle}
             aria-label={labels.voucher.collapse}
-            className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="rounded-full p-1 text-icon-secondary hover:bg-background-primary-hover hover:text-text-primary transition-colors"
           >
-            <ChevronDown size={16} />
+            <RiArrowDownSLine className="size-4" />
           </button>
         </div>
-        <div className="rounded-xl border border-border/80 bg-white p-2 shadow-xs">
+        <div className="rounded-xl border border-separator-border bg-white p-2 shadow-xs">
           <QRCodeSvg value={redeemUrl} size={132} />
         </div>
         <div className="flex items-center gap-2">
           <span
             data-testid="voucher-code"
-            className={`font-mono text-xl font-bold tracking-widest ${
+            className={`font-mono text-title-2-semibold tracking-widest ${
               status && status !== 'issued'
-                ? 'line-through text-muted-foreground'
-                : 'text-foreground'
+                ? 'line-through text-text-tertiary'
+                : 'text-text-primary'
             }`}
           >
             {code}
@@ -509,21 +502,29 @@ export function VoucherCard({
             <button
               type="button"
               onClick={handleCopy}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-icon-secondary hover:text-text-primary transition-colors"
               aria-label="Copy"
             >
-              {copied ? <Check size={14} className="text-teal-600" /> : <Copy size={14} />}
+              {copied ? (
+                <RiCheckLine className="size-4 text-accent-600" />
+              ) : (
+                <RiFileCopyLine className="size-4" />
+              )}
             </button>
           )}
         </div>
         {status && status !== 'issued' ? (
           <VoucherStatusTag voucher={{ status, redeemedAt: null }} labels={labels} />
         ) : (
-          <span className="text-xs text-muted-foreground">{labels.voucher.hint}</span>
+          <span className="text-caption-1-regular text-text-secondary">{labels.voucher.hint}</span>
         )}
         <LiveClock labels={labels} />
-        <Button variant="outline" className="w-full rounded-full gap-2" onClick={onOpenPrizes}>
-          <Gift size={16} />
+        <Button
+          variant="secondary"
+          leadingIcon={RiGiftLine}
+          className="w-full rounded-full"
+          onClick={onOpenPrizes}
+        >
           {labels.myPrizes}
         </Button>
       </div>

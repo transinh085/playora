@@ -1,7 +1,7 @@
 'use client';
 
 import type { CampaignListItem } from '@playora/contracts';
-import { Badge } from '@playora/ui/components/badge';
+import { Chip } from '@playora/ui/components/base/badges/chip';
 import { CircleAlert, CircleCheck, PencilLine } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 
@@ -19,24 +19,21 @@ export function CampaignStatusTag({
   const t = useTranslations('builderLab.editor.status');
   if (campaign.status === 'draft') {
     return (
-      <Badge variant="outline" className="gap-1 font-normal">
+      <Chip variant="subtle" color="neutral" className="gap-1">
         <PencilLine className="size-3" />
         {t('draft')}
-      </Badge>
+      </Chip>
     );
   }
   return hasUnpublishedChanges(campaign) ? (
-    <Badge variant="secondary" className="gap-1 font-normal text-amber-600 dark:text-amber-400">
+    <Chip variant="subtle" color="yellow" className="gap-1">
       <CircleAlert className="size-3" />
       {t('dirty', { version: campaign.version })}
-    </Badge>
+    </Chip>
   ) : (
-    <Badge
-      variant="outline"
-      className="gap-1 font-normal border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-    >
+    <Chip variant="subtle" color="lime" className="gap-1">
       <CircleCheck className="size-3" />
       {t('published', { version: campaign.version })}
-    </Badge>
+    </Chip>
   );
 }

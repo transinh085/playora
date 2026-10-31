@@ -2,64 +2,62 @@
 
 import type { MyOrg } from '@playora/contracts';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@playora/ui/components/dialog';
+  NotificationCenter,
+  type NotificationCenterItem,
+  Popover,
+  PopoverTrigger,
+} from '@playora/ui/components';
+import { applyThemeWithTransition } from '@playora/ui/components/application/theme/theme-toggle';
+import { Avatar } from '@playora/ui/components/base/avatar/avatar';
+import { Breadcrumb, BreadcrumbItem } from '@playora/ui/components/base/breadcrumb/breadcrumb';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
+import { Drawer } from '@playora/ui/components/base/drawer/drawer';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@playora/ui/components/dropdown-menu';
-import { Input } from '@playora/ui/components/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@playora/ui/components/sheet';
+  Dropdown,
+  DropdownDivider,
+  DropdownGroup,
+  DropdownItem,
+  DropdownPopover,
+  DropdownTrigger,
+} from '@playora/ui/components/base/dropdown/dropdown';
+import { Kbd } from '@playora/ui/components/base/kbd/kbd';
+import { Modal } from '@playora/ui/components/base/modal/modal';
+import { cx } from '@playora/ui/utils/cx';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@playora/ui/components/tooltip';
-import {
-  CalendarDays,
-  Check,
-  ChevronDown,
-  ChevronsUpDown,
-  Gem,
-  HelpCircle,
-  House,
-  ImageIcon,
-  LayoutTemplate,
-  LogOut,
-  Menu as MenuIcon,
-  Moon,
-  MoreHorizontal,
-  Palette,
-  PanelLeft,
-  Plus,
-  Search,
-  Settings,
-  Shapes,
-  Share,
-  SlidersHorizontal,
-  Sparkles,
-  Sun,
-  TicketCheck,
-} from '@playora/ui/icons';
+  RiAddLine,
+  RiArrowDownSLine,
+  RiArrowUpDownLine,
+  RiBankCardLine,
+  RiCalendarEventLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiHome5Line,
+  RiImageLine,
+  RiLayoutMasonryLine,
+  RiLogoutBoxRLine,
+  RiMenuLine,
+  RiMoonLine,
+  RiMoreLine,
+  RiNotification3Line,
+  RiPaletteLine,
+  RiSearchLine,
+  RiSettings4Line,
+  RiSideBarFill,
+  RiSparklingLine,
+  RiSunLine,
+  RiTicketLine,
+} from '@remixicon/react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useNow, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { type ComponentType, useEffect, useState } from 'react';
 import { useCampaigns } from '@/features/builder-lab/api';
 import { campaignPhase } from '@/features/builder-lab/lib/phase';
 import { campaignRoutes } from '@/features/builder-lab/lib/routes';
 import { authClient } from '@/lib/auth-client';
-import { LABS_ENABLED } from '@/lib/env';
 import { can, isRedeemerOnly, type PermissionRequest } from '@/lib/permissions';
 import { Caption } from './caption';
 
@@ -71,24 +69,28 @@ type NavKey =
   | 'brandKits'
   | 'assets'
   | 'settings'
-  | 'billing'
-  | 'canvasLab';
+  | 'billing';
 
-interface NavItem {
+type IconComponent = ComponentType<{
+  className?: string;
+  'aria-hidden'?: boolean | 'true' | 'false';
+}>;
+
+interface NavItemDef {
   key: NavKey;
-  icon: typeof CalendarDays;
+  icon: IconComponent;
   path: string;
   permission?: PermissionRequest;
 }
 
-type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
+type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization';
 
-const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
+const NAV_GROUPS: { key: NavGroupKey; items: NavItemDef[] }[] = [
   {
     key: 'start',
     items: [
-      { key: 'home', icon: House, path: '', permission: { campaign: ['read'] } },
-      { key: 'redeem', icon: TicketCheck, path: 'redeem', permission: { voucher: ['read'] } },
+      { key: 'home', icon: RiHome5Line, path: '', permission: { campaign: ['read'] } },
+      { key: 'redeem', icon: RiTicketLine, path: 'redeem', permission: { voucher: ['read'] } },
     ],
   },
   {
@@ -96,14 +98,14 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     items: [
       {
         key: 'campaigns',
-        icon: CalendarDays,
+        icon: RiCalendarEventLine,
         path: 'campaigns',
         permission: { campaign: ['read'] },
       },
       {
         key: 'templates',
-        icon: LayoutTemplate,
-        path: 'campaigns/new',
+        icon: RiLayoutMasonryLine,
+        path: 'templates',
         permission: { campaign: ['read'] },
       },
     ],
@@ -113,43 +115,28 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     items: [
       {
         key: 'brandKits',
-        icon: Palette,
+        icon: RiPaletteLine,
         path: 'brand-kits',
         permission: { brandKit: ['read'] },
       },
-      { key: 'assets', icon: ImageIcon, path: 'assets', permission: { asset: ['read'] } },
+      { key: 'assets', icon: RiImageLine, path: 'assets', permission: { asset: ['read'] } },
     ],
   },
   {
     key: 'organization',
     items: [
-      { key: 'settings', icon: Settings, path: 'settings' },
+      { key: 'settings', icon: RiSettings4Line, path: 'settings' },
       {
         key: 'billing',
-        icon: Gem,
+        icon: RiBankCardLine,
         path: 'settings/billing',
         permission: { billing: ['read'] },
       },
     ],
   },
-  ...(LABS_ENABLED
-    ? [
-        {
-          key: 'labs' as const,
-          items: [
-            {
-              key: 'canvasLab',
-              icon: Shapes,
-              path: 'labs/canvas',
-              permission: { campaign: ['read'] },
-            } satisfies NavItem,
-          ],
-        },
-      ]
-    : []),
 ];
 
-const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).sort(
+const NAV: NavItemDef[] = NAV_GROUPS.flatMap((group) => group.items).sort(
   (a, b) => b.path.length - a.path.length,
 );
 
@@ -162,13 +149,87 @@ const WORKSPACE_GRADIENTS = [
   'from-cyan-400 to-blue-500',
 ] as const;
 
+function Collapsible({
+  collapsed,
+  children,
+  className,
+}: {
+  collapsed: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cx(
+        'flex min-w-0 items-center overflow-hidden transition-[max-width,opacity,filter] duration-300 ease-in-out',
+        collapsed ? 'max-w-0 opacity-0 blur-[3px]' : 'max-w-full opacity-100 blur-0',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function SidebarNavItem({
+  icon: Icon,
+  label,
+  href,
+  isSelected,
+  collapsed,
+  onClick,
+}: {
+  icon: IconComponent;
+  label: string;
+  href: Route;
+  isSelected?: boolean;
+  collapsed?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      aria-current={isSelected ? 'page' : undefined}
+      aria-label={label}
+      title={collapsed ? label : undefined}
+      className={cx(
+        'flex items-center justify-between overflow-hidden rounded-2lg p-2',
+        'transition-[width,background-color] duration-300 ease-in-out',
+        collapsed ? 'w-9' : 'w-full',
+        isSelected
+          ? 'bg-linear-to-b from-accent-500 to-accent-600 text-white shadow-nav-selected'
+          : 'text-text-secondary hover:bg-background-secondary-hover hover:text-text-primary',
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <Icon
+          className={cx(
+            'size-5 shrink-0 transition-colors',
+            isSelected ? 'text-white' : 'text-foreground-icon-secondary',
+          )}
+          aria-hidden
+        />
+        <Collapsible collapsed={Boolean(collapsed)}>
+          <span
+            className={cx(
+              'truncate text-body-medium whitespace-nowrap',
+              isSelected ? 'font-medium text-white' : 'text-text-secondary',
+            )}
+          >
+            {label}
+          </span>
+        </Collapsible>
+      </span>
+    </Link>
+  );
+}
+
 export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(224);
-  const [isResizing, setIsResizing] = useState(false);
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -218,42 +279,23 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  function startSidebarResize(e: React.MouseEvent<HTMLDivElement>) {
-    if (collapsed) return;
-    e.preventDefault();
-    const startX = e.clientX;
-    const startW = sidebarWidth;
-    setIsResizing(true);
-    document.body.style.cursor = 'col-resize';
-    const onMove = (moveEvt: MouseEvent) => {
-      const next = Math.max(180, Math.min(450, startW + (moveEvt.clientX - startX)));
-      setSidebarWidth(next);
-    };
-    const onUp = () => {
-      setIsResizing(false);
-      document.body.style.cursor = '';
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  }
+  function handleToggleTheme(
+    event?: React.MouseEvent<HTMLElement>,
+    forcedTheme?: 'light' | 'dark',
+  ) {
+    const nextTheme = forcedTheme ?? (resolvedTheme === 'dark' ? 'light' : 'dark');
+    if (nextTheme === (resolvedTheme === 'dark' ? 'dark' : 'light')) return;
 
-  function handleToggleTheme() {
-    const nextTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-    const root = document.documentElement;
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-    };
-    if (typeof doc.startViewTransition === 'function') {
-      root.classList.add('theme-freeze');
-      const vt = doc.startViewTransition(() => setTheme(nextTheme));
-      vt.finished.finally(() => root.classList.remove('theme-freeze'));
-      return;
-    }
-    root.classList.add('theme-fade');
-    setTheme(nextTheme);
-    window.setTimeout(() => root.classList.remove('theme-fade'), 500);
+    const pointerOrigin =
+      event && event.clientX !== 0 && event.clientY !== 0
+        ? { x: event.clientX, y: event.clientY }
+        : null;
+
+    void applyThemeWithTransition(nextTheme, {
+      origin: pointerOrigin,
+      element: event?.currentTarget ?? null,
+      onApply: () => setTheme(nextTheme),
+    });
   }
 
   function toggleGroup(groupKey: string) {
@@ -272,7 +314,14 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
       )
     : undefined;
-  const ActiveIcon = activeNav?.icon ?? House;
+  const activeGroup = current
+    ? NAV_GROUPS.find((group) =>
+        group.items.some(({ path }) =>
+          path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
+        ),
+      )
+    : undefined;
+  const ActiveIcon = activeNav?.icon ?? RiHome5Line;
   const headerTitle = activeNav ? t(`nav.${activeNav.key}`) : t('shell.home');
 
   const showLabels = !collapsed || isMobile;
@@ -291,128 +340,200 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     .filter((c) => !needle || c.name.toLowerCase().includes(needle))
     .slice(0, 5);
 
+  const notifications: NotificationCenterItem[] = [
+    {
+      id: 'welcome',
+      category: 'system',
+      group: 'Hệ thống',
+      title: 'Chào mừng bạn đến với Playora Studio',
+      description: 'Hệ thống trò chơi đổi quà tương tác đã sẵn sàng hoạt động.',
+      timestamp: 'Hôm nay',
+      status: 'information',
+      unread: false,
+    },
+    ...campaigns.slice(0, 3).map((c) => {
+      const phase = campaignPhase(c, now);
+      return {
+        id: `camp-${c.id}`,
+        category: 'activity' as const,
+        group: 'Chiến dịch',
+        title: c.name,
+        description: `Trạng thái: ${t(`campaigns.phase.${phase}`)}`,
+        timestamp: 'Gần đây',
+        status: phase === 'live' ? ('success' as const) : ('neutral' as const),
+        unread: phase === 'live' || phase === 'draft',
+      };
+    }),
+  ];
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const isCollapsedDesktop = collapsed && !isMobile;
+
   const sidebarContent = (
-    <TooltipProvider delayDuration={0}>
-      <div className="flex h-full flex-col select-none">
-        {/* Workspace Top Bar (h-[48px] py-2 px-3 gap-1) */}
+    <div className="flex h-full flex-col justify-between select-none">
+      {/* Scrollable upper area */}
+      <div className="-m-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-2 [scrollbar-width:none]">
+        {/* Workspace Switcher / Collapse Toggle */}
         <div
-          className={`relative z-20 flex h-[48px] w-full shrink-0 flex-row items-center gap-1 px-3 py-2 ${
-            showLabels ? 'justify-between' : 'justify-center'
-          }`}
+          className={cx(
+            'flex w-full transition-[gap] duration-300 ease-in-out',
+            isCollapsedDesktop
+              ? 'flex-col-reverse items-start justify-center gap-2.5'
+              : 'flex-row items-center justify-between',
+          )}
         >
-          {current && showLabels && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={t('shell.switchOrg')}
-                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 text-left text-neutral-600 outline-none transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-                >
-                  <div
-                    aria-hidden="true"
-                    className={`h-4 w-4 shrink-0 rounded-md bg-gradient-to-tr ${currentGradient} shadow-sm`}
-                  />
-                  <span className="truncate text-sm font-medium">{current.name}</span>
-                  <ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 opacity-70" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-[192px] rounded-lg border border-neutral-200 bg-white p-0 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#171717]"
+          {current ? (
+            <Dropdown>
+              <DropdownTrigger
+                aria-label={t('shell.switchOrg')}
+                className={cx(
+                  'flex cursor-pointer items-center outline-none transition-[width,padding] duration-300 ease-in-out hover:bg-background-tertiary-hover',
+                  isCollapsedDesktop
+                    ? 'h-9 w-9 justify-center rounded-full p-0'
+                    : 'min-w-0 flex-1 gap-2 rounded-xl p-1.5 text-left',
+                )}
               >
-                <div className="flex w-full flex-col gap-1 p-1">
+                <div
+                  aria-hidden="true"
+                  className={cx(
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr text-caption-1-semibold font-semibold text-white shadow-xs',
+                    currentGradient,
+                  )}
+                >
+                  {current.name.slice(0, 1).toUpperCase()}
+                </div>
+                <Collapsible collapsed={isCollapsedDesktop} className="flex-1">
+                  <span className="flex min-w-0 flex-col items-start justify-center">
+                    <span className="truncate text-body-medium font-medium text-text-primary">
+                      {current.name}
+                    </span>
+                    <span className="truncate text-caption-1-regular text-text-tertiary">
+                      {current.role}
+                    </span>
+                  </span>
+                </Collapsible>
+                <Collapsible collapsed={isCollapsedDesktop}>
+                  <RiArrowUpDownLine className="size-3.5 shrink-0 text-foreground-icon-tertiary" />
+                </Collapsible>
+              </DropdownTrigger>
+              <DropdownPopover
+                aria-label={t('shell.switchOrg')}
+                placement={isCollapsedDesktop ? 'right top' : 'bottom start'}
+                className="w-[230px]"
+              >
+                <DropdownGroup>
                   {orgs.map((org, idx) => {
                     const isSelected = org.id === current.id;
                     const grad = WORKSPACE_GRADIENTS[idx % WORKSPACE_GRADIENTS.length];
                     return (
-                      <DropdownMenuItem
+                      <DropdownItem
                         key={org.id}
-                        onClick={() =>
+                        selected={isSelected}
+                        onSelect={() =>
                           router.push(
                             isRedeemerOnly(org.role) ? `/orgs/${org.id}/redeem` : `/orgs/${org.id}`,
                           )
                         }
-                        className={`flex w-full cursor-pointer items-center gap-2 rounded-[6px] px-1.5 py-1.5 text-sm font-normal transition-colors ${
-                          isSelected
-                            ? 'bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-[#FAFAFA]'
-                            : 'text-neutral-500 hover:bg-neutral-100 dark:text-[#737373] dark:hover:bg-white/5'
-                        }`}
                       >
                         <div
-                          className={`h-4 w-4 shrink-0 rounded-[4px] bg-gradient-to-tr ${grad}`}
-                        />
-                        <span className="flex-1 truncate text-left text-sm font-normal">
+                          className={cx(
+                            'flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-linear-to-tr text-caption-2-medium text-white',
+                            grad,
+                          )}
+                        >
+                          {org.name.slice(0, 1).toUpperCase()}
+                        </div>
+                        <span className="flex-1 truncate text-left text-body-medium">
                           {org.name}
                         </span>
                         {isSelected && (
-                          <Check className="h-3 w-3 shrink-0 text-neutral-900 dark:text-[#FAFAFA]" />
+                          <RiCheckLine className="size-4 shrink-0 text-text-primary" />
                         )}
-                      </DropdownMenuItem>
+                      </DropdownItem>
                     );
                   })}
-                </div>
-
-                <div className="h-[0.5px] w-full bg-neutral-200 dark:bg-white/10" />
-
-                <div className="flex w-full flex-col gap-1 p-1">
-                  {can(current.role, { billing: ['read'] }) && (
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/orgs/${current.id}/settings/billing` as Route)}
-                      className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-[#737373] dark:hover:bg-white/5"
-                    >
-                      <Sparkles className="h-4 w-4 shrink-0" />
-                      <span className="flex-1 truncate text-left text-sm font-normal">
-                        {t('nav.billing')}
-                      </span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => router.push(`/orgs/${current.id}/settings` as Route)}
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-[#737373] dark:hover:bg-white/5"
-                  >
-                    <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                    <span className="flex-1 truncate text-left text-sm font-normal">
-                      {t('nav.settings')}
-                    </span>
-                  </DropdownMenuItem>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          {!current && showLabels && (
+                </DropdownGroup>
+              </DropdownPopover>
+            </Dropdown>
+          ) : (
             <Link
               href="/"
               aria-label={t('common.appName')}
-              className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm font-medium text-neutral-900 dark:text-[#FAFAFA]"
+              className={cx(
+                'flex items-center gap-2 rounded-xl p-1.5 text-text-primary',
+                isCollapsedDesktop ? 'h-9 w-9 justify-center' : 'flex-1',
+              )}
             >
-              <div className="h-4 w-4 shrink-0 rounded-md bg-gradient-to-tr from-emerald-400 to-cyan-500 shadow-sm" />
-              <span className="truncate text-sm font-medium">Playora</span>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr from-emerald-400 to-cyan-500 text-caption-1-semibold font-bold text-white shadow-xs">
+                P
+              </div>
+              <Collapsible collapsed={isCollapsedDesktop}>
+                <span className="truncate text-body-medium font-medium">Playora</span>
+              </Collapsible>
             </Link>
           )}
 
-          {!isMobile && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={collapsed ? t('shell.expand') : t('shell.collapse')}
-                  onClick={() => setCollapsed(!collapsed)}
-                  className="mx-auto flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-200 dark:hover:bg-white/5"
-                >
-                  <PanelLeft className="h-4 w-4 text-neutral-500 dark:text-[#737373]" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                {collapsed ? t('shell.expand') : t('shell.collapse')}
-              </TooltipContent>
-            </Tooltip>
+          {isMobile ? (
+            <button
+              type="button"
+              aria-label="Close sidebar"
+              onClick={() => setDrawerOpen(false)}
+              className="cursor-pointer text-foreground-icon-secondary transition-colors hover:text-foreground-icon-primary"
+            >
+              <RiCloseLine className="size-5" aria-hidden />
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-label={collapsed ? t('shell.expand') : t('shell.collapse')}
+              aria-expanded={!collapsed}
+              onClick={() => setCollapsed(!collapsed)}
+              className={cx(
+                'cursor-pointer text-foreground-icon-secondary transition-colors hover:text-foreground-icon-primary',
+                collapsed && 'flex h-9 w-9 items-center justify-center',
+              )}
+            >
+              <RiSideBarFill
+                className={cx(
+                  'size-5 transition-transform duration-300 ease-in-out',
+                  collapsed ? 'rtl:-scale-x-100' : '-scale-x-100 rtl:scale-x-100',
+                )}
+                aria-hidden
+              />
+            </button>
           )}
         </div>
 
-        {/* Navigation Items Container (p-3 pt-2 pb-2 gap-5 flex-1) */}
+        {/* Quick Search Button */}
+        <button
+          type="button"
+          aria-label={t('shell.quickActions')}
+          title={isCollapsedDesktop ? `${t('shell.quickActions')} (⌘K / J)` : undefined}
+          onClick={() => setQuickOpen(true)}
+          className={cx(
+            'flex cursor-pointer items-center gap-2 p-2 outline-none hover:bg-background-tertiary-hover/55',
+            'transition-[width,border-radius,background-color] duration-300 ease-in-out',
+            isCollapsedDesktop
+              ? 'h-9 w-9 justify-center rounded-full bg-background-tertiary-default'
+              : 'w-full rounded-full bg-background-tertiary-default',
+          )}
+        >
+          <span className={cx('flex min-w-0 items-center gap-2', showLabels && 'flex-1')}>
+            <RiSearchLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+            <Collapsible collapsed={isCollapsedDesktop}>
+              <span className="truncate text-body-medium whitespace-nowrap text-text-secondary">
+                {t('shell.quickActions')}
+              </span>
+            </Collapsible>
+          </span>
+          <Collapsible collapsed={isCollapsedDesktop}>
+            <Kbd>⌘K</Kbd>
+          </Collapsible>
+        </button>
+
+        {/* Navigation Groups */}
         {current && (
-          <nav className="flex flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto p-3 pt-2 pb-2">
+          <nav className={cx('flex w-full flex-col gap-3', showLabels && 'px-0.5')}>
             {NAV_GROUPS.map((group) => {
               const visibleItems = group.items.filter(
                 (item) => !item.permission || can(current.role, item.permission),
@@ -424,65 +545,19 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                   <div key={group.key} className="flex w-full flex-col gap-1">
                     {visibleItems.map(({ key, icon: Icon, path }) => {
                       const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
-                      const isActive = activeNav?.key === key;
+                      const isSelected = activeNav?.key === key;
                       return (
-                        <Tooltip key={key}>
-                          <TooltipTrigger asChild>
-                            <Link
-                              href={href}
-                              onClick={() => setDrawerOpen(false)}
-                              className={`flex cursor-pointer items-center gap-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
-                                showLabels ? 'px-2 py-1.5' : 'mx-auto h-8 w-8 justify-center p-2'
-                              } ${
-                                isActive
-                                  ? 'bg-neutral-200/80 font-medium text-neutral-900 dark:bg-[#171717] dark:text-[#FAFAFA]'
-                                  : 'font-medium text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]'
-                              }`}
-                            >
-                              <Icon
-                                className={`h-4 w-4 shrink-0 transition-transform duration-150 ${
-                                  isActive ? 'text-neutral-900 dark:text-[#FAFAFA]' : ''
-                                }`}
-                              />
-                              {showLabels && (
-                                <span className="animate-crm-fade-in truncate text-sm">
-                                  {t(`nav.${key}`)}
-                                </span>
-                              )}
-                            </Link>
-                          </TooltipTrigger>
-                          {!showLabels && (
-                            <TooltipContent side="right">{t(`nav.${key}`)}</TooltipContent>
-                          )}
-                        </Tooltip>
+                        <SidebarNavItem
+                          key={key}
+                          icon={Icon}
+                          label={t(`nav.${key}`)}
+                          href={href}
+                          isSelected={isSelected}
+                          collapsed={isCollapsedDesktop}
+                          onClick={() => setDrawerOpen(false)}
+                        />
                       );
                     })}
-
-                    {/* Search / Quick Actions item matching Louis CRM Primary Nav */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          aria-label={t('shell.quickActions')}
-                          onClick={() => setQuickOpen(true)}
-                          className={`flex cursor-pointer items-center gap-2 rounded-md font-medium text-neutral-600 transition-all duration-150 hover:bg-neutral-200 hover:text-neutral-900 active:scale-[0.98] dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA] ${
-                            showLabels
-                              ? 'w-full px-2 py-1.5 text-left'
-                              : 'mx-auto h-8 w-8 justify-center p-2'
-                          }`}
-                        >
-                          <Search className="h-4 w-4 shrink-0" />
-                          {showLabels && (
-                            <span className="animate-crm-fade-in truncate text-sm">
-                              {t('shell.quickActions')}
-                            </span>
-                          )}
-                        </button>
-                      </TooltipTrigger>
-                      {!showLabels && (
-                        <TooltipContent side="right">{t('shell.quickActions')} (J)</TooltipContent>
-                      )}
-                    </Tooltip>
                   </div>
                 );
               }
@@ -490,69 +565,48 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
               const isClosed = Boolean(closedGroups[group.key]);
 
               return (
-                <div key={group.key} className="flex w-full flex-col gap-2">
+                <div key={group.key} className="flex w-full flex-col gap-1">
                   {showLabels && (
                     <button
                       type="button"
                       onClick={() => toggleGroup(group.key)}
-                      className="group animate-crm-fade-in flex cursor-pointer items-center gap-2.5 px-2 text-left"
+                      className="group flex w-full cursor-pointer items-center justify-between px-2 pt-2 pb-1 text-left"
                     >
-                      <span className="text-[13px] font-medium text-neutral-500 transition-colors group-hover:text-neutral-700 dark:text-[#737373] dark:group-hover:text-[#A3A3A3]">
+                      <span className="text-caption-1-semibold text-text-tertiary transition-colors group-hover:text-text-secondary">
                         {t(`navGroups.${group.key}`)}
                       </span>
-                      <ChevronDown
-                        className={`h-3.5 w-3.5 text-neutral-500 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] dark:text-[#737373] ${
-                          isClosed ? '-rotate-90' : ''
-                        }`}
+                      <RiArrowDownSLine
+                        className={cx(
+                          'size-3.5 text-text-tertiary transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                          isClosed && '-rotate-90',
+                        )}
                       />
                     </button>
                   )}
 
                   <div
-                    className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    className={cx(
+                      'grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
                       isClosed && showLabels
-                        ? 'pointer-events-none -mt-2 grid-rows-[0fr] opacity-0'
-                        : 'mt-0 grid-rows-[1fr] opacity-100'
-                    }`}
+                        ? 'pointer-events-none grid-rows-[0fr] opacity-0'
+                        : 'grid-rows-[1fr] opacity-100',
+                    )}
                   >
                     <div className="overflow-hidden">
                       <div className="flex w-full flex-col gap-1">
                         {visibleItems.map(({ key, icon: Icon, path }) => {
                           const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
-                          const isActive = activeNav?.key === key;
-
+                          const isSelected = activeNav?.key === key;
                           return (
-                            <Tooltip key={key}>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={href}
-                                  onClick={() => setDrawerOpen(false)}
-                                  className={`flex cursor-pointer items-center gap-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
-                                    showLabels
-                                      ? 'px-2 py-1.5'
-                                      : 'mx-auto h-8 w-8 justify-center p-2'
-                                  } ${
-                                    isActive
-                                      ? 'bg-neutral-200/80 font-medium text-neutral-900 dark:bg-[#171717] dark:text-[#FAFAFA]'
-                                      : 'font-medium text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]'
-                                  }`}
-                                >
-                                  <Icon
-                                    className={`h-4 w-4 shrink-0 transition-transform duration-150 ${
-                                      isActive ? 'text-neutral-900 dark:text-[#FAFAFA]' : ''
-                                    }`}
-                                  />
-                                  {showLabels && (
-                                    <span className="animate-crm-fade-in truncate text-sm">
-                                      {t(`nav.${key}`)}
-                                    </span>
-                                  )}
-                                </Link>
-                              </TooltipTrigger>
-                              {!showLabels && (
-                                <TooltipContent side="right">{t(`nav.${key}`)}</TooltipContent>
-                              )}
-                            </Tooltip>
+                            <SidebarNavItem
+                              key={key}
+                              icon={Icon}
+                              label={t(`nav.${key}`)}
+                              href={href}
+                              isSelected={isSelected}
+                              collapsed={isCollapsedDesktop}
+                              onClick={() => setDrawerOpen(false)}
+                            />
                           );
                         })}
                       </div>
@@ -563,267 +617,292 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
             })}
           </nav>
         )}
-
-        {/* Bottom User Profile Row (h-[44px] bg-neutral-100 dark:bg-[#171717] border-t) */}
-        <div
-          className={`flex h-[44px] shrink-0 items-center gap-1 border-t border-neutral-200 bg-neutral-100 p-2 transition-colors duration-200 dark:border-white/10 dark:bg-[#171717] ${
-            showLabels ? 'justify-between' : 'justify-center'
-          }`}
-        >
-          <DropdownMenu>
-            {!showLabels ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label="User menu"
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md p-2 text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-                    >
-                      <div
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-sm"
-                      />
-                    </button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  {userName || session?.user.email || 'User'}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="User menu"
-                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-left text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-                >
-                  <div
-                    aria-hidden="true"
-                    className="h-4 w-4 shrink-0 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-sm"
-                  />
-                  <span className="flex-1 truncate text-sm font-medium">
-                    {userName || session?.user.email || 'User'}
-                  </span>
-                  <MoreHorizontal className="h-4 w-4 shrink-0 text-neutral-500 dark:text-[#A3A3A3]" />
-                </button>
-              </DropdownMenuTrigger>
-            )}
-            <DropdownMenuContent
-              align="end"
-              side="top"
-              className="w-52 rounded-lg border border-neutral-200 bg-white p-1 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#171717]"
-            >
-              <div className="px-2 py-1.5">
-                <p className="truncate text-sm font-medium text-neutral-900 dark:text-[#FAFAFA]">
-                  {userName}
-                </p>
-                <Caption className="block truncate text-xs">{session?.user.email}</Caption>
-              </div>
-              <DropdownMenuSeparator className="bg-neutral-200 dark:bg-white/10" />
-              <DropdownMenuItem
-                className="cursor-pointer gap-2 rounded-md text-sm text-destructive focus:bg-destructive/10 focus:text-destructive"
-                onClick={signOut}
-              >
-                <LogOut className="h-4 w-4" />
-                {t('auth.signOut')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
-    </TooltipProvider>
+
+      {/* Bottom Footer Section: User Profile Card */}
+      <div className="flex w-full shrink-0 flex-col gap-2 pt-2">
+        <Dropdown>
+          <DropdownTrigger
+            aria-label={userName || session?.user.email || 'User menu'}
+            className={cx(
+              'flex cursor-pointer items-center overflow-hidden rounded-xl bg-background-tertiary-default outline-none transition-[width,padding,background-color] duration-300 ease-in-out hover:bg-background-tertiary-hover',
+              isCollapsedDesktop
+                ? 'h-9 w-9 justify-center rounded-full bg-transparent p-0'
+                : 'w-full justify-between py-2 pe-3 ps-2.5',
+            )}
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Avatar
+                size="sm"
+                initials={(userName || session?.user.email || 'U').slice(0, 1).toUpperCase()}
+                color="blue"
+              />
+              <Collapsible collapsed={isCollapsedDesktop}>
+                <span className="flex min-w-0 flex-col items-start justify-center">
+                  <span className="truncate text-body-medium font-medium text-text-primary">
+                    {userName || 'User'}
+                  </span>
+                  <span className="truncate text-caption-1-regular text-text-tertiary">
+                    {session?.user.email}
+                  </span>
+                </span>
+              </Collapsible>
+            </span>
+            <Collapsible collapsed={isCollapsedDesktop}>
+              <RiMoreLine className="size-4 shrink-0 text-foreground-icon-secondary" />
+            </Collapsible>
+          </DropdownTrigger>
+          <DropdownPopover
+            aria-label="User menu"
+            placement={isCollapsedDesktop ? 'right bottom' : 'top start'}
+            className="w-56"
+          >
+            <div className="px-2 py-1.5">
+              <p className="truncate text-body-medium font-medium text-text-primary">{userName}</p>
+              <Caption className="block truncate text-caption-1-medium text-text-tertiary">
+                {session?.user.email}
+              </Caption>
+            </div>
+            <DropdownDivider />
+            <DropdownGroup>
+              <DropdownItem
+                className="text-text-error-primary hover:bg-notification-error-background"
+                onSelect={signOut}
+              >
+                <RiLogoutBoxRLine className="size-4 shrink-0" />
+                <span>{t('auth.signOut')}</span>
+              </DropdownItem>
+            </DropdownGroup>
+          </DropdownPopover>
+        </Dropdown>
+      </div>
+    </div>
   );
 
   return (
-    <div className="flex min-h-dvh w-full flex-row bg-white text-neutral-900 antialiased transition-colors duration-200 dark:bg-[#0A0A0A] dark:text-[#FAFAFA]">
-      {/* Quick Actions Command Dialog */}
-      <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
-        <DialogContent className="max-w-md gap-0 overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-[#171717]">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{t('shell.quickActions')}</DialogTitle>
-            <DialogDescription>{t('shell.quickActionsPlaceholder')}</DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center border-b border-neutral-200 px-3 dark:border-white/10">
-            <Search className="h-4 w-4 shrink-0 text-neutral-400" />
-            <Input
-              autoFocus
-              value={quickSearch}
-              onChange={(e) => setQuickSearch(e.target.value)}
-              placeholder={t('shell.quickActionsPlaceholder')}
-              className="h-10 border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
-            />
-          </div>
-          <div className="max-h-72 overflow-y-auto p-1.5">
-            {filteredNavItems.length === 0 && filteredCampaigns.length === 0 ? (
-              <p className="py-6 text-center text-xs text-neutral-500">
-                {t('shell.quickActionsEmpty')}
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {filteredNavItems.length > 0 && (
-                  <div className="space-y-0.5">
-                    {filteredNavItems.map(({ key, icon: Icon, path }) => {
-                      const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
-                      return (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => {
-                            setQuickOpen(false);
-                            setQuickSearch('');
-                            router.push(href);
-                          }}
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-normal text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-[#FAFAFA] dark:hover:bg-white/5"
-                        >
-                          <Icon className="h-4 w-4 text-neutral-500 dark:text-[#A3A3A3]" />
-                          <span>{t(`nav.${key}`)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {routes && filteredCampaigns.length > 0 && (
-                  <div className="space-y-0.5 border-t border-neutral-200 pt-1.5 dark:border-white/10">
-                    <p className="px-2 py-1 text-xs font-medium text-neutral-500 dark:text-[#737373]">
-                      {t('shell.favorites')}
-                    </p>
-                    {filteredCampaigns.map((c) => {
-                      const phase = campaignPhase(c, now);
-                      const href = phase === 'draft' ? routes.edit(c.id) : routes.detail(c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => {
-                            setQuickOpen(false);
-                            setQuickSearch('');
-                            router.push(href);
-                          }}
-                          className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-[#FAFAFA] dark:hover:bg-white/5"
-                        >
-                          <span className="flex min-w-0 items-center gap-2">
-                            <Sparkles className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                            <span className="truncate font-normal">{c.name}</span>
-                          </span>
-                          <span className="shrink-0 text-xs text-neutral-400">
-                            {t(`campaigns.phase.${phase}`)}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+    <div className="flex min-h-dvh w-full bg-background-full text-text-primary antialiased">
+      {/* Quick Actions Command Modal */}
+      <Modal
+        isOpen={quickOpen}
+        onOpenChange={setQuickOpen}
+        size="sm"
+        aria-label={t('shell.quickActions')}
+        className="gap-0 p-0"
+      >
+        <div className="flex items-center border-b border-separator-border px-3">
+          <RiSearchLine className="size-4 shrink-0 text-foreground-icon-tertiary" />
+          <input
+            type="search"
+            value={quickSearch}
+            onChange={(e) => setQuickSearch(e.target.value)}
+            placeholder={t('shell.quickActionsPlaceholder')}
+            aria-label={t('shell.quickActions')}
+            className="h-10 w-full border-0 bg-transparent px-2 text-body-regular text-text-primary placeholder:text-text-tertiary outline-none"
+          />
+        </div>
+        <div className="max-h-72 overflow-y-auto p-1.5">
+          {filteredNavItems.length === 0 && filteredCampaigns.length === 0 ? (
+            <p className="py-6 text-center text-body-2-regular text-text-tertiary">
+              {t('shell.quickActionsEmpty')}
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {filteredNavItems.length > 0 && (
+                <div className="space-y-0.5">
+                  {filteredNavItems.map(({ key, icon: Icon, path }) => {
+                    const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setQuickOpen(false);
+                          setQuickSearch('');
+                          router.push(href);
+                        }}
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-left text-body-medium text-text-primary transition-colors hover:bg-background-secondary-hover"
+                      >
+                        <Icon className="size-4 text-foreground-icon-secondary" />
+                        <span>{t(`nav.${key}`)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {routes && filteredCampaigns.length > 0 && (
+                <div className="space-y-0.5 border-t border-separator-border pt-1.5">
+                  <p className="px-2 py-1 text-caption-1-medium text-text-tertiary">
+                    {t('shell.favorites')}
+                  </p>
+                  {filteredCampaigns.map((c) => {
+                    const phase = campaignPhase(c, now);
+                    const href = phase === 'draft' ? routes.edit(c.id) : routes.detail(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setQuickOpen(false);
+                          setQuickSearch('');
+                          router.push(href);
+                        }}
+                        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-body-medium text-text-primary transition-colors hover:bg-background-secondary-hover"
+                      >
+                        <span className="flex min-w-0 items-center gap-2">
+                          <RiSparklingLine className="size-3.5 shrink-0 text-accent-500" />
+                          <span className="truncate">{c.name}</span>
+                        </span>
+                        <span className="shrink-0 text-caption-1-medium text-text-tertiary">
+                          {t(`campaigns.phase.${phase}`)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Modal>
 
       {/* Mobile Drawer */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent
-          side="left"
-          className="w-[240px] border-r border-neutral-200 bg-neutral-50 p-0 text-neutral-900 dark:border-white/10 dark:bg-[#0A0A0A] dark:text-[#FAFAFA]"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Navigation Menu</SheetTitle>
-          </SheetHeader>
-          {sidebarContent}
-        </SheetContent>
-      </Sheet>
-
-      {/* Resizable & Collapsible Desktop Sidebar (1-to-1 Louis CRM) */}
-      <aside
-        style={{ width: collapsed ? 68 : sidebarWidth }}
-        className={`sticky top-0 z-40 hidden h-dvh shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 md:flex dark:border-white/10 dark:bg-[#0A0A0A] ${
-          isResizing
-            ? 'transition-none'
-            : 'transition-[width,background-color,border-color] duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)]'
-        }`}
+      <Drawer
+        isOpen={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        placement="start"
+        size="sm"
+        aria-label="Navigation Menu"
+        className="bg-background-full p-2.5"
       >
-        {!collapsed && (
-          <div
-            aria-hidden="true"
-            title="Drag to resize sidebar"
-            onMouseDown={startSidebarResize}
-            className="absolute top-0 right-0 z-50 h-full w-[8px] cursor-col-resize transition-colors duration-200 hover:bg-blue-500/50"
-          />
+        <div className="h-full w-full rounded-2xl bg-background-secondary-default p-3 shadow-sidebar">
+          {sidebarContent}
+        </div>
+      </Drawer>
+
+      {/* Floating Collapsible Desktop Sidebar */}
+      <aside
+        className={cx(
+          'sticky top-3 z-40 my-3 ml-3 hidden h-[calc(100dvh-24px)] shrink-0 flex-col justify-between overflow-hidden md:flex',
+          'rounded-3xl border border-border-button-white bg-background-secondary-default shadow-sidebar',
+          'transition-[width] duration-300 ease-in-out',
+          collapsed ? 'w-[60px] px-[11px] py-3' : 'w-[260px] p-3',
         )}
+      >
         {sidebarContent}
       </aside>
 
       {/* Main Content Viewport */}
-      <div className="flex min-w-0 flex-1 flex-col bg-white dark:bg-[#0A0A0A]">
-        {/* Top Header (h-[48px] p-2 border-b) */}
-        <header className="sticky top-0 z-10 flex h-[48px] shrink-0 items-center justify-between overflow-x-auto border-b border-neutral-200 bg-white p-2 transition-colors duration-200 dark:border-white/10 dark:bg-[#0A0A0A]">
-          <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top Header - Workspace header */}
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between gap-3 bg-background-primary-default/80 px-3 backdrop-blur-md transition-colors sm:gap-4 sm:px-6 lg:px-8">
+          {/* Left: Mobile nav toggle + Breadcrumbs */}
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             {isMobile && (
-              <button
-                type="button"
+              <IconButton
+                icon={RiMenuLine}
+                size="small"
                 aria-label={t('shell.openNav')}
                 onClick={() => setDrawerOpen(true)}
-                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100 md:hidden dark:hover:bg-white/5"
-              >
-                <MenuIcon className="h-4 w-4 text-neutral-900 dark:text-[#FAFAFA]" />
-              </button>
+                className="md:hidden"
+              />
             )}
-            <div className="flex shrink-0 items-center gap-2 rounded-md px-2 py-2">
-              <ActiveIcon className="h-4 w-4 text-neutral-500 dark:text-[#A3A3A3]" />
-              <span className="text-[15px] font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                {headerTitle}
-              </span>
-            </div>
+            {/* Breadcrumb navigation trail */}
+            {current ? (
+              <Breadcrumb aria-label="Page navigation" className="min-w-0">
+                <BreadcrumbItem href={orgHome as Route} className="hidden sm:inline-flex">
+                  {current.name}
+                </BreadcrumbItem>
+                {activeGroup && activeGroup.key !== 'start' && (
+                  <BreadcrumbItem className="hidden md:inline-flex">
+                    {t(`navGroups.${activeGroup.key}`)}
+                  </BreadcrumbItem>
+                )}
+                <BreadcrumbItem current icon={ActiveIcon}>
+                  {headerTitle}
+                </BreadcrumbItem>
+              </Breadcrumb>
+            ) : (
+              <div className="flex items-center gap-2">
+                <ActiveIcon className="size-4 text-foreground-icon-secondary" />
+                <span className="text-body-medium font-semibold text-text-primary">
+                  {headerTitle}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          {/* Right: Notification + Theme mode + Primary CTA */}
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            {/* Notification Center Popover */}
+            <PopoverTrigger>
+              <button
+                type="button"
+                aria-label={t('shell.notifications')}
+                className="relative inline-flex size-8 shrink-0 cursor-pointer select-none items-center justify-center overflow-visible rounded-2lg border border-border-button-default bg-background-primary-default p-2 text-foreground-icon-primary shadow-xs outline-none transition-[background-color,border-color,box-shadow,color] duration-150 ease hover:border-border-button-hover hover:bg-background-primary-hover active:border-border-button-active active:bg-background-primary-active active:shadow-none focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+              >
+                <RiNotification3Line
+                  className="size-4 shrink-0 text-foreground-icon-secondary"
+                  aria-hidden
+                />
+                {unreadCount > 0 && (
+                  <span className="pointer-events-none absolute -top-0.5 -right-0.5 flex size-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-notification-error-foreground opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-notification-error-foreground" />
+                  </span>
+                )}
+              </button>
+              <Popover
+                placement="bottom end"
+                className="w-[360px] max-w-[calc(100vw-24px)] p-0 overflow-hidden border-0 bg-transparent shadow-none"
+              >
+                <NotificationCenter
+                  title={t('shell.notifications')}
+                  emptyMessage={t('shell.notificationsEmpty')}
+                  notifications={notifications}
+                  className="w-full border border-border-button-default bg-background-primary-default shadow-dropdown"
+                />
+              </Popover>
+            </PopoverTrigger>
+
+            {/* Theme Mode Toggle Button */}
+            <IconButton
+              icon={resolvedTheme === 'dark' ? RiSunLine : RiMoonLine}
+              size="small"
+              aria-label={resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
+              onClick={(e) => handleToggleTheme(e)}
+            />
+
             {routes && canReadCampaigns && (
-              <Link
-                href={routes.create}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden text-sm font-normal sm:block">{t('campaigns.create')}</span>
-              </Link>
+              <>
+                <div
+                  className="mx-0.5 hidden h-4 w-px bg-separator-border sm:block"
+                  aria-hidden="true"
+                />
+                <Link href={routes.create}>
+                  <Button
+                    variant="primary"
+                    size="small"
+                    leadingIcon={RiAddLine}
+                    className="hidden sm:inline-flex"
+                  >
+                    <span>{t('campaigns.create')}</span>
+                  </Button>
+                  <IconButton
+                    icon={RiAddLine}
+                    size="small"
+                    aria-label={t('campaigns.create')}
+                    className="border-accent-600 bg-accent-600 text-white hover:bg-accent-700 sm:hidden"
+                  />
+                </Link>
+              </>
             )}
-            {current && (
-              <Link
-                href={`/orgs/${current.id}/settings` as Route}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-              >
-                <Share className="h-4 w-4" />
-                <span className="hidden text-sm font-normal sm:block">Share</span>
-              </Link>
-            )}
-            <div className="mx-1 h-[18px] w-[0.5px] bg-neutral-200 dark:bg-white/10" />
-            <div aria-hidden="true" className="mr-2 flex items-center">
-              <div className="z-30 -mr-1.5 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-blue-400 to-blue-600 transition-colors dark:border-[#0A0A0A]" />
-              <div className="z-20 -mr-1.5 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-yellow-400 to-orange-500 transition-colors dark:border-[#0A0A0A]" />
-              <div className="z-10 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-green-400 to-teal-500 transition-colors dark:border-[#0A0A0A]" />
-            </div>
-            <div className="mx-1 h-[18px] w-[0.5px] bg-neutral-200 dark:bg-white/10" />
-            <button
-              type="button"
-              title="Switch theme"
-              aria-label="Theme"
-              onClick={handleToggleTheme}
-              className="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 active:scale-95 dark:text-[#737373] dark:hover:bg-white/5"
-            >
-              <Sun className="theme-icon icon-sun h-4 w-4 text-[#A3A3A3]" />
-              <Moon className="theme-icon icon-moon h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Help"
-              onClick={() => setQuickOpen(true)}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-white/5"
-            >
-              <HelpCircle className="h-4 w-4 text-neutral-500 dark:text-[#737373]" />
-            </button>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        {/* Scrollable Page Body with BoardUI standard grid gap and max container */}
+        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+          {children}
+        </main>
       </div>
     </div>
   );

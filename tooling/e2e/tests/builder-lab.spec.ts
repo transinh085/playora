@@ -64,11 +64,8 @@ test('builder lab: create from template → set rules → publish → play on a 
   await dialog.getByRole('checkbox', { name: /kiểm tra thể lệ/ }).check();
   await dialog.getByRole('button', { name: 'Publish' }).click();
   await expect(dialog.getByText('Đã publish v1')).toBeVisible();
-  const live = await dialog
-    .locator('a[href*="/play/"]:not([href*="rehearsal"])')
-    .first()
-    .getAttribute('href');
-  expect(live).toBeTruthy();
+  const live = await dialog.getByTestId('publish-open-play').getAttribute('href');
+  expect(live).toMatch(/^http:\/\/localhost:3002\//);
 
   // A player on a phone.
   const phone = await context.newPage();

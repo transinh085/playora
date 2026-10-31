@@ -15,7 +15,7 @@ import {
   toPlayOutcome,
 } from '@playora/game-sdk';
 import { getTemplate, getTemplateSurfaces } from '@playora/templates';
-import { Skeleton } from '@playora/ui/components/skeleton';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 

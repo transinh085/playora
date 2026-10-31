@@ -1,36 +1,28 @@
 'use client';
 
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Button } from '@playora/ui/components/button';
+import { Button } from '@playora/ui/components/base/buttons/button';
 import { AlertCircle } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import type React from 'react';
 
-/** Inline failure state for a query: pale error Alert with a retry action. */
+/** Inline failure state for a query: pale error banner with a retry action. */
 export function QueryError({ onRetry, title }: { onRetry?: () => void; title?: React.ReactNode }) {
   const t = useTranslations('common');
 
   return (
-    <Alert
-      variant="destructive"
-      className="flex items-center justify-between gap-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3.5"
+    <div
+      role="alert"
+      className="flex items-center justify-between gap-4 rounded-2xl border border-border-button-default bg-notification-error-background p-4 text-text-error-primary"
     >
       <div className="flex items-center gap-2.5">
-        <AlertCircle className="size-4 shrink-0 text-destructive" />
-        <AlertTitle className="m-0 text-xs font-medium text-destructive">
-          {title ?? t('unknownError')}
-        </AlertTitle>
+        <AlertCircle className="size-4 shrink-0 text-text-error-primary" />
+        <p className="m-0 text-body-medium text-text-error-primary">{title ?? t('unknownError')}</p>
       </div>
       {onRetry && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 shrink-0 rounded-md px-2.5 text-xs shadow-xs"
-          onClick={onRetry}
-        >
+        <Button size="small" variant="secondary" className="shrink-0" onClick={onRetry}>
           {t('retry')}
         </Button>
       )}
-    </Alert>
+    </div>
   );
 }

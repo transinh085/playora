@@ -1,11 +1,10 @@
 'use client';
 
-import { Card } from '@playora/ui/components/card';
 import type React from 'react';
 
 /**
  * Bordered card that holds a list page's table flush to its edges, with an optional toolbar
- * (search, filters, bulk actions) above it. Luma style rounded container.
+ * (search, filters, bulk actions) above it. BoardUI rounded container.
  */
 export function TableCard({
   toolbar,
@@ -17,14 +16,14 @@ export function TableCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="overflow-hidden rounded-lg border border-neutral-200 bg-white p-0 shadow-xs dark:border-white/10 dark:bg-[#0A0A0A]">
+    <div className="overflow-hidden rounded-2xl border border-border-button-default bg-background-primary-default shadow-card">
       {header}
       {toolbar && (
-        <div className="flex min-h-[48px] items-center justify-between border-b border-neutral-200 bg-white p-2 dark:border-white/10 dark:bg-[#0A0A0A]">
+        <div className="flex min-h-[48px] items-center justify-between bg-background-primary-default p-3">
           {toolbar}
         </div>
       )}
       {children}
-    </Card>
+    </div>
   );
 }

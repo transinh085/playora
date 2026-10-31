@@ -1,14 +1,8 @@
 'use client';
 
-import { Card } from '@playora/ui/components/card';
-import { Skeleton } from '@playora/ui/components/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@playora/ui/components/tooltip';
+import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
 import { CircleHelp } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import type React from 'react';
 import { IconTile, type Tone } from './icon-tile';
 
@@ -23,7 +17,7 @@ export interface MetricCardItem {
   testId?: string;
 }
 
-/** One headline number with its label and a tinted icon tile. Luma style rounded cards with soft elevation. */
+/** One headline number with its label and a tinted icon tile. BoardUI rounded cards with soft elevation. */
 export function MetricCard({
   label,
   value,
@@ -37,65 +31,55 @@ export function MetricCard({
 }: MetricCardItem & { loading?: boolean }) {
   if (loading) {
     return (
-      <Card className="rounded-lg border-neutral-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-[#0A0A0A]">
+      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-8 w-16" />
           </div>
-          <Skeleton className="size-9 rounded-md" />
+          <Skeleton className="size-9 rounded-xl" />
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card
+    <div
       data-testid={testId}
       data-highlighted={highlighted ? 'true' : undefined}
-      className={`flex flex-col justify-between gap-3 rounded-lg bg-white p-3 shadow-sm transition-colors dark:bg-[#0A0A0A] ${
+      className={cx(
+        'flex flex-col justify-between gap-3 rounded-3xl border bg-background-primary-default p-5 shadow-card transition-colors',
         highlighted
-          ? 'border-emerald-500/60 ring-1 ring-emerald-500/20'
-          : 'border-neutral-200 dark:border-white/10'
-      }`}
+          ? 'border-accent-500/60 ring-1 ring-accent-500/20'
+          : 'border-border-button-default',
+      )}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-sm font-medium text-neutral-600 dark:text-[#A3A3A3]">
-            {label}
-          </span>
+          <span className="truncate text-body-medium text-text-secondary">{label}</span>
           {tooltip && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-help text-neutral-400 hover:text-neutral-700 dark:hover:text-[#FAFAFA]">
-                    <CircleHelp className="size-3.5" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>{tooltip}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <span
+              className="cursor-help text-foreground-icon-tertiary hover:text-text-primary"
+              title={typeof tooltip === 'string' ? tooltip : undefined}
+            >
+              <CircleHelp className="size-3.5" />
+            </span>
           )}
         </div>
         <IconTile tone={tone}>{icon}</IconTile>
       </div>
       <div className="flex items-center gap-3">
         <p
-          className={`text-[28px] leading-9 font-semibold tracking-tight tabular-nums ${
-            highlighted
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-neutral-900 dark:text-[#FAFAFA]'
-          }`}
+          className={cx(
+            'text-title-1-semibold tabular-nums',
+            highlighted ? 'text-accent-600' : 'text-text-primary',
+          )}
         >
           {value}
         </p>
       </div>
-      {subtext && (
-        <p className="line-clamp-2 text-[13px] leading-5 font-normal text-neutral-500 dark:text-[#A3A3A3]">
-          {subtext}
-        </p>
-      )}
-    </Card>
+      {subtext && <p className="line-clamp-2 text-body-2-regular text-text-secondary">{subtext}</p>}
+    </div>
   );
 }
 

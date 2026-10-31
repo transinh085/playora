@@ -1,0 +1,16 @@
+{
+  "paths": {
+    "components": "src/components",
+    "utils": "src/utils",
+    "hooks": "src/hooks",
+    "styles": "src/styles",
+    "lib": "src/lib"
+  },
+  "aliases": {
+    "components": "@playora/ui/components",
+    "utils": "@playora/ui/utils",
+    "hooks": "@playora/ui/hooks",
+    "styles": "@playora/ui/styles",
+    "lib": "@playora/ui/lib"
+  }
+}

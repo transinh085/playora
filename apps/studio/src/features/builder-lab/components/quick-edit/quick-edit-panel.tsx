@@ -1,17 +1,7 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@playora/ui/components/alert-dialog';
-import { Card, CardContent } from '@playora/ui/components/card';
-import { Input } from '@playora/ui/components/input';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { AlertDialog } from '@playora/ui/components/base/modal/modal';
 import { Check } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -109,12 +99,14 @@ export function QuickEditPanel({
                   className="size-8 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
                   aria-label={tBrand(key)}
                 />
-                <Input
+                <InputBase
+                  aria-label={tBrand(key)}
                   value={campaign.brand[key] || ''}
                   onChange={(e) =>
                     onChange({ brand: { ...campaign.brand, [key]: e.target.value } })
                   }
-                  className="w-24 font-mono text-xs uppercase"
+                  fieldClassName="w-24"
+                  className="font-mono text-xs uppercase"
                 />
               </div>
             </div>
@@ -122,26 +114,15 @@ export function QuickEditPanel({
         </div>
       </Section>
 
-      <AlertDialog open={!!pendingSkin} onOpenChange={(open) => !open && setPendingSkin(null)}>
-        <AlertDialogContent className="rounded-lg border border-neutral-200 bg-white p-5 shadow-lg dark:border-white/10 dark:bg-[#0A0A0A]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-semibold">
-              {t('skinConfirmTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
-              {t('skinConfirm')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel className="h-8 rounded-md text-xs">
-              {tCommon('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSkin} className="h-8 rounded-md text-xs">
-              {t('skinConfirmOk')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertDialog
+        isOpen={!!pendingSkin}
+        onOpenChange={(open) => !open && setPendingSkin(null)}
+        title={t('skinConfirmTitle')}
+        description={t('skinConfirm')}
+        cancelLabel={tCommon('cancel')}
+        confirmLabel={t('skinConfirmOk')}
+        onConfirm={confirmSkin}
+      />
     </div>
   );
 }
@@ -181,11 +162,20 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
         const active = skin.key === campaign.skinKey;
         const cover = covers[i];
         return (
-          <Card
+          // biome-ignore lint/a11y/useSemanticElements: interactive skin card
+          <div
             key={skin.key}
+            role="button"
+            tabIndex={0}
             onClick={() => onPick(skin.key)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onPick(skin.key);
+              }
+            }}
             data-testid={`skin-${skin.key}`}
-            className={`cursor-pointer overflow-hidden rounded-lg transition-all shadow-xs ${
+            className={`cursor-pointer overflow-hidden rounded-lg border transition-all shadow-xs ${
               active
                 ? 'border-neutral-900 ring-1 ring-neutral-900/10 dark:border-white dark:ring-white/20'
                 : 'border-neutral-200 hover:border-neutral-400 dark:border-white/10 dark:hover:border-white/20'
@@ -199,12 +189,12 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
                 </span>
               )}
             </div>
-            <CardContent className="p-2">
+            <div className="p-2">
               <span className="block truncate text-center text-xs font-medium text-neutral-900 dark:text-neutral-100">
                 {t(`skins.${skin.key}`)}
               </span>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>

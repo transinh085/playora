@@ -1,12 +1,7 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@playora/ui/components/tooltip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
 import {
   Award,
   ClipboardList,
@@ -88,6 +83,7 @@ function ScreensPanelView({
           <button
             key={key}
             type="button"
+            role="menuitem"
             onClick={() => dispatch({ type: 'selectScreen', screen: key as ScreenKey })}
             className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
               selected
@@ -107,47 +103,44 @@ function ScreensPanelView({
 export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
   const t = useTranslations('canvasLab');
   return (
-    <TooltipProvider>
-      <div className="flex flex-col gap-3">
-        {TOOLBOX_GROUPS.map((group) => (
-          <div key={group.category} className="flex flex-col gap-1.5">
-            <Caption className="text-xs uppercase tracking-wider opacity-60 font-semibold">
-              {t(`toolboxCategories.${group.category}`)}
-            </Caption>
-            <div className="grid grid-cols-3 gap-2">
-              {group.types.map((type) => {
-                const Icon = TYPE_ICONS[type];
-                return (
-                  <Tooltip key={type}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData(TOOLBOX_MIME, type);
-                          e.dataTransfer.effectAllowed = 'copy';
-                        }}
-                        onClick={() => onAdd(type)}
-                        data-testid={`toolbox-${type}`}
-                        className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
-                      >
-                        <IconTile size={28}>
-                          <Icon className="size-3.5" />
-                        </IconTile>
-                        <span className="text-[11px] leading-tight line-clamp-1">
-                          {t(`types.${type}`)}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t('addHint')}</TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </div>
+    <div className="flex flex-col gap-3">
+      {TOOLBOX_GROUPS.map((group) => (
+        <div key={group.category} className="flex flex-col gap-1.5">
+          <Caption className="text-xs uppercase tracking-wider opacity-60 font-semibold">
+            {t(`toolboxCategories.${group.category}`)}
+          </Caption>
+          <div className="grid grid-cols-3 gap-2">
+            {group.types.map((type) => {
+              const Icon = TYPE_ICONS[type];
+              return (
+                <TooltipTrigger key={type}>
+                  <button
+                    type="button"
+                    draggable
+                    title={t('addHint')}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(TOOLBOX_MIME, type);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    onClick={() => onAdd(type)}
+                    data-testid={`toolbox-${type}`}
+                    className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
+                  >
+                    <IconTile size={28}>
+                      <Icon className="size-3.5" />
+                    </IconTile>
+                    <span className="text-[11px] leading-tight line-clamp-1">
+                      {t(`types.${type}`)}
+                    </span>
+                  </button>
+                  <Tooltip>{t('addHint')}</Tooltip>
+                </TooltipTrigger>
+              );
+            })}
           </div>
-        ))}
-      </div>
-    </TooltipProvider>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -219,8 +212,8 @@ function LayersPanelView({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-6 text-muted-foreground hover:text-foreground"
+              size="xs"
+              className="size-6 p-0 text-muted-foreground hover:text-foreground"
               aria-label={el.hidden ? t('show') : t('hide')}
               onClick={(e) => {
                 e.stopPropagation();
@@ -232,8 +225,8 @@ function LayersPanelView({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-6 text-muted-foreground hover:text-foreground"
+              size="xs"
+              className="size-6 p-0 text-muted-foreground hover:text-foreground"
               aria-label={el.locked ? t('unlock') : t('lock')}
               onClick={(e) => {
                 e.stopPropagation();

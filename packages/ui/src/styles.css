@@ -1,18 +1,24 @@
 /* biome-ignore-all lint/complexity/noImportantStyles: the reduced-motion reset must beat every component transition */
 /*
- * Playora design tokens (v2.0 — shadcn/ui luma style). Spec: docs/engineering/design-system.md, ADR-016.
+ * Playora design tokens — BoardUI + Brand Teal (hue 192) + Game skins (--game-*).
  * Apps import this after `@import "tailwindcss";` and add `@source` for packages/ui.
  *
  * Three layers:
- *   1. Primitives  (--teal-*, --violet-*, --ink-*, --spotlight-*, --stage-*, --team-*): raw OKLCH values, never used
- *      directly in feature components.
- *   2. Studio & Redeem Semantic (--background, --foreground, --card, --primary, --success…): shadcn/ui luma tokens. Light + `.dark`.
- *   3. Game        (--game-*): everything players and kiosks see. Swapped per campaign by a skin
+ *   1. BoardUI Primitives & Semantic Tokens (`./styles/theme.css` + `./styles/typography.css`)
+ *      with `--color-accent-50..950` mapped to Playora's Brand Teal (hue 192).
+ *   2. Studio & Redeem Semantic Bridge (`--background`, `--foreground`, `--card`, `--primary`…)
+ *      pointing to BoardUI semantic tokens for light + `.dark`.
+ *   3. Game (`--game-*`): everything players and kiosks see. Swapped per campaign by a skin
  *      (`data-skin`) and then by the shop's brand kit (inline vars from `brandKitVars()`).
  */
 @layer theme, base, components, utilities;
 
-@custom-variant dark (&:is(.dark *));
+@import "./styles/theme.css";
+@import "./styles/typography.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant rtl (&:dir(rtl));
+@custom-variant ltr (&:dir(ltr));
 
 /* Pin interaction states in the Design System showcase with data-preview="hover | focus | active". */
 @custom-variant hover {
@@ -30,7 +36,7 @@
 
 :root {
   /* ── 1. Primitives ─────────────────────────────────────────────────────────────── */
-  /* Brand teal (hue 192). Studio uses it only for the primary action, links, focus and selection. */
+  /* Brand teal (hue 192). Mapped onto BoardUI's accent-50..950 ramp in ./styles/theme.css. */
   --teal-50: oklch(0.975 0.018 192);
   --teal-100: oklch(0.945 0.035 192);
   --teal-200: oklch(0.89 0.065 192);
@@ -54,7 +60,7 @@
   --violet-800: oklch(0.35 0.17 293);
   --violet-900: oklch(0.28 0.13 293);
 
-  /* Cool neutrals (hue 255), inspired by Linear/Geist/Dub: they carry almost all of the Studio UI. */
+  /* Cool neutrals (hue 255). */
   --ink-50: oklch(0.985 0.002 255);
   --ink-100: oklch(0.967 0.004 255);
   --ink-200: oklch(0.925 0.007 255);
@@ -78,8 +84,7 @@
   --stage-900: oklch(0.2 0.075 292);
   --stage-800: oklch(0.27 0.1 292);
 
-  /* Wheel slice / categorical palette: 8 hues spaced for distinctness on dark and light grounds.
-     Always pair with a shape or label so colour is never the only cue. */
+  /* Wheel slice / categorical palette: 8 hues spaced for distinctness on dark and light grounds. */
   --team-1: oklch(0.68 0.2 25);
   --team-2: oklch(0.64 0.17 255);
   --team-3: oklch(0.83 0.16 88);
@@ -99,52 +104,49 @@
   --duration-slow: 320ms;
   --duration-stage: 640ms;
 
-  /* ── 2. Studio / Semantic (Louis CRM 1-to-1 neutral system) ─────────────────── */
-  --radius: 0.375rem; /* 6px rounded-md default for controls */
-  --border-hairline: 0.5px;
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-  --primary: #171717;
-  --primary-active: #0a0a0a;
-  --primary-foreground: #fafafa;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #171717;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: #e5e5e5;
-  --border-hover: #d4d4d4;
-  --input: #e5e5e5;
-  --ring: #3b82f6;
+  /* ── 2. Studio / Semantic Bridge to BoardUI Tokens ─────────────────────────── */
+  --radius: 0.625rem;
+  --background: var(--color-background-full);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-background-primary-default);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-background-primary-default);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-600);
+  --primary-active: var(--color-accent-700);
+  --primary-foreground: var(--color-text-white);
+  --secondary: var(--color-background-secondary-default);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-background-secondary-default);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-background-primary-hover);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-text-error-primary);
+  --destructive-foreground: var(--color-text-white);
+  --border: var(--color-border-button-default);
+  --border-hover: var(--color-border-button-hover);
+  --input: var(--color-border-button-default);
+  --ring: var(--color-border-focus-ring);
 
-  /* Louis CRM Text Hierarchy */
-  --text-primary: #171717;
-  --text-secondary: #525252;
-  --text-muted: #737373;
-  --text-faint: #a3a3a3;
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-tertiary);
+  --text-faint: var(--color-text-disabled);
 
-  /* Louis CRM Sidebar: bg-neutral-50 (#fafafa), active bg-neutral-200/80, footer bg-neutral-100 */
-  --sidebar: #fafafa;
-  --sidebar-foreground: #525252;
-  --sidebar-primary: #171717;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-accent: rgb(229 229 229 / 0.8);
-  --sidebar-accent-foreground: #171717;
-  --sidebar-border: #e5e5e5;
-  --sidebar-ring: #3b82f6;
+  --sidebar: var(--color-background-secondary-default);
+  --sidebar-foreground: var(--color-text-secondary);
+  --sidebar-primary: var(--color-accent-600);
+  --sidebar-primary-foreground: var(--color-text-white);
+  --sidebar-accent: var(--color-background-secondary-hover);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-separator-border);
+  --sidebar-ring: var(--color-border-focus-ring);
 
-  --chart-1: #10b981;
-  --chart-2: #3b82f6;
-  --chart-3: #f59e0b;
-  --chart-4: #8b5cf6;
-  --chart-5: #f43f5e;
+  --chart-1: var(--color-chart-1);
+  --chart-2: var(--color-chart-2);
+  --chart-3: var(--color-chart-3);
+  --chart-4: var(--color-chart-4);
+  --chart-5: var(--color-chart-5);
 
   --success: #16a34a;
   --success-foreground: #fafafa;
@@ -152,41 +154,8 @@
   --warning-foreground: #fafafa;
   --info: #2563eb;
   --info-foreground: #fafafa;
-  /* "On air": a campaign that is actively running right now. */
   --live: #10b981;
   --live-foreground: #fafafa;
-
-  /* ── Wensity Primitive Surface Tokens ───────────────────────────────────────── */
-  --primitive-motion-fast: 80ms;
-  --primitive-motion-fast-exit: 60ms;
-  --primitive-motion-moderate: 160ms;
-  --primitive-motion-moderate-exit: 120ms;
-  --primitive-motion-slow: 240ms;
-  --primitive-motion-slow-exit: 160ms;
-  --primitive-ease: cubic-bezier(0.23, 1, 0.32, 1);
-
-  --primitive-radius-control: 0.75rem;
-  --primitive-control-solid: #171717;
-  --primitive-control-solid-hover: #262626;
-  --primitive-control-solid-active: #0a0a0a;
-  --primitive-control-solid-foreground: #fafafa;
-
-  --primitive-surface-elevated: #ffffff;
-  --primitive-control-face: var(--primitive-surface-elevated);
-
-  --primitive-shadow-drop:
-    0 1px 1px -0.5px rgba(10, 10, 10, 0.1), 0 2px 4px -1px rgba(10, 10, 10, 0.06);
-  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(10, 10, 10, 0.1);
-  --primitive-edge: rgba(10, 10, 10, 0.1);
-  --primitive-catchlight: rgba(10, 10, 10, 0.06);
-  --primitive-tint-hover: rgba(10, 10, 10, 0.045);
-  --primitive-tint-press: rgba(10, 10, 10, 0.06);
-  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
-
-  --primitive-destructive: #dc2626;
-  --primitive-destructive-hover: #b91c1c;
-  --primitive-destructive-active: #991b1b;
-  --primitive-destructive-foreground: #ffffff;
 
   /* ── 3. Game (default skin: classic) ───────────────────────────────────────────── */
   --game-bg: var(--stage-950);
@@ -205,48 +174,9 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-  --card: #0a0a0a;
-  --card-foreground: #fafafa;
-  --popover: #171717;
-  --popover-foreground: #fafafa;
-  --primary: #fafafa;
-  --primary-active: #e5e5e5;
-  --primary-foreground: #0a0a0a;
-  --secondary: #171717;
-  --secondary-foreground: #fafafa;
-  --muted: #171717;
-  --muted-foreground: #737373;
-  --accent: rgb(255 255 255 / 0.05);
-  --accent-foreground: #fafafa;
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
-  --border: rgb(255 255 255 / 0.1);
-  --border-hover: rgb(255 255 255 / 0.3);
-  --input: rgb(255 255 255 / 0.1);
-  --ring: #3b82f6;
-
-  /* Louis CRM Dark Text Hierarchy */
-  --text-primary: #fafafa;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --text-faint: #525252;
-
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #a3a3a3;
-  --sidebar-primary: #fafafa;
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #171717;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: rgb(255 255 255 / 0.1);
-  --sidebar-ring: #3b82f6;
-
-  --chart-1: #34d399;
-  --chart-2: #60a5fa;
-  --chart-3: #fbbf24;
-  --chart-4: #a78bfa;
-  --chart-5: #fb7185;
+  --primary: var(--color-accent-500);
+  --primary-active: var(--color-accent-600);
+  --primary-foreground: var(--color-text-white);
 
   --success: #22c55e;
   --success-foreground: #0a0a0a;
@@ -256,28 +186,6 @@
   --info-foreground: #0a0a0a;
   --live: #34d399;
   --live-foreground: #0a0a0a;
-
-  /* ── Wensity Primitive Dark Surface Tokens ──────────────────────────────────── */
-  --primitive-control-solid: #f5f3ee;
-  --primitive-control-solid-hover: #ffffff;
-  --primitive-control-solid-active: #e8e4da;
-  --primitive-control-solid-foreground: #151719;
-
-  --primitive-surface-elevated: #171717;
-  --primitive-control-face: #171717;
-
-  --primitive-shadow-drop: 0 1px 1px -0.5px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
-  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(0, 0, 0, 0.5);
-  --primitive-edge: rgba(255, 255, 255, 0.09);
-  --primitive-catchlight: rgba(255, 255, 255, 0.16);
-  --primitive-tint-hover: rgba(255, 255, 255, 0.06);
-  --primitive-tint-press: rgba(0, 0, 0, 0.2);
-  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
-
-  --primitive-destructive: #ef4444;
-  --primitive-destructive-hover: #dc2626;
-  --primitive-destructive-active: #b91c1c;
-  --primitive-destructive-foreground: #ffffff;
 }
 
 /* ── Skins (theme packs). Keys match `skins` in lib/game-theme.ts. ─────────────────── */
@@ -383,12 +291,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
   --color-spotlight: var(--spotlight-400);
   --color-stage: var(--stage-950);
 
@@ -401,7 +303,6 @@
   --color-game-primary-fg: var(--game-primary-fg);
   --color-game-accent: var(--game-accent);
   --color-game-accent-fg: var(--game-accent-fg);
-  /* Last seconds of a timer; must contrast with both --game-bg and --game-primary. */
   --color-game-urgent: var(--game-urgent);
   --color-team-1: var(--team-1);
   --color-team-2: var(--team-2);
@@ -415,19 +316,7 @@
   --color-medal-silver: var(--medal-silver);
   --color-medal-bronze: var(--medal-bronze);
 
-  /* 1-to-1 Louis CRM Radius Scale:
-     rounded-sm = 4px (Checkbox, mini swatches)
-     rounded-md = 6px (Buttons, Inputs, Selects, Sidebar items, Badges, Filter chips)
-     rounded-lg = 8px (Cards, Popovers, Dropdowns, Dialogs, Toast, TableCard)
-     rounded-xl = 10px (Large avatar badges)
-     rounded-2xl = 12px (Panels, Modals) */
-  --radius-sm: 0.25rem; /* 4px */
-  --radius-md: 0.375rem; /* 6px */
-  --radius-lg: 0.5rem; /* 8px */
-  --radius-xl: 0.625rem; /* 10px */
-  --radius-2xl: 0.75rem; /* 12px */
-  --radius-3xl: 1rem; /* 16px */
-  --radius-4xl: 9999px; /* pill */
+  --radius-4xl: 9999px;
   --radius-game: var(--game-radius);
 
   /* Stage type scale, in container-height units of <Stage>. */
@@ -448,7 +337,6 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  /* Damped spring with one overshoot; used for score pops and reveals. */
   --ease-spring: linear(
     0,
     0.013 0.6%,
@@ -472,9 +360,6 @@
   --animate-live-pulse: live-pulse 1.6s var(--ease-in-out) infinite;
   --animate-score-pop: score-pop var(--duration-slow) var(--ease-spring);
   --animate-rise-in: rise-in var(--duration-stage) var(--ease-out) both;
-  --animate-crm-fade-in: crm-fade-in 0.24s var(--ease-std) both;
-  --animate-crm-chip-in: crm-chip-in 0.26s var(--ease-out) both;
-  --animate-crm-row-in: crm-row-in 0.3s var(--ease-out) both;
 
   @keyframes live-pulse {
     0%,
@@ -503,64 +388,9 @@
       transform: none;
     }
   }
-  @keyframes crm-fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes crm-chip-in {
-    from {
-      opacity: 0;
-      transform: scale(0.92);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes crm-row-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes themeFadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  @keyframes crmTabIn {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
 
-/* Louis CRM elevation scale */
-@theme {
-  --shadow-2xs: 0 1px 1px 0 rgb(0 0 0 / 0.03);
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-
-/* ── Typography Scale Utilities (1-to-1 Louis CRM Scale) ──────────────────────── */
+/* ── Typography Scale Utilities (aliased to BoardUI composite type scale) ──── */
 @utility type-display-lg {
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 2.8vw + 1rem, 2.75rem);
@@ -577,25 +407,22 @@
   letter-spacing: -0.016em;
 }
 
-/* 22px / 30px font-semibold — Drawer & Page Title */
 @utility type-page-title {
   font-family: var(--font-sans);
-  font-size: 1.375rem;
-  font-weight: 600;
-  line-height: 1.875rem;
-  letter-spacing: -0.015em;
+  font-size: var(--text-title-1-semibold);
+  font-weight: var(--text-title-1-semibold--font-weight);
+  line-height: var(--text-title-1-semibold--line-height);
+  letter-spacing: var(--text-title-1-semibold--letter-spacing);
 }
 
-/* 16px / 24px font-semibold — Section & Card Header */
 @utility type-section-title {
   font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.5rem;
-  letter-spacing: -0.01em;
+  font-size: var(--text-headline-semibold);
+  font-weight: var(--text-headline-semibold--font-weight);
+  line-height: var(--text-headline-semibold--line-height);
+  letter-spacing: var(--text-headline-semibold--letter-spacing);
 }
 
-/* 28px / 36px font-semibold tabular-nums — Overview KPI Metric Value */
 @utility type-metric {
   font-family: var(--font-sans);
   font-size: 1.75rem;
@@ -605,28 +432,25 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 14px / 20px font-normal — Standard UI, Sidebar, Toolbar & Table Cell Text */
 @utility type-body {
   font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.375rem;
+  font-size: var(--text-body-regular);
+  font-weight: var(--text-body-regular--font-weight);
+  line-height: var(--text-body-regular--line-height);
 }
 
-/* 13px / 20px font-normal — Secondary Caption, Group Header & Card Description */
 @utility type-caption {
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 400;
-  line-height: 1.25rem;
+  font-size: var(--text-body-2-regular);
+  font-weight: var(--text-body-2-regular--font-weight);
+  line-height: var(--text-body-2-regular--line-height);
 }
 
-/* 12px / 16px font-medium — Pastel Category Pill & Status Tag */
 @utility type-micro-badge {
   font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1rem;
+  font-size: var(--text-caption-1-medium);
+  font-weight: var(--text-caption-1-medium--font-weight);
+  line-height: var(--text-caption-1-medium--line-height);
 }
 
 @utility type-code-voucher {
@@ -638,89 +462,133 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Breathable translucent surface for sticky Studio bars, Builder floating chrome, and mobile headers */
 @utility luma-glass {
-  background-color: color-mix(in oklch, var(--background) 84%, transparent);
+  background-color: color-mix(in oklch, var(--color-background-primary-default) 84%, transparent);
   backdrop-filter: blur(12px);
 }
 
-/* Stage-lit ground for game surfaces: a soft cone of light from above the stage. */
 @utility game-backdrop {
   background-color: var(--game-bg);
   background-image: radial-gradient(120% 70% at 50% -12%, var(--game-glow), transparent 62%);
   color: var(--game-fg);
 }
 
+/* ── BoardUI Dark Shadow Overrides ─────────────────────────────────────────── */
+@utility shadow-2xs {
+  &:where(.dark .shadow-2xs) {
+    --tw-shadow: var(--shadow-2xs);
+  }
+}
+@utility shadow-xs {
+  &:where(.dark .shadow-xs) {
+    --tw-shadow: var(--shadow-xs);
+  }
+}
+@utility shadow-sm {
+  &:where(.dark .shadow-sm) {
+    --tw-shadow: var(--shadow-sm);
+  }
+}
+@utility shadow-md {
+  &:where(.dark .shadow-md) {
+    --tw-shadow: var(--shadow-md);
+  }
+}
+@utility shadow-lg {
+  &:where(.dark .shadow-lg) {
+    --tw-shadow: var(--shadow-lg);
+  }
+}
+@utility shadow-xl {
+  &:where(.dark .shadow-xl) {
+    --tw-shadow: var(--shadow-xl);
+  }
+}
+@utility shadow-card {
+  &:where(.dark .shadow-card) {
+    --tw-shadow: var(--shadow-card);
+  }
+}
+@utility shadow-dropdown {
+  &:where(.dark .shadow-dropdown) {
+    --tw-shadow: var(--shadow-dropdown);
+  }
+}
+@utility shadow-sidebar {
+  &:where(.dark .shadow-sidebar) {
+    --tw-shadow: var(--shadow-sidebar);
+  }
+}
+@utility shadow-waitlist {
+  &:where(.dark .shadow-waitlist) {
+    --tw-shadow: var(--shadow-waitlist);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
+
+  html,
   body {
-    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-variant-ligatures: contextual;
+    font-kerning: normal;
   }
 
-  /* 1-to-1 Louis CRM Focus Ring (#3b82f6 1.5px outline, inputs use border color change instead) */
-  :focus-visible {
-    outline: 1.5px solid #3b82f6;
-    outline-offset: 1px;
-    border-radius: 6px;
+  html {
+    color-scheme: light;
+    background-color: var(--color-background-full);
   }
-  input:focus-visible,
-  textarea:focus-visible {
-    outline: none;
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-background-full);
+    color: var(--color-text-primary);
   }
 
-  /* Theme switching crossfade & View Transitions (1-to-1 Louis CRM) */
-  html.theme-fade,
-  html.theme-fade *,
-  html.theme-fade *::before,
-  html.theme-fade *::after {
-    transition:
-      background-color 0.45s var(--ease-std),
-      border-color 0.45s var(--ease-std),
-      color 0.45s var(--ease-std),
-      fill 0.45s var(--ease-std),
-      stroke 0.45s var(--ease-std),
-      box-shadow 0.45s var(--ease-std) !important;
-  }
-  html.theme-freeze *:not(.theme-icon),
-  html.theme-freeze *:not(.theme-icon)::before,
-  html.theme-freeze *:not(.theme-icon)::after {
-    transition: none !important;
-  }
-  ::view-transition-old(root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
     z-index: 1;
   }
   ::view-transition-new(root) {
-    animation: themeFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-    mix-blend-mode: normal;
     z-index: 2;
   }
 
-  /* Sun / Moon morph */
-  .theme-icon {
-    position: absolute;
-    transition:
-      transform 0.55s var(--ease-out),
-      opacity 0.3s var(--ease-std);
+  .theme-transitioning,
+  .theme-transitioning * {
+    transition: none !important;
   }
-  .theme-icon.icon-sun {
-    opacity: 0;
-    transform: rotate(-90deg) scale(0.4);
+
+  details summary::-webkit-details-marker {
+    display: none;
   }
-  .theme-icon.icon-moon {
-    opacity: 1;
-    transform: none;
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
-  html.dark .theme-icon.icon-sun {
-    opacity: 1;
-    transform: none;
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
-  html.dark .theme-icon.icon-moon {
-    opacity: 0;
-    transform: rotate(90deg) scale(0.4);
+  input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  @media (max-width: 639px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -734,365 +602,193 @@
   }
 }
 
-/* ── Wensity Primitives Surface System & Component Styles ───────────────────── */
-@layer components {
-  [data-surface] {
-    --surface-tint: transparent;
-    border-width: 1px;
-    border-style: solid;
-    border-color: var(--surface-rim, transparent);
-    border-top-color: var(--surface-rim-top, var(--surface-rim, transparent));
-    background-color: var(--surface-face, transparent);
-    background-image: linear-gradient(var(--surface-tint), var(--surface-tint));
-    box-shadow: var(--surface-depth, none);
+/* ── BoardUI Component Classes (.bui-table, .bui-skeleton, animations) ─────── */
+@keyframes number-fade {
+  from {
+    opacity: 0.35;
   }
+  to {
+    opacity: 1;
+  }
+}
+.animate-number-fade {
+  animation: number-fade 220ms ease-out;
+}
 
-  [data-surface="control"] {
-    --surface-face: var(--primitive-control-face);
-    --surface-rim: var(--primitive-edge);
-    --surface-rim-top: var(--primitive-catchlight);
-    --surface-depth: var(--primitive-shadow-drop);
-  }
+.recharts-wrapper {
+  direction: ltr;
+}
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-wrapper :focus,
+.recharts-wrapper :focus-visible {
+  outline: none;
+}
 
-  [data-surface="fill"] {
-    --surface-face: var(--primitive-control-solid);
-    --surface-rim: color-mix(in srgb, var(--surface-face) 88%, black);
-    --surface-rim-top: color-mix(in srgb, var(--surface-face) 80%, white);
-    --surface-depth: var(--primitive-shadow-drop);
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 1;
   }
-
-  [data-surface="flat"] {
-    --surface-face: transparent;
-    --surface-rim: transparent;
-    --surface-rim-top: transparent;
-    --surface-depth: 0 0 #0000;
+  to {
+    stroke-dashoffset: 0;
   }
-
-  @media (hover: hover) {
-    [data-surface]:where(button, a[href], summary, label, [role="button"]):where(
-        :not(:disabled, [data-disabled], [aria-disabled="true"])
-      ):hover {
-      --surface-tint: var(--primitive-tint-hover);
-    }
-  }
-  [data-surface][data-preview~="hover"] {
-    --surface-tint: var(--primitive-tint-hover);
-  }
-
-  :is([data-surface="control"], [data-surface="fill"]):where(
-    button,
-    a[href],
-    summary,
-    [role="button"]
-  ):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):active,
-  :is([data-surface="control"], [data-surface="fill"])[data-preview~="active"] {
-    --surface-tint: var(--primitive-tint-press);
-    --surface-rim-top: var(--surface-rim);
-    --surface-depth: var(--primitive-shadow-recess);
-  }
-
-  [data-surface="flat"]:where(button, a[href], summary, [role="button"]):where(
-    :not(:disabled, [data-disabled], [aria-disabled="true"])
-  ):active,
-  [data-surface="flat"][data-preview~="active"] {
-    --surface-tint: var(--primitive-tint-press);
-  }
-
-  [data-surface][data-surface]:is(:disabled, [data-disabled], [aria-disabled="true"]) {
-    --surface-tint: transparent;
-    --surface-rim-top: var(--surface-rim);
-    --surface-depth: 0 0 #0000;
-  }
-
-  /* ── Wensity Button Icon Micro-Interactions ───────────────────────────── */
-  .btn-icon-motion {
-    display: inline-flex;
-    flex-shrink: 0;
-    transform-origin: center;
-    transform: translateZ(0);
-  }
-
-  .btn-icon-motion--arrow {
-    transition: transform var(--primitive-motion-moderate) var(--primitive-ease);
-  }
-
-  @keyframes button-trash-shake {
-    0%,
-    100% {
-      transform: translate3d(0, 0, 0) rotate(0deg);
-    }
-    24% {
-      transform: translate3d(-0.5px, -1px, 0) rotate(-4deg);
-    }
-    48% {
-      transform: translate3d(0.5px, -1px, 0) rotate(3deg);
-    }
-    72% {
-      transform: translate3d(-0.25px, -0.5px, 0) rotate(-1.5deg);
-    }
-  }
-
-  @keyframes button-mail-lift {
-    0% {
-      transform: translate3d(0, 0, 0) rotate(0deg);
-    }
-    46% {
-      transform: translate3d(2px, -2px, 0) rotate(-5deg);
-    }
-    100% {
-      transform: translate3d(0, 0, 0) rotate(0deg);
-    }
-  }
-
-  @keyframes button-download-tick {
-    0%,
-    100% {
-      transform: translate3d(0, 0, 0);
-    }
-    46% {
-      transform: translate3d(0, 2.5px, 0);
-    }
-  }
-
-  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .wensity-button:hover .btn-icon-motion--trash,
-    [data-slot="button"]:hover .btn-icon-motion--trash {
-      animation: button-trash-shake 340ms var(--primitive-ease) both;
-    }
-    .wensity-button:hover .btn-icon-motion--mail,
-    [data-slot="button"]:hover .btn-icon-motion--mail {
-      animation: button-mail-lift 320ms var(--primitive-ease) both;
-    }
-    .wensity-button:hover .btn-icon-motion--arrow,
-    [data-slot="button"]:hover .btn-icon-motion--arrow {
-      transform: translate3d(2px, 0, 0);
-    }
-    .wensity-button:active .btn-icon-motion--arrow,
-    [data-slot="button"]:active .btn-icon-motion--arrow {
-      transform: translate3d(1px, 0, 0);
-    }
-    .wensity-button:hover .btn-icon-motion--download,
-    [data-slot="button"]:hover .btn-icon-motion--download {
-      animation: button-download-tick 300ms var(--primitive-ease) both;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .btn-icon-motion {
-      animation: none !important;
-      transition: none !important;
-      transform: none !important;
-    }
+}
+.animate-check-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: check-draw 200ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-check-draw {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }
 
-/* 1-to-1 Louis CRM 0.5px Hairline Borders (borderWidth.DEFAULT = 0.5px) */
+@keyframes label-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+@keyframes label-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-label-out {
+  animation: label-out 220ms ease-out forwards;
+}
+.animate-label-in {
+  animation: label-in 220ms ease-out;
+}
+
+@keyframes bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.animate-bar-rise {
+  transform-origin: bottom;
+  animation: bar-rise 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chart-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.animate-chart-reveal {
+  animation: chart-reveal 1800ms cubic-bezier(0.33, 0, 0.15, 1) both;
+}
+
+@keyframes bui-progress-sweep {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 250% 0;
+  }
+}
+
+.bui-table {
+  @apply w-full border-collapse text-start;
+}
+.bui-table th {
+  @apply px-3 py-2.5 text-start align-middle text-body-medium text-text-tertiary whitespace-nowrap outline-none;
+  background-color: var(--color-background-secondary-default);
+  border-top: 1px solid var(--color-separator-border);
+  border-bottom: 1px solid var(--color-separator-border);
+  transition:
+    padding 200ms ease,
+    font-size 200ms ease;
+}
+.bui-table td {
+  @apply px-3 py-2.5 align-middle text-body-medium text-text-primary outline-none;
+  transition:
+    padding 200ms ease,
+    font-size 200ms ease;
+}
+.bui-table tbody tr:not(:last-child) {
+  border-bottom: 1px solid var(--color-separator-border);
+}
+.bui-table tbody tr {
+  @apply transition-colors duration-150;
+}
+.bui-table tbody tr[data-focus-visible] {
+  @apply ring-2 ring-inset ring-border-focus-ring;
+}
+.bui-table.bui-table-sm th,
+.bui-table.bui-table-sm td {
+  @apply px-2.5 py-1.5 text-body-2-medium;
+}
+
+.bui-skeleton {
+  --bui-skeleton-line: rgb(255 255 255 / 0.9);
+  --bui-skeleton-glow: rgb(255 255 255 / 0.55);
+  --bui-skeleton-bloom: rgb(255 255 255 / 0.35);
+  overflow: hidden;
+  isolation: isolate;
+}
+.dark .bui-skeleton {
+  --bui-skeleton-line: rgb(255 255 255 / 0.2);
+  --bui-skeleton-glow: rgb(255 255 255 / 0.08);
+  --bui-skeleton-bloom: rgb(255 255 255 / 0.04);
+}
+.bui-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, var(--bui-skeleton-line)) right / 2px 100% no-repeat,
+    linear-gradient(90deg, transparent, var(--bui-skeleton-glow)) right / 72px 100% no-repeat,
+    linear-gradient(90deg, transparent, var(--bui-skeleton-bloom)) right / 240px 100% no-repeat;
+  translate: -100% 0;
+  animation: bui-skeleton-sheen 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.bui-skeleton:dir(rtl)::after {
+  scale: -1 1;
+  animation-direction: reverse;
+}
+@keyframes bui-skeleton-sheen {
+  0% {
+    translate: -100% 0;
+  }
+  60%,
+  100% {
+    translate: 100% 0;
+  }
+}
+@keyframes bui-skeleton-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bui-skeleton::after {
+    display: none;
+  }
+  .bui-skeleton {
+    animation: bui-skeleton-pulse 2s ease-in-out infinite;
+  }
+}
+
 @layer utilities {
-  .border {
-    border-width: 0.5px;
-  }
-  .border-t {
-    border-top-width: 0.5px;
-  }
-  .border-r {
-    border-right-width: 0.5px;
-  }
-  .border-b {
-    border-bottom-width: 0.5px;
-  }
-  .border-l {
-    border-left-width: 0.5px;
-  }
-  .border-x {
-    border-inline-width: 0.5px;
-  }
-  .border-y {
-    border-block-width: 0.5px;
-  }
-  :where(.divide-y > :not(:last-child)) {
-    border-bottom-width: 0.5px;
-  }
-  :where(.divide-x > :not(:last-child)) {
-    border-right-width: 0.5px;
-  }
-
-  /* ── 1-to-1 Louis CRM Side-Drawer Styles ──────────────────────────── */
-  .crm-drawer,
-  #side-drawer {
-    transition:
-      transform 0.44s var(--ease-drawer),
-      box-shadow 0.44s var(--ease-std);
-    box-shadow: -10px 0 30px -15px rgba(0, 0, 0, 0.1);
-  }
-  .dark .crm-drawer,
-  .dark #side-drawer {
-    box-shadow: -10px 0 30px -15px rgba(0, 0, 0, 0.4);
-  }
-  .crm-drawer.translate-x-full,
-  #side-drawer.translate-x-full {
-    box-shadow: none !important;
-    transition-duration: 0.32s;
-  }
-  .crm-drawer.is-resizing,
-  #side-drawer.is-resizing {
-    transition: none !important;
-  }
-
-  /* Drawer Tab Underline Indicator */
-  .crm-tab-indicator,
-  #tab-indicator {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 1.5px;
-    transition:
-      transform 0.34s var(--ease-out),
-      width 0.34s var(--ease-out);
-  }
-  .tab-enter {
-    animation: crmTabIn 0.3s var(--ease-out) both;
-  }
-
-  /* Table active row highlight when drawer is open */
-  .row-active {
-    background-color: rgb(250 250 250) !important;
-  }
-  .dark .row-active {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  /* Drag & Drop Visual cues */
-  .drag-over-col {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-  }
-  .drag-over-row {
-    box-shadow: inset 0 1px 0 0 #3b82f6;
-  }
-
-  /* Header sort / filter column indicators */
-  .col-ind {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    opacity: 0;
-    transform: scale(0.6);
-    width: 0;
-    overflow: hidden;
-    transition:
-      opacity 0.2s var(--ease-std),
-      transform 0.3s var(--ease-out),
-      width 0.3s var(--ease-out);
-  }
-  .col-ind.on {
-    opacity: 1;
-    transform: none;
-    width: auto;
-    overflow: visible;
-  }
-
-  /* Dropdown & Popover transitions (1-to-1 Louis CRM) */
-  .dropdown-menu {
-    will-change: transform, opacity;
-  }
-  .dropdown-hidden {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.97);
-    visibility: hidden;
-    pointer-events: none;
-    transition:
-      opacity 0.14s var(--ease-std),
-      transform 0.16s var(--ease-std),
-      visibility 0s linear 0.16s;
-  }
-  .dropdown-menu.flip.dropdown-hidden {
-    transform: translateY(4px) scale(0.97);
-  }
-  .dropdown-visible {
-    opacity: 1;
-    transform: none;
-    visibility: visible;
-    pointer-events: auto;
-    transition:
-      opacity 0.18s var(--ease-std),
-      transform 0.26s var(--ease-out),
-      visibility 0s;
-  }
-  .pop-body {
-    overflow: hidden;
-  }
-
-  /* Hairline Checkbox */
-  .cbox {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    border: 0.5px solid #d4d4d4;
-    background: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition:
-      background-color 0.15s var(--ease-std),
-      border-color 0.15s var(--ease-std);
-  }
-  .dark .cbox {
-    border-color: rgba(255, 255, 255, 0.22);
-    background: transparent;
-  }
-  .cbox svg {
-    width: 10px;
-    height: 10px;
-    stroke: #fff;
-    opacity: 0;
-    transform: scale(0.4);
-    transition:
-      opacity 0.15s var(--ease-std),
-      transform 0.25s var(--ease-out);
-  }
-  .dark .cbox svg {
-    stroke: #0a0a0a;
-  }
-  .cbox.on {
-    background: #171717;
-    border-color: #171717;
-  }
-  .dark .cbox.on {
-    background: #fafafa;
-    border-color: #fafafa;
-  }
-  .cbox.on svg {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Segmented control & direction icon */
-  .seg-thumb {
-    transition: transform 0.28s var(--ease-out);
-  }
-  .dir-icon {
-    transition: transform 0.32s var(--ease-out);
-  }
-  .dir-desc .dir-icon {
-    transform: rotate(180deg);
-  }
-
-  /* Floating Toast notification */
-  .crm-toast {
-    transform: translate(-50%, 10px) scale(0.98);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      opacity 0.2s var(--ease-std),
-      transform 0.32s var(--ease-out);
-  }
-  .crm-toast.show {
-    transform: translate(-50%, 0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  /* Hide native scrollbars globally while preserving scrollability */
   .scrollbar-none,
   .no-scrollbar {
     scrollbar-width: none !important;

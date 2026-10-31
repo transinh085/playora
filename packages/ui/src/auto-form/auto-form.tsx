@@ -1,9 +1,7 @@
 'use client';
 
-import { Alert, AlertTitle } from '@playora/ui/components/alert';
-import { Badge } from '@playora/ui/components/badge';
-import { Card } from '@playora/ui/components/card';
-import { cn } from '@playora/ui/lib/utils';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { cx } from '@playora/ui/utils/cx';
 import * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale } from './types';
 import {
@@ -47,9 +45,9 @@ function renderFieldLabel(field: FieldDescriptor, label: string, locale: Locale)
     <span className="inline-flex items-center gap-2">
       <span>{label}</span>
       {field.hotEditable && (
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+        <Chip variant="caption" color="neutral">
           {locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}
-        </Badge>
+        </Chip>
       )}
     </span>
   );
@@ -77,15 +75,16 @@ function AutoFormField(props: FieldRendererProps) {
 
   if (!CustomWidget && (field.widget === 'object' || (field.type === 'object' && field.fields))) {
     return (
-      <Card
-        role="group"
+      <fieldset
         aria-label={label}
         data-slot="autoform-object"
         data-widget="object"
         data-field-path={path}
-        className="p-4"
+        className="rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card"
       >
-        <div className="font-semibold text-sm mb-3">{renderFieldLabel(field, label, locale)}</div>
+        <div className="text-body-semibold text-text-primary mb-3">
+          {renderFieldLabel(field, label, locale)}
+        </div>
         <div className="grid gap-3">
           {description && <FieldHint>{description}</FieldHint>}
           {(field.fields ?? []).map((child) => (
@@ -102,7 +101,7 @@ function AutoFormField(props: FieldRendererProps) {
             </FieldHint>
           )}
         </div>
-      </Card>
+      </fieldset>
     );
   }
 
@@ -128,13 +127,14 @@ function AutoFormField(props: FieldRendererProps) {
         ? `Unsupported widget: ${String(field.widget)}`
         : `Widget chưa hỗ trợ: ${String(field.widget)}`;
     control = (
-      <Alert
-        variant="default"
+      <div
+        role="alert"
         data-widget-fallback={String(field.widget)}
         data-widget-unsupported={String(field.widget)}
+        className="rounded-2xl border border-border-button-default bg-background-secondary-default px-4 py-3 text-body-medium text-text-primary"
       >
-        <AlertTitle>{msg}</AlertTitle>
-      </Alert>
+        {msg}
+      </div>
     );
   } else if (field.widget === 'localized') {
     control = (
@@ -214,19 +214,23 @@ function AutoFormField(props: FieldRendererProps) {
       <div className="flex items-center justify-between">
         <label
           htmlFor={id}
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-body-medium text-text-primary leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           {renderFieldLabel(field, label, locale)}
-          {field.required && <span className="text-destructive ml-1">*</span>}
+          {field.required && <span className="text-text-error-primary ml-1">*</span>}
         </label>
       </div>
       {control}
       {errorMsg ? (
-        <span role="alert" data-slot="field-error" className="text-xs text-destructive">
+        <span
+          role="alert"
+          data-slot="field-error"
+          className="text-caption-1-regular text-text-error-primary"
+        >
           {errorMsg}
         </span>
       ) : description ? (
-        <span className="text-xs text-muted-foreground">{description}</span>
+        <span className="text-caption-1-regular text-text-tertiary">{description}</span>
       ) : null}
     </div>
   );
@@ -305,7 +309,7 @@ export function AutoForm(props: AutoFormProps) {
   );
 
   return (
-    <div data-slot="auto-form" className={cn('grid gap-4', className)}>
+    <div data-slot="auto-form" className={cx('grid gap-4', className)}>
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         {groupedSections.length > 0 ? (
           <div data-slot="autoform-groups" className="space-y-4">
@@ -315,15 +319,17 @@ export function AutoForm(props: AutoFormProps) {
                 open
                 data-slot="autoform-group"
                 data-group={grp}
-                className="group rounded-2xl border border-border/70 bg-card p-4 transition-all"
+                className="group rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card transition-all"
               >
-                <summary className="flex cursor-pointer items-center justify-between text-base font-semibold text-foreground select-none list-none [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer items-center justify-between text-headline-semibold text-text-primary select-none list-none [&::-webkit-details-marker]:hidden">
                   <span>{groupLabelFor(grp, locale)}</span>
-                  <span className="text-muted-foreground transition-transform group-open:rotate-180">
+                  <span className="text-text-tertiary transition-transform group-open:rotate-180">
                     ▾
                   </span>
                 </summary>
-                <div className="mt-4 pt-3 border-t border-border/40">{renderFields(list)}</div>
+                <div className="mt-4 pt-3 border-t border-separator-border">
+                  {renderFields(list)}
+                </div>
               </details>
             ))}
           </div>

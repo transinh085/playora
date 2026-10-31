@@ -1,9 +1,9 @@
 'use client';
 
 import { generateTerms } from '@playora/core/compliance';
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
-import { Textarea } from '@playora/ui/components/textarea';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { TextareaBase } from '@playora/ui/components/base/textarea/textarea';
 import { FileText, RotateCcw, ShoppingBag, Sparkles } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -127,21 +127,20 @@ export function ComplianceStep({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{t('termsTitle')}</span>
             {isCustom ? (
-              <Badge
-                variant="outline"
-                className="border-amber-500/30 text-amber-600 bg-amber-50 dark:bg-amber-950/20"
-              >
+              <Chip variant="caption" color="yellow">
                 {t('customBadge')}
-              </Badge>
+              </Chip>
             ) : (
-              <Badge variant="secondary">{t('generatedBadge')}</Badge>
+              <Chip variant="caption" color="neutral">
+                {t('generatedBadge')}
+              </Chip>
             )}
           </div>
           {isCustom ? (
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="small"
               className="h-8 rounded-md text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onChange({ termsText: null })}
             >
@@ -151,8 +150,8 @@ export function ComplianceStep({
           ) : (
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="secondary"
+              size="small"
               className="h-8 rounded-md text-xs"
               onClick={() => onChange({ termsText: generatedTerms })}
             >
@@ -165,12 +164,12 @@ export function ComplianceStep({
         <span className="text-neutral-500 text-xs dark:text-neutral-400">{t('termsHint')}</span>
 
         {isCustom ? (
-          <Textarea
+          <TextareaBase
             rows={10}
             value={compliance.termsText ?? ''}
             onChange={(e) => onChange({ termsText: e.target.value })}
             placeholder={t('termsPlaceholder')}
-            className="rounded-lg font-mono text-xs"
+            className="font-mono text-xs"
           />
         ) : (
           <div className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg border border-neutral-200 bg-neutral-50/50 p-3.5 text-xs leading-relaxed text-neutral-800 dark:border-white/10 dark:bg-white/[0.02] dark:text-neutral-200">

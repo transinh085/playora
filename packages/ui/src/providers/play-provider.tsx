@@ -1,6 +1,6 @@
 'use client';
 
-import { TooltipProvider } from '@playora/ui/components/tooltip';
+import { DirectionProvider } from '@playora/ui/components/foundations/direction/direction';
 import type { ReactNode } from 'react';
 import type { BrandKitTheme, Skin } from '../theme/game-theme';
 import type { ThemeConfig } from '../theme/studio-theme';
@@ -16,5 +16,5 @@ export interface PlayProviderProps {
 }
 
 export function PlayProvider({ children }: PlayProviderProps) {
-  return <TooltipProvider>{children}</TooltipProvider>;
+  return <DirectionProvider locale="vi-VN">{children}</DirectionProvider>;
 }

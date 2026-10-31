@@ -22,6 +22,9 @@ export default getRequestConfig(async () => {
       play: allMessages.play,
       errors: allMessages.errors,
       campaignPlayer: allMessages.campaignPlayer,
+      builderLab: {
+        player: allMessages.builderLab.player,
+      },
     },
     timeZone: 'Asia/Ho_Chi_Minh',
   };

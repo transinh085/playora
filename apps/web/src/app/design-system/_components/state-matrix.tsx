@@ -1,4 +1,4 @@
-import { cn } from '@playora/ui/lib/utils';
+import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
 const defaultStates = ['default', 'hover', 'focus', 'active', 'disabled'] as const;
@@ -16,7 +16,7 @@ export function StateMatrix<Row extends string>({
 }) {
   return (
     <div
-      className={cn(
+      className={cx(
         'w-full overflow-x-auto rounded-2xl border border-border/80 bg-card p-4 shadow-xs',
         className,
       )}

@@ -1,9 +1,8 @@
 'use client';
 
 import type { PrizeMode } from '@playora/core/prize';
-import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
-import { Input } from '@playora/ui/components/input';
-import { Slider } from '@playora/ui/components/slider';
+import { InputBase } from '@playora/ui/components/base/input/input';
+import { Slider } from '@playora/ui/components/base/slider/slider';
 import { Gift, ListOrdered, Percent } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -100,17 +99,17 @@ export function ModeStep({
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[160px] flex-1">
               <Slider
-                min={0}
-                max={100}
+                aria-label={t('overall.rateLabel')}
+                minValue={0}
+                maxValue={100}
                 step={1}
-                value={[ratePercent]}
-                onValueChange={([v]) =>
-                  v !== undefined && onChange({ overallWinRate: fromPercent(v) })
-                }
+                showTooltip={false}
+                value={ratePercent}
+                onChange={(v) => onChange({ overallWinRate: fromPercent(v) })}
               />
             </div>
             <div className="relative w-28">
-              <Input
+              <InputBase
                 aria-label={t('overall.rateLabel')}
                 type="number"
                 min={0}
@@ -121,7 +120,7 @@ export function ModeStep({
                   const val = parseFloat(e.target.value);
                   if (!Number.isNaN(val)) onChange({ overallWinRate: fromPercent(val) });
                 }}
-                className="h-8 rounded-md pr-6 text-right font-mono text-xs"
+                className="pr-6 text-right font-mono text-xs"
               />
               <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
                 %
@@ -134,26 +133,35 @@ export function ModeStep({
 
       {rules.mode === 'per_prize_probability' &&
         (probabilityPercent > 100 ? (
-          <Alert variant="destructive" className="rounded-lg">
-            <AlertTitle>{t('perPrize.over', { total: probabilityPercent })}</AlertTitle>
-            <AlertDescription>{t('perPrize.overHint')}</AlertDescription>
-          </Alert>
+          <div
+            role="alert"
+            className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive"
+          >
+            <div className="font-semibold">{t('perPrize.over', { total: probabilityPercent })}</div>
+            <div className="mt-1 opacity-90">{t('perPrize.overHint')}</div>
+          </div>
         ) : (
-          <Alert className="rounded-lg">
-            <AlertTitle>
+          <div
+            role="alert"
+            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs"
+          >
+            <div className="font-semibold">
               {t('perPrize.total', {
                 total: probabilityPercent,
                 lose: Math.round((100 - probabilityPercent) * 10) / 10,
               })}
-            </AlertTitle>
-            <AlertDescription>{t('perPrize.totalHint')}</AlertDescription>
-          </Alert>
+            </div>
+            <div className="mt-1 text-text-secondary">{t('perPrize.totalHint')}</div>
+          </div>
         ))}
 
       {rules.mode === 'guaranteed' && (
-        <Alert className="rounded-lg">
-          <AlertTitle>{t('guaranteed.note')}</AlertTitle>
-        </Alert>
+        <div
+          role="alert"
+          className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs font-medium"
+        >
+          {t('guaranteed.note')}
+        </div>
       )}
     </div>
   );

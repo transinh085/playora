@@ -1,5 +1,5 @@
-import { Button } from '@playora/ui/components/button';
-import { Plus } from '@playora/ui/icons';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { RiAddLine } from '@remixicon/react';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
@@ -14,17 +14,16 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgI
   const { orgId } = await params;
   const t = await getTranslations('campaigns');
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
         extra={
-          <Button asChild size="sm">
-            <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
-              <Plus className="mr-1.5 size-4" />
+          <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
+            <Button size="small" leadingIcon={RiAddLine} tabIndex={-1}>
               {t('create')}
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         }
       />
       <CampaignList orgId={orgId} />

@@ -1,7 +1,7 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Button } from '@playora/ui/components/button';
+import { Button } from '@playora/ui/components/base/buttons/button';
 import { Palette, Pencil, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/empty-state';
@@ -29,21 +29,19 @@ export function BrandKitList({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
+    <div className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
       {items.map((kit) => (
         <div
           key={kit.id}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:bg-neutral-50/50 dark:hover:bg-white/[0.02] transition-colors"
+          className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-background-primary-hover sm:flex-row sm:items-center"
         >
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex min-w-0 items-center gap-3">
             <IconTile tone="primary">
               <Palette className="size-4" />
             </IconTile>
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <span className="truncate text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                  {kit.name}
-                </span>
+                <span className="truncate text-body-medium text-text-primary">{kit.name}</span>
                 <div className="flex items-center gap-1">
                   {COLOR_SLOTS.map((slot) => {
                     const color = kit.tokens.colors[slot];
@@ -51,7 +49,7 @@ export function BrandKitList({
                     return (
                       <span
                         key={slot}
-                        className="size-3.5 shrink-0 rounded-sm border border-neutral-200 dark:border-white/10 shadow-xs"
+                        className="size-3.5 shrink-0 rounded-sm border border-border-button-default shadow-2xs"
                         style={{ backgroundColor: color }}
                         title={`${slot}: ${color}`}
                       />
@@ -60,24 +58,18 @@ export function BrandKitList({
                 </div>
               </div>
               {(kit.tokens.fontHeading || kit.tokens.fontBody) && (
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-neutral-500 dark:text-[#A3A3A3]">
+                <div className="mt-1 flex items-center gap-1.5 text-caption-1-medium text-text-secondary">
                   {kit.tokens.fontHeading && (
                     <span>
-                      Heading:{' '}
-                      <span className="font-medium text-neutral-700 dark:text-[#D4D4D4]">
-                        {kit.tokens.fontHeading}
-                      </span>
+                      Heading: <span className="text-text-primary">{kit.tokens.fontHeading}</span>
                     </span>
                   )}
                   {kit.tokens.fontHeading && kit.tokens.fontBody && (
-                    <span className="text-neutral-300 dark:text-neutral-700">·</span>
+                    <span className="text-text-tertiary">·</span>
                   )}
                   {kit.tokens.fontBody && (
                     <span>
-                      Body:{' '}
-                      <span className="font-medium text-neutral-700 dark:text-[#D4D4D4]">
-                        {kit.tokens.fontBody}
-                      </span>
+                      Body: <span className="text-text-primary">{kit.tokens.fontBody}</span>
                     </span>
                   )}
                 </div>
@@ -85,28 +77,27 @@ export function BrandKitList({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 rounded-md gap-1.5 px-2.5 text-xs shadow-xs"
+              variant="secondary"
+              size="small"
+              leadingIcon={Pencil}
               onClick={() => onEdit(kit)}
             >
-              <Pencil className="size-3" />
               {t('brandKits.edit')}
             </Button>
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive"
+              size="small"
+              iconOnly
+              leadingIcon={Trash2}
+              className="text-text-error-primary hover:bg-notification-error-background"
               aria-label={t('common.delete')}
               disabled={isRemoving}
               onClick={() => onRemove(kit.id)}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
+            />
           </div>
         </div>
       ))}

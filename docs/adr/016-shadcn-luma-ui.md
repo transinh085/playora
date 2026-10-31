@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Trạng thái** | Accepted |
+| **Trạng thái** | Superseded by [ADR-017](./017-boardui-design-system.md) |
 | **Ngày** | 31/10/2026 |
 | **Người quyết định** | Founder (Tech Lead) |
 | **Thay thế / Liên quan** | Thay thế [ADR-013](./013-antd-ui.md) · [ADR-009](./009-frontend-stack.md) · [../engineering/design-system.md](../engineering/design-system.md) |

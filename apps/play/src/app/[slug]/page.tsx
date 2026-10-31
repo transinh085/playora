@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { CampaignNotice } from '@/features/campaign/campaign-notice';
 import { CampaignShell } from '@/features/campaign/campaign-shell';
 import { channelFromSearchParams } from '@/features/campaign/channel';
@@ -24,10 +24,13 @@ export default async function CampaignPage({ params, searchParams }: Props) {
   const campaign = await getPublicCampaign(slug);
   if (!campaign || campaign.phase === 'draft') notFound();
 
+  const ch = channelFromSearchParams(await searchParams);
+  if (campaign.slug !== slug) {
+    redirect(`/${campaign.slug}${ch ? `?ch=${encodeURIComponent(ch)}` : ''}`);
+  }
+
   if (campaign.phase !== 'live') {
     return <CampaignNotice campaign={{ ...campaign, phase: campaign.phase }} />;
   }
-  return (
-    <CampaignShell campaign={campaign} channel={channelFromSearchParams(await searchParams)} />
-  );
+  return <CampaignShell campaign={campaign} channel={ch} />;
 }

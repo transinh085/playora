@@ -1,7 +1,7 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/badge';
-import { Button } from '@playora/ui/components/button';
+import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button } from '@playora/ui/components/base/buttons/button';
 import { CalendarRange, Repeat, Sparkles, Target, TrendingUp } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { IconTile, type Tone } from '@/components/icon-tile';
@@ -69,12 +69,12 @@ export function GoalPicker({
                       {title}
                     </span>
                     <div className="mt-1 flex flex-wrap gap-1.5">
-                      <Badge variant="secondary" className="font-normal text-[10px]">
+                      <Chip variant="caption" color="neutral">
                         {tl(`templates.${pb.templateKey}`)}
-                      </Badge>
-                      <Badge variant="outline" className="font-normal text-[10px]">
+                      </Chip>
+                      <Chip variant="caption" color="soft">
                         {t('daysTag', { days: pb.days })}
-                      </Badge>
+                      </Chip>
                     </div>
                   </div>
                 </div>
@@ -93,8 +93,8 @@ export function GoalPicker({
               </div>
 
               <Button
-                variant="outline"
-                size="sm"
+                variant="secondary"
+                size="small"
                 className="mt-2 w-full rounded-md h-8 text-xs font-medium shadow-xs group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-[#FAFAFA] dark:group-hover:text-neutral-900 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -111,7 +111,8 @@ export function GoalPicker({
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50/70 p-3.5 dark:border-white/10 dark:bg-white/5">
         <span className="text-xs text-neutral-600 dark:text-[#A3A3A3]">{t('customTitle')}</span>
         <Button
-          variant="link"
+          variant="ghost"
+          size="small"
           onClick={onCustom}
           className="h-auto p-0 text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
         >

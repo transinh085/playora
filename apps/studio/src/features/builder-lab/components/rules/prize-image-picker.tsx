@@ -1,11 +1,11 @@
 'use client';
 
-import { Button } from '@playora/ui/components/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@playora/ui/components/popover';
+import { Button } from '@playora/ui/components/base/buttons/button';
+import { Popover, PopoverTrigger } from '@playora/ui/components/base/popover/popover';
+import { toast } from '@playora/ui/components/base/toast/toast';
 import { ImagePlus, Upload as UploadIcon } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { Caption } from '@/components/caption';
 import { IMAGE_PRESETS } from '@/features/canvas-editor/lib/model';
 import { uploadCampaignImage } from '../../lib/upload-image';
@@ -52,24 +52,23 @@ export function PrizeImagePicker({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={t('changeImage', { name })}
-          className="flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed border-neutral-200 bg-neutral-50/50 p-1 text-neutral-400 hover:border-neutral-400 transition-colors dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
-        >
-          {value ? (
-            // biome-ignore lint/performance/noImgElement: data URLs / inline SVG
-            <img src={value} alt="" className="size-full object-contain" />
-          ) : (
-            <ImagePlus className="size-5" />
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-60 p-3 space-y-3 rounded-lg border border-neutral-200 bg-white shadow-md dark:border-white/10 dark:bg-[#0A0A0A]"
-        align="start"
+    <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        aria-label={t('changeImage', { name })}
+        className="flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed border-neutral-200 bg-neutral-50/50 p-1 text-neutral-400 hover:border-neutral-400 transition-colors dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
+      >
+        {value ? (
+          // biome-ignore lint/performance/noImgElement: data URLs / inline SVG
+          <img src={value} alt="" className="size-full object-contain" />
+        ) : (
+          <ImagePlus className="size-5" />
+        )}
+      </button>
+      <Popover
+        aria-label={t('changeImage', { name })}
+        placement="bottom start"
+        className="w-60 p-3 space-y-3"
       >
         <Caption>{t('presets')}</Caption>
         <div className="grid grid-cols-4 gap-2">
@@ -103,8 +102,8 @@ export function PrizeImagePicker({
           />
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant="secondary"
+            size="small"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
             className="w-full h-8 rounded-md text-xs"
@@ -113,7 +112,7 @@ export function PrizeImagePicker({
             {t('upload')}
           </Button>
         </div>
-      </PopoverContent>
-    </Popover>
+      </Popover>
+    </PopoverTrigger>
   );
 }
