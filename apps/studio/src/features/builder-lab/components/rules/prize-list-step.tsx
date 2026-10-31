@@ -1,7 +1,15 @@
 'use client';
 
-import { Button, Card, Empty, Flex, Input, InputNumber, Tooltip, Typography, theme } from 'antd';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent } from '@playora/ui/components/card';
+import { Input } from '@playora/ui/components/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
+import { ArrowDown, ArrowUp, Gift, Plus, Trash2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { presetSrc } from '@/features/canvas-editor/lib/model';
@@ -32,7 +40,6 @@ export function PrizeListStep({
 }) {
   const t = useTranslations('builderLab.rules.prizes');
   const locale = useLocale();
-  const { token } = theme.useToken();
   const perPrize = mode === 'per_prize_probability';
 
   const update = (index: number, patch: Partial<CampaignPrize>) =>
@@ -60,142 +67,172 @@ export function PrizeListStep({
     ]);
 
   return (
-    <Flex vertical gap={12}>
+    <div className="flex flex-col gap-3">
       {prizes.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('empty')} />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed py-8 text-center text-muted-foreground text-sm">
+          <Gift className="mb-2 size-8 stroke-1 text-muted-foreground/60" />
+          <span>{t('empty')}</span>
+        </div>
       ) : (
-        prizes.map((prize, index) => (
-          <Card
-            key={prize.id}
-            styles={{ body: { padding: 12 } }}
-            style={{ background: token.colorFillQuaternary }}
-          >
-            <Flex gap={12} align="flex-start">
-              <PrizeImagePicker
-                orgId={orgId}
-                value={prize.image}
-                name={prize.name}
-                onChange={(image) => update(index, { image })}
-              />
-              <div className="grid min-w-0 flex-1 gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-                <Field label={t('name')} className="col-span-full">
-                  <Input
-                    value={prize.name}
-                    maxLength={60}
-                    placeholder={t('namePlaceholder')}
-                    status={prize.name.trim() ? undefined : 'error'}
-                    onChange={(e) => update(index, { name: e.target.value })}
-                  />
-                </Field>
-                <Field label={t('quantity')}>
-                  <InputNumber
-                    className="w-full"
-                    min={0}
-                    max={1_000_000}
-                    precision={0}
-                    value={prize.quantity}
-                    onChange={(v) => v !== null && update(index, { quantity: v })}
-                  />
-                </Field>
-                <Field label={t('value')}>
-                  <InputNumber
-                    className="w-full"
-                    min={0}
-                    max={1_000_000_000}
-                    step={10_000}
-                    suffix="đ"
-                    value={prize.valueVnd}
-                    formatter={(v) => groupDigits(v, locale)}
-                    parser={(v) => parseDigits(v)}
-                    onChange={(v) => v !== null && update(index, { valueVnd: v })}
-                  />
-                </Field>
-                {perPrize && (
-                  <Field label={t('probability')}>
-                    <InputNumber
-                      className="w-full"
-                      min={0}
-                      max={100}
-                      step={0.5}
-                      precision={1}
-                      suffix="%"
-                      status={totals.probabilityPercent > 100 ? 'error' : undefined}
-                      value={toPercent(prize.probability ?? 0)}
-                      onChange={(v) => v !== null && update(index, { probability: fromPercent(v) })}
+        <TooltipProvider>
+          {prizes.map((prize, index) => (
+            <Card key={prize.id} className="rounded-2xl border bg-muted/20">
+              <CardContent className="flex items-start gap-3 p-3">
+                <PrizeImagePicker
+                  orgId={orgId}
+                  value={prize.image}
+                  name={prize.name}
+                  onChange={(image) => update(index, { image })}
+                />
+                <div className="grid min-w-0 flex-1 gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+                  <Field label={t('name')} className="col-span-full">
+                    <Input
+                      value={prize.name}
+                      maxLength={60}
+                      placeholder={t('namePlaceholder')}
+                      className={!prize.name.trim() ? 'border-destructive' : ''}
+                      onChange={(e) => update(index, { name: e.target.value })}
                     />
                   </Field>
-                )}
-              </div>
-              <Flex vertical gap={2}>
-                <Tooltip title={t('moveUp')}>
-                  <Button
-                    size="small"
-                    type="text"
-                    aria-label={t('moveUp')}
-                    disabled={index === 0}
-                    icon={<ArrowUp className="size-4" />}
-                    onClick={() => move(index, -1)}
-                  />
-                </Tooltip>
-                <Tooltip title={t('moveDown')}>
-                  <Button
-                    size="small"
-                    type="text"
-                    aria-label={t('moveDown')}
-                    disabled={index === prizes.length - 1}
-                    icon={<ArrowDown className="size-4" />}
-                    onClick={() => move(index, 1)}
-                  />
-                </Tooltip>
-                <Tooltip title={t('remove')}>
-                  <Button
-                    size="small"
-                    type="text"
-                    danger
-                    aria-label={t('remove')}
-                    icon={<Trash2 className="size-4" />}
-                    onClick={() => remove(index)}
-                  />
-                </Tooltip>
-              </Flex>
-            </Flex>
-          </Card>
-        ))
+                  <Field label={t('quantity')}>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={1_000_000}
+                      step={1}
+                      value={prize.quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!Number.isNaN(val)) update(index, { quantity: val });
+                      }}
+                    />
+                  </Field>
+                  <Field label={t('value')}>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        value={groupDigits(prize.valueVnd, locale)}
+                        onChange={(e) => {
+                          const val = parseDigits(e.target.value);
+                          if (val !== null) update(index, { valueVnd: val });
+                        }}
+                        className="pr-6"
+                      />
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                        đ
+                      </span>
+                    </div>
+                  </Field>
+                  {perPrize && (
+                    <Field label={t('probability')}>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={toPercent(prize.probability ?? 0)}
+                          className={
+                            totals.probabilityPercent > 100 ? 'border-destructive pr-6' : 'pr-6'
+                          }
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!Number.isNaN(val))
+                              update(index, { probability: fromPercent(val) });
+                          }}
+                        />
+                        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                          %
+                        </span>
+                      </div>
+                    </Field>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 rounded-full"
+                        aria-label={t('moveUp')}
+                        disabled={index === 0}
+                        onClick={() => move(index, -1)}
+                      >
+                        <ArrowUp className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('moveUp')}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 rounded-full"
+                        aria-label={t('moveDown')}
+                        disabled={index === prizes.length - 1}
+                        onClick={() => move(index, 1)}
+                      >
+                        <ArrowDown className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('moveDown')}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        aria-label={t('remove')}
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('remove')}</TooltipContent>
+                  </Tooltip>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TooltipProvider>
       )}
 
-      <Button type="dashed" block icon={<Plus className="size-4" />} onClick={add}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={add}
+        className="w-full border-dashed rounded-full"
+      >
+        <Plus className="mr-1.5 size-4" />
         {t('add')}
       </Button>
 
-      <Flex
-        wrap
-        gap={16}
-        justify="space-between"
-        className="px-1"
-        style={{ borderTop: `1px solid ${token.colorBorderSecondary}`, paddingTop: 12 }}
-      >
-        <Typography.Text>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-3 px-1 text-sm">
+        <span>
           {t.rich('totalStock', {
             count: totals.stock,
-            b: (chunks) => <Typography.Text strong>{chunks}</Typography.Text>,
+            b: (chunks) => <strong className="font-semibold">{chunks}</strong>,
           })}
-        </Typography.Text>
-        <Typography.Text>
+        </span>
+        <span>
           {t.rich('totalValue', {
             value: formatVnd(totals.valueVnd, locale),
-            b: (chunks) => <Typography.Text strong>{chunks}</Typography.Text>,
+            b: (chunks) => <strong className="font-semibold">{chunks}</strong>,
           })}
-        </Typography.Text>
+        </span>
         {perPrize && (
-          <Typography.Text type={totals.probabilityPercent > 100 ? 'danger' : undefined}>
+          <span className={totals.probabilityPercent > 100 ? 'text-destructive font-medium' : ''}>
             {t.rich('totalProbability', {
               total: totals.probabilityPercent,
-              b: (chunks) => <Typography.Text strong>{chunks}</Typography.Text>,
+              b: (chunks) => <strong className="font-semibold">{chunks}</strong>,
             })}
-          </Typography.Text>
+          </span>
         )}
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }
 

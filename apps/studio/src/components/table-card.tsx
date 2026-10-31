@@ -1,10 +1,11 @@
 'use client';
 
-import { Card, theme } from 'antd';
+import { Card } from '@playora/ui/components/card';
+import type React from 'react';
 
 /**
  * Bordered card that holds a list page's table flush to its edges, with an optional toolbar
- * (search, filters, bulk actions) above it. After games-vt's TableCard (docs/engineering/design-system.md §5).
+ * (search, filters, bulk actions) above it. Luma style rounded container.
  */
 export function TableCard({
   toolbar,
@@ -15,17 +16,10 @@ export function TableCard({
   header?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { token } = theme.useToken();
-
   return (
-    <Card
-      variant="borderless"
-      className="overflow-hidden"
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      styles={{ body: { padding: 0 } }}
-    >
+    <Card className="overflow-hidden rounded-2xl border border-border/80 p-0 shadow-xs">
       {header}
-      {toolbar && <div className="p-4">{toolbar}</div>}
+      {toolbar && <div className="p-4 border-b border-border/60">{toolbar}</div>}
       {children}
     </Card>
   );

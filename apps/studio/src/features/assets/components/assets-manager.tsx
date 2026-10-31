@@ -1,7 +1,9 @@
 'use client';
 
 import { assetsApi, type ErrorCode } from '@playora/contracts';
-import { App, Card, Skeleton, theme } from 'antd';
+import { Card } from '@playora/ui/components/card';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
 import { ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -21,9 +23,6 @@ import { AssetUploadToolbar } from './asset-upload-toolbar';
 
 export function AssetsManager({ orgId }: { orgId: string }) {
   const t = useTranslations();
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
-  const cardStyle = { border: `1px solid ${token.colorBorderSecondary}` };
   const invalidateAssets = useInvalidateAssets();
   const [filter, setFilter] = useState<FilterKind>('all');
   const [cropPreset, setCropPreset] = useState<CropPreset>('none');
@@ -36,9 +35,9 @@ export function AssetsManager({ orgId }: { orgId: string }) {
 
   const remove = useRemoveAsset({
     onSuccess: () => {
-      message.success(t('assets.deleted'));
+      toast.success(t('assets.deleted'));
     },
-    onError: (err) => message.error(t(`errors.${err.code}`)),
+    onError: (err) => toast.error(t(`errors.${err.code}`)),
   });
 
   async function handleUpload(file: File) {
@@ -61,10 +60,10 @@ export function AssetsManager({ orgId }: { orgId: string }) {
         body: { crop },
       });
       await invalidateAssets();
-      message.success(t('assets.uploaded'));
+      toast.success(t('assets.uploaded'));
     } catch (err) {
       const code = (err as { code?: ErrorCode })?.code;
-      message.error(code ? t(`errors.${code}`) : t('common.unknownError'));
+      toast.error(code ? t(`errors.${code}`) : t('common.unknownError'));
     } finally {
       setUploadProgress(null);
     }
@@ -84,10 +83,11 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       {query.isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[0, 1, 2].map((i) => (
-            <Card key={i} variant="borderless" style={cardStyle} styles={{ body: { padding: 0 } }}>
-              <Skeleton.Node active className="!h-40 !w-full" />
-              <div className="px-4 py-3.5">
-                <Skeleton active title={false} paragraph={{ rows: 2 }} />
+            <Card key={i} className="flex flex-col overflow-hidden rounded-2xl border p-0">
+              <Skeleton className="aspect-video w-full rounded-none" />
+              <div className="space-y-2 p-4">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
               </div>
             </Card>
           ))}

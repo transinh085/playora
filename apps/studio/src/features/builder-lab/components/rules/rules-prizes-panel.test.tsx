@@ -1,7 +1,6 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import { getMessages } from '@playora/i18n';
-import { App } from 'antd';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
 import type { Campaign, CampaignRules } from '../../api';
@@ -41,9 +40,7 @@ function render(c: Campaign, locale: 'vi' | 'en' = 'vi') {
       messages={getMessages(locale)}
       timeZone="Asia/Ho_Chi_Minh"
     >
-      <App>
-        <RulesPrizesPanel campaign={c} onChange={() => {}} />
-      </App>
+      <RulesPrizesPanel campaign={c} onChange={() => {}} />
     </NextIntlClientProvider>,
   );
 }

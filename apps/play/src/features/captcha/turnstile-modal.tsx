@@ -1,6 +1,12 @@
 'use client';
 
-import { Modal, Typography } from 'antd';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@playora/ui/components/dialog';
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { isTurnstileReady, removeTurnstile, renderTurnstile, resetTurnstile } from './turnstile';
 
@@ -59,23 +65,20 @@ function TurnstileModalComponent(
         callback: (token) => {
           if (mounted) onSuccess(token);
         },
-        'error-callback': (err) => {
-          if (mounted) onError?.(err);
+        'error-callback': (code) => {
+          if (mounted) onError?.(code);
         },
         'expired-callback': () => {
-          if (widgetIdRef.current) resetTurnstile(widgetIdRef.current);
+          if (mounted && widgetIdRef.current) resetTurnstile(widgetIdRef.current);
         },
       });
-
-      if (id) {
-        widgetIdRef.current = id;
-      }
+      widgetIdRef.current = id;
     };
 
     if (isTurnstileReady()) {
       mountTurnstile();
     } else {
-      pollId = setInterval(mountTurnstile, 50);
+      pollId = setInterval(mountTurnstile, 200);
     }
 
     return () => {
@@ -89,39 +92,24 @@ function TurnstileModalComponent(
   }, [open, siteKey, onSuccess, onError]);
 
   return (
-    <Modal
+    <Dialog
       open={open}
-      title={title}
-      footer={null}
-      onCancel={onClose}
-      centered
-      width={360}
-      styles={{
-        body: {
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 12,
-          paddingTop: 8,
-          paddingBottom: 8,
-        },
+      onOpenChange={(v) => {
+        if (!v) onClose?.();
       }}
     >
-      <Typography.Text type="secondary" className="text-center text-sm">
-        {hint}
-      </Typography.Text>
-      <div
-        ref={containerRef}
-        data-testid="turnstile-container"
-        style={{
-          width: '100%',
-          minHeight: 65,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
-    </Modal>
+      <DialogContent className="max-w-[360px] rounded-2xl p-6 text-center">
+        <DialogHeader className="items-center text-center">
+          <DialogTitle className="text-base font-bold">{title}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">{hint}</DialogDescription>
+        </DialogHeader>
+        <div
+          ref={containerRef}
+          data-testid="turnstile-container"
+          className="flex min-h-[65px] w-full items-center justify-center py-2"
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
 

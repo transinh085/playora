@@ -1,6 +1,8 @@
 'use client';
 
-import { Button, Card, Empty, Flex, Skeleton, Typography, theme } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import { Skeleton } from '@playora/ui/components/skeleton';
 import { CircleAlert, Clock, Gift, Pause, PencilLine, Play, Radio, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
@@ -45,10 +47,6 @@ type Attention = {
   action: string;
 };
 
-/**
- * Home (docs/product/specs/studio-ux.md §3): what needs the owner today, how far setup is, and the campaigns that matter
- * now. Every row links to the screen that resolves it.
- */
 export function CampaignHome({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
   const format = useFormatter();
@@ -64,7 +62,15 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   const routes = campaignRoutes(orgId);
 
   if (campaigns.isPending || brandKits.isPending || members.isPending) {
-    return <Skeleton active paragraph={{ rows: 8 }} />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
+      </div>
+    );
   }
   if (campaigns.isError) return <QueryError onRetry={() => campaigns.refetch()} />;
 
@@ -186,7 +192,7 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   const totalPrizesIssued = [...statsById.values()].reduce((sum, s) => sum + s.wins, 0);
 
   return (
-    <Flex vertical gap={20}>
+    <div className="flex flex-col gap-5">
       <MetricGrid
         items={[
           {
@@ -228,7 +234,7 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         ]}
       />
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <Flex vertical gap={20} className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-5">
           {attention.length > 0 && <AttentionCard items={attention} />}
           {steps.some((step) => !step.done) && (
             <Checklist title={t('gettingStarted')} items={steps} testId="home-checklist" />
@@ -239,38 +245,42 @@ export function CampaignHome({ orgId }: { orgId: string }) {
             total={rows.length}
             statsById={statsById}
           />
-        </Flex>
+        </div>
         <TemplateTeaser orgId={orgId} />
       </div>
-    </Flex>
+    </div>
   );
 }
 
 function AttentionCard({ items }: { items: Attention[] }) {
   const t = useTranslations('campaigns.home');
-  const { token } = theme.useToken();
-  const color = { error: token.colorError, warning: token.colorWarning, info: token.colorInfo };
   return (
-    <Card
-      variant="borderless"
-      title={t('attention.title')}
-      extra={<Caption>{items.length}</Caption>}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      data-testid="home-attention"
-    >
-      <Flex vertical gap={12}>
-        {items.map(({ key, icon: Icon, tone, text, href, action }) => (
-          <Flex key={key} align="center" gap={10}>
-            <Icon className="size-4 shrink-0" style={{ color: color[tone] }} />
-            <Typography.Text className="min-w-0 flex-1">{text}</Typography.Text>
-            <Link href={href as never}>
-              <Button size="small" tabIndex={-1}>
-                {action}
-              </Button>
-            </Link>
-          </Flex>
-        ))}
-      </Flex>
+    <Card className="rounded-2xl border" data-testid="home-attention">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{t('attention.title')}</CardTitle>
+        <Caption>{items.length}</Caption>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {items.map(({ key, icon: Icon, tone, text, href, action }) => {
+          const colorClass =
+            tone === 'error'
+              ? 'text-destructive'
+              : tone === 'warning'
+                ? 'text-amber-500'
+                : 'text-blue-500';
+          return (
+            <div key={key} className="flex items-center gap-2.5 text-sm">
+              <Icon className={`size-4 shrink-0 ${colorClass}`} />
+              <span className="min-w-0 flex-1 truncate">{text}</span>
+              <Link href={href as never}>
+                <Button variant="outline" size="sm" tabIndex={-1} className="h-7 text-xs">
+                  {action}
+                </Button>
+              </Link>
+            </div>
+          );
+        })}
+      </CardContent>
     </Card>
   );
 }
@@ -288,62 +298,64 @@ function RecentCampaigns({
 }) {
   const t = useTranslations('campaigns.home');
   const format = useFormatter();
-  const { token } = theme.useToken();
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card
-      variant="borderless"
-      title={t('campaigns')}
-      extra={total > 0 && <Link href={routes.list}>{t('allCampaigns', { count: total })}</Link>}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      styles={{ body: { paddingBlock: rows.length ? 4 : undefined } }}
-      data-testid="home-campaigns"
-    >
-      {rows.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('noCampaigns')} />
-      ) : (
-        <ul className="m-0 list-none p-0">
-          {rows.map(({ campaign, phase }, index) => {
-            const isDraft = phase === 'draft';
-            const plays = statsById.get(campaign.id)?.plays;
-            return (
-              <li
-                key={campaign.id}
-                className="py-3"
-                style={index ? { borderTop: `1px solid ${token.colorBorderSecondary}` } : undefined}
-              >
-                <Flex align="center" gap={12} wrap>
-                  <div className="min-w-0 flex-1">
-                    <Flex align="center" gap={8} wrap>
-                      <Link
-                        href={isDraft ? routes.edit(campaign.id) : routes.detail(campaign.id)}
-                        style={{ color: token.colorText, fontWeight: 600 }}
-                      >
-                        {campaign.name}
-                      </Link>
-                      <PhaseTag phase={phase} />
-                    </Flex>
-                    <Caption>
-                      {campaignPeriod(format, campaign)}
-                      {!isDraft && plays !== undefined ? ` · ${t('plays', { count: plays })}` : ''}
-                    </Caption>
+    <Card className="rounded-2xl border" data-testid="home-campaigns">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{t('campaigns')}</CardTitle>
+        {total > 0 && (
+          <Link href={routes.list} className="text-xs text-primary hover:underline">
+            {t('allCampaigns', { count: total })}
+          </Link>
+        )}
+      </CardHeader>
+      <CardContent className="p-4">
+        {rows.length === 0 ? (
+          <div className="py-6 text-center text-xs text-muted-foreground">{t('noCampaigns')}</div>
+        ) : (
+          <ul className="m-0 divide-y list-none p-0">
+            {rows.map(({ campaign, phase }) => {
+              const isDraft = phase === 'draft';
+              const plays = statsById.get(campaign.id)?.plays;
+              return (
+                <li key={campaign.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={isDraft ? routes.edit(campaign.id) : routes.detail(campaign.id)}
+                          className="font-semibold hover:underline"
+                        >
+                          {campaign.name}
+                        </Link>
+                        <PhaseTag phase={phase} />
+                      </div>
+                      <Caption>
+                        {campaignPeriod(format, campaign)}
+                        {!isDraft && plays !== undefined
+                          ? ` · ${t('plays', { count: plays })}`
+                          : ''}
+                      </Caption>
+                    </div>
+                    <Link
+                      href={
+                        isDraft
+                          ? routes.edit(campaign.id)
+                          : `${routes.detail(campaign.id)}?tab=share`
+                      }
+                    >
+                      <Button variant="outline" size="sm" tabIndex={-1} className="h-8 text-xs">
+                        {isDraft ? t('continueEditing') : t('share')}
+                      </Button>
+                    </Link>
                   </div>
-                  <Link
-                    href={
-                      isDraft ? routes.edit(campaign.id) : `${routes.detail(campaign.id)}?tab=share`
-                    }
-                  >
-                    <Button size="small" tabIndex={-1}>
-                      {isDraft ? t('continueEditing') : t('share')}
-                    </Button>
-                  </Link>
-                </Flex>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -356,7 +368,6 @@ const TEASER = [
 function TemplateTeaser({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
   const tl = useTranslations('builderLab.home');
-  const { token } = theme.useToken();
   const href = campaignRoutes(orgId).create;
   const covers = useMemo(
     () =>
@@ -369,24 +380,27 @@ function TemplateTeaser({ orgId }: { orgId: string }) {
   );
 
   return (
-    <Card
-      variant="borderless"
-      title={t('templates')}
-      extra={<Link href={href}>{t('allTemplates')}</Link>}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-    >
-      <div className="grid grid-cols-2 gap-3">
-        {covers.map((c) => (
-          <Link key={`${c.templateKey}:${c.skinKey}`} href={href} className="block">
-            <div className="overflow-hidden" style={{ height: 200, borderRadius: 10 }}>
-              <FitScreen screen={c.screen} brand={c.brand} />
-            </div>
-            <Caption className="mt-1 block text-center">
-              {tl(`templates.${c.templateKey}`)} · {tl(`skins.${c.skinKey}`)}
-            </Caption>
-          </Link>
-        ))}
-      </div>
+    <Card className="rounded-2xl border">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{t('templates')}</CardTitle>
+        <Link href={href} className="text-xs text-primary hover:underline">
+          {t('allTemplates')}
+        </Link>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-3">
+          {covers.map((c) => (
+            <Link key={`${c.templateKey}:${c.skinKey}`} href={href} className="block group">
+              <div className="h-[200px] overflow-hidden rounded-xl border bg-muted transition-transform group-hover:scale-[1.02]">
+                <FitScreen screen={c.screen} brand={c.brand} />
+              </div>
+              <Caption className="mt-1.5 block text-center truncate">
+                {tl(`templates.${c.templateKey}`)} · {tl(`skins.${c.skinKey}`)}
+              </Caption>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }

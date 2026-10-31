@@ -10,7 +10,9 @@ import {
   type PlayerFormValues,
   toCanvasDoc,
 } from '@playora/ui/campaign';
-import { App, Badge, Button, Flex, Tag } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { toast } from '@playora/ui/components/sonner';
 import Script from 'next/script';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -72,7 +74,6 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
   const tWeekdays = useTranslations('play.weekdays');
   const tErrors = useTranslations('errors');
   const format = useFormatter();
-  const { message } = App.useApp();
   const labels = useCampaignPlayerLabels(
     campaign.collectForm ? campaign.registrationForm : undefined,
   );
@@ -192,7 +193,7 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
     try {
       await join(values);
     } catch (error) {
-      message.error(errorText(error, t('joinFailed')));
+      toast.error(errorText(error, t('joinFailed')));
       throw error;
     }
   };
@@ -204,14 +205,14 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
       return result;
     } catch (error) {
       if (isRateLimitedError(error)) {
-        message.warning(errorText(error, tErrors('RATE_LIMITED')));
+        toast.warning(errorText(error, tErrors('RATE_LIMITED')));
       } else if (error instanceof SessionExpiredError) {
-        message.warning(t('sessionExpired'));
+        toast.warning(t('sessionExpired'));
         player.current?.reset();
       } else if (error instanceof Error && error.message === 'Captcha cancelled') {
         // user cancelled captcha modal
       } else {
-        message.error(errorText(error, t('playFailed')));
+        toast.error(errorText(error, t('playFailed')));
       }
       throw error;
     }
@@ -261,21 +262,35 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         nextTurnAtFormatted={nextTurnFormatted}
         openDaysFormatted={openDaysFormatted}
       />
-      <Flex gap="small" align="center" className="absolute top-3 right-3 z-10">
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
         {turnsLeft !== undefined && (
-          <Tag className="m-0" data-testid="turns-left">
+          <Badge
+            variant="outline"
+            className="m-0 bg-background/80 backdrop-blur-xs text-xs font-normal"
+            data-testid="turns-left"
+          >
             {t('turnsLeft', { count: turnsLeft })}
             {turnsLeft === 0 &&
               nextTurnFormatted &&
               ` · ${t('nextTurnAt', { time: nextTurnFormatted })}`}
-          </Tag>
+          </Badge>
         )}
-        <Badge count={unredeemed} size="small">
-          <Button shape="round" size="small" onClick={() => player.current?.openVouchers()}>
+        <div className="relative inline-flex">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full h-7 px-3 text-xs bg-background/80 backdrop-blur-xs shadow-xs"
+            onClick={() => player.current?.openVouchers()}
+          >
             {t('myPrizes')}
           </Button>
-        </Badge>
-      </Flex>
+          {unredeemed > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+              {unredeemed}
+            </span>
+          )}
+        </div>
+      </div>
       {campaign.watermark && (
         <div className="absolute top-3 left-3 z-10">
           <PlayoraWatermark />

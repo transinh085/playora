@@ -1,12 +1,12 @@
-import { theme as antdTheme, type ThemeConfig } from 'antd';
-import { font, ink, radius, spotlight, stage, teal, violet } from './tokens';
+import type { ThemeConfig } from './studio-theme';
+import { font, radius, spotlight, stage, teal, violet } from './tokens';
 
 /**
  * Runtime theming for game surfaces (player, kiosk).
  *
  * Order of application (docs/product/specs/builder.md §5): template default → skin (`data-skin`) →
  * brand kit (`brandKitVars`) → per-slot override. Skins live in styles.css; this module turns a
- * skin + customer's brand kit into both an Ant Design `ThemeConfig` and `--game-*` custom
+ * skin + customer's brand kit into both a ThemeConfig and `--game-*` custom
  * properties, guaranteeing readable text on top of whatever colours the customer picks.
  */
 
@@ -73,12 +73,12 @@ export const skinPalettes: Record<Skin, SkinPalette> = {
     urgent: '#fefcf4',
   },
   day: {
-    bg: ink[50],
-    fg: ink[950],
+    bg: '#fafafa',
+    fg: '#09090b',
     primary: teal[600],
     primaryFg: '#fcfcfc',
     accent: spotlight[400],
-    accentFg: ink[950],
+    accentFg: '#09090b',
     urgent: '#e31029',
   },
 };
@@ -186,7 +186,7 @@ export interface GameThemeOptions {
 }
 
 /**
- * Builds an Ant Design `ThemeConfig` from a game `skin` and optional customer `brand` kit,
+ * Builds a ThemeConfig from a game `skin` and optional customer `brand` kit,
  * preserving WCAG contrast rules for primary actions and ground text.
  */
 export function gameThemeConfig(options: GameThemeOptions = {}): ThemeConfig {
@@ -210,7 +210,7 @@ export function gameThemeConfig(options: GameThemeOptions = {}): ThemeConfig {
     : font.sans;
 
   return {
-    algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+    algorithm: dark ? 'dark' : 'default',
     token: {
       colorPrimary: primary,
       colorInfo: accent,
@@ -233,7 +233,7 @@ export function gameThemeConfig(options: GameThemeOptions = {}): ThemeConfig {
 }
 
 /**
- * Resolves both the Ant Design `ThemeConfig` and `--game-*` CSS custom properties
+ * Resolves both the ThemeConfig and `--game-*` CSS custom properties
  * for a given `skin` + `brand` kit.
  */
 export function resolveGameTheme(options: GameThemeOptions = {}): {

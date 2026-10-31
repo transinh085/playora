@@ -1,7 +1,25 @@
 'use client';
 
 import type { CanvasPrize } from '@playora/ui/campaign';
-import { Button, Flex, Menu, type MenuProps, Segmented, Tooltip, Typography, theme } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@playora/ui/components/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import {
   AlignCenter,
   AlignHorizontalJustifyCenter,
@@ -71,16 +89,8 @@ import { PropertiesPanel } from './properties-panel';
 import { LayersPanel, ScreensPanel, Toolbox } from './side-panels';
 import { useCanvasLabels } from './use-canvas-labels';
 
-const MENU_WIDTH = 240;
-/** Submenus are portaled to <body>; long ones scroll, and are wide enough that a scrollbar never clips a label. */
-const SUBMENU_POPUP =
-  '[&>.ant-menu]:max-h-[min(480px,70vh)] [&>.ant-menu]:min-w-56 [&>.ant-menu]:overflow-y-auto';
-/** Open submenus beside their item, flipping left/right at the edge and sliding up or down to stay on screen. */
-const SUBMENU_OVERFLOW = { adjustX: 1, shiftY: true };
-const SUBMENU_PLACEMENTS = {
-  rightTop: { points: ['tl', 'tr'], overflow: SUBMENU_OVERFLOW },
-  leftTop: { points: ['tr', 'tl'], overflow: SUBMENU_OVERFLOW },
-};
+type MenuTarget = 'element' | 'canvas' | 'workspace';
+
 /**
  * The free canvas editor (ADR-014) as a controlled component: the parent owns the document
  * (`value` / `onChange`), the workspace owns selection, undo history, zoom and preview. Used by the
@@ -116,7 +126,6 @@ export function CanvasWorkspace({
   hideHeader?: boolean;
 }) {
   const t = useTranslations('canvasLab');
-  const { token } = theme.useToken();
   const [state, dispatch] = useReducer(editorReducer, value, createEditorState);
   const [preview, setPreview] = useState(false);
   const [replay, setReplay] = useState(0);
@@ -179,14 +188,12 @@ export function CanvasWorkspace({
     setZoom(Math.max(0.4, Math.min(2, Math.round(next * 10) / 10)));
   };
 
-  type MenuTarget = 'element' | 'canvas' | 'workspace';
   const [menuState, setMenuState] = useState<{
     x: number;
     y: number;
     id: string | null;
     target: MenuTarget;
   } | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, id: string | null, target: MenuTarget) => {
@@ -204,25 +211,6 @@ export function CanvasWorkspace({
     },
     [],
   );
-
-  useEffect(() => {
-    if (!menuState) return;
-    const onPointerDown = (e: PointerEvent) => {
-      const target = e.target as Element;
-      // Submenus (add element, layer order, align) are portaled to <body>, outside menuRef.
-      if (menuRef.current?.contains(target) || target.closest?.('.ant-menu-submenu-popup')) return;
-      setMenuState(null);
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuState(null);
-    };
-    window.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [menuState]);
 
   const addAtPosition = (type: AddableType) => {
     let cx = ARTBOARD_WIDTH / 2;
@@ -248,562 +236,598 @@ export function CanvasWorkspace({
       cy,
       name: newElementName(type),
     });
+    setMenuState(null);
   };
 
-  const getMenuItems = (stateTarget: {
-    id: string | null;
-    target: MenuTarget;
-  }): MenuProps['items'] => {
-    const targetId = stateTarget.id;
-    if (targetId) {
-      const el = screen.elements.find((e) => e.id === targetId);
-      if (!el) return [];
-      const singleton = SINGLETON_TYPES.includes(el.type);
-      const index = screen.elements.findIndex((e) => e.id === targetId);
-      const isFirst = index === 0;
-      const isLast = index === screen.elements.length - 1;
-
-      return [
-        {
-          key: 'duplicate',
-          icon: <Copy className="size-3.5" />,
-          label: t('context.duplicate'),
-          extra: '⌘D',
-          disabled: singleton,
-          onClick: () => dispatch({ type: 'duplicate', id: targetId }),
-        },
-        {
-          key: 'lock',
-          icon: el.locked ? <Unlock className="size-3.5" /> : <Lock className="size-3.5" />,
-          label: el.locked ? t('context.unlock') : t('context.lock'),
-          onClick: () => dispatch({ type: 'update', id: targetId, patch: { locked: !el.locked } }),
-        },
-        {
-          key: 'hide',
-          icon: el.hidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />,
-          label: el.hidden ? t('context.show') : t('context.hide'),
-          onClick: () => dispatch({ type: 'update', id: targetId, patch: { hidden: !el.hidden } }),
-        },
-        { type: 'divider' },
-        {
-          key: 'order',
-          icon: <Layers className="size-3.5" />,
-          label: t('context.layerOrder'),
-          popupClassName: SUBMENU_POPUP,
-          children: [
-            {
-              key: 'bringFront',
-              icon: <ArrowUpToLine className="size-3.5" />,
-              label: t('context.bringFront'),
-              disabled: isLast,
-              onClick: () =>
-                dispatch({
-                  type: 'reorder',
-                  id: targetId,
-                  toIndex: screen.elements.length - 1,
-                }),
-            },
-            {
-              key: 'bringForward',
-              icon: <ChevronUp className="size-3.5" />,
-              label: t('context.bringForward'),
-              disabled: isLast,
-              onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: index + 1 }),
-            },
-            {
-              key: 'sendBackward',
-              icon: <ChevronDown className="size-3.5" />,
-              label: t('context.sendBackward'),
-              disabled: isFirst,
-              onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: index - 1 }),
-            },
-            {
-              key: 'sendBack',
-              icon: <ArrowDownToLine className="size-3.5" />,
-              label: t('context.sendBack'),
-              disabled: isFirst,
-              onClick: () => dispatch({ type: 'reorder', id: targetId, toIndex: 0 }),
-            },
-          ],
-        },
-        {
-          key: 'align',
-          icon: <AlignCenter className="size-3.5" />,
-          label: t('context.align'),
-          popupClassName: SUBMENU_POPUP,
-          children: [
-            {
-              key: 'centerH',
-              icon: <AlignHorizontalJustifyCenter className="size-3.5" />,
-              label: t('context.centerH'),
-              onClick: () =>
-                dispatch({
-                  type: 'update',
-                  id: targetId,
-                  patch: { x: Math.round((ARTBOARD_WIDTH - el.w) / 2) },
-                }),
-            },
-            {
-              key: 'centerV',
-              icon: <AlignVerticalJustifyCenter className="size-3.5" />,
-              label: t('context.centerV'),
-              onClick: () =>
-                dispatch({
-                  type: 'update',
-                  id: targetId,
-                  patch: { y: Math.round((screen.height - el.h) / 2) },
-                }),
-            },
-            {
-              key: 'alignLeft',
-              icon: <AlignLeft className="size-3.5" />,
-              label: t('context.alignLeft'),
-              onClick: () => dispatch({ type: 'update', id: targetId, patch: { x: 16 } }),
-            },
-            {
-              key: 'alignRight',
-              icon: <AlignRight className="size-3.5" />,
-              label: t('context.alignRight'),
-              onClick: () =>
-                dispatch({
-                  type: 'update',
-                  id: targetId,
-                  patch: { x: ARTBOARD_WIDTH - el.w - 16 },
-                }),
-            },
-            {
-              key: 'fullWidth',
-              icon: <Maximize2 className="size-3.5" />,
-              label: t('context.fullWidth'),
-              onClick: () =>
-                dispatch({
-                  type: 'update',
-                  id: targetId,
-                  patch: { x: 0, w: ARTBOARD_WIDTH },
-                }),
-            },
-          ],
-        },
-        ...(el.rotation !== 0
-          ? [
-              {
-                key: 'resetRotation',
-                icon: <RotateCcw className="size-3.5" />,
-                label: t('context.resetRotation'),
-                onClick: () => dispatch({ type: 'update', id: targetId, patch: { rotation: 0 } }),
-              },
-            ]
-          : []),
-        { type: 'divider' },
-        {
-          key: 'delete',
-          icon: <Trash2 className="size-3.5" />,
-          label: t('context.delete'),
-          extra: 'Delete',
-          danger: true,
-          disabled: singleton,
-          onClick: () => dispatch({ type: 'remove', id: targetId }),
-        },
-      ];
-    }
-
-    return [
-      {
-        key: 'add',
-        icon: <Plus className="size-3.5" />,
-        label: t('context.addElement'),
-        popupClassName: SUBMENU_POPUP,
-        children: [
-          {
-            key: 'content-group',
-            type: 'group',
-            label: t('toolboxCategories.content'),
-            children: [
-              {
-                key: 'add-text',
-                icon: <Type className="size-3.5" />,
-                label: t('types.text'),
-                onClick: () => addAtPosition('text'),
-              },
-              {
-                key: 'add-image',
-                icon: <ImageIcon className="size-3.5" />,
-                label: t('types.image'),
-                onClick: () => addAtPosition('image'),
-              },
-              {
-                key: 'add-badge',
-                icon: <Award className="size-3.5" />,
-                label: t('types.badge'),
-                onClick: () => addAtPosition('badge'),
-              },
-              {
-                key: 'add-marquee',
-                icon: <Megaphone className="size-3.5" />,
-                label: t('types.marquee'),
-                onClick: () => addAtPosition('marquee'),
-              },
-            ],
-          },
-          {
-            key: 'interactive-group',
-            type: 'group',
-            label: t('toolboxCategories.interactive'),
-            children: [
-              {
-                key: 'add-button',
-                icon: <MousePointerClick className="size-3.5" />,
-                label: t('types.button'),
-                onClick: () => addAtPosition('button'),
-              },
-              {
-                key: 'add-countdown',
-                icon: <Clock className="size-3.5" />,
-                label: t('types.countdown'),
-                onClick: () => addAtPosition('countdown'),
-              },
-              {
-                key: 'add-prizeList',
-                icon: <Gift className="size-3.5" />,
-                label: t('types.prizeList'),
-                onClick: () => addAtPosition('prizeList'),
-              },
-              {
-                key: 'add-social',
-                icon: <MessageCircle className="size-3.5" />,
-                label: t('types.social'),
-                onClick: () => addAtPosition('social'),
-              },
-              {
-                key: 'add-audio',
-                icon: <Volume2 className="size-3.5" />,
-                label: t('types.audio'),
-                onClick: () => addAtPosition('audio'),
-              },
-            ],
-          },
-          {
-            key: 'decor-group',
-            type: 'group',
-            label: t('toolboxCategories.decor'),
-            children: [
-              {
-                key: 'add-shape',
-                icon: <Shapes className="size-3.5" />,
-                label: t('types.shape'),
-                onClick: () => addAtPosition('shape'),
-              },
-              {
-                key: 'add-divider',
-                icon: <Minus className="size-3.5" />,
-                label: t('types.divider'),
-                onClick: () => addAtPosition('divider'),
-              },
-            ],
-          },
-        ],
-      },
-      { type: 'divider' },
-      {
-        key: 'undo',
-        icon: <Undo2 className="size-3.5" />,
-        label: t('undo'),
-        extra: '⌘Z',
-        disabled: !state.past.length,
-        onClick: () => dispatch({ type: 'undo' }),
-      },
-      {
-        key: 'redo',
-        icon: <Redo2 className="size-3.5" />,
-        label: t('redo'),
-        extra: '⇧⌘Z',
-        disabled: !state.future.length,
-        onClick: () => dispatch({ type: 'redo' }),
-      },
-      { type: 'divider' },
-      {
-        key: 'fit',
-        icon: <Maximize className="size-3.5" />,
-        label: t('fit'),
-        onClick: () => setAutoFit(true),
-      },
-      {
-        key: 'zoomIn',
-        icon: <ZoomIn className="size-3.5" />,
-        label: t('zoomIn'),
-        onClick: () => setZoomManually(zoom + 0.1),
-      },
-      {
-        key: 'zoomOut',
-        icon: <ZoomOut className="size-3.5" />,
-        label: t('zoomOut'),
-        onClick: () => setZoomManually(zoom - 0.1),
-      },
-      ...(selectedElement(state)
-        ? [
-            { type: 'divider' as const },
-            {
-              key: 'deselect',
-              icon: <X className="size-3.5" />,
-              label: t('context.deselect'),
-              onClick: () => dispatch({ type: 'select', id: null }),
-            },
-          ]
-        : []),
-    ];
-  };
-
-  const border = `1px solid ${token.colorBorderSecondary}`;
-  const panel = { background: token.colorBgContainer };
+  const targetId = menuState?.id;
+  const targetElement = targetId ? screen.elements.find((e) => e.id === targetId) : null;
+  const isSingleton = targetElement ? SINGLETON_TYPES.includes(targetElement.type) : false;
+  const targetIndex = targetId ? screen.elements.findIndex((e) => e.id === targetId) : -1;
+  const isFirst = targetIndex === 0;
+  const isLast = targetIndex === screen.elements.length - 1;
 
   return (
-    <div
-      className="grid h-full min-h-0"
-      style={{
-        gridTemplateRows: hideHeader ? 'minmax(0, 1fr)' : `${toolbarHeight}px minmax(0, 1fr)`,
-      }}
-    >
-      {!hideHeader && (
-        <header
-          className="flex items-center justify-between gap-3 px-3"
-          style={{ ...panel, borderBottom: border }}
-        >
-          <Flex align="center" gap={8} className="min-w-0">
-            {toolbarStart}
-            <Tooltip title={`${t('undo')} (⌘Z)`}>
-              <Button
-                type="text"
-                aria-label={t('undo')}
-                icon={<Undo2 className="size-4" />}
-                disabled={!state.past.length}
-                onClick={() => dispatch({ type: 'undo' })}
-              />
-            </Tooltip>
-            <Tooltip title={`${t('redo')} (⇧⌘Z)`}>
-              <Button
-                type="text"
-                aria-label={t('redo')}
-                icon={<Redo2 className="size-4" />}
-                disabled={!state.future.length}
-                onClick={() => dispatch({ type: 'redo' })}
-              />
-            </Tooltip>
-          </Flex>
-
-          <Flex align="center" gap={4}>
-            <Button
-              type="text"
-              aria-label={t('zoomOut')}
-              icon={<Minus className="size-4" />}
-              onClick={() => setZoomManually(zoom - 0.1)}
-            />
-            <Typography.Text className="w-12 text-center">
-              {Math.round(zoom * 100)}%
-            </Typography.Text>
-            <Button
-              type="text"
-              aria-label={t('zoomIn')}
-              icon={<Plus className="size-4" />}
-              onClick={() => setZoomManually(zoom + 0.1)}
-            />
-            <Tooltip title={t('fit')}>
-              <Button
-                type="text"
-                aria-label={t('fit')}
-                icon={<Maximize className="size-4" />}
-                onClick={() => setAutoFit(true)}
-              />
-            </Tooltip>
-          </Flex>
-
-          <Flex align="center" gap={8}>
-            {toolbarEnd}
-            <Segmented
-              value={preview ? 'preview' : 'edit'}
-              onChange={(mode) => {
-                setPreview(mode === 'preview');
-                setReplay((n) => n + 1);
-                if (mode === 'preview') dispatch({ type: 'select', id: null });
-              }}
-              options={[
-                { value: 'edit', label: t('edit'), icon: <Pencil className="size-3.5" /> },
-                { value: 'preview', label: t('preview'), icon: <Play className="size-3.5" /> },
-              ]}
-            />
-          </Flex>
-        </header>
-      )}
-
-      <div className="grid min-h-0" style={{ gridTemplateColumns: '280px minmax(0, 1fr) 320px' }}>
-        <aside className="min-h-0 overflow-y-auto p-4" style={{ ...panel, borderRight: border }}>
-          <Flex vertical gap={16}>
-            <Typography.Text strong>{t('screens')}</Typography.Text>
-            <ScreensPanel state={state} dispatch={dispatch} />
-            <Typography.Text strong>{t('add')}</Typography.Text>
-            <Toolbox onAdd={addAtCentre} />
-            <Typography.Text strong>{t('layers')}</Typography.Text>
-            <LayersPanel state={state} dispatch={dispatch} />
-          </Flex>
-        </aside>
-
-        <div className="relative min-h-0 min-w-0 overflow-hidden">
-          <main
-            ref={stageRef}
-            className="flex h-full min-h-0 justify-center overflow-auto py-10"
-            style={{
-              background: token.colorBgLayout,
-              backgroundImage: `radial-gradient(${token.colorBorder} 1px, transparent 1px)`,
-              backgroundSize: '16px 16px',
-            }}
-            data-testid="canvas-stage"
-            onContextMenu={(e) => handleContextMenu(e, null, 'workspace')}
-          >
-            <div className="h-fit pb-12">
-              <EditorCanvas
-                state={state}
-                dispatch={dispatch}
-                zoom={zoom}
-                preview={preview}
-                replay={replay}
-                brand={brand}
-                labels={labels}
-                newElementName={newElementName}
-                heightLabel={t('artboardHeight')}
-                renderStage={renderStage}
-                prizes={prizes}
-                onContextMenu={(e, id) => handleContextMenu(e, id, id ? 'element' : 'canvas')}
-              />
+    <TooltipProvider>
+      <div
+        className="grid h-full min-h-0 bg-background text-foreground"
+        style={{
+          gridTemplateRows: hideHeader ? 'minmax(0, 1fr)' : `${toolbarHeight}px minmax(0, 1fr)`,
+        }}
+      >
+        {!hideHeader && (
+          <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
+            <div className="flex min-w-0 items-center gap-2">
+              {toolbarStart}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('undo')}
+                    disabled={!state.past.length}
+                    onClick={() => dispatch({ type: 'undo' })}
+                    className="size-8 rounded-full"
+                  >
+                    <Undo2 className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{`${t('undo')} (⌘Z)`}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('redo')}
+                    disabled={!state.future.length}
+                    onClick={() => dispatch({ type: 'redo' })}
+                    className="size-8 rounded-full"
+                  >
+                    <Redo2 className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{`${t('redo')} (⇧⌘Z)`}</TooltipContent>
+              </Tooltip>
             </div>
-          </main>
 
-          {hideHeader && (
-            <div
-              className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border backdrop-blur-md pointer-events-auto shrink-0"
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={t('zoomOut')}
+                onClick={() => setZoomManually(zoom - 0.1)}
+                className="size-8 rounded-full"
+              >
+                <Minus className="size-4" />
+              </Button>
+              <span className="w-12 text-center text-xs font-mono">{Math.round(zoom * 100)}%</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={t('zoomIn')}
+                onClick={() => setZoomManually(zoom + 0.1)}
+                className="size-8 rounded-full"
+              >
+                <Plus className="size-4" />
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('fit')}
+                    onClick={() => setAutoFit(true)}
+                    className="size-8 rounded-full"
+                  >
+                    <Maximize className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('fit')}</TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {toolbarEnd}
+              <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setPreview(false)}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                    !preview
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Pencil className="size-3.5" />
+                  <span>{t('edit')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreview(true);
+                    setReplay((n) => n + 1);
+                    dispatch({ type: 'select', id: null });
+                  }}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
+                    preview
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Play className="size-3.5" />
+                  <span>{t('preview')}</span>
+                </button>
+              </div>
+            </div>
+          </header>
+        )}
+
+        <div className="grid min-h-0" style={{ gridTemplateColumns: '280px minmax(0, 1fr) 320px' }}>
+          <aside className="min-h-0 overflow-y-auto border-r bg-card p-4">
+            <div className="flex flex-col gap-4">
+              <span className="font-semibold text-sm">{t('screens')}</span>
+              <ScreensPanel state={state} dispatch={dispatch} />
+              <span className="font-semibold text-sm">{t('add')}</span>
+              <Toolbox onAdd={addAtCentre} />
+              <span className="font-semibold text-sm">{t('layers')}</span>
+              <LayersPanel state={state} dispatch={dispatch} />
+            </div>
+          </aside>
+
+          <div className="relative min-h-0 min-w-0 overflow-hidden">
+            <main
+              ref={stageRef}
+              className="flex h-full min-h-0 justify-center overflow-auto py-10 bg-muted/20"
               style={{
-                background: token.colorBgElevated,
-                borderColor: token.colorBorderSecondary,
-                boxShadow: token.boxShadowSecondary,
+                backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)',
+                backgroundSize: '16px 16px',
               }}
+              data-testid="canvas-stage"
+              onContextMenu={(e) => handleContextMenu(e, null, 'workspace')}
             >
-              <Tooltip title={`${t('undo')} (⌘Z)`}>
+              <div className="h-fit pb-12">
+                <EditorCanvas
+                  state={state}
+                  dispatch={dispatch}
+                  zoom={zoom}
+                  preview={preview}
+                  replay={replay}
+                  brand={brand}
+                  labels={labels}
+                  newElementName={newElementName}
+                  heightLabel={t('artboardHeight')}
+                  renderStage={renderStage}
+                  prizes={prizes}
+                  onContextMenu={(e, id) => handleContextMenu(e, id, id ? 'element' : 'canvas')}
+                />
+              </div>
+            </main>
+
+            {hideHeader && (
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border bg-background/80 backdrop-blur-md pointer-events-auto shrink-0">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t('undo')}
+                      disabled={!state.past.length}
+                      onClick={() => dispatch({ type: 'undo' })}
+                      className="size-7 rounded-full"
+                    >
+                      <Undo2 className="size-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{`${t('undo')} (⌘Z)`}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t('redo')}
+                      disabled={!state.future.length}
+                      onClick={() => dispatch({ type: 'redo' })}
+                      className="size-7 rounded-full"
+                    >
+                      <Redo2 className="size-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{`${t('redo')} (⇧⌘Z)`}</TooltipContent>
+                </Tooltip>
+                <span className="h-3 w-px bg-border mx-0.5" />
                 <Button
-                  type="text"
-                  size="small"
-                  aria-label={t('undo')}
-                  icon={<Undo2 className="size-3.5" />}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('zoomOut')}
+                  onClick={() => setZoomManually(zoom - 0.1)}
+                  className="size-7 rounded-full"
+                >
+                  <Minus className="size-3.5" />
+                </Button>
+                <span className="min-w-9 text-center font-mono text-xs">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('zoomIn')}
+                  onClick={() => setZoomManually(zoom + 0.1)}
+                  className="size-7 rounded-full"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t('fit')}
+                      onClick={() => setAutoFit(true)}
+                      className="size-7 rounded-full"
+                    >
+                      <Maximize className="size-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('fit')}</TooltipContent>
+                </Tooltip>
+                <span className="h-3 w-px bg-border mx-0.5" />
+                <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPreview(false)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                      !preview ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Pencil className="size-3" />
+                    <span>{t('edit')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreview(true);
+                      setReplay((n) => n + 1);
+                      dispatch({ type: 'select', id: null });
+                    }}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                      preview ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Play className="size-3" />
+                    <span>{t('preview')}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <aside className="min-h-0 overflow-y-auto border-l bg-card p-4">
+            <PropertiesPanel
+              state={state}
+              dispatch={dispatch}
+              brand={brand}
+              onUploadImage={onUploadImage}
+            />
+          </aside>
+        </div>
+
+        {/* Radix Dropdown Context Menu */}
+        <DropdownMenu
+          open={Boolean(menuState)}
+          onOpenChange={(open) => !open && setMenuState(null)}
+        >
+          <DropdownMenuTrigger asChild>
+            <div
+              style={{
+                position: 'fixed',
+                left: menuState?.x ?? 0,
+                top: menuState?.y ?? 0,
+                width: 1,
+                height: 1,
+                pointerEvents: 'none',
+              }}
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 rounded-2xl" align="start">
+            {targetElement && targetId ? (
+              <>
+                <DropdownMenuItem
+                  disabled={isSingleton}
+                  onClick={() => dispatch({ type: 'duplicate', id: targetId })}
+                >
+                  <Copy className="mr-2 size-4" />
+                  <span>{t('context.duplicate')}</span>
+                  <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    dispatch({
+                      type: 'update',
+                      id: targetId,
+                      patch: { locked: !targetElement.locked },
+                    })
+                  }
+                >
+                  {targetElement.locked ? (
+                    <Unlock className="mr-2 size-4" />
+                  ) : (
+                    <Lock className="mr-2 size-4" />
+                  )}
+                  <span>{targetElement.locked ? t('context.unlock') : t('context.lock')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    dispatch({
+                      type: 'update',
+                      id: targetId,
+                      patch: { hidden: !targetElement.hidden },
+                    })
+                  }
+                >
+                  {targetElement.hidden ? (
+                    <Eye className="mr-2 size-4" />
+                  ) : (
+                    <EyeOff className="mr-2 size-4" />
+                  )}
+                  <span>{targetElement.hidden ? t('context.show') : t('context.hide')}</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Layers className="mr-2 size-4" />
+                    <span>{t('context.layerOrder')}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 rounded-xl">
+                    <DropdownMenuItem
+                      disabled={isLast}
+                      onClick={() =>
+                        dispatch({
+                          type: 'reorder',
+                          id: targetId,
+                          toIndex: screen.elements.length - 1,
+                        })
+                      }
+                    >
+                      <ArrowUpToLine className="mr-2 size-4" />
+                      <span>{t('context.bringFront')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={isLast}
+                      onClick={() =>
+                        dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex + 1 })
+                      }
+                    >
+                      <ChevronUp className="mr-2 size-4" />
+                      <span>{t('context.bringForward')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={isFirst}
+                      onClick={() =>
+                        dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex - 1 })
+                      }
+                    >
+                      <ChevronDown className="mr-2 size-4" />
+                      <span>{t('context.sendBackward')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={isFirst}
+                      onClick={() => dispatch({ type: 'reorder', id: targetId, toIndex: 0 })}
+                    >
+                      <ArrowDownToLine className="mr-2 size-4" />
+                      <span>{t('context.sendBack')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <AlignCenter className="mr-2 size-4" />
+                    <span>{t('context.align')}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 rounded-xl">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        dispatch({
+                          type: 'update',
+                          id: targetId,
+                          patch: { x: Math.round((ARTBOARD_WIDTH - targetElement.w) / 2) },
+                        })
+                      }
+                    >
+                      <AlignHorizontalJustifyCenter className="mr-2 size-4" />
+                      <span>{t('context.centerH')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        dispatch({
+                          type: 'update',
+                          id: targetId,
+                          patch: { y: Math.round((screen.height - targetElement.h) / 2) },
+                        })
+                      }
+                    >
+                      <AlignVerticalJustifyCenter className="mr-2 size-4" />
+                      <span>{t('context.centerV')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => dispatch({ type: 'update', id: targetId, patch: { x: 16 } })}
+                    >
+                      <AlignLeft className="mr-2 size-4" />
+                      <span>{t('context.alignLeft')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        dispatch({
+                          type: 'update',
+                          id: targetId,
+                          patch: { x: ARTBOARD_WIDTH - targetElement.w - 16 },
+                        })
+                      }
+                    >
+                      <AlignRight className="mr-2 size-4" />
+                      <span>{t('context.alignRight')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        dispatch({
+                          type: 'update',
+                          id: targetId,
+                          patch: { x: 0, w: ARTBOARD_WIDTH },
+                        })
+                      }
+                    >
+                      <Maximize2 className="mr-2 size-4" />
+                      <span>{t('context.fullWidth')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
+                {targetElement.rotation !== 0 && (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      dispatch({ type: 'update', id: targetId, patch: { rotation: 0 } })
+                    }
+                  >
+                    <RotateCcw className="mr-2 size-4" />
+                    <span>{t('context.resetRotation')}</span>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={isSingleton}
+                  onClick={() => dispatch({ type: 'remove', id: targetId })}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  <span>{t('context.delete')}</span>
+                  <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Plus className="mr-2 size-4" />
+                    <span>{t('context.addElement')}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-52 rounded-xl">
+                    <DropdownMenuLabel>{t('toolboxCategories.content')}</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => addAtPosition('text')}>
+                      <Type className="mr-2 size-4" />
+                      <span>{t('types.text')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('image')}>
+                      <ImageIcon className="mr-2 size-4" />
+                      <span>{t('types.image')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('badge')}>
+                      <Award className="mr-2 size-4" />
+                      <span>{t('types.badge')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('marquee')}>
+                      <Megaphone className="mr-2 size-4" />
+                      <span>{t('types.marquee')}</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>{t('toolboxCategories.interactive')}</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => addAtPosition('button')}>
+                      <MousePointerClick className="mr-2 size-4" />
+                      <span>{t('types.button')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('countdown')}>
+                      <Clock className="mr-2 size-4" />
+                      <span>{t('types.countdown')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('prizeList')}>
+                      <Gift className="mr-2 size-4" />
+                      <span>{t('types.prizeList')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('social')}>
+                      <MessageCircle className="mr-2 size-4" />
+                      <span>{t('types.social')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('audio')}>
+                      <Volume2 className="mr-2 size-4" />
+                      <span>{t('types.audio')}</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>{t('toolboxCategories.decor')}</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => addAtPosition('shape')}>
+                      <Shapes className="mr-2 size-4" />
+                      <span>{t('types.shape')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addAtPosition('divider')}>
+                      <Minus className="mr-2 size-4" />
+                      <span>{t('types.divider')}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
                   disabled={!state.past.length}
                   onClick={() => dispatch({ type: 'undo' })}
-                />
-              </Tooltip>
-              <Tooltip title={`${t('redo')} (⇧⌘Z)`}>
-                <Button
-                  type="text"
-                  size="small"
-                  aria-label={t('redo')}
-                  icon={<Redo2 className="size-3.5" />}
+                >
+                  <Undo2 className="mr-2 size-4" />
+                  <span>{t('undo')}</span>
+                  <DropdownMenuShortcut>⌘Z</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   disabled={!state.future.length}
                   onClick={() => dispatch({ type: 'redo' })}
-                />
-              </Tooltip>
-              <span className="h-3 w-px bg-border mx-0.5" />
-              <Button
-                type="text"
-                size="small"
-                aria-label={t('zoomOut')}
-                icon={<Minus className="size-3" />}
-                onClick={() => setZoomManually(zoom - 0.1)}
-              />
-              <Typography.Text
-                style={{ fontSize: 12, minWidth: 36 }}
-                className="text-center font-mono"
-              >
-                {Math.round(zoom * 100)}%
-              </Typography.Text>
-              <Button
-                type="text"
-                size="small"
-                aria-label={t('zoomIn')}
-                icon={<Plus className="size-3" />}
-                onClick={() => setZoomManually(zoom + 0.1)}
-              />
-              <Tooltip title={t('fit')}>
-                <Button
-                  type="text"
-                  size="small"
-                  aria-label={t('fit')}
-                  icon={<Maximize className="size-3" />}
-                  onClick={() => setAutoFit(true)}
-                />
-              </Tooltip>
-              <span className="h-3 w-px bg-border mx-0.5" />
-              <Segmented
-                size="small"
-                value={preview ? 'preview' : 'edit'}
-                onChange={(mode) => {
-                  setPreview(mode === 'preview');
-                  setReplay((n) => n + 1);
-                  if (mode === 'preview') dispatch({ type: 'select', id: null });
-                }}
-                options={[
-                  { value: 'edit', label: t('edit'), icon: <Pencil className="size-3" /> },
-                  { value: 'preview', label: t('preview'), icon: <Play className="size-3" /> },
-                ]}
-              />
-            </div>
-          )}
-        </div>
+                >
+                  <Redo2 className="mr-2 size-4" />
+                  <span>{t('redo')}</span>
+                  <DropdownMenuShortcut>⇧⌘Z</DropdownMenuShortcut>
+                </DropdownMenuItem>
 
-        <aside className="min-h-0 overflow-y-auto p-4" style={{ ...panel, borderLeft: border }}>
-          <PropertiesPanel
-            state={state}
-            dispatch={dispatch}
-            brand={brand}
-            onUploadImage={onUploadImage}
-          />
-        </aside>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={() => setAutoFit(true)}>
+                  <Maximize className="mr-2 size-4" />
+                  <span>{t('fit')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoomManually(zoom + 0.1)}>
+                  <ZoomIn className="mr-2 size-4" />
+                  <span>{t('zoomIn')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setZoomManually(zoom - 0.1)}>
+                  <ZoomOut className="mr-2 size-4" />
+                  <span>{t('zoomOut')}</span>
+                </DropdownMenuItem>
+
+                {selectedElement(state) && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => dispatch({ type: 'select', id: null })}>
+                      <X className="mr-2 size-4" />
+                      <span>{t('context.deselect')}</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-
-      {menuState && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: context menu container suppresses native menu
-        <div
-          ref={menuRef}
-          role="presentation"
-          data-testid="canvas-context-menu"
-          className="fixed z-50 shadow-2xl rounded-lg overflow-hidden border backdrop-blur-md"
-          style={{
-            left: Math.max(
-              10,
-              Math.min(
-                (typeof window !== 'undefined' ? window.innerWidth : 1000) - MENU_WIDTH - 10,
-                menuState.x,
-              ),
-            ),
-            top: Math.max(
-              10,
-              Math.min(
-                (typeof window !== 'undefined' ? window.innerHeight : 800) - 360,
-                menuState.y,
-              ),
-            ),
-            background: token.colorBgElevated,
-            borderColor: token.colorBorderSecondary,
-            boxShadow: token.boxShadowSecondary,
-            width: MENU_WIDTH,
-          }}
-          onContextMenu={(e) => e.preventDefault()}
-        >
-          <Menu
-            mode="vertical"
-            builtinPlacements={SUBMENU_PLACEMENTS}
-            items={getMenuItems(menuState)}
-            onClick={({ domEvent }) => {
-              domEvent.stopPropagation();
-              setMenuState(null);
-            }}
-            style={{ border: 0 }}
-          />
-        </div>
-      )}
-    </div>
+    </TooltipProvider>
   );
 }

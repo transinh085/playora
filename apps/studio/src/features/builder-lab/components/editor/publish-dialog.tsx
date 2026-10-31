@@ -1,22 +1,24 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
+import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
+import { Button } from '@playora/ui/components/button';
+import { Checkbox } from '@playora/ui/components/checkbox';
 import {
-  Alert,
-  App,
-  Button,
-  Checkbox,
-  Divider,
-  Flex,
-  Modal,
-  Popover,
-  QRCode,
-  Radio,
-  Typography,
-  theme,
-} from 'antd';
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@playora/ui/components/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@playora/ui/components/popover';
+import { QRCodeSvg } from '@playora/ui/components/qr-code';
+import { Separator } from '@playora/ui/components/separator';
+import { toast } from '@playora/ui/components/sonner';
+import { cn } from '@playora/ui/lib/utils';
 import {
   CircleX,
+  Copy,
   ExternalLink,
   Gauge,
   Gift,
@@ -58,10 +60,6 @@ export const labLinks = (orgId: string, campaignId: string) => {
   };
 };
 
-/**
- * Publish = pre-flight (one-click fixes, errors block) → publish → share panel with QR, links and
- * live numbers (docs/product/specs/builder.md §4.5: "PRE-FLIGHT → PUBLISH").
- */
 export function PublishDialog({
   open,
   onClose,
@@ -74,18 +72,13 @@ export function PublishDialog({
   open: boolean;
   onClose: () => void;
   orgId: string;
-  /** The working draft: what will be published. */
   campaign: Campaign;
   onFix: (patch: DraftPatch) => void;
-  /** Close and open the mode where an issue can be fixed by hand. */
   onGoTo: (mode: EditorMode) => void;
-  /** Saves pending draft changes before publishing. */
   flush: () => Promise<boolean>;
 }) {
   const t = useTranslations('builderLab.publish');
   const tErrors = useTranslations('errors');
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
   const publish = usePublishCampaign(orgId, campaign.id);
   const [published, setPublished] = useState<Campaign | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -126,7 +119,6 @@ export function PublishDialog({
     if (issue.fix) onFix(issue.fix(campaign) as DraftPatch);
   };
 
-  // Fixes touch different parts of the campaign; apply them one after another on a running copy.
   const fixAll = () => {
     let current = campaign;
     let patch: DraftPatch = {};
@@ -154,191 +146,253 @@ export function PublishDialog({
       const result = await publish.mutateAsync();
       setPublished(result);
       void invalidateBilling();
-      message.success(t('published', { version: result.version }));
+      toast.success(t('published', { version: result.version }));
     } catch (err) {
       const text =
         err instanceof ApiError && tErrors.has(err.code) ? tErrors(err.code) : t('failed');
       setPublishError(text);
-      // The plan limit gets its own alert with a way to the plan page (BIL-02), not a toast.
       if (isPlanCampaignLimit(err)) setPlanLimited(true);
-      else message.error(text);
+      else toast.error(text);
     }
   };
 
   return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      width={published ? 760 : 640}
-      title={published ? t('doneTitle', { version: published.version }) : t('title')}
-      destroyOnHidden
-      footer={
-        published ? (
-          <Flex justify="end" gap={8}>
-            <Link href={campaignRoutes(orgId).share(campaign.id)}>
-              <Button icon={<Share2 className="size-4" />}>{t('openShare')}</Button>
-            </Link>
-            <Button
-              icon={<ExternalLink className="size-4" />}
-              href={labLinks(orgId, campaign.id).play}
-              target="_blank"
-            >
-              {t('openPlay')}
-            </Button>
-            <Link href={campaignRoutes(orgId).detail(campaign.id)}>
-              <Button type="primary" icon={<Gauge className="size-4" />} tabIndex={-1}>
-                {t('openOps')}
-              </Button>
-            </Link>
-          </Flex>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className={cn('sm:max-w-xl', published && 'sm:max-w-3xl')}>
+        <DialogHeader>
+          <DialogTitle>
+            {published ? t('doneTitle', { version: published.version }) : t('title')}
+          </DialogTitle>
+        </DialogHeader>
+
+        {published ? (
+          <PublishSuccess orgId={orgId} campaign={published} />
         ) : (
-          <Flex justify="end" gap={8}>
-            <Button onClick={onClose}>{t('cancel')}</Button>
-            <Button
-              type="primary"
-              icon={<Rocket className="size-4" />}
-              disabled={!canPublish}
-              loading={publish.isPending}
-              onClick={doPublish}
+          <div className="flex flex-col gap-4 py-2">
+            {planLimited ? (
+              <PlanCampaignLimitAlert orgId={orgId} />
+            ) : (
+              publishError && (
+                <Alert variant="destructive">
+                  <AlertTitle>{publishError}</AlertTitle>
+                </Alert>
+              )
+            )}
+
+            <Alert
+              className={cn(
+                blocking
+                  ? 'border-destructive/40 bg-destructive/10'
+                  : issues.length
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200'
+                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200',
+              )}
             >
-              {campaign.version > 0
-                ? t('publishAgain', { version: campaign.version + 1 })
-                : t('publish')}
-            </Button>
-          </Flex>
-        )
-      }
-    >
-      {published ? (
-        <PublishSuccess orgId={orgId} campaign={published} />
-      ) : (
-        <Flex vertical gap={16}>
-          {planLimited ? (
-            <PlanCampaignLimitAlert orgId={orgId} />
-          ) : (
-            publishError && <Alert showIcon type="error" title={publishError} />
-          )}
-          <Alert
-            showIcon
-            type={blocking ? 'error' : issues.length ? 'warning' : 'success'}
-            title={
-              blocking
-                ? t('summaryErrors', { count: issues.filter((i) => i.level === 'error').length })
-                : issues.length
-                  ? t('summaryWarnings', { count: issues.length })
-                  : t('summaryReady')
-            }
-            description={issues.length ? t('summaryHint') : t('readyHint')}
-            action={
-              fixable.length > 1 ? (
-                <Button icon={<Wand2 className="size-4" />} onClick={fixAll}>
-                  {t('fixAll', { count: fixable.length })}
-                </Button>
-              ) : undefined
-            }
-          />
-          {issues.length > 0 && (
-            // antd List is deprecated in 6.6; plain rows with dividers instead.
-            <Flex vertical>
-              {issues.map((issue, i) => (
-                <div key={issue.id}>
-                  {i > 0 && <Divider className="!my-0" />}
+              <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <AlertTitle className="text-sm font-semibold">
+                    {blocking
+                      ? t('summaryErrors', {
+                          count: issues.filter((i) => i.level === 'error').length,
+                        })
+                      : issues.length
+                        ? t('summaryWarnings', { count: issues.length })
+                        : t('summaryReady')}
+                  </AlertTitle>
+                  <AlertDescription className="text-xs">
+                    {issues.length ? t('summaryHint') : t('readyHint')}
+                  </AlertDescription>
+                </div>
+                {fixable.length > 1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 shrink-0 text-xs"
+                    onClick={fixAll}
+                  >
+                    <Wand2 className="size-3.5" />
+                    {t('fixAll', { count: fixable.length })}
+                  </Button>
+                )}
+              </div>
+            </Alert>
+
+            {issues.length > 0 && (
+              <div className="divide-y rounded-xl border">
+                {issues.map((issue) => (
                   <IssueRow
+                    key={issue.id}
                     issue={issue}
                     onFix={() => applyFix(issue)}
                     onGoTo={() => onGoTo(issue.where.area === 'screens' ? 'customize' : 'rules')}
                   />
-                </div>
-              ))}
-            </Flex>
-          )}
-
-          {/* Legal / Compliance Checklist (CMP-03, docs/business/compliance.md §4) */}
-          <Divider className="!my-0" />
-
-          {campaign.compliance?.promotionType === null && (
-            <Flex
-              vertical
-              gap={8}
-              className="rounded-lg p-3"
-              style={{
-                background: token.colorWarningBg,
-                border: `1px solid ${token.colorWarningBorder}`,
-              }}
-            >
-              <Typography.Text strong className="text-xs">
-                {t('promotionTypeQuestion')}
-              </Typography.Text>
-              <Typography.Text type="secondary" className="text-xs">
-                {t('promotionTypeQuestionHint')}
-              </Typography.Text>
-              <Radio.Group
-                value={campaign.compliance?.promotionType}
-                onChange={(e) =>
-                  onFix({
-                    compliance: { ...campaign.compliance, promotionType: e.target.value },
-                  })
-                }
-              >
-                <Radio value="purchase_linked">
-                  <span className="text-xs">{t('purchaseLinkedOption')}</span>
-                </Radio>
-                <Radio value="not_linked">
-                  <span className="text-xs">{t('notLinkedOption')}</span>
-                </Radio>
-              </Radio.Group>
-            </Flex>
-          )}
-
-          <Flex
-            vertical
-            gap={10}
-            className="rounded-lg p-3"
-            style={{
-              background: token.colorBgLayout,
-              border: `1px solid ${token.colorBorderSecondary}`,
-            }}
-          >
-            <div>
-              <Typography.Text strong className="text-xs uppercase tracking-wide" type="secondary">
-                {t('checklistTitle')}
-              </Typography.Text>
-            </div>
-
-            <Checkbox checked={ackOrganizer} onChange={(e) => setAckOrganizer(e.target.checked)}>
-              <span className="text-xs">{t('ackOrganizer')}</span>
-            </Checkbox>
-
-            {campaign.compliance?.promotionType === 'purchase_linked' && (
-              <Checkbox
-                checked={ackDepartment}
-                onChange={(e) => setAckDepartment(e.target.checked)}
-              >
-                <span className="text-xs">{t('ackDepartment')}</span>{' '}
-                <Popover
-                  title={t('legalHelpTitle')}
-                  content={
-                    <div className="max-w-xs text-xs leading-relaxed">{t('legalHelpContent')}</div>
-                  }
-                >
-                  <Typography.Link
-                    className="inline-flex items-center gap-0.5 text-xs"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Info className="inline size-3.5" />
-                    {t('legalHelpLink')}
-                  </Typography.Link>
-                </Popover>
-              </Checkbox>
+                ))}
+              </div>
             )}
 
-            <Checkbox checked={ackTerms} onChange={(e) => setAckTerms(e.target.checked)}>
-              <span className="text-xs">{t('ackTerms')}</span>
-            </Checkbox>
-          </Flex>
-        </Flex>
-      )}
-    </Modal>
+            <Separator className="my-1" />
+
+            {/* Legal / Compliance Checklist */}
+            {campaign.compliance?.promotionType === null && (
+              <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
+                <span className="block text-xs font-semibold text-amber-900 dark:text-amber-200">
+                  {t('promotionTypeQuestion')}
+                </span>
+                <Caption className="block text-amber-800/90 dark:text-amber-300/80">
+                  {t('promotionTypeQuestionHint')}
+                </Caption>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-full px-3 py-1 text-xs font-medium border transition-all',
+                      campaign.compliance?.promotionType === 'purchase_linked'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border text-foreground hover:bg-muted',
+                    )}
+                    onClick={() =>
+                      onFix({
+                        compliance: {
+                          ...campaign.compliance,
+                          promotionType: 'purchase_linked',
+                        },
+                      })
+                    }
+                  >
+                    {t('purchaseLinkedOption')}
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'rounded-full px-3 py-1 text-xs font-medium border transition-all',
+                      campaign.compliance?.promotionType === 'not_linked'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border text-foreground hover:bg-muted',
+                    )}
+                    onClick={() =>
+                      onFix({
+                        compliance: {
+                          ...campaign.compliance,
+                          promotionType: 'not_linked',
+                        },
+                      })
+                    }
+                  >
+                    {t('notLinkedOption')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 rounded-xl border bg-muted/30 p-3.5">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t('checklistTitle')}
+              </span>
+
+              <label
+                htmlFor="ack-organizer"
+                className="flex items-start gap-2.5 text-xs font-medium cursor-pointer"
+              >
+                <Checkbox
+                  id="ack-organizer"
+                  checked={ackOrganizer}
+                  onCheckedChange={(val) => setAckOrganizer(Boolean(val))}
+                  className="mt-0.5"
+                />
+                <span>{t('ackOrganizer')}</span>
+              </label>
+
+              {campaign.compliance?.promotionType === 'purchase_linked' && (
+                <label
+                  htmlFor="ack-department"
+                  className="flex items-start gap-2.5 text-xs font-medium cursor-pointer"
+                >
+                  <Checkbox
+                    id="ack-department"
+                    checked={ackDepartment}
+                    onCheckedChange={(val) => setAckDepartment(Boolean(val))}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <span>{t('ackDepartment')}</span>{' '}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-0.5 text-primary hover:underline ml-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Info className="size-3" />
+                          <span>{t('legalHelpLink')}</span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 text-xs">
+                        <span className="font-semibold">{t('legalHelpTitle')}</span>
+                        <p className="mt-1 text-muted-foreground">{t('legalHelpContent')}</p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </label>
+              )}
+
+              <label
+                htmlFor="ack-terms"
+                className="flex items-start gap-2.5 text-xs font-medium cursor-pointer"
+              >
+                <Checkbox
+                  id="ack-terms"
+                  checked={ackTerms}
+                  onCheckedChange={(val) => setAckTerms(Boolean(val))}
+                  className="mt-0.5"
+                />
+                <span>{t('ackTerms')}</span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          {published ? (
+            <div className="flex w-full flex-wrap items-center justify-end gap-2">
+              <Link href={campaignRoutes(orgId).share(campaign.id)}>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Share2 className="size-4" />
+                  {t('openShare')}
+                </Button>
+              </Link>
+              <a href={labLinks(orgId, campaign.id).play} target="_blank" rel="noreferrer">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <ExternalLink className="size-4" />
+                  {t('openPlay')}
+                </Button>
+              </a>
+              <Link href={campaignRoutes(orgId).detail(campaign.id)}>
+                <Button size="sm" className="gap-2">
+                  <Gauge className="size-4" />
+                  {t('openOps')}
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="flex w-full items-center justify-end gap-2">
+              <Button variant="outline" onClick={onClose}>
+                {t('cancel')}
+              </Button>
+              <Button
+                className="gap-2 rounded-full"
+                disabled={!canPublish || publish.isPending}
+                onClick={doPublish}
+              >
+                <Rocket className="size-4" />
+                {campaign.version > 0
+                  ? t('publishAgain', { version: campaign.version + 1 })
+                  : t('publish')}
+              </Button>
+            </div>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -353,7 +407,6 @@ function IssueRow({
 }) {
   const t = useTranslations('builderLab.publish');
   const tScreen = useTranslations('builderLab.editor.screens');
-  const { token } = theme.useToken();
   const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
   const { where } = issue;
   const location = [
@@ -365,59 +418,61 @@ function IssueRow({
     .join(' · ');
 
   return (
-    <Flex
+    <div
       data-testid="preflight-issue"
-      align="center"
-      justify="space-between"
-      gap={12}
-      className="py-3"
+      className="flex items-center justify-between gap-3 p-3 text-xs"
     >
-      <Flex gap={10} align="start" className="min-w-0">
-        <span
-          className="mt-0.5 shrink-0"
-          style={{ color: issue.level === 'error' ? token.colorError : token.colorWarning }}
-        >
-          <Icon className="size-4" aria-label={t(`levels.${issue.level}`)} />
-        </span>
+      <div className="flex items-start gap-2.5 min-w-0">
+        <Icon
+          className={cn(
+            'size-4 shrink-0 mt-0.5',
+            issue.level === 'error' ? 'text-destructive' : 'text-amber-500',
+          )}
+          aria-label={t(`levels.${issue.level}`)}
+        />
         <div className="min-w-0">
-          <Typography.Text className="block">
-            {t(`issues.${issue.code}`, issue.params ?? {})}
-          </Typography.Text>
+          <span className="block font-medium">{t(`issues.${issue.code}`, issue.params ?? {})}</span>
           <Caption>{location}</Caption>
         </div>
-      </Flex>
+      </div>
       {issue.fix ? (
-        <Button icon={<Wand2 className="size-4" />} onClick={onFix}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 text-xs shrink-0"
+          onClick={onFix}
+        >
+          <Wand2 className="size-3" />
           {t('fix')}
         </Button>
       ) : (
-        <Button type="link" onClick={onGoTo}>
+        <Button variant="link" size="sm" className="h-7 text-xs shrink-0" onClick={onGoTo}>
           {t('goTo')}
         </Button>
       )}
-    </Flex>
+    </div>
   );
 }
 
 function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('builderLab.publish');
   return (
-    <Flex vertical gap={20} data-testid="publish-success">
-      <Flex justify="space-between" align="center">
-        <Typography.Text type="secondary">{t('liveHint')}</Typography.Text>
+    <div className="flex flex-col gap-5 py-2" data-testid="publish-success">
+      <div className="flex items-center justify-between">
+        <Caption>{t('liveHint')}</Caption>
         <Link href={campaignRoutes(orgId).share(campaign.id)}>
-          <Button type="primary" icon={<Share2 className="size-4" />}>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Share2 className="size-4" />
             {t('openShare')}
           </Button>
         </Link>
-      </Flex>
+      </div>
       <ShareLinks orgId={orgId} campaign={campaign} />
       <CampaignMetrics orgId={orgId} campaignId={campaign.id} />
-    </Flex>
+    </div>
   );
 }
 
-/** Live numbers of a campaign; rehearsal plays are never counted. */
 export function CampaignMetrics({ orgId, campaignId }: { orgId: string; campaignId: string }) {
   const t = useTranslations('builderLab.publish');
   const format = useFormatter();
@@ -458,10 +513,7 @@ export function CampaignMetrics({ orgId, campaignId }: { orgId: string; campaign
   ] as const;
 
   return (
-    <div
-      className="grid gap-3"
-      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
-    >
+    <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
       {metrics.map((m) => (
         <MetricCard key={m.label} {...m} loading={stats.isLoading} />
       ))}
@@ -469,25 +521,17 @@ export function CampaignMetrics({ orgId, campaignId }: { orgId: string; campaign
   );
 }
 
-/** QR and the three links of a published campaign: play, rehearsal, redeem desk. */
 export function ShareLinks({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('builderLab.publish');
-  const { token } = theme.useToken();
   const links = labLinks(orgId, campaign.id);
   const origin = typeof window === 'undefined' ? '' : window.location.origin;
 
   return (
-    <Flex gap={20} wrap align="start">
-      <div
-        className="shrink-0"
-        style={{
-          border: `1px solid ${token.colorBorderSecondary}`,
-          borderRadius: token.borderRadiusLG,
-        }}
-      >
-        <QRCode value={`${origin}${links.play}`} size={168} bordered={false} />
+    <div className="flex flex-wrap items-start gap-5">
+      <div className="flex shrink-0 items-center justify-center rounded-2xl border bg-white p-3 shadow-xs">
+        <QRCodeSvg value={`${origin}${links.play}`} size={168} />
       </div>
-      <Flex vertical gap={14} className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
         <LinkRow
           icon={<QrCode className="size-4" />}
           label={t('liveLink')}
@@ -509,8 +553,8 @@ export function ShareLinks({ orgId, campaign }: { orgId: string; campaign: Campa
           href={links.redeem}
           copy={`${origin}${links.redeem}`}
         />
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }
 
@@ -527,21 +571,35 @@ function LinkRow({
   href: string;
   copy: string;
 }) {
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(copy);
+    toast.success('Đã sao chép');
+  };
+
   return (
-    <div className="min-w-0">
-      <Flex align="center" gap={6}>
+    <div className="min-w-0 space-y-0.5">
+      <div className="flex items-center gap-1.5 text-xs font-semibold">
         {icon}
-        <Typography.Text strong>{label}</Typography.Text>
-      </Flex>
-      <Typography.Link
-        href={href}
-        target="_blank"
-        copyable={{ text: copy }}
-        ellipsis
-        className="block"
-      >
-        {copy}
-      </Typography.Link>
+        <span>{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="truncate font-mono text-xs text-primary hover:underline"
+        >
+          {copy}
+        </a>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-6 text-muted-foreground hover:text-foreground"
+          onClick={copyToClipboard}
+        >
+          <Copy className="size-3" />
+        </Button>
+      </div>
       <Caption>{hint}</Caption>
     </div>
   );

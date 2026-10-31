@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@playora/ui/lib/utils';
-import { Progress } from 'antd';
 import type * as React from 'react';
 
 export type TeamBarProps = React.ComponentProps<'div'> & {
@@ -12,7 +11,7 @@ export type TeamBarProps = React.ComponentProps<'div'> & {
   leading?: boolean;
 };
 
-/** One team's progress in a race, built on Ant Design `Progress`. `team` (1–8) picks `--team-*`. */
+/** One team's progress in a race. `team` (1–8) picks `--team-*`. */
 function TeamBar({
   name,
   score,
@@ -40,28 +39,15 @@ function TeamBar({
         </span>
         <span className="font-game font-bold tabular-nums">{score.toLocaleString('vi-VN')}</span>
       </div>
-      <Progress
-        percent={pct}
-        showInfo={false}
-        strokeColor="var(--tile)"
-        railColor="var(--game-surface)"
-        className="m-0 leading-none"
-        styles={{
-          root: { margin: 0 },
-          rail: {
-            height: '0.7em',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--game-surface)',
-            overflow: 'hidden',
-          },
-          track: {
-            height: '0.7em',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--tile)',
+      <div className="m-0 h-[0.7em] w-full overflow-hidden rounded-full bg-game-surface leading-none">
+        <div
+          className="h-full rounded-full bg-(--tile) transition-all duration-300"
+          style={{
+            width: `${pct}%`,
             boxShadow: leading ? '0 0 1.2em var(--tile)' : undefined,
-          },
-        }}
-      />
+          }}
+        />
+      </div>
     </div>
   );
 }

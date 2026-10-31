@@ -23,7 +23,7 @@ const config: NextConfig = {
     '@playora/templates',
   ],
   experimental: {
-    optimizePackageImports: ['antd', '@playora/ui', '@playora/contracts'],
+    optimizePackageImports: ['@playora/ui', '@playora/contracts', 'lucide-react'],
   },
   env: {
     NEXT_PUBLIC_STUDIO_ORIGINS:

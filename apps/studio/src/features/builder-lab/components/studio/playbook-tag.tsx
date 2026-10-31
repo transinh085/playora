@@ -1,7 +1,7 @@
 'use client';
 
 import type { PlaybookKey } from '@playora/contracts';
-import { Tag } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
 import { Target } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -10,13 +10,13 @@ export function PlaybookTag({ playbook }: { playbook: PlaybookKey | null }) {
   const t = useTranslations('campaigns.playbookTag');
   if (!playbook) return null;
   return (
-    <Tag
-      className="!m-0"
-      color="purple"
-      icon={<Target className="mr-1 inline size-3 align-[-2px]" />}
+    <Badge
+      variant="secondary"
+      className="gap-1 border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-normal"
       data-playbook={playbook}
     >
+      <Target className="size-3" />
       {t(playbook)}
-    </Tag>
+    </Badge>
   );
 }

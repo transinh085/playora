@@ -1,6 +1,5 @@
-/* biome-ignore-all lint/complexity/noImportantStyles: print rules must override antd layout inline styles */
-/* Layer order must be declared before Tailwind's import, or antd ends up last and beats utilities (ADR-013). */
-@layer properties, theme, base, antd, components, utilities;
+/* biome-ignore-all lint/complexity/noImportantStyles: print rules must override layout inline styles */
+@layer properties, theme, base, components, utilities;
 @import "tailwindcss";
 @import "@playora/ui/styles.css";
 @source "../../../../packages/ui/src";
@@ -11,21 +10,18 @@
 }
 
 @media print {
-  .ant-layout-sider,
-  .ant-layout-header,
-  .ant-drawer,
+  aside,
+  header,
   [data-print-hide] {
     display: none !important;
   }
 
-  .ant-layout,
-  .ant-layout-content {
+  main {
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
   }
 
-  .ant-card,
   [data-print-card] {
     break-inside: avoid;
     page-break-inside: avoid;

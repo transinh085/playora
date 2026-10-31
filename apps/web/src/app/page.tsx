@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button } from '@playora/ui/components/button';
 import { Logo } from '@/components/logo';
 
 export default function Landing() {
@@ -14,12 +14,11 @@ export default function Landing() {
       </p>
       <div>
         <Button
-          type="primary"
-          size="large"
-          href="mailto:hello@playora.vn"
-          className="h-12 px-6 text-base font-semibold"
+          asChild
+          size="lg"
+          className="h-12 rounded-full px-6 text-base font-semibold shadow-md"
         >
-          Đặt lịch demo
+          <a href="mailto:hello@playora.vn">Đặt lịch demo</a>
         </Button>
       </div>
     </main>

@@ -1,6 +1,17 @@
 'use client';
 
-import { Alert, App, Button, Card, Skeleton, Typography } from 'antd';
+import { Alert, AlertTitle } from '@playora/ui/components/alert';
+import { Button } from '@playora/ui/components/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@playora/ui/components/card';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import type { Route } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -13,7 +24,6 @@ export function AcceptInvitationCard() {
   const t = useTranslations();
   const router = useRouter();
   const invalidateMyOrgs = useInvalidateMyOrgs();
-  const { message } = App.useApp();
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -39,7 +49,7 @@ export function AcceptInvitationCard() {
         return;
       }
       await invalidateMyOrgs();
-      message.success(
+      toast.success(
         t('auth.inviteAccepted', { organization: invitationQuery.data.organizationName }),
       );
       const target = isRedeemerOnly(invitationQuery.data.role)
@@ -70,8 +80,6 @@ export function AcceptInvitationCard() {
 
   async function onSwitchAccount() {
     await authClient.signOut();
-    // Full navigation: a soft replace + refresh can re-render /login after the user already
-    // switched it to sign-up, resetting the form.
     window.location.assign(nextUrl);
   }
 
@@ -80,46 +88,65 @@ export function AcceptInvitationCard() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
-      <Card className="w-full max-w-md" title={t('auth.inviteTitle')}>
-        {invitation && (
-          <Typography.Paragraph type="secondary">
-            {t('auth.inviteDescription', {
-              inviter: invitation.inviterEmail,
-              organization: invitation.organizationName,
-              role: t(`members.roles.${roleKey}`),
-            })}
-          </Typography.Paragraph>
-        )}
-
-        {(sessionPending || invitationQuery.isPending) && (
-          <div className="py-2">
-            <Skeleton active paragraph={{ rows: 2 }} />
-          </div>
-        )}
-
-        {invitationQuery.isError && (
-          <Alert type="error" showIcon title={t('auth.inviteError')} className="mb-3" />
-        )}
-
-        {actionError && <Alert type="error" showIcon title={actionError} className="mb-3" />}
-
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <Card className="w-full max-w-md rounded-2xl border-border/80 shadow-md">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">{t('auth.inviteTitle')}</CardTitle>
           {invitation && (
-            <>
-              <Button disabled={submitting} onClick={onDecline}>
-                {t('auth.declineInvite')}
-              </Button>
-              <Button type="primary" loading={submitting} onClick={onAccept}>
-                {t('auth.acceptInvite')}
-              </Button>
-            </>
+            <CardDescription className="text-xs text-muted-foreground">
+              {t('auth.inviteDescription', {
+                inviter: invitation.inviterEmail,
+                organization: invitation.organizationName,
+                role: t(`members.roles.${roleKey}`),
+              })}
+            </CardDescription>
           )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(sessionPending || invitationQuery.isPending) && (
+            <div className="space-y-2 py-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          )}
+
           {invitationQuery.isError && (
-            <Button className="w-full" onClick={onSwitchAccount}>
-              {t('auth.switchAccount')}
-            </Button>
+            <Alert variant="destructive" className="rounded-xl">
+              <AlertCircle className="size-4" />
+              <AlertTitle className="text-xs">{t('auth.inviteError')}</AlertTitle>
+            </Alert>
           )}
-        </div>
+
+          {actionError && (
+            <Alert variant="destructive" className="rounded-xl">
+              <AlertCircle className="size-4" />
+              <AlertTitle className="text-xs">{actionError}</AlertTitle>
+            </Alert>
+          )}
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            {invitation && (
+              <>
+                <Button
+                  variant="outline"
+                  className="rounded-full"
+                  disabled={submitting}
+                  onClick={onDecline}
+                >
+                  {t('auth.declineInvite')}
+                </Button>
+                <Button className="rounded-full shadow-xs" disabled={submitting} onClick={onAccept}>
+                  {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {t('auth.acceptInvite')}
+                </Button>
+              </>
+            )}
+            {invitationQuery.isError && (
+              <Button className="w-full rounded-full" onClick={onSwitchAccount}>
+                {t('auth.switchAccount')}
+              </Button>
+            )}
+          </div>
+        </CardContent>
       </Card>
     </main>
   );

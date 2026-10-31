@@ -1,6 +1,15 @@
 'use client';
 
-import { Alert, Button, Flex, InputNumber, Progress, Tooltip, Typography, theme } from 'antd';
+import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
+import { Button } from '@playora/ui/components/button';
+import { Input } from '@playora/ui/components/input';
+import { Progress } from '@playora/ui/components/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import { CalendarClock, Coins, Gift, Percent, Users } from 'lucide-react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -71,19 +80,22 @@ export function SimulatorCard({
   }, [simKey]);
 
   return (
-    <Flex vertical gap={16}>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         {t.rich('input', {
           n: () => (
-            <InputNumber
+            <Input
+              type="number"
               aria-label={t('inputLabel')}
               min={1}
               max={MAX_PLAYERS_PER_DAY}
               step={50}
-              precision={0}
-              style={{ width: 110 }}
+              className="inline-block w-28 font-mono"
               value={playersPerDay}
-              onChange={(v) => v !== null && setPlayersPerDay(v)}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!Number.isNaN(val) && val >= 1) setPlayersPerDay(val);
+              }}
             />
           ),
         })}
@@ -96,13 +108,17 @@ export function SimulatorCard({
       </Caption>
 
       {outcome === null ? (
-        <Alert type="info" showIcon title={blocked ? t('blocked') : t('noPrizes')} />
+        <Alert>
+          <AlertTitle>{blocked ? t('blocked') : t('noPrizes')}</AlertTitle>
+        </Alert>
       ) : 'error' in outcome ? (
-        <Alert type="error" showIcon title={t('failed')} />
+        <Alert variant="destructive">
+          <AlertTitle>{t('failed')}</AlertTitle>
+        </Alert>
       ) : (
         <SimResult summary={outcome.summary} rules={campaign.rules} onRulesChange={onRulesChange} />
       )}
-    </Flex>
+    </div>
   );
 }
 
@@ -120,7 +136,7 @@ function SimResult({
   const locale = useLocale();
 
   return (
-    <Flex vertical gap={16}>
+    <div className="flex flex-col gap-4">
       <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
         <MetricCard
           label={t('plays')}
@@ -160,47 +176,46 @@ function SimResult({
         />
       </div>
 
-      <Flex align="center" gap={8}>
-        <CalendarClock className="size-4 shrink-0" />
-        <Typography.Text strong>
+      <div className="flex items-center gap-2">
+        <CalendarClock className="size-4 shrink-0 text-muted-foreground" />
+        <span className="font-semibold text-sm">
           {summary.stockOut
             ? t('stockOut', { day: summary.stockOut.day, time: summary.stockOut.time })
             : t('stockLeft', {
                 count: summary.leftover,
                 percent: Math.round(summary.leftoverRatio * 100),
               })}
-        </Typography.Text>
-      </Flex>
+        </span>
+      </div>
 
       {summary.warnings.map((w) => (
         <WarningAlert key={w.key} warning={w} rules={rules} onRulesChange={onRulesChange} />
       ))}
 
       <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
-        <Flex vertical gap={8}>
-          <Typography.Text strong>{t('perDayTitle')}</Typography.Text>
+        <div className="flex flex-col gap-2">
+          <span className="font-semibold text-sm">{t('perDayTitle')}</span>
           <DayBars perDay={summary.perDay} />
-        </Flex>
-        <Flex vertical gap={8}>
-          <Typography.Text strong>{t('perPrizeTitle')}</Typography.Text>
+        </div>
+        <div className="flex flex-col gap-3">
+          <span className="font-semibold text-sm">{t('perPrizeTitle')}</span>
           {summary.perPrize.map((p) => (
-            <div key={p.id}>
-              <Flex justify="space-between" gap={8}>
-                <Typography.Text ellipsis>{p.name}</Typography.Text>
+            <div key={p.id} className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-xs font-medium">{p.name}</span>
                 <Caption className="shrink-0">
                   {t('perPrizeLeft', { left: p.left, quantity: p.quantity })}
                 </Caption>
-              </Flex>
+              </div>
               <Progress
-                percent={p.quantity > 0 ? Math.round((p.issued / p.quantity) * 100) : 0}
-                showInfo={false}
-                status={p.left === 0 && p.quantity > 0 ? 'exception' : 'normal'}
+                value={p.quantity > 0 ? Math.round((p.issued / p.quantity) * 100) : 0}
+                className="h-2"
               />
             </div>
           ))}
-        </Flex>
+        </div>
       </div>
-    </Flex>
+    </div>
   );
 }
 
@@ -217,63 +232,67 @@ function WarningAlert({
   const canPace = warning.suggestions.includes('turnOnPacing') && !rules.pacing;
 
   return (
-    <Alert
-      type={warning.severity}
-      showIcon
-      title={t(`warnings.${warning.key}`, warning.values)}
-      description={
-        warning.suggestions.length > 0 ? (
-          <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5">
+    <Alert>
+      <AlertTitle>{t(`warnings.${warning.key}`, warning.values)}</AlertTitle>
+      {warning.suggestions.length > 0 && (
+        <AlertDescription className="mt-1">
+          <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5 text-xs">
             {warning.suggestions.map((s) => (
               <li key={s}>{t(`suggestions.${s}`)}</li>
             ))}
           </ul>
-        ) : undefined
-      }
-      action={
-        canPace ? (
-          <Button onClick={() => onRulesChange({ pacing: true })}>{t('applyPacing')}</Button>
-        ) : undefined
-      }
-    />
+        </AlertDescription>
+      )}
+      {canPace && (
+        <div className="mt-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            onClick={() => onRulesChange({ pacing: true })}
+          >
+            {t('applyPacing')}
+          </Button>
+        </div>
+      )}
+    </Alert>
   );
 }
 
 /** Prizes issued per day as plain bars (no chart dependency). */
 function DayBars({ perDay }: { perDay: number[] }) {
   const t = useTranslations('builderLab.rules.sim');
-  const { token } = theme.useToken();
   const max = Math.max(1, ...perDay);
   const labelEvery = perDay.length > 14 ? Math.ceil(perDay.length / 7) : 1;
 
   return (
     <div role="img" aria-label={t('perDayAria', { days: perDay.length })}>
-      <Flex justify="space-between">
+      <div className="flex justify-between">
         <Caption>{t('perDayMax', { max })}</Caption>
-      </Flex>
-      <div
-        className="flex items-end gap-0.5"
-        style={{ height: 120, borderBottom: `1px solid ${token.colorBorder}` }}
-      >
-        {perDay.map((count, i) => (
-          <Tooltip
-            // biome-ignore lint/suspicious/noArrayIndexKey: days are positional
-            key={i}
-            title={t('perDayTooltip', { day: i + 1, count })}
-          >
-            <div
-              className="min-w-0 flex-1"
-              style={{
-                height: `${Math.max(count > 0 ? 3 : 0, (count / max) * 100)}%`,
-                background: token.colorPrimary,
-                borderRadius: `${token.borderRadiusXS}px ${token.borderRadiusXS}px 0 0`,
-                opacity: count > 0 ? 1 : 0.3,
-              }}
-            />
-          </Tooltip>
-        ))}
       </div>
-      <div className="flex gap-0.5">
+      <TooltipProvider>
+        <div className="flex h-[120px] items-end gap-0.5 border-b border-border pb-0.5">
+          {perDay.map((count, i) => (
+            <Tooltip
+              // biome-ignore lint/suspicious/noArrayIndexKey: days are positional
+              key={i}
+            >
+              <TooltipTrigger asChild>
+                <div
+                  className="min-w-0 flex-1 rounded-t bg-primary transition-all hover:opacity-80"
+                  style={{
+                    height: `${Math.max(count > 0 ? 3 : 0, (count / max) * 100)}%`,
+                    opacity: count > 0 ? 1 : 0.3,
+                  }}
+                />
+              </TooltipTrigger>
+              <TooltipContent>{t('perDayTooltip', { day: i + 1, count })}</TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </TooltipProvider>
+      <div className="flex gap-0.5 mt-1">
         {perDay.map((_, i) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: days are positional

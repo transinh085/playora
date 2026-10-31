@@ -6,10 +6,27 @@ import {
   type BrandKitSummary,
   type CreateBrandKitBody,
 } from '@playora/contracts';
-import { Button, Card, ColorPicker, Form, type FormRule, Input, Select } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@playora/ui/components/form';
+import { Input } from '@playora/ui/components/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@playora/ui/components/select';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type BrandKitFormValues = z.input<typeof CreateBrandKitBody>;
@@ -64,7 +81,7 @@ const FONT_FIELDS = [
   ['fontBody', 'brandKits.fontBody'],
 ] as const;
 
-function HexColorInput({
+export function HexColorInput({
   id,
   value,
   onChange,
@@ -75,15 +92,19 @@ function HexColorInput({
 }) {
   const hexValue = typeof value === 'string' ? value : '#000000';
   const safePickerColor = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hexValue)
-    ? hexValue
+    ? hexValue.length === 4
+      ? `#${hexValue[1]}${hexValue[1]}${hexValue[2]}${hexValue[2]}${hexValue[3]}${hexValue[3]}`
+      : hexValue
     : '#000000';
 
   return (
     <div className="flex items-center gap-2">
-      <ColorPicker
+      <input
+        type="color"
         value={safePickerColor}
-        disabledAlpha
-        onChange={(color) => onChange?.(color.toHexString())}
+        onChange={(e) => onChange?.(e.target.value)}
+        className="h-9 w-10 shrink-0 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
+        aria-label="Pick color"
       />
       <Input
         id={id}
@@ -95,18 +116,15 @@ function HexColorInput({
   );
 }
 
-const toNullableAssetProps = (v: string | null | undefined) => ({ value: v ?? NONE_ASSET });
-const fromNullableAssetEvent = (v: string) => (v === NONE_ASSET || !v ? null : v);
-
 export function BrandKitEditorCard({
-  rules,
+  form,
   editingId,
   imageAssets,
   audioAssets,
   isSubmitting,
   onResetToNew,
 }: {
-  rules: FormRule[];
+  form: UseFormReturn<BrandKitFormValues>;
   editingId: string | null;
   imageAssets: AssetSummary[];
   audioAssets: AssetSummary[];
@@ -139,82 +157,134 @@ export function BrandKitEditorCard({
   ] as const;
 
   return (
-    <Card
-      title={editingId ? t('brandKits.edit') : t('brandKits.new')}
-      extra={
-        editingId ? (
+    <Card className="rounded-2xl">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-base font-semibold">
+          {editingId ? t('brandKits.edit') : t('brandKits.new')}
+        </CardTitle>
+        {editingId ? (
           <Button
-            htmlType="button"
-            type="text"
-            size="small"
-            icon={<Plus className="size-4" />}
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={onResetToNew}
+            className="h-8 gap-1 text-xs"
           >
+            <Plus className="size-3.5" />
             {t('brandKits.new')}
           </Button>
-        ) : null
-      }
-    >
-      <div className="grid gap-4">
-        <Form.Item name="name" label={t('brandKits.name')} rules={rules} className="mb-0">
-          <Input />
-        </Form.Item>
+        ) : null}
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('brandKits.name')}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {COLOR_FIELDS.map(([field, labelKey]) => (
-            <Form.Item
-              key={field}
-              name={['tokens', 'colors', field]}
-              label={t(labelKey)}
-              rules={rules}
-              className="mb-0"
-            >
-              <HexColorInput />
-            </Form.Item>
-          ))}
-        </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {COLOR_FIELDS.map(([colorKey, labelKey]) => (
+              <FormField
+                key={colorKey}
+                control={form.control}
+                name={`tokens.colors.${colorKey}` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t(labelKey)}</FormLabel>
+                    <FormControl>
+                      <HexColorInput value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {FONT_FIELDS.map(([field, labelKey]) => (
-            <Form.Item
-              key={field}
-              name={['tokens', field]}
-              label={t(labelKey)}
-              rules={rules}
-              className="mb-0"
-            >
-              <Select aria-label={t(labelKey)} options={fontOptions} />
-            </Form.Item>
-          ))}
-        </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {FONT_FIELDS.map(([fontKey, labelKey]) => (
+              <FormField
+                key={fontKey}
+                control={form.control}
+                name={`tokens.${fontKey}` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t(labelKey)}</FormLabel>
+                    <Select value={field.value ?? undefined} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger aria-label={t(labelKey)}>
+                          <SelectValue placeholder={t(labelKey)} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {fontOptions.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>
+                            {f.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          {assetSlots.map(([field, labelKey, options]) => (
-            <Form.Item
-              key={field}
-              name={['tokens', field]}
-              label={t(labelKey)}
-              rules={rules}
-              className="mb-0"
-              getValueProps={toNullableAssetProps}
-              getValueFromEvent={fromNullableAssetEvent}
-            >
-              <Select aria-label={t(labelKey)} options={options} />
-            </Form.Item>
-          ))}
-        </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {assetSlots.map(([slotKey, labelKey, options]) => (
+              <FormField
+                key={slotKey}
+                control={form.control}
+                name={`tokens.${slotKey}` as const}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t(labelKey)}</FormLabel>
+                    <Select
+                      value={field.value ?? NONE_ASSET}
+                      onValueChange={(v) => field.onChange(v === NONE_ASSET ? null : v)}
+                    >
+                      <FormControl>
+                        <SelectTrigger aria-label={t(labelKey)}>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {options.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
 
-        <div className="flex justify-end gap-2 pt-2">
-          {editingId && (
-            <Button htmlType="button" onClick={onResetToNew}>
-              {t('common.cancel')}
+          <div className="flex justify-end gap-2 pt-2">
+            {editingId && (
+              <Button type="button" variant="outline" onClick={onResetToNew}>
+                {t('common.cancel')}
+              </Button>
+            )}
+            <Button type="submit" disabled={isSubmitting}>
+              {editingId ? t('common.save') : t('common.create')}
             </Button>
-          )}
-          <Button type="primary" htmlType="submit" loading={isSubmitting}>
-            {editingId ? t('common.save') : t('common.create')}
-          </Button>
+          </div>
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 }

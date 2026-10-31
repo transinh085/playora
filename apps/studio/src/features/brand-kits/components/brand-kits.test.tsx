@@ -10,7 +10,6 @@ import {
 } from '@playora/contracts';
 import { getMessages } from '@playora/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { App } from 'antd';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
 import { DEFAULT_BRAND_KIT_VALUES, toBrandKitFormValues } from './brand-kit-editor-card';
@@ -72,116 +71,79 @@ describe('brand-kits helpers and components', () => {
     expect(() => CreateBrandKitBody.parse(mapped)).not.toThrow();
   });
 
-  test('renders BrandKitsManager through loading -> loaded and kit switching without unconnected useForm console warnings', async () => {
-    const warnings: string[] = [];
-    const origWarn = console.warn;
-    const origError = console.error;
-    const g = globalThis as { window?: unknown };
-    const hadWindow = 'window' in g;
-    const origWindow = g.window;
-
-    console.warn = (...args) => warnings.push(args.map(String).join(' '));
-    console.error = (...args) => warnings.push(args.map(String).join(' '));
-    if (!hadWindow) {
-      g.window = globalThis;
-    }
-
-    try {
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: false,
-            staleTime: Number.POSITIVE_INFINITY,
-          },
+  test('renders BrandKitsManager through loading -> loaded and kit switching', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          staleTime: Number.POSITIVE_INFINITY,
         },
-      });
+      },
+    });
 
-      const renderManager = () =>
-        renderToString(
-          <QueryClientProvider client={queryClient}>
-            <NextIntlClientProvider locale="vi" messages={viMessages} timeZone="Asia/Ho_Chi_Minh">
-              <App>
-                <BrandKitsManager orgId="org_123" />
-              </App>
-            </NextIntlClientProvider>
-          </QueryClientProvider>,
-        );
-
-      // 1. Both queries pending -> renders Skeleton without creating or touching a Form instance
-      const loadingHtml = renderManager();
-      expect(loadingHtml).toContain('ant-skeleton');
-
-      // 2. Brand kits resolved while assets query is still pending -> still renders Skeleton
-      queryClient.setQueryData(
-        routeKey(brandKitsApi.list, { params: { orgId: 'org_123' }, query: { limit: 50 } }),
-        { items: [sampleKit], nextCursor: null },
-      );
-      const partialLoadingHtml = renderManager();
-      expect(partialLoadingHtml).toContain('ant-skeleton');
-
-      // 3. Assets resolved -> mounts BrandKitsManagerInner (key="new") with Form + GameRoot preview
-      queryClient.setQueryData(
-        routeKey(assetsApi.list, { params: { orgId: 'org_123' }, query: { limit: 100 } }),
-        { items: [sampleLogoAsset], nextCursor: null },
-      );
-      const loadedHtml = renderManager();
-
-      // 4. Remounting BrandKitsManagerInner with key={sampleKit.id} initializes edit values directly
-      const editingHtml = renderToString(
+    const renderManager = () =>
+      renderToString(
         <QueryClientProvider client={queryClient}>
           <NextIntlClientProvider locale="vi" messages={viMessages} timeZone="Asia/Ho_Chi_Minh">
-            <App>
-              <BrandKitsManagerInner
-                key={sampleKit.id}
-                orgId="org_123"
-                kit={sampleKit}
-                kits={[sampleKit]}
-                imageAssets={[sampleLogoAsset]}
-                audioAssets={[]}
-                isRemoving={false}
-                onEdit={() => {}}
-                onResetToNew={() => {}}
-                onRemove={() => {}}
-              />
-            </App>
+            <BrandKitsManager orgId="org_123" />
           </NextIntlClientProvider>
         </QueryClientProvider>,
       );
 
-      // Flush macrotask timer used by @rc-component/form warningUnhooked
-      await new Promise((resolve) => setTimeout(resolve, 20));
+    // 1. Both queries pending -> renders Skeleton
+    const loadingHtml = renderManager();
+    expect(loadingHtml).toContain('animate-pulse');
 
-      expect(
-        warnings.filter((w) =>
-          w.includes('Instance created by `useForm` is not connected to any Form element'),
-        ),
-      ).toEqual([]);
-      expect(warnings).toEqual([]);
+    // 2. Brand kits resolved while assets query is still pending -> still renders Skeleton
+    queryClient.setQueryData(
+      routeKey(brandKitsApi.list, { params: { orgId: 'org_123' }, query: { limit: 50 } }),
+      { items: [sampleKit], nextCursor: null },
+    );
+    const partialLoadingHtml = renderManager();
+    expect(partialLoadingHtml).toContain('animate-pulse');
 
-      expect(loadedHtml).toContain('Tet Brand 2026');
-      expect(loadedHtml).toContain(DEFAULT_BRAND_KIT_VALUES.tokens.colors.primary);
-      expect(loadedHtml).toContain('data-slot="game-root"');
-      expect(loadedHtml).toContain('data-slot="game-button"');
+    // 3. Assets resolved -> mounts BrandKitsManagerInner (key="new") with Form + GameRoot preview
+    queryClient.setQueryData(
+      routeKey(assetsApi.list, { params: { orgId: 'org_123' }, query: { limit: 100 } }),
+      { items: [sampleLogoAsset], nextCursor: null },
+    );
+    const loadedHtml = renderManager();
 
-      expect(editingHtml).toContain('#e11d48');
-      expect(editingHtml).toContain('https://cdn.playora.local/logo-320.png');
+    // 4. Remounting BrandKitsManagerInner with key={sampleKit.id} initializes edit values directly
+    const editingHtml = renderToString(
+      <QueryClientProvider client={queryClient}>
+        <NextIntlClientProvider locale="vi" messages={viMessages} timeZone="Asia/Ho_Chi_Minh">
+          <BrandKitsManagerInner
+            key={sampleKit.id}
+            orgId="org_123"
+            kit={sampleKit}
+            kits={[sampleKit]}
+            imageAssets={[sampleLogoAsset]}
+            audioAssets={[]}
+            isRemoving={false}
+            onEdit={() => {}}
+            onResetToNew={() => {}}
+            onRemove={() => {}}
+          />
+        </NextIntlClientProvider>
+      </QueryClientProvider>,
+    );
 
-      const labelForIds = [...loadedHtml.matchAll(/<label[^>]*for="([^"]+)"[^>]*>/g)].map(
-        (m) => m[1],
-      );
-      const elementIds = new Set([...loadedHtml.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
-      expect(labelForIds.length).toBeGreaterThan(0);
-      for (const targetId of labelForIds) {
-        expect(elementIds.has(targetId)).toBe(true);
-      }
-    } finally {
-      console.warn = origWarn;
-      console.error = origError;
-      if (!hadWindow) {
-        delete g.window;
-      } else {
-        g.window = origWindow;
-      }
+    expect(loadedHtml).toContain('Tet Brand 2026');
+    expect(loadedHtml).toContain(DEFAULT_BRAND_KIT_VALUES.tokens.colors.primary);
+    expect(loadedHtml).toContain('data-slot="game-root"');
+    expect(loadedHtml).toContain('data-slot="game-button"');
+
+    expect(editingHtml).toContain('#e11d48');
+    expect(editingHtml).toContain('https://cdn.playora.local/logo-320.png');
+
+    const labelForIds = [...loadedHtml.matchAll(/<label[^>]*for="([^"]+)"[^>]*>/g)].map(
+      (m) => m[1],
+    );
+    const elementIds = new Set([...loadedHtml.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
+    expect(labelForIds.length).toBeGreaterThan(0);
+    for (const targetId of labelForIds) {
+      expect(elementIds.has(targetId)).toBe(true);
     }
   });
 });

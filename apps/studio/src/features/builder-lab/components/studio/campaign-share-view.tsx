@@ -1,28 +1,54 @@
 'use client';
 
+import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
 import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Empty,
-  Flex,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  QRCode,
-  Skeleton,
-  Space,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@playora/ui/components/alert-dialog';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@playora/ui/components/dialog';
+import { Input } from '@playora/ui/components/input';
+import { QRCodeSvg } from '@playora/ui/components/qr-code';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
+import {
   Table,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
-import { Copy, Download, ExternalLink, Play, Plus, Printer, Trash2, Users } from 'lucide-react';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@playora/ui/components/table';
+import {
+  AlertTriangle,
+  Copy,
+  Download,
+  ExternalLink,
+  Play,
+  Plus,
+  Printer,
+  Trash2,
+  Users,
+} from 'lucide-react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
 import { PLAY_URL } from '@/lib/env';
 import { type Campaign, useCampaign, useCampaignReport } from '../../api';
@@ -55,8 +81,7 @@ export function CampaignShareView({
 }) {
   const t = useTranslations('campaigns.share');
   const tc = useTranslations('campaigns');
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
+  const tCommon = useTranslations('common');
   const routes = campaignRoutes(orgId);
 
   const campaignQuery = useCampaign(orgId, campaignId);
@@ -64,9 +89,9 @@ export function CampaignShareView({
 
   const [customChannels, setCustomChannels] = useState<CustomChannel[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addForm] = Form.useForm<{ name: string; key: string }>();
+  const [newChannelName, setNewChannelName] = useState('');
+  const [newChannelKey, setNewChannelKey] = useState('');
 
-  // Hydrate custom channels from localStorage (client-side only for M1)
   useEffect(() => {
     if (campaignQuery.data?.id) {
       setCustomChannels(loadCustomChannels(campaignQuery.data.id));
@@ -74,11 +99,16 @@ export function CampaignShareView({
   }, [campaignQuery.data?.id]);
 
   if (campaignQuery.isPending) {
-    return <Skeleton active paragraph={{ rows: 10 }} />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
   }
 
   if (campaignQuery.isError || !campaignQuery.data) {
-    return <Empty description={tc('notFound')} />;
+    return <div className="py-12 text-center text-muted-foreground">{tc('notFound')}</div>;
   }
 
   const campaign = campaignQuery.data;
@@ -97,43 +127,42 @@ export function CampaignShareView({
     })),
   ];
 
-  const handleAddChannel = (values: { name: string; key: string }) => {
-    const key = slugifyChannelKey(values.key || values.name);
-    if (!key) {
-      message.error(t('channels.keyRequired'));
-      return;
-    }
+  const handleAddChannel = () => {
+    const name = newChannelName.trim();
+    const key = newChannelKey.trim();
+    if (!name || !key) return;
+
     if (allChannels.some((c) => c.key === key)) {
-      message.error(t('channels.keyDuplicate'));
+      toast.error(t('channels.keyDuplicate'));
       return;
     }
-    const updated = [...customChannels, { key, label: values.name.trim() }];
+
+    const updated = [...customChannels, { key, label: name }];
     setCustomChannels(updated);
     saveCustomChannels(campaign.id, updated);
+    toast.success(t('channels.addTitle'));
     setIsAddModalOpen(false);
-    addForm.resetFields();
-    message.success(t('channels.addTitle'));
+    setNewChannelName('');
+    setNewChannelKey('');
   };
 
-  const handleDeleteCustomChannel = (channelKey: string) => {
-    const updated = customChannels.filter((c) => c.key !== channelKey);
+  const handleDeleteCustomChannel = (key: string) => {
+    const updated = customChannels.filter((c) => c.key !== key);
     setCustomChannels(updated);
     saveCustomChannels(campaign.id, updated);
+    toast.success(tCommon('delete'));
   };
 
-  // Compile performance data by channel from campaignsApi.report
-  const reportByChannel = reportQuery.data?.byChannel ?? [];
-  const channelStatsMap = new Map(reportByChannel.map((item) => [item.channel ?? '', item]));
-
+  const reportChannels = reportQuery.data?.byChannel ?? [];
+  const channelStatsMap = new Map(reportChannels.map((c) => [c.channel ?? '', c]));
   const reportTableData = allChannels.map((ch) => {
-    const stats = channelStatsMap.get(ch.key);
-    const plays = stats?.plays ?? 0;
-    const wins = stats?.wins ?? 0;
-    const visits = stats?.visits ?? 0;
+    const item = channelStatsMap.get(ch.key);
+    const plays = item?.plays ?? 0;
+    const wins = item?.wins ?? 0;
+    const visits = item?.visits ?? 0;
     const rate = wins > 0 ? `${Math.round((visits / wins) * 100)}%` : '—';
     return {
       key: ch.key,
-      channelKey: ch.key,
       name: ch.name,
       plays,
       wins,
@@ -142,18 +171,16 @@ export function CampaignShareView({
     };
   });
 
-  // Also include direct/other channels if any appear in report
-  reportByChannel.forEach((item) => {
-    const key = item.channel ?? '';
-    if (!allChannels.some((c) => c.key === key)) {
+  reportChannels.forEach((item) => {
+    const chKey = item.channel ?? '';
+    if (!allChannels.some((c) => c.key === chKey)) {
       const plays = item.plays;
       const wins = item.wins;
       const visits = item.visits;
       const rate = wins > 0 ? `${Math.round((visits / wins) * 100)}%` : '—';
       reportTableData.push({
-        key: key || 'direct',
-        channelKey: key,
-        name: key ? key : t('channels.direct'),
+        key: chKey || 'direct',
+        name: chKey ? chKey : t('channels.direct'),
         plays,
         wins,
         visits,
@@ -163,7 +190,7 @@ export function CampaignShareView({
   });
 
   return (
-    <Flex vertical gap={24} data-testid="campaign-share-page">
+    <div className="flex flex-col gap-6" data-testid="campaign-share-page">
       {!embedded && (
         <PageHeader
           title={t('title')}
@@ -172,244 +199,178 @@ export function CampaignShareView({
           backLabel={campaign.name}
           extra={
             isDraft ? (
-              <Button
-                icon={<Play className="size-4" />}
-                href={routes.rehearsal(campaign.id)}
-                target="_blank"
-              >
-                {tc('rehearse')}
-              </Button>
+              <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
+                <Button variant="outline" className="gap-2">
+                  <Play className="size-4" />
+                  {tc('rehearse')}
+                </Button>
+              </a>
             ) : (
-              <Button
-                type="primary"
-                icon={<ExternalLink className="size-4" />}
-                href={routes.play(campaign.id)}
-                target="_blank"
-              >
-                {tc('openPlay')}
-              </Button>
+              <a href={routes.play(campaign.id)} target="_blank" rel="noreferrer">
+                <Button className="gap-2">
+                  <ExternalLink className="size-4" />
+                  {tc('openPlay')}
+                </Button>
+              </a>
             )
           }
         />
       )}
 
       {isDraft && (
-        <Alert
-          type="warning"
-          showIcon
-          message={t('draftNotice')}
-          description={t('draft')}
-          action={
-            <Button href={routes.rehearsal(campaign.id)} target="_blank">
-              {tc('rehearse')}
-            </Button>
-          }
-        />
+        <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <AlertTitle>{t('draftNotice')}</AlertTitle>
+              <AlertDescription className="text-amber-800/90 dark:text-amber-300/80">
+                {t('draft')}
+              </AlertDescription>
+            </div>
+            <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
+              <Button variant="outline" size="sm" className="shrink-0">
+                {tc('rehearse')}
+              </Button>
+            </a>
+          </div>
+        </Alert>
       )}
 
       {/* Preset and Custom Channels */}
-      <Card
-        variant="borderless"
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        title={
-          <Flex justify="space-between" align="center" wrap gap={8}>
-            <div>
-              <Typography.Title level={5} className="!m-0">
-                {t('channels.title')}
-              </Typography.Title>
-              <Typography.Text type="secondary" className="text-xs">
-                {t('channels.hint')}
-              </Typography.Text>
-            </div>
-            <Button
-              type="primary"
-              icon={<Plus className="size-4" />}
-              onClick={() => setIsAddModalOpen(true)}
-            >
-              {t('channels.add')}
-            </Button>
-          </Flex>
-        }
-      >
-        <div className="grid gap-5 md:grid-cols-2">
-          {allChannels.map((channel) => (
-            <ChannelCard
-              key={channel.key}
-              orgId={orgId}
-              campaign={campaign}
-              channel={channel}
-              onDelete={channel.isPreset ? undefined : () => handleDeleteCustomChannel(channel.key)}
-            />
-          ))}
-        </div>
+      <Card className="rounded-2xl border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="text-base font-semibold">{t('channels.title')}</CardTitle>
+            <Caption>{t('channels.hint')}</Caption>
+          </div>
+          <Button
+            className="gap-1.5 rounded-full"
+            size="sm"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus className="size-4" />
+            {t('channels.add')}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-5 md:grid-cols-2">
+            {allChannels.map((channel) => (
+              <ChannelCard
+                key={channel.key}
+                orgId={orgId}
+                campaign={campaign}
+                channel={channel}
+                onDelete={
+                  channel.isPreset ? undefined : () => handleDeleteCustomChannel(channel.key)
+                }
+              />
+            ))}
+          </div>
+        </CardContent>
       </Card>
 
       {/* Counter Staff Card */}
-      <Card
-        variant="borderless"
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        data-testid="invite-counter-staff"
-      >
-        <Flex justify="space-between" align="center" wrap gap={16}>
-          <Flex gap={12} align="start" className="max-w-2xl">
-            <div
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg"
-              style={{
-                backgroundColor: token.colorPrimaryBg,
-                color: token.colorPrimary,
-              }}
-            >
-              <Users className="size-5" />
-            </div>
-            <div>
-              <Typography.Text strong className="block text-base">
-                {t('counterStaff.title')}
-              </Typography.Text>
-              <Typography.Text type="secondary" className="text-sm">
-                {t('counterStaff.description')}
-              </Typography.Text>
-            </div>
-          </Flex>
-          <Link href={`/orgs/${orgId}/settings`}>
-            <Button type="default" icon={<Users className="size-4" />}>
+      <Card className="rounded-2xl border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <Users className="size-4" />
+              {t('counterStaff.title')}
+            </CardTitle>
+            <Caption>{t('counterStaff.description')}</Caption>
+          </div>
+          <Link href={`/orgs/${orgId}/members` as Route}>
+            <Button variant="outline" size="sm" className="gap-2">
+              <ExternalLink className="size-3.5" />
               {t('counterStaff.action')}
             </Button>
           </Link>
-        </Flex>
+        </CardHeader>
       </Card>
 
-      {/* Report by Channel Table */}
-      <Card
-        variant="borderless"
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        title={
-          <div>
-            <Typography.Title level={5} className="!m-0">
-              {t('report.title')}
-            </Typography.Title>
-            <Typography.Text type="secondary" className="text-xs">
-              {t('report.description')}
-            </Typography.Text>
+      {/* Traffic by Channel Table */}
+      <Card className="rounded-2xl border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">{t('report.title')}</CardTitle>
+          <Caption>{t('report.description')}</Caption>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('report.channel')}</TableHead>
+                  <TableHead className="text-right">{t('report.plays')}</TableHead>
+                  <TableHead className="text-right">{t('report.wins')}</TableHead>
+                  <TableHead className="text-right">{t('report.visits')}</TableHead>
+                  <TableHead className="text-right">{t('report.redemptionRate')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reportTableData.map((row) => (
+                  <TableRow key={row.key}>
+                    <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell className="text-right tabular-nums">{row.plays}</TableCell>
+                    <TableCell className="text-right tabular-nums">{row.wins}</TableCell>
+                    <TableCell className="text-right tabular-nums">{row.visits}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {row.rate}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        }
-        styles={{ body: { padding: 0 } }}
-        data-testid="channel-report-table"
-      >
-        <Table
-          rowKey="key"
-          loading={reportQuery.isPending}
-          dataSource={reportTableData}
-          pagination={false}
-          locale={{
-            emptyText: (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('report.empty')} />
-            ),
-          }}
-          columns={[
-            {
-              title: t('report.channel'),
-              dataIndex: 'name',
-              render: (name: string, record) => (
-                <Flex align="center" gap={8}>
-                  <Typography.Text strong>{name}</Typography.Text>
-                  {record.channelKey && (
-                    <Tag className="!m-0 font-mono text-xs">?ch={record.channelKey}</Tag>
-                  )}
-                </Flex>
-              ),
-            },
-            {
-              title: t('report.plays'),
-              dataIndex: 'plays',
-              align: 'right',
-              render: (val: number) => <span className="tabular-nums">{val}</span>,
-            },
-            {
-              title: t('report.wins'),
-              dataIndex: 'wins',
-              align: 'right',
-              render: (val: number) => <span className="tabular-nums">{val}</span>,
-            },
-            {
-              title: t('report.visits'),
-              dataIndex: 'visits',
-              align: 'right',
-              render: (val: number) => (
-                <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
-                  {val}
-                </span>
-              ),
-            },
-            {
-              title: t('report.redemptionRate'),
-              dataIndex: 'rate',
-              align: 'right',
-              render: (val: string) => <span className="tabular-nums">{val}</span>,
-            },
-          ]}
-        />
+        </CardContent>
       </Card>
 
       {/* Add Custom Channel Modal */}
-      <Modal
-        title={t('channels.addTitle')}
-        open={isAddModalOpen}
-        onCancel={() => {
-          setIsAddModalOpen(false);
-          addForm.resetFields();
-        }}
-        footer={null}
-        destroyOnHidden
-      >
-        <Form
-          form={addForm}
-          layout="vertical"
-          onFinish={handleAddChannel}
-          initialValues={{ name: '', key: '' }}
-        >
-          <Form.Item
-            name="name"
-            label={t('channels.channelName')}
-            rules={[{ required: true, message: t('channels.keyRequired') }]}
-          >
-            <Input
-              placeholder={t('channels.channelNamePlaceholder')}
-              onChange={(e) => {
-                const autoKey = slugifyChannelKey(e.target.value);
-                addForm.setFieldValue('key', autoKey);
-              }}
-            />
-          </Form.Item>
-          <Form.Item
-            name="key"
-            label={t('channels.channelKey')}
-            extra={t('channels.channelKeyHint')}
-            rules={[
-              { required: true, message: t('channels.keyRequired') },
-              {
-                pattern: /^[a-z0-9_-]{1,64}$/,
-                message: t('channels.channelKeyHint'),
-              },
-            ]}
-          >
-            <Input prefix="?ch=" />
-          </Form.Item>
-          <Flex justify="end" gap={8} className="mt-4">
-            <Button
-              onClick={() => {
-                setIsAddModalOpen(false);
-                addForm.resetFields();
-              }}
-            >
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('channels.addTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold">{t('channels.channelName')}</span>
+              <Input
+                placeholder={t('channels.channelNamePlaceholder')}
+                value={newChannelName}
+                onChange={(e) => {
+                  setNewChannelName(e.target.value);
+                  setNewChannelKey(slugifyChannelKey(e.target.value));
+                }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold">{t('channels.channelKey')}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-mono text-muted-foreground">?ch=</span>
+                <Input
+                  value={newChannelKey}
+                  onChange={(e) =>
+                    setNewChannelKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
+                  }
+                />
+              </div>
+              <Caption>{t('channels.channelKeyHint')}</Caption>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
               {tc('settings.pause')}
             </Button>
-            <Button type="primary" htmlType="submit">
+            <Button
+              className="rounded-full"
+              disabled={!newChannelName.trim() || !newChannelKey.trim()}
+              onClick={handleAddChannel}
+            >
               {t('channels.add')}
             </Button>
-          </Flex>
-        </Form>
-      </Modal>
-    </Flex>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -426,88 +387,95 @@ function ChannelCard({
 }) {
   const t = useTranslations('campaigns.share');
   const tc = useTranslations('campaigns');
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
+  const _tCommon = useTranslations('common');
   const routes = campaignRoutes(orgId);
 
   const playerLink = buildPlayerLink(PLAY_URL, campaign.slug, channel.key);
   const qrContainerRef = useRef<HTMLDivElement>(null);
-  const svgContainerRef = useRef<HTMLDivElement>(null);
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(playerLink);
-      message.success(t('links.copied'));
+      toast.success(t('links.copied'));
     } catch {
-      // Fallback
-      message.info(playerLink);
+      toast.info(playerLink);
     }
   };
 
   return (
-    <Card
-      size="small"
-      variant="outlined"
-      style={{
-        borderRadius: token.borderRadiusLG,
-        borderColor: token.colorBorderSecondary,
-      }}
-      data-testid={`share-channel-${channel.key}`}
-    >
-      <Flex vertical gap={12}>
+    <Card className="rounded-2xl border" data-testid={`share-channel-${channel.key}`}>
+      <CardContent className="space-y-3 p-4">
         {/* Channel Header */}
-        <Flex justify="space-between" align="center">
-          <Flex align="center" gap={8}>
-            <Typography.Text strong className="text-sm">
-              {channel.name}
-            </Typography.Text>
-            <Tag color="cyan" className="!m-0 font-mono text-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">{channel.name}</span>
+            <Badge variant="secondary" className="font-mono text-[10px]">
               ch={channel.key}
-            </Tag>
-          </Flex>
+            </Badge>
+          </div>
           {onDelete && (
-            <Popconfirm
-              title={t('channels.deleteConfirm')}
-              onConfirm={onDelete}
-              okText={tc('settings.delete')}
-              cancelText={t('links.copy')}
-            >
-              <Button type="text" size="small" danger icon={<Trash2 className="size-3.5" />} />
-            </Popconfirm>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('channels.deleteConfirm')}</AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('links.copy')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground"
+                  >
+                    {tc('settings.delete')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
-        </Flex>
+        </div>
 
         {/* Link and Copy */}
-        <Space.Compact block>
-          <Input value={playerLink} readOnly data-testid={`channel-link-${channel.key}`} />
-          <Button icon={<Copy className="size-3.5" />} onClick={copyLink}>
+        <div className="flex items-center gap-1.5">
+          <Input
+            value={playerLink}
+            readOnly
+            className="h-8 font-mono text-xs"
+            data-testid={`channel-link-${channel.key}`}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 shrink-0 text-xs"
+            onClick={copyLink}
+          >
+            <Copy className="size-3.5" />
             {t('links.copy')}
           </Button>
-        </Space.Compact>
+        </div>
 
         {/* QR Code and Actions */}
-        <Flex gap={16} align="center">
+        <div className="flex items-center gap-4 pt-1">
           <div
             ref={qrContainerRef}
-            className="flex shrink-0 items-center justify-center rounded-lg p-2"
-            style={{
-              border: `1px solid ${token.colorBorderSecondary}`,
-              backgroundColor: '#FFFFFF',
-            }}
+            className="flex size-28 shrink-0 items-center justify-center rounded-xl border bg-white p-2 shadow-xs"
           >
-            {/* Canvas QR code for display & PNG export */}
-            <QRCode value={playerLink} size={112} bordered={false} type="canvas" />
-            {/* Hidden SVG QR code for SVG export */}
-            <div ref={svgContainerRef} style={{ display: 'none' }}>
-              <QRCode value={playerLink} size={300} bordered={false} type="svg" />
-            </div>
+            <QRCodeSvg value={playerLink} size={96} />
           </div>
 
-          <Flex vertical gap={6} className="min-w-0 flex-1">
-            <Flex gap={6} wrap>
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="flex flex-wrap gap-1.5">
               <Button
-                size="small"
-                icon={<Download className="size-3.5" />}
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1 text-[11px]"
                 onClick={() =>
                   downloadCanvasQRCode(
                     qrContainerRef.current,
@@ -515,53 +483,66 @@ function ChannelCard({
                   )
                 }
               >
+                <Download className="size-3" />
                 {t('links.downloadPng')}
               </Button>
               <Button
-                size="small"
-                icon={<Download className="size-3.5" />}
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1 text-[11px]"
                 onClick={() =>
                   downloadSvgQRCode(
-                    svgContainerRef.current,
+                    qrContainerRef.current,
                     `qr-${campaign.slug}-${channel.key}.svg`,
                   )
                 }
               >
+                <Download className="size-3" />
                 {t('links.downloadSvg')}
               </Button>
-            </Flex>
+            </div>
 
-            <Flex gap={6} wrap className="mt-1">
-              <Button
-                size="small"
-                type="dashed"
-                icon={<Printer className="size-3.5" />}
+            <div className="flex flex-wrap gap-1.5">
+              <a
                 href={routes.sharePrint(campaign.id, {
                   ch: channel.key,
                   format: 'standee',
                 })}
                 target="_blank"
-                data-testid={`print-standee-${channel.key}`}
+                rel="noreferrer"
               >
-                {t('links.printStandee')}
-              </Button>
-              <Button
-                size="small"
-                type="dashed"
-                icon={<Printer className="size-3.5" />}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 gap-1 text-[11px]"
+                  data-testid={`print-standee-${channel.key}`}
+                >
+                  <Printer className="size-3" />
+                  {t('links.printStandee')}
+                </Button>
+              </a>
+              <a
                 href={routes.sharePrint(campaign.id, {
                   ch: channel.key,
                   format: 'tent',
                 })}
                 target="_blank"
-                data-testid={`print-tent-${channel.key}`}
+                rel="noreferrer"
               >
-                {t('links.printTent')}
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Flex>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 gap-1 text-[11px]"
+                  data-testid={`print-tent-${channel.key}`}
+                >
+                  <Printer className="size-3" />
+                  {t('links.printTent')}
+                </Button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }

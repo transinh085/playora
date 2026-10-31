@@ -1,7 +1,18 @@
 'use client';
 
-import { Alert, Button, Empty, Flex, QRCode, Segmented, Select, Skeleton, Typography } from 'antd';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { Alert, AlertTitle } from '@playora/ui/components/alert';
+import { Button } from '@playora/ui/components/button';
+import { QRCodeSvg } from '@playora/ui/components/qr-code';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@playora/ui/components/select';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { cn } from '@playora/ui/lib/utils';
+import { AlertTriangle, ArrowLeft, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -44,15 +55,15 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center p-8">
-        <Skeleton active paragraph={{ rows: 12 }} className="max-w-md" />
+        <Skeleton className="h-96 w-full max-w-md rounded-2xl" />
       </div>
     );
   }
 
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <Empty description={tc('notFound')} />
+      <div className="flex min-h-screen items-center justify-center p-8 text-muted-foreground">
+        {tc('notFound')}
       </div>
     );
   }
@@ -118,47 +129,76 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 
       {/* Screen Toolbar (hidden in print) */}
       <header className="no-print sticky top-0 z-30 border-b border-zinc-200 bg-white/95 px-6 py-3 shadow-xs backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95">
-        <Flex justify="space-between" align="center" wrap gap={12}>
-          <Flex align="center" gap={12}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Link href={routes.share(campaign.id)}>
-              <Button icon={<ArrowLeft className="size-4" />}>{t('print.back')}</Button>
+              <Button variant="outline" size="sm" className="gap-2">
+                <ArrowLeft className="size-4" />
+                {t('print.back')}
+              </Button>
             </Link>
             <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
-            <Flex align="center" gap={8}>
-              <Typography.Text type="secondary" className="text-xs">
-                {t('channels.title')}:
-              </Typography.Text>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{t('channels.title')}:</span>
               <Select
                 value={currentCh}
-                onChange={(val) => updateQueryParams(val, currentFormat)}
-                options={allChannels}
-                style={{ width: 180 }}
-              />
-            </Flex>
-          </Flex>
+                onValueChange={(val) => updateQueryParams(val, currentFormat)}
+              >
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allChannels.map((ch) => (
+                    <SelectItem key={ch.value} value={ch.value}>
+                      {ch.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-          <Flex align="center" gap={16}>
-            <Segmented
-              value={currentFormat}
-              onChange={(val) => updateQueryParams(currentCh, val as PrintFormat)}
-              options={[
-                { label: t('print.standeeA5'), value: 'standee' },
-                { label: t('print.tentCardA6'), value: 'tent' },
-              ]}
-            />
-            <Button
-              type="primary"
-              icon={<Printer className="size-4" />}
-              onClick={() => window.print()}
-            >
+          <div className="flex items-center gap-4">
+            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+              <button
+                type="button"
+                className={cn(
+                  'rounded-full px-3 py-1 font-medium transition-all',
+                  currentFormat === 'standee'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+                onClick={() => updateQueryParams(currentCh, 'standee')}
+              >
+                {t('print.standeeA5')}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'rounded-full px-3 py-1 font-medium transition-all',
+                  currentFormat === 'tent'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+                onClick={() => updateQueryParams(currentCh, 'tent')}
+              >
+                {t('print.tentCardA6')}
+              </button>
+            </div>
+
+            <Button className="gap-2 rounded-full" size="sm" onClick={() => window.print()}>
+              <Printer className="size-4" />
               {t('print.printNow')}
             </Button>
-          </Flex>
-        </Flex>
+          </div>
+        </div>
 
         {isDraft && (
           <div className="mt-3">
-            <Alert type="warning" showIcon message={t('print.draftNotice')} className="text-xs" />
+            <Alert className="border-amber-500/30 bg-amber-500/10 text-xs text-amber-900 dark:text-amber-200">
+              <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400" />
+              <AlertTitle className="text-xs">{t('print.draftNotice')}</AlertTitle>
+            </Alert>
           </div>
         )}
       </header>
@@ -242,7 +282,7 @@ function StandeeA5Sheet({
     >
       {/* Decorative top brand bar */}
       <div
-        className="absolute top-0 left-0 h-2.5 w-full"
+        className="absolute left-0 top-0 h-2.5 w-full"
         style={{ backgroundColor: brand.primary }}
       />
 
@@ -255,7 +295,7 @@ function StandeeA5Sheet({
           </div>
         )}
         <h1
-          className="text-2xl font-extrabold leading-tight tracking-tight uppercase"
+          className="text-2xl font-extrabold uppercase leading-tight tracking-tight"
           style={{ color: brand.primary }}
         >
           {campaignName}
@@ -291,7 +331,7 @@ function StandeeA5Sheet({
           }}
           data-testid="print-qr-code"
         >
-          <QRCode value={playerLink} size={200} color={brand.text} bordered={false} />
+          <QRCodeSvg value={playerLink} size={200} color={brand.text} />
         </div>
 
         <p className="mt-3 text-xs font-medium text-zinc-500">{instructionText}</p>
@@ -303,16 +343,16 @@ function StandeeA5Sheet({
         )}
       </div>
 
-      {/* Footer info */}
-      <footer className="flex items-center justify-between border-t border-zinc-200/80 pt-2 text-[10px] text-zinc-400">
-        <span className="font-mono">ch={channelKey}</span>
+      {/* Footer branding */}
+      <footer className="flex items-center justify-between border-t border-zinc-200/60 pt-3 text-[10px] text-zinc-400">
+        <span className="font-mono">{channelKey}</span>
         <span>{poweredByText}</span>
       </footer>
     </article>
   );
 }
 
-/** Folded Tent Card A6 (two mirrored halves on A5 sheet, 148mm × 210mm) */
+/** Folded Table Tent A6 (A5 sheet landscape: two A6 faces side-by-side or stacked) */
 function FoldedTentCardA6Sheet({
   campaignName,
   logo,
@@ -345,138 +385,89 @@ function FoldedTentCardA6Sheet({
   poweredByText: string;
   draftNoticeText: string;
 }) {
-  return (
-    <article
-      className="print-sheet relative flex h-[210mm] w-[148mm] flex-col overflow-hidden bg-white text-zinc-900 shadow-xl"
+  const renderTentFace = (upsideDown = false) => (
+    <div
+      className={cn(
+        'relative flex h-[105mm] w-[148mm] flex-col justify-between overflow-hidden p-5',
+        upsideDown && 'rotate-180',
+      )}
       style={{
         backgroundColor: brand.background,
         color: brand.text,
       }}
-      data-testid="print-tent"
     >
-      {/* Top half (105mm): Mirrored 180° for folding */}
       <div
-        className="flex h-[105mm] w-full flex-col justify-between p-5 text-center"
-        style={{ transform: 'rotate(180deg)' }}
-      >
-        <TentCardFace
-          campaignName={campaignName}
-          logo={logo}
-          promoText={promoText}
-          brand={brand}
-          playerLink={playerLink}
-          channelKey={channelKey}
-          isDraft={isDraft}
-          ctaText={ctaText}
-          instructionText={instructionText}
-          poweredByText={poweredByText}
-          draftNoticeText={draftNoticeText}
-        />
-      </div>
+        className="absolute left-0 top-0 h-1.5 w-full"
+        style={{ backgroundColor: brand.primary }}
+      />
 
-      {/* Middle fold crease line */}
-      <div className="relative flex h-0 w-full items-center justify-center border-t border-dashed border-zinc-400">
-        <span className="bg-white px-3 text-[9px] font-medium tracking-wider text-zinc-400 uppercase select-none">
-          ✂ {foldHereText} ✂
-        </span>
-      </div>
-
-      {/* Bottom half (105mm): Normal upright */}
-      <div className="flex h-[105mm] w-full flex-col justify-between p-5 text-center">
-        <TentCardFace
-          campaignName={campaignName}
-          logo={logo}
-          promoText={promoText}
-          brand={brand}
-          playerLink={playerLink}
-          channelKey={channelKey}
-          isDraft={isDraft}
-          ctaText={ctaText}
-          instructionText={instructionText}
-          poweredByText={poweredByText}
-          draftNoticeText={draftNoticeText}
-        />
-      </div>
-    </article>
-  );
-}
-
-function TentCardFace({
-  campaignName,
-  logo,
-  promoText,
-  brand,
-  playerLink,
-  channelKey,
-  isDraft,
-  ctaText,
-  instructionText,
-  poweredByText,
-  draftNoticeText,
-}: {
-  campaignName: string;
-  logo?: string;
-  promoText?: string;
-  brand: {
-    primary: string;
-    text: string;
-    background: string;
-    surface: string;
-  };
-  playerLink: string;
-  channelKey: string;
-  isDraft: boolean;
-  ctaText: string;
-  instructionText: string;
-  poweredByText: string;
-  draftNoticeText: string;
-}) {
-  return (
-    <div className="flex h-full flex-col justify-between">
-      {/* Top logo & title */}
-      <div>
-        {logo ? (
-          <div className="flex max-h-8 items-center justify-center">
-            {/* biome-ignore lint/performance/noImgElement: dynamic user uploaded logo */}
-            <img src={logo} alt="Shop Logo" className="max-h-8 max-w-[80px] object-contain" />
-          </div>
-        ) : (
-          <div className="text-xs font-bold uppercase" style={{ color: brand.primary }}>
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="min-w-0">
+          <h2
+            className="truncate text-lg font-extrabold uppercase tracking-tight"
+            style={{ color: brand.primary }}
+          >
             {campaignName}
+          </h2>
+          {promoText && (
+            <p className="truncate text-xs font-medium opacity-85" style={{ color: brand.text }}>
+              {promoText}
+            </p>
+          )}
+        </div>
+        {logo && (
+          <div className="flex max-h-8 shrink-0 items-center justify-end">
+            {/* biome-ignore lint/performance/noImgElement: dynamic user uploaded logo */}
+            <img src={logo} alt="Shop Logo" className="max-h-8 max-w-[70px] object-contain" />
           </div>
         )}
-        {promoText && <p className="mt-0.5 text-[10px] opacity-80 line-clamp-1">{promoText}</p>}
       </div>
 
-      {/* QR Code and CTA */}
-      <div className="my-auto flex flex-col items-center">
+      <div className="my-auto flex items-center justify-center gap-5">
         <div
-          className="mb-1 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase"
-          style={{
-            backgroundColor: `${brand.primary}1A`,
-            color: brand.primary,
-          }}
-        >
-          {ctaText}
-        </div>
-        <div
-          className="rounded-lg border bg-white p-2 shadow-xs"
+          className="rounded-xl border bg-white p-2.5 shadow-xs"
           style={{ borderColor: `${brand.primary}30` }}
-          data-testid="print-qr-code"
         >
-          <QRCode value={playerLink} size={110} color={brand.text} bordered={false} />
+          <QRCodeSvg value={playerLink} size={110} color={brand.text} />
         </div>
-        <p className="mt-1 text-[9px] text-zinc-500">{instructionText}</p>
-        {isDraft && (
-          <p className="mt-0.5 text-[8px] font-medium text-amber-700">{draftNoticeText}</p>
-        )}
+        <div className="flex flex-col items-start gap-1">
+          <span
+            className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide"
+            style={{
+              backgroundColor: `${brand.primary}1A`,
+              color: brand.primary,
+            }}
+          >
+            {ctaText}
+          </span>
+          <span className="text-[11px] font-medium text-zinc-500">{instructionText}</span>
+          {isDraft && (
+            <span className="mt-1 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-800">
+              ⚠️ {draftNoticeText}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex justify-between text-[8px] text-zinc-400">
-        <span>ch={channelKey}</span>
+      <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1.5 text-[9px] text-zinc-400">
+        <span className="font-mono">{channelKey}</span>
         <span>{poweredByText}</span>
       </div>
     </div>
+  );
+
+  return (
+    <article
+      className="print-sheet relative flex h-[210mm] w-[148mm] flex-col overflow-hidden bg-white shadow-xl"
+      data-testid="print-tent"
+    >
+      {renderTentFace(true)}
+      <div className="relative flex h-0 w-full items-center justify-center border-t-2 border-dashed border-zinc-300">
+        <span className="absolute rounded-full bg-zinc-200 px-2 py-0.5 text-[8px] font-semibold tracking-wider text-zinc-600 uppercase">
+          ✂️ {foldHereText}
+        </span>
+      </div>
+      {renderTentFace(false)}
+    </article>
   );
 }

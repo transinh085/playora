@@ -1,13 +1,25 @@
 'use client';
 
-import { useZodForm } from '@playora/ui/form';
-import { App, Button, Card, Divider, Form, Input, Typography } from 'antd';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@playora/ui/components/form';
+import { Input } from '@playora/ui/components/input';
+import { toast } from '@playora/ui/components/sonner';
+import { Loader2 } from 'lucide-react';
 import type { Route } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Caption } from '@/components/caption';
 import { authClient } from '@/lib/auth-client';
 
 const schema = z.object({
@@ -22,14 +34,16 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next');
-  const { message } = App.useApp();
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSentTo, setMagicLinkSentTo] = useState<string | null>(null);
   const [isSendingLink, setIsSendingLink] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { form, rules, parse } = useZodForm(schema);
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: '', password: '', name: '' },
+  });
 
   const redirectPath = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
 
@@ -38,7 +52,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
     setMagicLinkSentTo(null);
     setIsSubmitting(true);
     try {
-      const values = parse(rawValues);
+      const values = schema.parse(rawValues);
       const { error: authError } =
         mode === 'sign-in'
           ? await authClient.signIn.email({ email: values.email, password: values.password })
@@ -62,16 +76,11 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   async function onSendMagicLink() {
     setError(null);
     setMagicLinkSentTo(null);
-    try {
-      await form.validateFields(['email']);
-    } catch {
-      return;
-    }
-    const email = form.getFieldValue('email');
-    const name =
-      form.getFieldValue('name') ||
-      (typeof email === 'string' ? email.split('@')[0] : '') ||
-      'Playora';
+    const valid = await form.trigger('email');
+    if (!valid) return;
+
+    const email = form.getValues('email');
+    const name = form.getValues('name') || email.split('@')[0] || 'Playora';
     setIsSendingLink(true);
     try {
       const callbackURL = new URL(redirectPath, window.location.origin).toString();
@@ -81,7 +90,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
         return;
       }
       setMagicLinkSentTo(email);
-      message.success(t('magicLinkSent', { email }));
+      toast.success(t('magicLinkSent', { email }));
     } finally {
       setIsSendingLink(false);
     }
@@ -98,94 +107,139 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   }
 
   return (
-    <Card
-      className="w-full max-w-sm"
-      title={mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
-    >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{ email: '', password: '' }}
-        onFinish={onSubmit}
-      >
-        {mode === 'sign-up' && (
-          <Form.Item name="name" label={t('name')} rules={rules}>
-            <Input id="name" autoComplete="name" />
-          </Form.Item>
-        )}
-        <Form.Item name="email" label={t('email')} rules={rules}>
-          <Input id="email" type="email" autoComplete="email" />
-        </Form.Item>
-        <Form.Item name="password" label={t('password')} rules={rules}>
-          <Input.Password
-            id="password"
-            autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-          />
-        </Form.Item>
+    <Card className="w-full max-w-sm rounded-2xl border-border/80 shadow-md">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-xl font-bold">
+          {mode === 'sign-in' ? t('signInTitle') : t('signUpTitle')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {mode === 'sign-up' && (
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('name')}</FormLabel>
+                    <FormControl>
+                      <Input id="name" autoComplete="name" className="rounded-xl" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('email')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      className="rounded-xl"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('password')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+                      className="rounded-xl"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {error && (
-          <div className="mb-4">
-            <Typography.Text type="danger">{error}</Typography.Text>
-          </div>
-        )}
-        {magicLinkSentTo && (
-          <div className="mb-4">
-            <Typography.Text type="secondary">
-              {t('magicLinkSent', { email: magicLinkSentTo })}
-            </Typography.Text>
-          </div>
-        )}
+            {error && (
+              <div className="rounded-xl bg-destructive/10 p-3 text-xs font-medium text-destructive">
+                {error}
+              </div>
+            )}
+            {magicLinkSentTo && (
+              <div className="rounded-xl bg-teal-500/10 p-3 text-xs font-medium text-teal-800 dark:text-teal-200">
+                {t('magicLinkSent', { email: magicLinkSentTo })}
+              </div>
+            )}
 
-        <div className="mt-6 flex flex-col gap-3">
-          <Button
-            type="primary"
-            htmlType="submit"
-            block
-            loading={isSubmitting}
-            disabled={isSendingLink}
-          >
-            {mode === 'sign-in' ? t('signIn') : t('signUp')}
-          </Button>
+            <div className="pt-2 flex flex-col gap-3">
+              <Button
+                type="submit"
+                className="w-full rounded-full shadow-xs"
+                disabled={isSubmitting || isSendingLink}
+              >
+                {isSubmitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {mode === 'sign-in' ? t('signIn') : t('signUp')}
+              </Button>
 
-          <Divider plain className="my-1">
-            <Caption>{t('orDivider')}</Caption>
-          </Divider>
+              <div className="relative my-2 text-center text-xs text-muted-foreground">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <span className="relative bg-card px-2 text-[11px] uppercase tracking-wider">
+                  {t('orDivider')}
+                </span>
+              </div>
 
-          <Button
-            type="default"
-            block
-            disabled={isSubmitting || isSendingLink}
-            loading={isSendingLink}
-            onClick={onSendMagicLink}
-          >
-            {t('sendMagicLink')}
-          </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-full shadow-xs"
+                disabled={isSubmitting || isSendingLink}
+                onClick={onSendMagicLink}
+              >
+                {isSendingLink && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {t('sendMagicLink')}
+              </Button>
 
-          {googleEnabled && (
-            <Button
-              type="default"
-              block
-              disabled={isSubmitting || isSendingLink}
-              onClick={onGoogleSignIn}
-            >
-              {t('continueWithGoogle')}
-            </Button>
-          )}
+              {googleEnabled && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full rounded-full shadow-xs"
+                  disabled={isSubmitting || isSendingLink}
+                  onClick={onGoogleSignIn}
+                >
+                  {t('continueWithGoogle')}
+                </Button>
+              )}
 
-          <Button
-            type="link"
-            block
-            onClick={() => {
-              setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
-              form.resetFields();
-              setError(null);
-              setMagicLinkSentTo(null);
-            }}
-          >
-            {mode === 'sign-in' ? t('toSignUp') : t('toSignIn')}
-          </Button>
-        </div>
-      </Form>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full rounded-full text-xs text-muted-foreground"
+                onClick={() => {
+                  setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+                  form.reset();
+                  setError(null);
+                  setMagicLinkSentTo(null);
+                }}
+              >
+                {mode === 'sign-in' ? t('toSignUp') : t('toSignIn')}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
     </Card>
   );
 }

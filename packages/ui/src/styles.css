@@ -10,7 +10,7 @@
  *   3. Game        (--game-*): everything players and the LED screen see. Swapped per event by a skin
  *      (`data-skin`) and then by the customer's brand kit (inline vars from `brandKitVars()`).
  */
-@layer theme, base, antd, components, utilities;
+@layer theme, base, components, utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -85,23 +85,40 @@
   --duration-slow: 320ms;
   --duration-stage: 640ms;
 
-  /* ── 2. Studio / Semantic (bridged to Ant Design) ─────────────────────────────── */
-  --radius: 0.5rem;
-  --background: var(--ant-color-bg-layout, var(--ink-50));
-  --foreground: var(--ant-color-text, var(--ink-950));
-  --muted-foreground: var(--ant-color-text-secondary, var(--ink-500));
-  --border: var(--ant-color-border, var(--ink-200));
-  --primary: var(--ant-color-primary, var(--teal-600));
+  /* ── 2. Studio / Semantic (shadcn / luma style) ─────────────────────────────── */
+  --radius: 0.75rem;
+  --background: var(--ink-50);
+  --foreground: var(--ink-950);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--ink-950);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--ink-950);
+  --primary: var(--teal-600);
   --primary-foreground: oklch(0.985 0 0);
-
-  --success: var(--ant-color-success, oklch(0.56 0.15 152));
-  --success-foreground: oklch(0.985 0 0);
-  --warning: var(--ant-color-warning, oklch(0.75 0.16 70));
-  --warning-foreground: oklch(0.28 0.07 60);
-  --info: var(--ant-color-info, oklch(0.56 0.16 255));
-  --info-foreground: oklch(0.985 0 0);
-  --destructive: var(--ant-color-error, oklch(0.577 0.235 27));
+  --secondary: var(--ink-100);
+  --secondary-foreground: var(--ink-900);
+  --muted: var(--ink-100);
+  --muted-foreground: var(--ink-500);
+  --accent: var(--ink-100);
+  --accent-foreground: var(--ink-900);
+  --destructive: oklch(0.577 0.235 27);
   --destructive-foreground: oklch(0.985 0 0);
+  --border: var(--ink-200);
+  --input: var(--ink-200);
+  --ring: var(--teal-500);
+
+  --chart-1: var(--teal-600);
+  --chart-2: var(--violet-500);
+  --chart-3: var(--spotlight-500);
+  --chart-4: var(--team-4);
+  --chart-5: var(--team-7);
+
+  --success: oklch(0.56 0.15 152);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.16 70);
+  --warning-foreground: oklch(0.28 0.07 60);
+  --info: oklch(0.56 0.16 255);
+  --info-foreground: oklch(0.985 0 0);
   /* "On air": an event that is live right now. */
   --live: oklch(0.6 0.23 25);
   --live-foreground: oklch(0.985 0 0);
@@ -123,21 +140,38 @@
 }
 
 .dark {
-  --background: var(--ant-color-bg-layout, var(--ink-950));
-  --foreground: var(--ant-color-text, var(--ink-50));
-  --muted-foreground: var(--ant-color-text-secondary, var(--ink-400));
-  --border: var(--ant-color-border, oklch(1 0 0 / 10%));
-  --primary: var(--ant-color-primary, var(--teal-400));
+  --background: var(--ink-950);
+  --foreground: var(--ink-50);
+  --card: oklch(0.19 0.012 255);
+  --card-foreground: var(--ink-50);
+  --popover: oklch(0.19 0.012 255);
+  --popover-foreground: var(--ink-50);
+  --primary: var(--teal-400);
   --primary-foreground: var(--ink-950);
-
-  --success: var(--ant-color-success, oklch(0.72 0.16 152));
-  --success-foreground: var(--ink-950);
-  --warning: var(--ant-color-warning, oklch(0.8 0.15 75));
-  --warning-foreground: var(--ink-950);
-  --info: var(--ant-color-info, oklch(0.7 0.14 255));
-  --info-foreground: var(--ink-950);
-  --destructive: var(--ant-color-error, oklch(0.704 0.191 22));
+  --secondary: var(--ink-900);
+  --secondary-foreground: var(--ink-50);
+  --muted: var(--ink-900);
+  --muted-foreground: var(--ink-400);
+  --accent: var(--ink-900);
+  --accent-foreground: var(--ink-50);
+  --destructive: oklch(0.704 0.191 22);
   --destructive-foreground: var(--ink-950);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: var(--teal-400);
+
+  --chart-1: var(--teal-400);
+  --chart-2: var(--violet-400);
+  --chart-3: var(--spotlight-400);
+  --chart-4: var(--team-4);
+  --chart-5: var(--team-7);
+
+  --success: oklch(0.72 0.16 152);
+  --success-foreground: var(--ink-950);
+  --warning: oklch(0.8 0.15 75);
+  --warning-foreground: var(--ink-950);
+  --info: oklch(0.7 0.14 255);
+  --info-foreground: var(--ink-950);
   --live: oklch(0.66 0.22 25);
   --live-foreground: oklch(0.99 0 0);
 }
@@ -209,8 +243,19 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);

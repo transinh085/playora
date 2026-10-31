@@ -1,4 +1,4 @@
-import { AntdRegistry } from '@playora/ui/providers';
+import { Toaster } from '@playora/ui/components/sonner';
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -28,7 +28,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${font.variable} ${display.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={playMessages}>
-          <AntdRegistry>{children}</AntdRegistry>
+          {children}
+          <Toaster position="top-center" />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,20 +1,16 @@
 'use client';
 
 import type { CampaignListItem } from '@playora/contracts';
-import { Tag } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
 import { CircleAlert, CircleCheck, PencilLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-/** Published campaigns keep serving their last version while the draft changes (docs/product/specs/builder.md §4.3). */
 export function hasUnpublishedChanges(
   campaign: Pick<CampaignListItem, 'status' | 'hasUnpublishedChanges'>,
 ) {
   return campaign.status === 'published' && campaign.hasUnpublishedChanges;
 }
 
-const icon = 'mr-1 inline size-3 align-[-2px]';
-
-/** Status tag with an icon (docs/engineering/design-system.md §3.4): draft · published vN · published with pending changes. */
 export function CampaignStatusTag({
   campaign,
 }: {
@@ -23,18 +19,24 @@ export function CampaignStatusTag({
   const t = useTranslations('builderLab.editor.status');
   if (campaign.status === 'draft') {
     return (
-      <Tag className="!m-0" icon={<PencilLine className={icon} />}>
+      <Badge variant="outline" className="gap-1 font-normal">
+        <PencilLine className="size-3" />
         {t('draft')}
-      </Tag>
+      </Badge>
     );
   }
   return hasUnpublishedChanges(campaign) ? (
-    <Tag className="!m-0" color="warning" icon={<CircleAlert className={icon} />}>
+    <Badge variant="secondary" className="gap-1 font-normal text-amber-600 dark:text-amber-400">
+      <CircleAlert className="size-3" />
       {t('dirty', { version: campaign.version })}
-    </Tag>
+    </Badge>
   ) : (
-    <Tag className="!m-0" color="success" icon={<CircleCheck className={icon} />}>
+    <Badge
+      variant="outline"
+      className="gap-1 font-normal border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+    >
+      <CircleCheck className="size-3" />
       {t('published', { version: campaign.version })}
-    </Tag>
+    </Badge>
   );
 }

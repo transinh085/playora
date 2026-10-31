@@ -1,7 +1,9 @@
 'use client';
 
 import type { PublicCampaign } from '@playora/contracts';
-import { Button, Flex, Result, Typography } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { AlertCircle, Clock, PauseCircle } from 'lucide-react';
+import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { CampaignFrame } from './campaign-frame';
@@ -44,29 +46,36 @@ export function CampaignNotice({
 
   return (
     <CampaignFrame brand={campaign.brand} skinKey={campaign.skinKey}>
-      <div className="flex h-full flex-col items-center justify-center p-6" data-phase={phase}>
-        <Typography.Text type="secondary">{campaign.name}</Typography.Text>
-        <Result
-          status={phase === 'paused' ? 'warning' : 'info'}
-          title={t(`${phase}Title`)}
-          subTitle={
-            <Flex vertical gap={4} align="center">
-              <span>{body}</span>
-              {openDaysFormatted && (
-                <Typography.Text type="secondary" data-testid="notice-open-days">
-                  {t('openDaysNote', { days: openDaysFormatted })}
-                </Typography.Text>
-              )}
-            </Flex>
-          }
-          extra={
-            phase === 'scheduled' ? null : (
-              <Button type="primary" href={`/${campaign.slug}/prizes`}>
-                {t('myPrizes')}
-              </Button>
-            )
-          }
-        />
+      <div
+        className="flex h-full flex-col items-center justify-center p-6 text-center"
+        data-phase={phase}
+      >
+        <p className="text-xs font-medium text-muted-foreground">{campaign.name}</p>
+        <div className="my-6 flex flex-col items-center gap-3">
+          <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            {phase === 'scheduled' ? (
+              <Clock className="size-7" />
+            ) : phase === 'paused' ? (
+              <PauseCircle className="size-7 text-amber-500" />
+            ) : (
+              <AlertCircle className="size-7" />
+            )}
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">{t(`${phase}Title`)}</h2>
+          <div className="flex flex-col items-center gap-1.5 text-sm text-muted-foreground">
+            <span>{body}</span>
+            {openDaysFormatted && (
+              <span className="text-xs text-muted-foreground" data-testid="notice-open-days">
+                {t('openDaysNote', { days: openDaysFormatted })}
+              </span>
+            )}
+          </div>
+          {phase !== 'scheduled' && (
+            <Button asChild className="mt-4 rounded-full px-6 shadow-sm">
+              <Link href={`/${campaign.slug}/prizes`}>{t('myPrizes')}</Link>
+            </Button>
+          )}
+        </div>
       </div>
     </CampaignFrame>
   );

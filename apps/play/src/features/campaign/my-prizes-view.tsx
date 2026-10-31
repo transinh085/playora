@@ -2,7 +2,9 @@
 
 import type { PublicCampaign } from '@playora/contracts';
 import { LiveClock, VoucherList } from '@playora/ui/campaign';
-import { Button, Empty, Flex, Typography } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { Gift } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { CampaignFrame } from './campaign-frame';
@@ -38,33 +40,33 @@ function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
-      <Flex align="center" gap="small">
-        <Flex vertical className="min-w-0">
-          <Typography.Title level={4} className="!m-0">
-            {t('myPrizes')}
-          </Typography.Title>
-          <Typography.Text type="secondary" ellipsis>
-            {campaign.name}
-          </Typography.Text>
-        </Flex>
-      </Flex>
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <h2 className="m-0 text-lg font-bold tracking-tight text-foreground">{t('myPrizes')}</h2>
+          <p className="truncate text-xs text-muted-foreground">{campaign.name}</p>
+        </div>
+      </div>
 
       {!hydrated ? null : !session ? (
-        <Empty description={t('noSession')}>
-          <Button type="primary" href={gameHref}>
-            {t('playNow')}
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
+          <Gift className="size-10 opacity-30" />
+          <p className="text-sm">{t('noSession')}</p>
+          <Button asChild className="mt-2 rounded-full px-6">
+            <Link href={gameHref}>{t('playNow')}</Link>
           </Button>
-        </Empty>
+        </div>
       ) : (
         <>
-          <LiveClock labels={labels} />
+          <div className="flex justify-center">
+            <LiveClock labels={labels} />
+          </div>
           <VoucherList
             vouchers={vouchers}
             loading={me.loading || me.state === null}
             labels={labels}
           />
-          <Button block href={gameHref}>
-            {t('backToGame')}
+          <Button asChild variant="outline" className="w-full rounded-full mt-2">
+            <Link href={gameHref}>{t('backToGame')}</Link>
           </Button>
         </>
       )}

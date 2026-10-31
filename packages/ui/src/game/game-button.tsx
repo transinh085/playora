@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@playora/ui/lib/utils';
-import { Button, type ButtonProps } from 'antd';
 import type * as React from 'react';
 
 export type GameButtonVariant = 'primary' | 'accent' | 'surface';
@@ -63,18 +62,14 @@ export function gameButtonVariants({
   return cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
 }
 
-export type GameButtonProps = Omit<
-  ButtonProps,
-  'type' | 'variant' | 'size' | 'color' | 'htmlType'
-> & {
+export type GameButtonProps = React.ComponentProps<'button'> & {
   variant?: GameButtonVariant;
   size?: GameButtonSize;
-  type?: ButtonProps['htmlType'];
-  htmlType?: ButtonProps['htmlType'];
+  styles?: { root?: React.CSSProperties };
 };
 
 /**
- * Chunky, tactile 3D button for players built on Ant Design `Button`.
+ * Chunky, tactile 3D button for players.
  * The darker bottom edge is derived from `--game-primary` / `--game-accent` via `color-mix()`,
  * so it keeps working when a brand kit replaces `--game-primary`. Pressing sinks the face onto it.
  */
@@ -83,34 +78,22 @@ function GameButton({
   variant = 'primary',
   size = 'md',
   type = 'button',
-  htmlType,
   style,
   styles,
   ...props
 }: GameButtonProps) {
-  const resolvedStyles =
-    typeof styles === 'function'
-      ? styles
-      : {
-          ...styles,
-          root: {
-            ...VARIANT_ROOT_STYLES[variant],
-            ...styles?.root,
-          },
-        };
-
   return (
-    <Button
+    <button
       data-slot="game-button"
       data-variant={variant}
       data-size={size}
-      type={variant === 'surface' ? 'default' : 'primary'}
-      size="large"
-      shape={size === 'tap' ? 'circle' : 'default'}
-      htmlType={htmlType ?? type}
+      type={type}
       className={gameButtonVariants({ variant, size, className })}
-      style={style}
-      styles={resolvedStyles}
+      style={{
+        ...VARIANT_ROOT_STYLES[variant],
+        ...styles?.root,
+        ...style,
+      }}
       {...props}
     />
   );

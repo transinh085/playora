@@ -232,7 +232,7 @@ function CustomSegmentEditor({ path, value, locale, disabled }: WidgetProps) {
 }
 
 describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
-  test('renders supported widgets on antd Form (Input, InputNumber, Slider, Switch, Segmented, Select, ColorPicker, asset/sound, Form.List, Space.Compact localized, nested object, Collapse groups) and Alert for unsupported widget without console warnings', () => {
+  test('renders supported widgets (Input, Number, Slider, Switch, Segmented, Select, ColorPicker, asset/sound, list, localized, nested object, Collapse groups) and Alert for unsupported widget without console warnings', () => {
     const warnSpy = mock(() => {});
     const errorSpy = mock(() => {});
     const origWarn = console.warn;
@@ -292,14 +292,14 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(warnSpy).not.toHaveBeenCalled();
       expect(errorSpy).not.toHaveBeenCalled();
 
-      // Ant Design Form and Collapse groups rendered
-      expect(htmlVi).toContain('ant-form');
-      expect(htmlVi).toContain('ant-collapse');
+      // AutoForm and group sections rendered
+      expect(htmlVi).toContain('data-slot="auto-form"');
+      expect(htmlVi).toContain('data-slot="autoform-groups"');
       expect(htmlVi).toContain('Lối chơi');
       expect(htmlVi).toContain('Giao diện');
       expect(htmlVi).toContain('Nội dung');
 
-      // Form.Item label/for association matches antd generated input id
+      // Label/for association matches input id
       expect(htmlVi).toContain('for="nickname"');
       expect(htmlVi).toContain('id="nickname"');
 
@@ -317,15 +317,13 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(htmlVi).toContain('data-widget="localized"');
       expect(htmlVi).toContain('data-widget="object"');
 
-      // Ant Design component classes present
-      expect(htmlVi).toContain('ant-input');
-      expect(htmlVi).toContain('ant-input-number');
-      expect(htmlVi).toContain('ant-slider');
-      expect(htmlVi).toContain('ant-switch');
-      expect(htmlVi).toContain('ant-segmented');
-      expect(htmlVi).toContain('ant-select');
-      expect(htmlVi).toContain('ant-color-picker-trigger');
-      expect(htmlVi).toContain('ant-space-compact');
+      // Component slots present
+      expect(htmlVi).toContain('data-slot="input"');
+      expect(htmlVi).toContain('data-slot="slider"');
+      expect(htmlVi).toContain('data-slot="switch"');
+      expect(htmlVi).toContain('data-slot="segmented"');
+      expect(htmlVi).toContain('data-slot="color-picker"');
+      expect(htmlVi).toContain('data-slot="localized-widget"');
 
       // Brand palette swatches rendered in color widget
       expect(htmlVi).toContain('data-color="#7c3aed"');
@@ -337,14 +335,14 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(htmlVi).toContain('Picked:asset-uuid-123:runner');
       expect(htmlVi).toContain('1:1 · ≥256px');
 
-      // Form.List items rendered with add/remove/reorder controls
+      // List items rendered with add/remove/reorder controls
       expect(htmlVi).toContain('Vật phẩm #1');
       expect(htmlVi).toContain('Vật phẩm #2');
       expect(htmlVi).toContain('Thêm Vật phẩm');
       expect(htmlVi).toContain('value="Vàng"');
       expect(htmlVi).toContain('value="Kim cương"');
 
-      // Localized vi/en inputs inside Space.Compact
+      // Localized vi/en inputs inside localized widget
       expect(htmlVi).toContain('data-lang="vi"');
       expect(htmlVi).toContain('data-lang="en"');
       expect(htmlVi).toContain('value="Đua YEP"');
@@ -354,8 +352,8 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
       expect(htmlVi).toContain('Thời gian tối đa là 180 giây');
       expect(htmlVi).toContain('Tiêu đề tiếng Việt không được để trống');
 
-      // Unsupported widget renders antd Alert instead of throwing
-      expect(htmlVi).toContain('ant-alert');
+      // Unsupported widget renders Alert instead of throwing
+      expect(htmlVi).toContain('data-slot="alert"');
       expect(htmlVi).toContain('data-widget-unsupported="unknown-fancy-widget"');
       expect(htmlVi).toContain('Widget chưa hỗ trợ: unknown-fancy-widget');
 
@@ -517,9 +515,15 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
         locale="vi"
       />,
     );
-    expect(htmlAtMin).toMatch(/aria-label="Xoá #1"[^>]*disabled=""/);
-    expect(htmlAtMin).toMatch(/aria-label="Xoá #2"[^>]*disabled=""/);
-    expect(htmlAtMin).not.toMatch(/disabled=""[^>]*><span>Thêm Ô<\/span>/);
+    expect(htmlAtMin).toMatch(
+      /(aria-label="Xoá #1"[^>]*disabled=""|disabled=""[^>]*aria-label="Xoá #1")/,
+    );
+    expect(htmlAtMin).toMatch(
+      /(aria-label="Xoá #2"[^>]*disabled=""|disabled=""[^>]*aria-label="Xoá #2")/,
+    );
+    const addButtonDisabledAtMin =
+      /<button[^>]*disabled=""[^>]*>(?:(?!<\/button>)[\s\S])*Thêm Ô/i.test(htmlAtMin);
+    expect(addButtonDisabledAtMin).toBe(false);
 
     // At maxItems (3 items): Add button is disabled, Remove buttons are enabled
     const htmlAtMax = renderToStaticMarkup(
@@ -530,8 +534,12 @@ describe('AutoForm on Ant Design Form (A1, §2.5)', () => {
         locale="vi"
       />,
     );
-    expect(htmlAtMax).not.toMatch(/aria-label="Xoá #1"[^>]*disabled=""/);
-    expect(htmlAtMax).toMatch(/<button[^>]*disabled=""[^>]*>.*Thêm Ô.*<\/button>/);
+    expect(htmlAtMax).not.toMatch(
+      /(aria-label="Xoá #1"[^>]*disabled=""|disabled=""[^>]*aria-label="Xoá #1")/,
+    );
+    const addButtonDisabledAtMax =
+      /<button[^>]*disabled=""[^>]*>(?:(?!<\/button>)[\s\S])*Thêm Ô/i.test(htmlAtMax);
+    expect(addButtonDisabledAtMax).toBe(true);
   });
 
   test('triggers onChange via Form onValuesChange (including presets) and validates with configSchema via zodRule', async () => {

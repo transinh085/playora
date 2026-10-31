@@ -46,6 +46,8 @@ Proposed ──► Accepted ──► Superseded by ADR-x   (có ADR mới thay 
 | [010](./010-testing-strategy.md) | Unit + integration trên DB thật + contract runtime + Playwright; cross-tenant bắt buộc | Accepted | 23/10/2026 |
 | [011](./011-remove-live-engine.md) | Gỡ live engine (realtime/LED); code ở tag `archive/live-engine` | Accepted · đã thực hiện | 24/10/2026 |
 | [012](./012-campaign-architecture.md) | Play engine + prize engine trên API, Game SDK v2 (`instant`/`skill`), dữ liệu campaign | Accepted · đang thực hiện | 24/10/2026 |
-| [013](./013-antd-ui.md) | Ant Design v6 mọi bề mặt, `useZodForm`, ngân sách bundle Play ≤ 260 KB | Accepted | 24/10/2026 |
+| [013](./013-antd-ui.md) | Ant Design v6 mọi bề mặt, `useZodForm`, ngân sách bundle Play ≤ 260 KB | Superseded by [016](./016-shadcn-luma-ui.md) | 24/10/2026 |
 | [014](./014-free-canvas-screen-editor.md) | Canvas tự do cho các màn (artboard 375, `gameStage`, một renderer); chế độ Tuỳ biến của builder | Accepted (26/10/2026) | 25/10/2026 |
 | [015](./015-campaign-persistence.md) | Lưu Campaign trên `events` + `games` + `game_versions`; contract `campaigns`/`plays`/`vouchers`/`stats`; vai trò "chỉ đổi quà" | Accepted | 26/10/2026 |
+| [016](./016-shadcn-luma-ui.md) | shadcn/ui với style luma thay thế Ant Design v6; gỡ bỏ CSS-in-JS; sonner; RHF | Accepted | 31/10/2026 |
+| [017](./017-counter-device-pairing.md) | Máy quầy ghép bằng QR: chế độ auth `device`, bảng `counter_devices`, quyền chỉ đổi quà | Proposed | 31/10/2026 |

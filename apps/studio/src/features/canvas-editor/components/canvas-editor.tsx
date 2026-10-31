@@ -1,11 +1,30 @@
 'use client';
 
-import { App, Button, Divider, Popconfirm, Tag, Tooltip, Typography } from 'antd';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@playora/ui/components/alert-dialog';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Separator } from '@playora/ui/components/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import { ArrowLeft, Braces, RotateCcw } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { LogoMark } from '@/components/logo';
 import { type CanvasDoc, createDemoDoc, DEMO_BRAND } from '../lib/model';
 import { CanvasWorkspace } from './canvas-workspace';
@@ -25,8 +44,8 @@ function loadDoc(): CanvasDoc {
 /** ADR-014 prototype: free canvas editor for game screens, local data only. */
 export function CanvasEditor({ orgId }: { orgId: string }) {
   const t = useTranslations('canvasLab');
-  const { message } = App.useApp();
   const [doc, setDoc] = useState<CanvasDoc>(createDemoDoc);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 
   // Load the saved draft after hydration (localStorage is browser-only).
   useEffect(() => {
@@ -45,58 +64,96 @@ export function CanvasEditor({ orgId }: { orgId: string }) {
   }, [doc]);
 
   return (
-    <div className="h-dvh">
-      <CanvasWorkspace
-        value={doc}
-        onChange={setDoc}
-        brand={DEMO_BRAND}
-        toolbarStart={
-          <>
-            <Tooltip title={t('back')}>
-              <Link href={`/orgs/${orgId}/campaigns` as Route} aria-label={t('back')}>
-                <Button
-                  type="text"
-                  tabIndex={-1}
-                  aria-hidden
-                  icon={<ArrowLeft className="size-4" />}
-                />
-              </Link>
-            </Tooltip>
-            <LogoMark className="size-7" aria-hidden />
-            <Typography.Text strong className="whitespace-nowrap">
-              {t('title')}
-            </Typography.Text>
-            <Tag color="warning" className="!m-0">
-              {t('badge')}
-            </Tag>
-            <Divider orientation="vertical" />
-          </>
-        }
-        toolbarEnd={
-          <>
-            <Popconfirm title={t('resetConfirm')} onConfirm={() => setDoc(createDemoDoc())}>
-              <Tooltip title={t('reset')}>
-                <Button
-                  type="text"
-                  aria-label={t('reset')}
-                  icon={<RotateCcw className="size-4" />}
-                />
+    <TooltipProvider>
+      <div className="h-dvh">
+        <CanvasWorkspace
+          value={doc}
+          onChange={setDoc}
+          brand={DEMO_BRAND}
+          toolbarStart={
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8 rounded-full" asChild>
+                    <Link href={`/orgs/${orgId}/campaigns` as Route} aria-label={t('back')}>
+                      <ArrowLeft className="size-4" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('back')}</TooltipContent>
               </Tooltip>
-            </Popconfirm>
-            <Tooltip title={t('copyJson')}>
-              <Button
-                type="text"
-                aria-label={t('copyJson')}
-                icon={<Braces className="size-4" />}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(JSON.stringify(doc, null, 2));
-                  message.success(t('copied'));
+              <LogoMark className="size-7" aria-hidden />
+              <span className="font-semibold text-sm whitespace-nowrap">{t('title')}</span>
+              <Badge
+                variant="outline"
+                className="border-amber-500/30 text-amber-600 bg-amber-50 dark:bg-amber-950/20"
+              >
+                {t('badge')}
+              </Badge>
+              <Separator orientation="vertical" className="h-5" />
+            </div>
+          }
+          toolbarEnd={
+            <div className="flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 rounded-full"
+                    aria-label={t('reset')}
+                    onClick={() => setConfirmResetOpen(true)}
+                  >
+                    <RotateCcw className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('reset')}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 rounded-full"
+                    aria-label={t('copyJson')}
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(JSON.stringify(doc, null, 2));
+                      toast.success(t('copied'));
+                    }}
+                  >
+                    <Braces className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('copyJson')}</TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
+
+        <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+          <AlertDialogContent className="rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('reset')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('resetConfirm')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-full">Hủy</AlertDialogCancel>
+              <AlertDialogAction
+                className="rounded-full"
+                onClick={() => {
+                  setDoc(createDemoDoc());
+                  setConfirmResetOpen(false);
                 }}
-              />
-            </Tooltip>
-          </>
-        }
-      />
-    </div>
+              >
+                Đồng ý
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </TooltipProvider>
   );
 }

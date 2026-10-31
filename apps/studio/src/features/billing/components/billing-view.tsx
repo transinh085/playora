@@ -3,23 +3,23 @@
 import { useRouteQuery } from '@playora/api-client/react';
 import { type BillingInvoice, type BillingPlan, meApi, type OrgBilling } from '@playora/contracts';
 import { planLimits } from '@playora/core/billing';
+import { Alert, AlertTitle } from '@playora/ui/components/alert';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import { Progress } from '@playora/ui/components/progress';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
 import {
-  Alert,
-  Button,
-  Card,
-  Descriptions,
-  Empty,
-  Flex,
-  Progress,
-  Segmented,
-  Skeleton,
   Table,
-  type TableColumnsType,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
-import { Check, Gem } from 'lucide-react';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@playora/ui/components/table';
+import { cn } from '@playora/ui/lib/utils';
+import { Check, Copy, Gem, Info } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Caption } from '@/components/caption';
@@ -41,20 +41,26 @@ export function BillingView({ orgId }: { orgId: string }) {
   const query = useOrgBilling(orgId);
 
   return (
-    <Flex vertical gap={20}>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
-        tags={query.data && <Tag color="processing">{t(`plans.${query.data.plan}`)}</Tag>}
+        tags={query.data && <Badge variant="secondary">{t(`plans.${query.data.plan}`)}</Badge>}
       />
       {query.isPending ? (
-        <Skeleton active paragraph={{ rows: 8 }} />
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full rounded-2xl" />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Skeleton className="h-48 rounded-2xl" />
+            <Skeleton className="h-48 rounded-2xl" />
+          </div>
+        </div>
       ) : query.isError ? (
         <QueryError onRetry={() => query.refetch()} />
       ) : (
         <BillingContent orgId={orgId} billing={query.data} />
       )}
-    </Flex>
+    </div>
   );
 }
 
@@ -69,20 +75,19 @@ function BillingContent({ orgId, billing }: { orgId: string; billing: OrgBilling
   );
 
   return (
-    <>
+    <div className="space-y-5">
       {lapsed && (
-        <Alert
-          showIcon
-          type="info"
-          title={
-            subscription.currentPeriodEnd
+        <Alert>
+          <Info className="size-4" />
+          <AlertTitle>
+            {subscription.currentPeriodEnd
               ? t('lapsed', {
                   plan: t(`plans.${subscription.plan}`),
                   date: format.dateTime(new Date(subscription.currentPeriodEnd), DAY),
                 })
-              : t('lapsedNoDate', { plan: t(`plans.${subscription.plan}`) })
-          }
-        />
+              : t('lapsedNoDate', { plan: t(`plans.${subscription.plan}`) })}
+          </AlertTitle>
+        </Alert>
       )}
       <RedemptionUsageAlert orgId={orgId} billing={billing} />
       {campaignsLevel === 'limit' && <PlanCampaignLimitAlert orgId={orgId} />}
@@ -92,19 +97,13 @@ function BillingContent({ orgId, billing }: { orgId: string; billing: OrgBilling
       </div>
       <UpgradeCard orgId={orgId} current={plan} />
       <InvoicesCard invoices={billing.invoices} />
-    </>
+    </div>
   );
-}
-
-function useCardStyle() {
-  const { token } = theme.useToken();
-  return { border: `1px solid ${token.colorBorderSecondary}` };
 }
 
 function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
   const t = useTranslations('billing');
   const format = useFormatter();
-  const style = useCardStyle();
   const { plan, limits, subscription } = billing;
   const periodEnd =
     subscription?.status === 'active' && subscription.plan === plan
@@ -112,16 +111,19 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
       : null;
 
   return (
-    <Card variant="borderless" title={t('currentPlan')} style={style}>
-      <Flex vertical gap={16}>
-        <Flex align="center" gap={12}>
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">{t('currentPlan')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3">
           <IconTile tone="primary">
             <Gem className="size-5" />
           </IconTile>
           <div>
-            <Typography.Title level={4} className="!m-0" data-testid="billing-plan">
+            <h4 className="m-0 text-base font-semibold" data-testid="billing-plan">
               {t(`plans.${plan}`)}
-            </Typography.Title>
+            </h4>
             <Caption>
               {plan === 'free'
                 ? t('freeForever')
@@ -130,31 +132,26 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
                   : t('noPeriodEnd')}
             </Caption>
           </div>
-        </Flex>
-        <Descriptions
-          column={1}
-          size="small"
-          bordered
-          title={<Caption>{t('limitsTitle')}</Caption>}
-          items={[
-            {
-              key: 'running',
-              label: t('limitRunning'),
-              children: limits.maxRunningCampaigns ?? t('unlimited'),
-            },
-            {
-              key: 'redemptions',
-              label: t('limitRedemptions'),
-              children: format.number(limits.redemptionsPerMonth),
-            },
-            {
-              key: 'watermark',
-              label: t('limitWatermark'),
-              children: limits.watermark ? t('yes') : t('no'),
-            },
-          ]}
-        />
-      </Flex>
+        </div>
+
+        <div className="space-y-2 rounded-xl border p-3">
+          <Caption className="font-medium">{t('limitsTitle')}</Caption>
+          <div className="divide-y text-sm">
+            <div className="flex justify-between py-1.5">
+              <span className="text-muted-foreground">{t('limitRunning')}</span>
+              <span className="font-medium">{limits.maxRunningCampaigns ?? t('unlimited')}</span>
+            </div>
+            <div className="flex justify-between py-1.5">
+              <span className="text-muted-foreground">{t('limitRedemptions')}</span>
+              <span className="font-medium">{format.number(limits.redemptionsPerMonth)}</span>
+            </div>
+            <div className="flex justify-between py-1.5">
+              <span className="text-muted-foreground">{t('limitWatermark')}</span>
+              <span className="font-medium">{limits.watermark ? t('yes') : t('no')}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -162,12 +159,14 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
 function UsageCard({ billing }: { billing: OrgBilling }) {
   const t = useTranslations('billing');
   const format = useFormatter();
-  const style = useCardStyle();
   const { usage, limits } = billing;
 
   return (
-    <Card variant="borderless" title={t('usageTitle')} style={style}>
-      <Flex vertical gap={20}>
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">{t('usageTitle')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5">
         <UsageBar
           testId="usage-campaigns"
           label={t('runningCampaigns')}
@@ -186,15 +185,15 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
             limits.redemptionsHardLimit,
           )}
         />
-        <Flex vertical gap={4}>
+        <div className="flex flex-col gap-1">
           <Caption>
             {t('usageSince', { date: format.dateTime(new Date(usage.monthStart), DAY) })}
           </Caption>
           <Caption>
             {t('graceNote', { hardLimit: format.number(limits.redemptionsHardLimit) })}
           </Caption>
-        </Flex>
-      </Flex>
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -214,28 +213,27 @@ function UsageBar({
 }) {
   const t = useTranslations('billing');
   const format = useFormatter();
-  const { token } = theme.useToken();
-  const color =
+
+  const progressClass =
     level === 'blocked' || level === 'limit'
-      ? token.colorError
+      ? '[&>div]:bg-destructive'
       : level === 'warning'
-        ? token.colorWarning
-        : token.colorPrimary;
+        ? '[&>div]:bg-amber-500'
+        : '[&>div]:bg-primary';
 
   return (
-    <div data-testid={testId} data-level={level}>
-      <Flex justify="space-between" align="baseline" gap={8}>
-        <Typography.Text>{label}</Typography.Text>
-        <Typography.Text strong>
+    <div data-testid={testId} data-level={level} className="space-y-2">
+      <div className="flex items-baseline justify-between gap-2 text-sm">
+        <span>{label}</span>
+        <span className="font-semibold">
           {limit === null
             ? t('ofUnlimited', { used: format.number(used) })
             : t('ofLimit', { used: format.number(used), limit: format.number(limit) })}
-        </Typography.Text>
-      </Flex>
+        </span>
+      </div>
       <Progress
-        percent={limit === null ? 0 : usagePercent(used, limit)}
-        showInfo={false}
-        strokeColor={color}
+        value={limit === null ? 0 : usagePercent(used, limit)}
+        className={cn('h-2', progressClass)}
         aria-label={label}
       />
     </div>
@@ -245,8 +243,6 @@ function UsageBar({
 function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }) {
   const t = useTranslations('billing');
   const format = useFormatter();
-  const style = useCardStyle();
-  const { token } = theme.useToken();
   const myOrgs = useRouteQuery(api, meApi.orgs, {});
   const slug = myOrgs.data?.items.find((o) => o.id === orgId)?.slug ?? orgId;
   const [selected, setSelected] = useState<Exclude<BillingPlan, 'free'>>(
@@ -255,48 +251,46 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
   const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
   const vnd = (amount: number) => format.number(amount, { style: 'currency', currency: 'VND' });
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Đã sao chép');
+  };
+
   return (
-    <Card
-      variant="borderless"
-      title={t('upgradeTitle')}
-      extra={<Caption>{t('upgradeHint')}</Caption>}
-      style={style}
-    >
-      <Flex vertical gap={20}>
+    <Card className="rounded-2xl border">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{t('upgradeTitle')}</CardTitle>
+        <Caption>{t('upgradeHint')}</Caption>
+      </CardHeader>
+      <CardContent className="space-y-5">
         <div className="grid gap-4 md:grid-cols-3">
           {PLAN_ORDER.map((plan) => {
             const limits = planLimits(plan);
             const price = PLAN_PRICES[plan];
             const isSelected = plan !== 'free' && plan === selected;
             return (
-              <Flex
+              <div
                 key={plan}
-                vertical
-                gap={12}
-                className="rounded-xl p-4"
+                className={cn(
+                  'flex flex-col gap-3 rounded-2xl border p-4 transition-all',
+                  isSelected ? 'border-primary ring-1 ring-primary' : 'border-border',
+                )}
                 data-testid={`plan-option-${plan}`}
-                style={{
-                  border: `1px solid ${isSelected ? token.colorPrimary : token.colorBorderSecondary}`,
-                }}
               >
-                <Flex justify="space-between" align="center">
-                  <Typography.Title level={5} className="!m-0">
-                    {t(`plans.${plan}`)}
-                  </Typography.Title>
-                  {plan === current && <Tag color="success">{t('currentTag')}</Tag>}
-                </Flex>
+                <div className="flex items-center justify-between">
+                  <h5 className="m-0 text-sm font-semibold">{t(`plans.${plan}`)}</h5>
+                  {plan === current && <Badge variant="default">{t('currentTag')}</Badge>}
+                </div>
                 <div>
-                  <Typography.Text strong style={{ fontSize: 22 }}>
-                    {vnd(price.monthly)}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">{t('perMonth')}</Typography.Text>
+                  <span className="text-2xl font-bold">{vnd(price.monthly)}</span>
+                  <span className="ml-1 text-xs text-muted-foreground">{t('perMonth')}</span>
                   {price.yearly > 0 && (
                     <Caption className="block">
                       {t('perYear', { price: vnd(price.yearly) })}
                     </Caption>
                   )}
                 </div>
-                <Flex vertical gap={6} className="flex-1">
+                <div className="flex flex-1 flex-col gap-1.5 text-xs text-muted-foreground">
                   {[
                     limits.maxRunningCampaigns === null
                       ? t('featureCampaignsUnlimited')
@@ -304,82 +298,109 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
                     t('featureRedemptions', { count: format.number(limits.redemptionsPerMonth) }),
                     limits.watermark ? t('featureWatermark') : t('featureNoWatermark'),
                   ].map((feature) => (
-                    <Flex key={feature} gap={8} align="center">
-                      <Check className="size-4 shrink-0" style={{ color: token.colorSuccess }} />
-                      <Typography.Text>{feature}</Typography.Text>
-                    </Flex>
+                    <div key={feature} className="flex items-center gap-2">
+                      <Check className="size-3.5 shrink-0 text-primary" />
+                      <span>{feature}</span>
+                    </div>
                   ))}
-                </Flex>
+                </div>
                 {plan !== 'free' && (
                   <Button
-                    block
-                    type={isSelected ? 'primary' : 'default'}
+                    className="w-full rounded-full"
+                    variant={isSelected ? 'default' : 'outline'}
                     onClick={() => setSelected(plan)}
                   >
                     {isSelected ? t('chosen') : t('choose')}
                   </Button>
                 )}
-              </Flex>
+              </div>
             );
           })}
         </div>
 
-        <Flex vertical gap={12}>
-          <Flex justify="space-between" align="center" gap={12} wrap>
-            <Typography.Text strong>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-sm font-semibold">
               {t('payTitle', { plan: t(`plans.${selected}`) })}
-            </Typography.Text>
-            <Segmented
-              value={cycle}
-              onChange={(value) => setCycle(value as 'monthly' | 'yearly')}
-              options={[
-                { value: 'monthly', label: t('payMonthly') },
-                { value: 'yearly', label: t('payYearly') },
-              ]}
-            />
-          </Flex>
-          <Descriptions
-            column={1}
-            size="small"
-            bordered
+            </span>
+            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+              <button
+                type="button"
+                className={cn(
+                  'rounded-full px-3 py-1 font-medium transition-all',
+                  cycle === 'monthly' ? 'bg-background shadow-sm' : 'text-muted-foreground',
+                )}
+                onClick={() => setCycle('monthly')}
+              >
+                {t('payMonthly')}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'rounded-full px-3 py-1 font-medium transition-all',
+                  cycle === 'yearly' ? 'bg-background shadow-sm' : 'text-muted-foreground',
+                )}
+                onClick={() => setCycle('yearly')}
+              >
+                {t('payYearly')}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="divide-y rounded-2xl border bg-card p-4 text-sm"
             data-testid="manual-payment"
-            items={[
-              { key: 'bank', label: t('payBank'), children: MANUAL_PAYMENT.bankName },
-              {
-                key: 'account',
-                label: t('payAccount'),
-                children: (
-                  <Typography.Text copyable strong>
-                    {MANUAL_PAYMENT.accountNumber}
-                  </Typography.Text>
-                ),
-              },
-              { key: 'holder', label: t('payHolder'), children: MANUAL_PAYMENT.accountName },
-              {
-                key: 'amount',
-                label: t('payAmount'),
-                children: (
-                  <Typography.Text strong>{vnd(PLAN_PRICES[selected][cycle])}</Typography.Text>
-                ),
-              },
-              {
-                key: 'note',
-                label: t('payNote'),
-                children: (
-                  <Typography.Text copyable code>
-                    {MANUAL_PAYMENT.transferNote(slug, selected)}
-                  </Typography.Text>
-                ),
-              },
-            ]}
-          />
-          <Alert
-            showIcon
-            type="info"
-            title={t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}
-          />
-        </Flex>
-      </Flex>
+          >
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">{t('payBank')}</span>
+              <span className="font-medium">{MANUAL_PAYMENT.bankName}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground">{t('payAccount')}</span>
+              <div className="flex items-center gap-1.5 font-mono font-semibold">
+                <span>{MANUAL_PAYMENT.accountNumber}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
+                >
+                  <Copy className="size-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">{t('payHolder')}</span>
+              <span className="font-medium">{MANUAL_PAYMENT.accountName}</span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">{t('payAmount')}</span>
+              <span className="font-semibold">{vnd(PLAN_PRICES[selected][cycle])}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground">{t('payNote')}</span>
+              <div className="flex items-center gap-1.5 font-mono text-xs">
+                <code className="rounded bg-muted px-1.5 py-0.5">
+                  {MANUAL_PAYMENT.transferNote(slug, selected)}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
+                >
+                  <Copy className="size-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Alert>
+            <Info className="size-4" />
+            <AlertTitle>{t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}</AlertTitle>
+          </Alert>
+        </div>
+      </CardContent>
     </Card>
   );
 }
@@ -387,50 +408,54 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
 function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
   const t = useTranslations('billing');
   const format = useFormatter();
-  const style = useCardStyle();
   const day = (iso: string) => format.dateTime(new Date(iso), DAY);
 
-  const columns: TableColumnsType<BillingInvoice> = [
-    {
-      key: 'period',
-      title: t('invoicePeriod'),
-      render: (_, row) =>
-        t('periodRange', { start: day(row.periodStart), end: day(row.periodEnd) }),
-    },
-    { key: 'plan', title: t('invoicePlan'), render: (_, row) => t(`plans.${row.plan}`) },
-    {
-      key: 'amount',
-      title: t('invoiceAmount'),
-      align: 'right',
-      render: (_, row) => format.number(row.amountVnd, { style: 'currency', currency: 'VND' }),
-    },
-    { key: 'paidAt', title: t('invoicePaidAt'), render: (_, row) => day(row.paidAt) },
-    {
-      key: 'reference',
-      title: t('invoiceReference'),
-      render: (_, row) => row.reference ?? <Caption>—</Caption>,
-    },
-  ];
-
   return (
-    <Card
-      variant="borderless"
-      title={t('invoicesTitle')}
-      style={style}
-      styles={{ body: { padding: 0 } }}
-    >
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={invoices}
-        pagination={false}
-        scroll={{ x: 640 }}
-        locale={{
-          emptyText: (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('invoicesEmpty')} />
-          ),
-        }}
-      />
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">{t('invoicesTitle')}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('invoicePeriod')}</TableHead>
+                <TableHead>{t('invoicePlan')}</TableHead>
+                <TableHead className="text-right">{t('invoiceAmount')}</TableHead>
+                <TableHead>{t('invoicePaidAt')}</TableHead>
+                <TableHead>{t('invoiceReference')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    {t('invoicesEmpty')}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                invoices.map((inv) => (
+                  <TableRow key={inv.id}>
+                    <TableCell>
+                      {t('periodRange', {
+                        start: day(inv.periodStart),
+                        end: day(inv.periodEnd),
+                      })}
+                    </TableCell>
+                    <TableCell>{t(`plans.${inv.plan}`)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {format.number(inv.amountVnd, { style: 'currency', currency: 'VND' })}
+                    </TableCell>
+                    <TableCell>{day(inv.paidAt)}</TableCell>
+                    <TableCell>{inv.reference ?? <Caption>—</Caption>}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
     </Card>
   );
 }

@@ -1,7 +1,6 @@
 /// <reference types="bun" />
 import { describe, expect, test } from 'bun:test';
 import { getMessages } from '@playora/i18n';
-import { App } from 'antd';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
 import { defaultSetup } from '../../lib/playbooks';
@@ -18,7 +17,7 @@ function render(node: React.ReactNode, locale: 'vi' | 'en' = 'vi') {
       messages={getMessages(locale)}
       timeZone="Asia/Ho_Chi_Minh"
     >
-      <App>{node}</App>
+      {node}
     </NextIntlClientProvider>,
   );
 }

@@ -53,7 +53,7 @@ Có từ M1, cùng giao dịch trừ kho:
 
 - Tồn kho từng giải; trừ nguyên tử, không bao giờ âm.
 - **Ngân sách tổng** theo giá vốn: chặn khi vượt.
-- Tối đa giải/người (tổng, theo ngày, theo loại); không trúng lặp cùng giải.
+- Tối đa giải/người: M1 chỉ có **tổng cho cả chương trình** (`maxWinsPerPlayer`); theo ngày, theo loại: M2. Không trúng lặp cùng giải.
 - Tối đa giải/phút (chống vét quà).
 - Giới hạn theo cửa hàng (chuỗi nhiều quán, M2).
 
@@ -94,6 +94,12 @@ Nhân viên mở Quầy đổi quà (điện thoại) → quét QR / gõ mã
 | Một mã một lần | Chống đổi hai lần dưới yêu cầu đồng thời (cập nhật có điều kiện) | M1 |
 | Hạn đổi | Mặc định đến hết chương trình + 7 ngày `[GĐ]`, chỉnh được | M1 |
 | Chống ảnh chụp màn hình | Màn quà của khách có đồng hồ chạy và trạng thái lấy từ server; mã đã đổi hiện "Đã đổi" | M1 |
+| Không từ chối vì hạn mức gói | Hạn mức lượt đổi quà/tháng được giữ ở lúc **phát giải**; mã đã phát luôn đổi được ([D-23](../decisions.md), thay D-21) | M1 |
+| Tra theo SĐT | Khách mất mã/đổi trình duyệt: nhân viên tìm mã chưa đổi theo SĐT, đối chiếu tên; rate limit + audit `via=phone` ([D-25](../decisions.md), PRZ-15) | M1 |
+| Khôi phục "Quà của tôi" | SĐT + 4 ký tự cuối của mã trên thiết bị mới; không mở thêm lượt chơi (PRZ-16) | M1 |
+| Máy quầy | Điện thoại ghép bằng QR, quyền chỉ đổi quà, gắn quán, thu hồi được ([D-24](../decisions.md), [ADR-017](../../adr/017-counter-device-pairing.md)) | M1 |
+| Chế độ tập huấn | Mã chơi thử bấm Xác nhận được, không ghi số liệu (PRZ-19) | M1 |
+| Quà lần sau | Đổi quà xong tặng voucher cố định dùng từ ngày mai, hạn 14 ngày; quà tặng không ngẫu nhiên, ghi trong thể lệ (RET-06) | M1 (Could) / M2 |
 | Điểm đổi quà | Chuỗi nhiều quán: mỗi quán một điểm đổi, báo cáo theo điểm | M2 |
 | Tự đổi bằng PIN | Khách nhập PIN nhân viên đưa (khi quầy quá đông) | M3 |
 | Đổi hàng loạt | Upload CSV mã đã đổi; cập nhật vận chuyển cho quà gửi bưu điện | M2 |

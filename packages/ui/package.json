@@ -7,6 +7,8 @@
     "*.css"
   ],
   "exports": {
+    "./components": "./src/components/index.ts",
+    "./components/*": "./src/components/*.tsx",
     "./auto-form": "./src/auto-form/index.tsx",
     "./auto-form/*": "./src/auto-form/*.tsx",
     "./campaign": "./src/campaign/index.ts",
@@ -32,6 +34,7 @@
   "devDependencies": {
     "@playora/tsconfig": "workspace:*",
     "@types/bun": "1.4.4",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "next-themes": "0.4.6",
@@ -39,12 +42,16 @@
     "react-dom": "19.3.1"
   },
   "dependencies": {
-    "@ant-design/cssinjs": "2.1.2",
-    "@ant-design/nextjs-registry": "1.3.0",
+    "@hookform/resolvers": "6.0.0",
     "@playora/contracts": "workspace:*",
-    "antd": "6.6.5",
+    "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "cn": "0.5.1",
     "lucide-react": "1.61.0",
+    "qrcode": "1.5.4",
+    "radix-ui": "1.8.1",
+    "react-hook-form": "7.90.0",
+    "sonner": "2.0.8",
     "tailwind-merge": "3.7.0",
     "zod": "4.6.7"
   }

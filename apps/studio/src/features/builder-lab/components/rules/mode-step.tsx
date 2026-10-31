@@ -1,7 +1,10 @@
 'use client';
 
 import type { PrizeMode } from '@playora/core/prize';
-import { Alert, Card, Flex, InputNumber, Slider, Typography, theme } from 'antd';
+import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
+import { Card, CardContent } from '@playora/ui/components/card';
+import { Input } from '@playora/ui/components/input';
+import { Slider } from '@playora/ui/components/slider';
 import { Gift, ListOrdered, Percent } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -42,11 +45,10 @@ export function ModeStep({
   onChange: (patch: Partial<CampaignRules>) => void;
 }) {
   const t = useTranslations('builderLab.rules.mode');
-  const { token } = theme.useToken();
   const ratePercent = toPercent(rules.overallWinRate);
 
   return (
-    <Flex vertical gap={16}>
+    <div className="flex flex-col gap-4">
       <div
         role="radiogroup"
         aria-label={t('label')}
@@ -67,77 +69,88 @@ export function ModeStep({
                   onChange({ mode: mode.key });
                 }
               }}
-              style={{
-                borderColor: selected ? token.colorPrimary : token.colorBorderSecondary,
-                boxShadow: selected ? `0 0 0 1px ${token.colorPrimary}` : undefined,
-                background: selected ? token.colorPrimaryBg : undefined,
-                cursor: 'pointer',
-              }}
-              styles={{ body: { padding: 16 } }}
+              className={`cursor-pointer rounded-2xl transition-all ${
+                selected
+                  ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                  : 'border-border hover:border-foreground/30'
+              }`}
             >
-              <Flex vertical gap={8}>
+              <CardContent className="flex flex-col gap-2 p-4">
                 <IconTile tone={mode.tone} size={36}>
                   {mode.icon}
                 </IconTile>
-                <Typography.Text strong>{t(`${mode.i18n}.title`)}</Typography.Text>
-                <Typography.Text type="secondary">{t(`${mode.i18n}.description`)}</Typography.Text>
+                <span className="font-semibold text-sm">{t(`${mode.i18n}.title`)}</span>
+                <span className="text-muted-foreground text-xs">
+                  {t(`${mode.i18n}.description`)}
+                </span>
                 <Caption italic>{t(`${mode.i18n}.example`)}</Caption>
-              </Flex>
+              </CardContent>
             </Card>
           );
         })}
       </div>
 
       {rules.mode === 'overall_win_rate' && (
-        <Flex vertical gap={4}>
-          <Typography.Text strong>{t('overall.rateLabel')}</Typography.Text>
-          <Flex align="center" gap={16} wrap>
-            <Slider
-              className="min-w-[160px] flex-1"
-              min={0}
-              max={100}
-              step={1}
-              value={ratePercent}
-              onChange={(v) => onChange({ overallWinRate: fromPercent(v) })}
-              tooltip={{ formatter: (v) => `${v}%` }}
-            />
-            <InputNumber
-              aria-label={t('overall.rateLabel')}
-              min={0}
-              max={100}
-              step={1}
-              precision={1}
-              suffix="%"
-              style={{ width: 120 }}
-              value={ratePercent}
-              onChange={(v) => v !== null && onChange({ overallWinRate: fromPercent(v) })}
-            />
-          </Flex>
+        <div className="flex flex-col gap-2">
+          <span className="font-semibold text-sm">{t('overall.rateLabel')}</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="min-w-[160px] flex-1">
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[ratePercent]}
+                onValueChange={([v]) =>
+                  v !== undefined && onChange({ overallWinRate: fromPercent(v) })
+                }
+              />
+            </div>
+            <div className="relative w-28">
+              <Input
+                aria-label={t('overall.rateLabel')}
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={ratePercent}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  if (!Number.isNaN(val)) onChange({ overallWinRate: fromPercent(val) });
+                }}
+                className="pr-6 text-right font-mono"
+              />
+              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                %
+              </span>
+            </div>
+          </div>
           <Caption>{t('overall.rateHint', { rate: ratePercent, lose: 100 - ratePercent })}</Caption>
-        </Flex>
+        </div>
       )}
 
       {rules.mode === 'per_prize_probability' &&
         (probabilityPercent > 100 ? (
-          <Alert
-            type="error"
-            showIcon
-            title={t('perPrize.over', { total: probabilityPercent })}
-            description={t('perPrize.overHint')}
-          />
+          <Alert variant="destructive">
+            <AlertTitle>{t('perPrize.over', { total: probabilityPercent })}</AlertTitle>
+            <AlertDescription>{t('perPrize.overHint')}</AlertDescription>
+          </Alert>
         ) : (
-          <Alert
-            type="info"
-            showIcon
-            title={t('perPrize.total', {
-              total: probabilityPercent,
-              lose: Math.round((100 - probabilityPercent) * 10) / 10,
-            })}
-            description={t('perPrize.totalHint')}
-          />
+          <Alert>
+            <AlertTitle>
+              {t('perPrize.total', {
+                total: probabilityPercent,
+                lose: Math.round((100 - probabilityPercent) * 10) / 10,
+              })}
+            </AlertTitle>
+            <AlertDescription>{t('perPrize.totalHint')}</AlertDescription>
+          </Alert>
         ))}
 
-      {rules.mode === 'guaranteed' && <Alert type="info" showIcon title={t('guaranteed.note')} />}
-    </Flex>
+      {rules.mode === 'guaranteed' && (
+        <Alert>
+          <AlertTitle>{t('guaranteed.note')}</AlertTitle>
+        </Alert>
+      )}
+    </div>
   );
 }

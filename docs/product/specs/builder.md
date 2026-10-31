@@ -73,7 +73,7 @@ Bìa, Form, Kết quả, Quà của tôi thuộc **shell của Play**, không th
 
 ### 3.2 Cấu hình mỗi màn
 
-Mỗi màn là một tài liệu canvas (artboard rộng 375): nền, chữ, ảnh, nút, hình, đếm ngược, danh sách giải ([ADR-014 §3](../../adr/014-free-canvas-screen-editor.md)). Màn Kết quả có 4 biến thể, mỗi biến thể chỉnh chữ và ảnh riêng. Chữ hỗ trợ biến `{prize.name}`, `{player.name}`, `{event.name}`.
+Mỗi màn là một tài liệu canvas (artboard rộng 375): nền, chữ, ảnh, nút, hình, đếm ngược, danh sách giải ([ADR-014 §3](../../adr/014-free-canvas-screen-editor.md)). Kết quả có 2 màn canvas, **Trúng** (`resultWin`) và **Không trúng** (`resultLose`, dùng cho cả hết quà), mỗi màn chỉnh chữ và ảnh riêng; Hết lượt / Chưa mở / Đã kết thúc là thông báo dạng sheet của shell Play (cập nhật 31/10 cho khớp code). Chữ hỗ trợ biến `{prize.name}`, `{player.name}`, `{event.name}`.
 
 ---
 
@@ -81,7 +81,7 @@ Mỗi màn là một tài liệu canvas (artboard rộng 375): nền, chữ, ả
 
 ### 4.1 Bố cục
 
-Studio desktop-first ([D-12](../decisions.md)). Builder toàn màn hình, 4 bước có thứ tự **Giao diện → Giải thưởng → Luật chơi → Phát hành** ([studio-ux §2](./studio-ux.md#2-mô-hình-một-chương-trình-hai-chế-độ)).
+Studio desktop-first ([D-12](../decisions.md)). Builder toàn màn hình, ba chế độ **Sửa nhanh · Tuỳ biến · Luật & giải** (§4.2) và nút **Phát hành** mở hộp kiểm tra + checklist pháp lý (cập nhật 31/10 cho khớp code; trước đây viết là 4 bước Giao diện → Giải thưởng → Luật chơi → Phát hành) ([studio-ux §2](./studio-ux.md#2-mô-hình-một-chương-trình-hai-chế-độ)).
 
 ```
 ┌──────────────────┬──────────────────────────────┬──────────────────────────┐

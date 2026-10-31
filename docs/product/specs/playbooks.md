@@ -78,6 +78,7 @@ Quà: đã phát / đã đổi / còn lại theo từng loại
 | Chi phí quà | Tổng giá vốn quà đã đổi (quà phát mà chưa đổi không tính, hiện riêng) | `prizes.valueVnd` |
 | Chi phí mỗi khách tới quầy | Chi phí quà / khách tới quầy | — |
 | Tỷ lệ đổi | Đã đổi / đã phát (quà hiện vật) | `awards` |
+| So với ngày thường (PLB-08) | Khách tới quầy / số khách ngày thường chủ quán nhập lúc tạo (theo thứ); luôn ghi "ước tính" và ẩn khi không có baseline | `campaign` + `awards` |
 
 **Không** hiện "doanh thu tăng thêm" ở M1: Playora chưa biết hoá đơn. Có thể cho chủ quán **tự nhập** doanh thu trung bình mỗi khách để ước tính, ghi rõ là ước tính (M2). Doanh thu thật đến từ tích hợp POS (ANL-07, M4).
 

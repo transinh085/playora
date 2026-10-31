@@ -1,18 +1,19 @@
 'use client';
 
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import { Progress } from '@playora/ui/components/progress';
+import { Skeleton } from '@playora/ui/components/skeleton';
 import {
-  Button,
-  Card,
-  Empty,
-  Flex,
-  Progress,
-  Result,
-  Skeleton,
   Table,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@playora/ui/components/table';
+import { cn } from '@playora/ui/lib/utils';
 import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { useFormatter, useLocale, useNow, useTranslations } from 'next-intl';
@@ -87,7 +88,6 @@ export function PlaybookGoalBanner({
   const tr = useTranslations('campaigns.report');
   const locale = useLocale();
   const format = useFormatter();
-  const { token } = theme.useToken();
 
   if (!campaign.playbook && !showWhenCustom) return null;
 
@@ -120,49 +120,37 @@ export function PlaybookGoalBanner({
 
   return (
     <Card
-      variant="borderless"
+      className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
-      style={{
-        border: `1px solid ${token.colorPrimaryBorder}`,
-        background: token.colorPrimaryBg,
-      }}
-      styles={{ body: { padding: '14px 20px' } }}
     >
-      <Flex align="center" justify="space-between" gap={16} wrap>
-        <Flex align="center" gap={12} className="min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <IconTile tone="primary" size={40}>
             <Target className="size-5" />
           </IconTile>
           <div className="min-w-0">
-            <Flex align="center" gap={8} wrap>
+            <div className="flex items-center gap-2">
               <Caption>{tr('goalLabel')}</Caption>
-              <Tag color="processing" className="!m-0">
+              <Badge variant="secondary" className="font-normal">
                 {title}
-              </Tag>
-            </Flex>
-            <Typography.Text strong className="block" style={{ fontSize: 15 }}>
-              {goal}
-            </Typography.Text>
+              </Badge>
+            </div>
+            <span className="block text-base font-semibold">{goal}</span>
             <Caption>
               {tr('periodLabel')}: {campaignPeriod(format, campaign)}
             </Caption>
           </div>
-        </Flex>
+        </div>
+
         {highlightText && (
-          <div data-testid="playbook-key-metric">
+          <div data-testid="playbook-key-metric" className="text-right">
             <Caption className="block">{tr('keyMetricLabel')}</Caption>
-            <Typography.Text
-              strong
-              style={{ fontSize: 16, color: token.colorPrimary }}
-              className="tabular-nums"
-            >
-              {highlightText}
-            </Typography.Text>
+            <span className="text-base font-bold tabular-nums text-primary">{highlightText}</span>
           </div>
         )}
-      </Flex>
+      </div>
     </Card>
   );
 }
@@ -292,29 +280,30 @@ export function DailyOutcomeCard({
 }) {
   const tr = useTranslations('campaigns.report.daily');
   const locale = useLocale();
-  const { token } = theme.useToken();
 
   return (
-    <Card
-      variant="borderless"
-      title={tr('title')}
-      extra={extra}
-      loading={loading}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      data-testid="daily-chart-card"
-      data-print-card
-    >
-      <DailyOutcomeChart
-        data={report?.byDay ?? []}
-        labels={{
-          ariaLabel: tr('ariaLabel'),
-          empty: tr('empty'),
-          plays: tr('plays'),
-          wins: tr('wins'),
-          visits: tr('visits'),
-          formatDay: (day) => formatShortDay(day, locale),
-        }}
-      />
+    <Card className="rounded-2xl border" data-testid="daily-chart-card" data-print-card>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+        {extra}
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <Skeleton className="h-64 w-full" />
+        ) : (
+          <DailyOutcomeChart
+            data={report?.byDay ?? []}
+            labels={{
+              ariaLabel: tr('ariaLabel'),
+              empty: tr('empty'),
+              plays: tr('plays'),
+              wins: tr('wins'),
+              visits: tr('visits'),
+              formatDay: (day) => formatShortDay(day, locale),
+            }}
+          />
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -328,62 +317,54 @@ export function ChannelsTableCard({
 }) {
   const tr = useTranslations('campaigns.report.channels');
   const format = useFormatter();
-  const { token } = theme.useToken();
   const rows = report?.byChannel ?? [];
 
   return (
-    <Card
-      variant="borderless"
-      title={tr('title')}
-      loading={loading}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      styles={{ body: rows.length > 0 ? { padding: 0 } : undefined }}
-      data-testid="channel-table"
-      data-print-card
-    >
-      {rows.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={tr('empty')} />
-      ) : (
-        <Table
-          size="small"
-          rowKey={(row) => row.channel ?? '__direct__'}
-          pagination={false}
-          dataSource={rows}
-          columns={[
-            {
-              title: tr('channel'),
-              dataIndex: 'channel',
-              render: (ch: string | null) => (
-                <Typography.Text strong>
-                  {resolveChannelLabel(ch, (k) => tr(`known.${k}`))}
-                </Typography.Text>
-              ),
-            },
-            {
-              title: tr('plays'),
-              dataIndex: 'plays',
-              align: 'right',
-              render: (n: number) => <span className="tabular-nums">{format.number(n)}</span>,
-            },
-            {
-              title: tr('wins'),
-              dataIndex: 'wins',
-              align: 'right',
-              render: (n: number) => <span className="tabular-nums">{format.number(n)}</span>,
-            },
-            {
-              title: tr('visits'),
-              dataIndex: 'visits',
-              align: 'right',
-              render: (n: number) => (
-                <Typography.Text strong className="tabular-nums">
-                  {format.number(n)}
-                </Typography.Text>
-              ),
-            },
-          ]}
-        />
-      )}
+    <Card className="rounded-2xl border" data-testid="channel-table" data-print-card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="p-4 space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{tr('channel')}</TableHead>
+                  <TableHead className="text-right">{tr('plays')}</TableHead>
+                  <TableHead className="text-right">{tr('wins')}</TableHead>
+                  <TableHead className="text-right">{tr('visits')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.channel ?? '__direct__'}>
+                    <TableCell className="font-semibold">
+                      {resolveChannelLabel(row.channel, (k) => tr(`known.${k}`))}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {format.number(row.plays)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {format.number(row.wins)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">
+                      {format.number(row.visits)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -407,7 +388,6 @@ export function PrizesOutcomeCard({
   const tr = useTranslations('campaigns.report.prizes');
   const format = useFormatter();
   const locale = useLocale();
-  const { token } = theme.useToken();
 
   const rows: CampaignReport['byPrize'] =
     report && report.byPrize.length > 0
@@ -423,104 +403,90 @@ export function PrizesOutcomeCard({
         }));
 
   return (
-    <Card
-      variant="borderless"
-      title={tr('title')}
-      extra={
-        showEditLink ? (
-          <Link href={campaignRoutes(orgId).edit(campaign.id, 'rules')} data-print-hide>
+    <Card className="rounded-2xl border" data-testid="prize-stock" data-print-card>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{tr('title')}</CardTitle>
+        {showEditLink && (
+          <Link
+            href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
+            className="text-xs text-primary hover:underline"
+            data-print-hide
+          >
             {t('stock.edit')}
           </Link>
-        ) : undefined
-      }
-      loading={loading}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      styles={{ body: rows.length > 0 ? { padding: 0 } : undefined }}
-      data-testid="prize-stock"
-      data-print-card
-    >
-      {rows.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={tr('empty')} />
-      ) : (
-        <Table
-          size="small"
-          rowKey="prizeId"
-          pagination={false}
-          dataSource={rows}
-          columns={[
-            {
-              title: tr('name'),
-              dataIndex: 'name',
-              render: (name: string, row) => (
-                <div>
-                  <Typography.Text strong>{name}</Typography.Text>
-                  <Caption className="block">
-                    {t('stock.issued', { issued: row.issued, redeemed: row.redeemed })}
-                  </Caption>
-                </div>
-              ),
-            },
-            {
-              title: tr('unitCost'),
-              dataIndex: 'valueVnd',
-              align: 'right',
-              render: (v: number) => <span className="tabular-nums">{formatVnd(v, locale)}</span>,
-            },
-            {
-              title: tr('issued'),
-              dataIndex: 'issued',
-              align: 'right',
-              render: (n: number) => <span className="tabular-nums">{format.number(n)}</span>,
-            },
-            {
-              title: tr('redeemed'),
-              dataIndex: 'redeemed',
-              align: 'right',
-              render: (n: number) => (
-                <Typography.Text strong className="tabular-nums">
-                  {format.number(n)}
-                </Typography.Text>
-              ),
-            },
-            {
-              title: tr('remaining'),
-              key: 'remaining',
-              width: 160,
-              render: (_, row) => {
-                const percent = row.quantity ? Math.round((row.remaining / row.quantity) * 100) : 0;
-                return (
-                  <div>
-                    <Caption className="tabular-nums">
-                      {t('stock.left', { left: row.remaining, total: row.quantity })}
-                    </Caption>
-                    <Progress
-                      percent={percent}
-                      showInfo={false}
-                      size="small"
-                      status={percent < 20 ? 'exception' : 'normal'}
-                      className="!m-0"
-                    />
-                  </div>
-                );
-              },
-            },
-            ...(showRedeemedCost
-              ? [
-                  {
-                    title: tr('redeemedCost'),
-                    key: 'redeemedCost',
-                    align: 'right' as const,
-                    render: (_: unknown, row: CampaignReport['byPrize'][number]) => (
-                      <Typography.Text strong className="tabular-nums">
-                        {formatVnd(row.redeemed * row.valueVnd, locale)}
-                      </Typography.Text>
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
+        )}
+      </CardHeader>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="p-4 space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">{tr('empty')}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{tr('name')}</TableHead>
+                  <TableHead className="text-right">{tr('unitCost')}</TableHead>
+                  <TableHead className="text-right">{tr('issued')}</TableHead>
+                  <TableHead className="text-right">{tr('redeemed')}</TableHead>
+                  <TableHead className="w-40">{tr('remaining')}</TableHead>
+                  {showRedeemedCost && (
+                    <TableHead className="text-right">{tr('redeemedCost')}</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => {
+                  const percent = row.quantity
+                    ? Math.round((row.remaining / row.quantity) * 100)
+                    : 0;
+                  return (
+                    <TableRow key={row.prizeId}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{row.name}</span>
+                          <Caption>
+                            {t('stock.issued', { issued: row.issued, redeemed: row.redeemed })}
+                          </Caption>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatVnd(row.valueVnd, locale)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {format.number(row.issued)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">
+                        {format.number(row.redeemed)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Caption className="tabular-nums">
+                            {t('stock.left', { left: row.remaining, total: row.quantity })}
+                          </Caption>
+                          <Progress
+                            value={percent}
+                            className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+                          />
+                        </div>
+                      </TableCell>
+                      {showRedeemedCost && (
+                        <TableCell className="text-right font-semibold tabular-nums">
+                          {formatVnd(row.redeemed * row.valueVnd, locale)}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -536,7 +502,6 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   const format = useFormatter();
   const locale = useLocale();
   const now = useNow({ updateInterval: 60_000 }).getTime();
-  const { token } = theme.useToken();
   const campaignQuery = useCampaign(orgId, campaignId);
   const phase = campaignQuery.data ? campaignPhase(campaignQuery.data, now) : 'draft';
   const reportQuery = useCampaignReport(orgId, campaignId, {
@@ -545,19 +510,21 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   const routes = campaignRoutes(orgId);
 
   if (campaignQuery.isPending || reportQuery.isPending) {
-    return <Skeleton active paragraph={{ rows: 10 }} />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      </div>
+    );
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <Result
-        status="404"
-        title={t('notFound')}
-        extra={
-          <Link href={routes.list}>
-            <Button type="primary">{t('backToList')}</Button>
-          </Link>
-        }
-      />
+      <div className="py-12 text-center text-muted-foreground">
+        <p className="mb-4">{t('notFound')}</p>
+        <Link href={routes.list}>
+          <Button>{t('backToList')}</Button>
+        </Link>
+      </div>
     );
   }
   if (reportQuery.isError || !reportQuery.data) {
@@ -573,7 +540,7 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   });
 
   return (
-    <Flex vertical gap={20} data-testid="campaign-one-page-report">
+    <div className="flex flex-col gap-5" data-testid="campaign-one-page-report">
       <div data-print-hide>
         <PageHeader
           title={tr('pageTitle', { name: campaign.name })}
@@ -582,11 +549,8 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
           backHref={routes.detail(campaign.id)}
           backLabel={tr('backToCampaign')}
           extra={
-            <Button
-              type="primary"
-              icon={<Printer className="size-4" />}
-              onClick={() => window.print()}
-            >
+            <Button className="gap-2 rounded-full" onClick={() => window.print()}>
+              <Printer className="size-4" />
               {tr('printPdf')}
             </Button>
           }
@@ -597,27 +561,23 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
 
       <OutcomeMetricGrid campaign={campaign} report={report} />
 
-      <Card
-        variant="borderless"
-        title={tr('insights.title')}
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        data-testid="report-insights"
-        data-print-card
-      >
-        <Flex vertical gap={12}>
+      <Card className="rounded-2xl border" data-testid="report-insights" data-print-card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">{tr('insights.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
           {insights.map((insight) => (
-            <Flex
+            <div
               key={insight.key}
-              align="start"
-              gap={10}
+              className="flex items-start gap-2.5 text-sm"
               data-testid="report-insight-item"
               data-insight-key={insight.key}
             >
-              <Lightbulb className="mt-0.5 size-4 shrink-0" style={{ color: token.colorPrimary }} />
-              <Typography.Text>{tr(`insights.${insight.key}`, insight.values)}</Typography.Text>
-            </Flex>
+              <Lightbulb className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>{tr(`insights.${insight.key}`, insight.values)}</span>
+            </div>
           ))}
-        </Flex>
+        </CardContent>
       </Card>
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -632,6 +592,6 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
         showEditLink={false}
         showRedeemedCost
       />
-    </Flex>
+    </div>
   );
 }

@@ -1,15 +1,19 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type AssetSummary,
   type BrandKitSummary,
   CreateBrandKitBody,
   type ErrorCode,
 } from '@playora/contracts';
-import { applyApiError, useZodForm } from '@playora/ui/form';
-import { App, Form, Skeleton } from 'antd';
+import { Form } from '@playora/ui/components/form';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
+import { applyApiErrorToRHF } from '@playora/ui/form';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { QueryError } from '@/components/query-error';
 import { useAssets } from '@/features/assets/api';
 import { useBrandKits, useCreateBrandKit, useRemoveBrandKit, useUpdateBrandKit } from '../api';
@@ -24,7 +28,6 @@ import { BrandKitPreviewCard } from './brand-kit-preview-card';
 
 export function BrandKitsManager({ orgId }: { orgId: string }) {
   const t = useTranslations();
-  const { message } = App.useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const kitsQuery = useBrandKits(orgId, 50);
@@ -34,16 +37,24 @@ export function BrandKitsManager({ orgId }: { orgId: string }) {
 
   const remove = useRemoveBrandKit({
     onSuccess: () => {
-      message.success(t('brandKits.deleted'));
+      toast.success(t('brandKits.deleted'));
       if (editingId) {
         setEditingId(null);
       }
     },
-    onError: (err) => message.error(messageFor(err.code)),
+    onError: (err) => toast.error(messageFor(err.code)),
   });
 
   if (kitsQuery.isPending || assetsQuery.isPending) {
-    return <Skeleton active paragraph={{ rows: 6 }} />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-48 w-full rounded-2xl" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-2xl" />
+        </div>
+      </div>
+    );
   }
 
   if (kitsQuery.isError) {
@@ -94,43 +105,45 @@ export function BrandKitsManagerInner({
   onRemove: (brandKitId: string) => void;
 }) {
   const t = useTranslations();
-  const { message } = App.useApp();
-
-  const { form, rules, parse } = useZodForm(CreateBrandKitBody);
 
   const initialValues = useMemo<BrandKitFormValues>(
     () => (kit ? toBrandKitFormValues(kit) : DEFAULT_BRAND_KIT_VALUES),
     [kit],
   );
 
+  const form = useForm<BrandKitFormValues>({
+    resolver: zodResolver(CreateBrandKitBody),
+    defaultValues: initialValues,
+  });
+
   const messageFor = (code: ErrorCode) => t(`errors.${code}`);
 
   const create = useCreateBrandKit({
     onSuccess: (created) => {
-      message.success(t('brandKits.created', { name: created.name }));
-      form.resetFields();
+      toast.success(t('brandKits.created', { name: created.name }));
+      form.reset(DEFAULT_BRAND_KIT_VALUES);
     },
     onError: (err) => {
-      if (!applyApiError(form, err, messageFor)) {
-        message.error(messageFor(err.code));
+      if (!applyApiErrorToRHF(form.setError, err, messageFor)) {
+        toast.error(messageFor(err.code));
       }
     },
   });
 
   const update = useUpdateBrandKit({
     onSuccess: (updated) => {
-      message.success(t('brandKits.updated', { name: updated.name }));
+      toast.success(t('brandKits.updated', { name: updated.name }));
       onResetToNew();
     },
     onError: (err) => {
-      if (!applyApiError(form, err, messageFor)) {
-        message.error(messageFor(err.code));
+      if (!applyApiErrorToRHF(form.setError, err, messageFor)) {
+        toast.error(messageFor(err.code));
       }
     },
   });
 
   function handleSubmit(values: BrandKitFormValues) {
-    const body = parse(values);
+    const body = CreateBrandKitBody.parse(values);
     if (kit) {
       update.mutate({ params: { orgId, brandKitId: kit.id }, body });
     } else {
@@ -139,23 +152,34 @@ export function BrandKitsManagerInner({
   }
 
   return (
-    <Form form={form} layout="vertical" initialValues={initialValues} onFinish={handleSubmit}>
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="flex flex-col gap-6">
-          <BrandKitEditorCard
-            rules={rules}
-            editingId={kit?.id ?? null}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="flex flex-col gap-6">
+            <BrandKitEditorCard
+              form={form}
+              editingId={kit?.id ?? null}
+              imageAssets={imageAssets}
+              audioAssets={audioAssets}
+              isSubmitting={create.isPending || update.isPending}
+              onResetToNew={onResetToNew}
+            />
+
+            <BrandKitList
+              items={kits}
+              isRemoving={isRemoving}
+              onEdit={onEdit}
+              onRemove={onRemove}
+            />
+          </div>
+
+          <BrandKitPreviewCard
+            control={form.control}
+            initialValues={initialValues}
             imageAssets={imageAssets}
-            audioAssets={audioAssets}
-            isSubmitting={create.isPending || update.isPending}
-            onResetToNew={onResetToNew}
           />
-
-          <BrandKitList items={kits} isRemoving={isRemoving} onEdit={onEdit} onRemove={onRemove} />
         </div>
-
-        <BrandKitPreviewCard form={form} initialValues={initialValues} imageAssets={imageAssets} />
-      </div>
+      </form>
     </Form>
   );
 }

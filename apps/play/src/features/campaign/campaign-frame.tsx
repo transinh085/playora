@@ -19,7 +19,7 @@ export function campaignTheme(brand: CampaignBrand, skinKey: CampaignSkinKey) {
 
 /**
  * Full screen on a phone; a centred phone-width column on larger screens. Children render inside
- * the themed antd `App` (toasts via `App.useApp()`).
+ * the themed frame (toasts via sonner).
  */
 export function CampaignFrame({
   brand,
