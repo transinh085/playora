@@ -39,21 +39,8 @@
         "noRestrictedImports": {
           "level": "error",
           "options": {
-            "paths": {
-              "react-hook-form": "react-hook-form is forbidden across the repo. Use Ant Design Form with useZodForm from @playora/ui/form.",
-              "radix-ui": "radix-ui is forbidden across the repo. Use Ant Design components.",
-              "sonner": "sonner is forbidden across the repo. Use App.useApp() from Ant Design."
-            },
-            "patterns": [
-              {
-                "group": ["@radix-ui/**", "@radix-ui/*"],
-                "message": "@radix-ui is forbidden across the repo. Use Ant Design components."
-              },
-              {
-                "group": ["@playora/ui/components/**", "@playora/ui/components/*"],
-                "message": "@playora/ui/components/* is forbidden. Use Ant Design or @playora/ui/* directly."
-              }
-            ]
+            "paths": {},
+            "patterns": []
           }
         }
       }
@@ -102,10 +89,7 @@
                   "drizzle-orm": "Packages (contracts, core, game-sdk, i18n, env) cannot depend on drizzle-orm.",
                   "ioredis": "Packages (contracts, core, game-sdk, i18n, env) cannot depend on ioredis.",
                   "next": "Packages (contracts, core, game-sdk, i18n, env) cannot depend on next.",
-                  "antd": "Packages (contracts, core, game-sdk, i18n, env) cannot depend on antd.",
-                  "react-hook-form": "react-hook-form is forbidden across the repo.",
-                  "radix-ui": "radix-ui is forbidden across the repo.",
-                  "sonner": "sonner is forbidden across the repo."
+                  "antd": "Packages (contracts, core, game-sdk, i18n, env) cannot depend on antd."
                 },
                 "patterns": [
                   {
@@ -135,14 +119,6 @@
                   {
                     "group": ["antd/**", "antd/*"],
                     "message": "Packages cannot import from antd."
-                  },
-                  {
-                    "group": ["@radix-ui/**", "@radix-ui/*"],
-                    "message": "@radix-ui is forbidden across the repo."
-                  },
-                  {
-                    "group": ["@playora/ui/components/**", "@playora/ui/components/*"],
-                    "message": "@playora/ui/components/* is forbidden."
                   }
                 ]
               }
@@ -161,10 +137,7 @@
               "options": {
                 "paths": {
                   "@playora/api-client": "@playora/ui cannot import @playora/api-client.",
-                  "@playora/db": "@playora/ui cannot import @playora/db.",
-                  "react-hook-form": "react-hook-form is forbidden across the repo.",
-                  "radix-ui": "radix-ui is forbidden across the repo.",
-                  "sonner": "sonner is forbidden across the repo."
+                  "@playora/db": "@playora/ui cannot import @playora/db."
                 },
                 "patterns": [
                   {
@@ -174,14 +147,6 @@
                   {
                     "group": ["@playora/db/**", "@playora/db/*"],
                     "message": "@playora/ui cannot import @playora/db."
-                  },
-                  {
-                    "group": ["@radix-ui/**", "@radix-ui/*"],
-                    "message": "@radix-ui is forbidden across the repo."
-                  },
-                  {
-                    "group": ["@playora/ui/components/**", "@playora/ui/components/*"],
-                    "message": "@playora/ui/components/* is forbidden."
                   }
                 ]
               }
@@ -198,23 +163,11 @@
             "noRestrictedImports": {
               "level": "error",
               "options": {
-                "paths": {
-                  "react-hook-form": "react-hook-form is forbidden across the repo.",
-                  "radix-ui": "radix-ui is forbidden across the repo.",
-                  "sonner": "sonner is forbidden across the repo."
-                },
+                "paths": {},
                 "patterns": [
                   {
                     "group": ["../*/*.repository*", "../**/*.repository*"],
                     "message": "Cross-module repository imports are forbidden. Access data through the target module's Service."
-                  },
-                  {
-                    "group": ["@radix-ui/**", "@radix-ui/*"],
-                    "message": "@radix-ui is forbidden across the repo."
-                  },
-                  {
-                    "group": ["@playora/ui/components/**", "@playora/ui/components/*"],
-                    "message": "@playora/ui/components/* is forbidden."
                   }
                 ]
               }
@@ -231,11 +184,7 @@
             "noRestrictedImports": {
               "level": "error",
               "options": {
-                "paths": {
-                  "react-hook-form": "react-hook-form is forbidden across the repo.",
-                  "radix-ui": "radix-ui is forbidden across the repo.",
-                  "sonner": "sonner is forbidden across the repo."
-                },
+                "paths": {},
                 "patterns": [
                   {
                     "group": ["@/app/**", "@/app/*"],
@@ -251,14 +200,6 @@
                       "../_components/*"
                     ],
                     "message": "Importing from _components is forbidden. Features should encapsulate components in features/<feature>/components."
-                  },
-                  {
-                    "group": ["@radix-ui/**", "@radix-ui/*"],
-                    "message": "@radix-ui is forbidden across the repo."
-                  },
-                  {
-                    "group": ["@playora/ui/components/**", "@playora/ui/components/*"],
-                    "message": "@playora/ui/components/* is forbidden."
                   }
                 ]
               }

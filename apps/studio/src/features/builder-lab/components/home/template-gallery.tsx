@@ -1,18 +1,25 @@
 'use client';
 
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
 import {
-  App,
-  Button,
-  Card,
-  Flex,
-  Input,
-  Modal,
-  Segmented,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@playora/ui/components/dialog';
+import { Input } from '@playora/ui/components/input';
+import {
   Select,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@playora/ui/components/select';
+import { toast } from '@playora/ui/components/sonner';
+import { cn } from '@playora/ui/lib/utils';
 import { Check, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -42,8 +49,6 @@ interface Choice {
 /** "Create campaign": pick template × skin from live cover previews, name it, start editing. */
 export function TemplateGallery({ orgId }: { orgId: string }) {
   const t = useTranslations('builderLab.home');
-  const { token } = theme.useToken();
-  const { message } = App.useApp();
   const router = useRouter();
   const create = useCreateCampaign(orgId);
   const brandKits = useBrandKits(orgId);
@@ -101,10 +106,10 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
         name: name.trim(),
         brand: brandFromKit(chosenKit),
       });
-      message.success(t('created'));
+      toast.success(t('created'));
       router.push(campaignRoutes(orgId).edit(campaign.id));
     } catch {
-      message.error(t('createFailed'));
+      toast.error(t('createFailed'));
     }
   };
 
@@ -115,53 +120,73 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
 
   return (
     <>
-      <Card
-        variant="borderless"
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        title={
-          <Flex align="center" gap={8}>
+      <Card className="rounded-2xl border">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Sparkles className="size-4" />
             {t('create.title')}
-          </Flex>
-        }
-      >
-        <Flex vertical gap={20}>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
           <Caption>{t('create.hint')}</Caption>
 
-          <Flex gap={16} wrap align="center" justify="space-between" className="border-b pb-4">
-            <Flex gap={8} align="center" wrap>
-              <Typography.Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
                 {t('mechanicsLabel')}:
-              </Typography.Text>
-              <Segmented<TemplateKey | 'all'>
-                value={mechanic}
-                onChange={setMechanic}
-                options={[
-                  { value: 'all', label: t('occasions.all') },
-                  ...MECHANICS.map((key) => ({
-                    value: key,
-                    label: t(`templates.${key}`),
-                  })),
-                ]}
-              />
-            </Flex>
+              </span>
+              <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-full px-3 py-1 font-medium transition-all',
+                    mechanic === 'all'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  onClick={() => setMechanic('all')}
+                >
+                  {t('occasions.all')}
+                </button>
+                {MECHANICS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={cn(
+                      'rounded-full px-3 py-1 font-medium transition-all',
+                      mechanic === key
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                    onClick={() => setMechanic(key)}
+                  >
+                    {t(`templates.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            <Flex gap={6} wrap align="center">
-              <Typography.Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground">
                 {t('occasionsLabel')}:
-              </Typography.Text>
+              </span>
               {(['all', ...OCCASIONS] as const).map((key) => (
-                <Tag.CheckableTag
+                <button
                   key={key}
-                  checked={occasion === key}
-                  onChange={() => setOccasion(key)}
-                  className="!m-0"
+                  type="button"
+                  onClick={() => setOccasion(key)}
+                  className={cn(
+                    'rounded-full px-2.5 py-0.5 text-xs font-medium transition-all border',
+                    occasion === key
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:border-foreground/30',
+                  )}
                 >
                   {key === 'all' ? t('occasions.all') : t(`occasions.${key}`)}
-                </Tag.CheckableTag>
+                </button>
               ))}
-            </Flex>
-          </Flex>
+            </div>
+          </div>
 
           <div
             className="grid gap-4"
@@ -172,187 +197,142 @@ export function TemplateGallery({ orgId }: { orgId: string }) {
               const active = picked?.templateKey === c.templateKey && picked.skinKey === c.skin.key;
               const cover = covers.get(key);
               return (
-                <Card
+                <button
+                  type="button"
                   key={key}
-                  variant="borderless"
                   onClick={() => pick(c, true)}
-                  role="button"
-                  tabIndex={0}
                   aria-pressed={active}
                   aria-label={`${t(`templates.${c.templateKey}`)} · ${t(`skins.${c.skin.key}`)}`}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      pick(c, true);
-                    }
-                  }}
                   data-testid={`template-${key}`}
-                  style={{
-                    overflow: 'hidden',
-                    border: `${active ? 2 : 1}px solid ${active ? token.colorPrimary : token.colorBorderSecondary}`,
-                    borderRadius: token.borderRadiusLG,
-                  }}
-                  styles={{ body: { padding: 12 } }}
-                  cover={
-                    <div className="relative overflow-hidden" style={{ height: 230 }}>
-                      {cover && <FitScreen screen={cover} brand={c.skin.brand} />}
-                      <div className="absolute top-2.5 left-2.5">
-                        <Tag color="cyan" className="!m-0 text-xs">
-                          {t(`templates.${c.templateKey}`)}
-                        </Tag>
-                      </div>
-                      {active && (
-                        <span
-                          className="absolute top-2.5 right-2.5 flex items-center justify-center shadow-md"
-                          style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: '50%',
-                            background: token.colorPrimary,
-                            color: token.colorWhite,
-                          }}
-                        >
-                          <Check className="size-3.5" />
-                        </span>
-                      )}
-                    </div>
-                  }
+                  className={cn(
+                    'group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card text-left transition-all hover:shadow-md',
+                    active ? 'border-primary ring-2 ring-primary/40' : 'border-border',
+                  )}
                 >
-                  <Flex vertical gap={4}>
-                    <Typography.Text strong ellipsis>
+                  <div className="relative h-[230px] overflow-hidden bg-muted">
+                    {cover && <FitScreen screen={cover} brand={c.skin.brand} />}
+                    <div className="absolute left-2.5 top-2.5">
+                      <Badge variant="secondary" className="text-[10px] shadow-sm">
+                        {t(`templates.${c.templateKey}`)}
+                      </Badge>
+                    </div>
+                    {active && (
+                      <span className="absolute right-2.5 top-2.5 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+                        <Check className="size-3.5" />
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1 p-3">
+                    <span className="truncate text-sm font-semibold">
                       {t(`skins.${c.skin.key}`)}
-                    </Typography.Text>
+                    </span>
                     <Caption>{t(`templates.${c.templateKey}`)}</Caption>
-                    <Button
-                      type={active ? 'primary' : 'default'}
-                      size="small"
-                      block
-                      className="mt-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        pick(c, true);
-                      }}
+                    <span
+                      className={cn(
+                        'mt-1 inline-flex h-8 w-full items-center justify-center rounded-full px-3 text-xs font-medium transition-colors',
+                        active
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
+                      )}
                     >
                       {t('useTemplate')}
-                    </Button>
-                  </Flex>
-                </Card>
+                    </span>
+                  </div>
+                </button>
               );
             })}
           </div>
 
-          <Flex
-            gap={12}
-            wrap
-            align="center"
-            justify="space-between"
-            className="p-4 rounded-xl border mt-2"
-            style={{ background: token.colorFillAlter, borderColor: token.colorBorderSecondary }}
-          >
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-muted/30 p-4">
             <div className="min-w-0">
-              <Typography.Text strong className="block">
+              <span className="block font-semibold">
                 {picked
                   ? `${t(`templates.${picked.templateKey}`)} · ${t(`skins.${picked.skinKey}`)}`
                   : t('pickFirst')}
-              </Typography.Text>
+              </span>
               <Caption>{picked ? name : t('namePlaceholder')}</Caption>
             </div>
-            <Flex gap={8} align="center">
-              <Button type="primary" disabled={!picked} onClick={() => setModalOpen(true)}>
-                {t('createButton')}
-              </Button>
-            </Flex>
-          </Flex>
-        </Flex>
+            <Button className="rounded-full" disabled={!picked} onClick={() => setModalOpen(true)}>
+              {t('createButton')}
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
-      <Modal
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        footer={null}
-        title={t('modalTitle')}
-        centered
-        width={480}
-      >
-        <Flex vertical gap={16} className="pt-2">
-          <Typography.Paragraph type="secondary" className="!m-0">
-            {t('modalSubtitle')}
-          </Typography.Paragraph>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('modalTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <p className="text-xs text-muted-foreground">{t('modalSubtitle')}</p>
 
-          {activeChoice && activeCover && (
-            <Flex gap={16} align="center" className="p-3 rounded-lg border bg-secondary/5">
-              <div
-                className="shrink-0 overflow-hidden rounded-md shadow-sm"
-                style={{ width: 60, height: 90 }}
-              >
-                <FitScreen screen={activeCover} brand={activeChoice.skin.brand} />
+            {activeChoice && activeCover && (
+              <div className="flex items-center gap-4 rounded-xl border bg-muted/40 p-3">
+                <div className="h-[90px] w-[60px] shrink-0 overflow-hidden rounded-lg shadow-sm">
+                  <FitScreen screen={activeCover} brand={activeChoice.skin.brand} />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-base font-semibold">
+                    {t(`templates.${activeChoice.templateKey}`)}
+                  </span>
+                  <Caption className="mb-1 block">{t(`skins.${activeChoice.skin.key}`)}</Caption>
+                  <Badge variant="secondary">{t(`occasions.${activeChoice.skin.occasion}`)}</Badge>
+                </div>
               </div>
-              <div className="min-w-0">
-                <Typography.Text strong className="block text-base">
-                  {t(`templates.${activeChoice.templateKey}`)}
-                </Typography.Text>
-                <Caption className="block mb-1">{t(`skins.${activeChoice.skin.key}`)}</Caption>
-                <Tag color="blue" className="!m-0">
-                  {t(`occasions.${activeChoice.skin.occasion}`)}
-                </Tag>
-              </div>
-            </Flex>
-          )}
+            )}
 
-          <div>
-            <Typography.Text strong className="block mb-1.5" style={{ fontSize: 13 }}>
-              {t('nameLabel')}
-            </Typography.Text>
-            <Input
-              aria-label={t('nameLabel')}
-              placeholder={t('namePlaceholder')}
-              value={name}
-              maxLength={80}
-              onChange={(e) => setName(e.target.value)}
-              onPressEnter={submit}
-              size="large"
-            />
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold">{t('nameLabel')}</span>
+              <Input
+                aria-label={t('nameLabel')}
+                placeholder={t('namePlaceholder')}
+                value={name}
+                maxLength={80}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submit();
+                }}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold">{t('brandKitLabel')}</span>
+              <Select value={selectedBrandKitId} onValueChange={setSelectedBrandKitId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('defaultBrandKit')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(brandKits.data?.items ?? []).map((kit) => (
+                    <SelectItem key={kit.id} value={kit.id}>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="size-3.5 shrink-0 rounded-full border"
+                          style={{ background: kit.tokens.colors.primary }}
+                        />
+                        <span>{kit.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
-          <div>
-            <Typography.Text strong className="block mb-1.5" style={{ fontSize: 13 }}>
-              {t('brandKitLabel')}
-            </Typography.Text>
-            <Select
-              className="w-full"
-              size="large"
-              value={selectedBrandKitId}
-              onChange={setSelectedBrandKitId}
-              placeholder={t('defaultBrandKit')}
-              options={(brandKits.data?.items ?? []).map((kit) => ({
-                value: kit.id,
-                label: (
-                  <Flex align="center" gap={8}>
-                    <span
-                      className="size-3.5 rounded-full shrink-0 border"
-                      style={{ background: kit.tokens.colors.primary }}
-                    />
-                    <span>{kit.name}</span>
-                  </Flex>
-                ),
-              }))}
-            />
-          </div>
-
-          <Flex justify="end" gap={8} className="pt-3">
-            <Button onClick={() => setModalOpen(false)}>{t('back')}</Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              {t('back')}
+            </Button>
             <Button
-              type="primary"
-              size="large"
-              disabled={!name.trim()}
-              loading={create.isPending}
+              className="rounded-full"
+              disabled={!name.trim() || create.isPending}
               onClick={submit}
             >
               {t('createButton')}
             </Button>
-          </Flex>
-        </Flex>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -85,21 +85,51 @@ export function saveCustomChannels(campaignId: string, channels: CustomChannel[]
   }
 }
 
-/** Downloads an antd canvas QRCode as PNG. */
+/** Downloads a QRCode (canvas or svg) as PNG. */
 export function downloadCanvasQRCode(container: HTMLElement | null, filename = 'qrcode.png') {
   if (!container) return;
   const canvas = container.querySelector('canvas');
-  if (!canvas) return;
-  const url = canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
-  a.href = url;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  if (canvas) {
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
+    a.href = url;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+  const svg = container.querySelector('svg');
+  if (svg) {
+    const serializer = new XMLSerializer();
+    const source = serializer.serializeToString(svg);
+    const img = new Image();
+    const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width || 300;
+      c.height = img.height || 300;
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0);
+        const pngUrl = c.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
+        a.href = pngUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
 }
 
-/** Downloads an antd SVG QRCode as SVG. */
+/** Downloads an SVG QRCode as SVG. */
 export function downloadSvgQRCode(container: HTMLElement | null, filename = 'qrcode.svg') {
   if (!container) return;
   const svg = container.querySelector('svg');

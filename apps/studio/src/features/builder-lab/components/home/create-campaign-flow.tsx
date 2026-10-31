@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Flex } from 'antd';
+import { Button } from '@playora/ui/components/button';
 import { ArrowLeft } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -32,14 +32,15 @@ export function CreateCampaignFlow({ orgId }: { orgId: string }) {
   }
   if (params.get('start') === 'templates') {
     return (
-      <Flex vertical gap={16}>
+      <div className="flex flex-col gap-4">
         <div>
-          <Button icon={<ArrowLeft className="size-4" />} onClick={() => go('')}>
+          <Button variant="outline" className="gap-2" onClick={() => go('')}>
+            <ArrowLeft className="size-4" />
             {t('backToGoals')}
           </Button>
         </div>
         <TemplateGallery orgId={orgId} />
-      </Flex>
+      </div>
     );
   }
   return (

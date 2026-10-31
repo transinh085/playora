@@ -1,31 +1,34 @@
 'use client';
 
 import type { AssetSummary } from '@playora/contracts';
+import { Badge } from '@playora/ui/components/badge';
+import { Card } from '@playora/ui/components/card';
 import { GameButton } from '@playora/ui/game/game-button';
 import { GameRoot } from '@playora/ui/game/game-root';
-import { Card, Form, type FormInstance, Tag } from 'antd';
 import { useTranslations } from 'next-intl';
+import { type Control, useWatch } from 'react-hook-form';
 import { type BrandKitFormValues, DEFAULT_BRAND_KIT_VALUES } from './brand-kit-editor-card';
 
 export function BrandKitPreviewCard({
-  form,
+  control,
   imageAssets,
   initialValues = DEFAULT_BRAND_KIT_VALUES,
 }: {
-  form: FormInstance<BrandKitFormValues>;
+  control: Control<BrandKitFormValues>;
   imageAssets: AssetSummary[];
   initialValues?: BrandKitFormValues;
 }) {
   const t = useTranslations();
 
-  const watchedName = Form.useWatch('name', form) ?? initialValues.name;
-  const watchedTokens = Form.useWatch('tokens', form) ?? initialValues.tokens;
+  const watchedName = useWatch({ control, name: 'name' }) ?? initialValues.name;
+  const watchedTokens = useWatch({ control, name: 'tokens' }) ?? initialValues.tokens;
 
   const logoAsset = imageAssets.find((a) => a.id === watchedTokens?.logoAssetId);
   const bgAsset = imageAssets.find((a) => a.id === watchedTokens?.backgroundAssetId);
 
   return (
-    <Card title={t('brandKits.previewTitle')} className="h-fit">
+    <Card className="h-fit rounded-2xl p-6">
+      <h3 className="mb-4 text-base font-semibold">{t('brandKits.previewTitle')}</h3>
       <GameRoot
         brand={{
           primary: watchedTokens?.colors?.primary,
@@ -54,9 +57,9 @@ export function BrandKitPreviewCard({
               className="h-12 w-auto object-contain"
             />
           )}
-          <Tag className="m-0 border-game-border bg-game-surface text-game-fg">
+          <Badge variant="outline" className="border-game-border bg-game-surface text-game-fg">
             {watchedName || 'Playora'}
-          </Tag>
+          </Badge>
         </div>
 
         <div className="grid gap-2">

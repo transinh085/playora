@@ -1,4 +1,4 @@
-import { AntdRegistry } from '@playora/ui/providers';
+import { Toaster } from '@playora/ui/components/sonner';
 import type { Metadata } from 'next';
 import { Google_Sans, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -25,11 +25,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   return (
     <html lang={locale} className={`${font.variable} ${display.variable}`} suppressHydrationWarning>
-      <body className="min-h-dvh font-sans antialiased">
+      <body className="min-h-dvh font-sans antialiased bg-background text-foreground">
         <NextIntlClientProvider>
-          <AntdRegistry>
-            <Providers>{children}</Providers>
-          </AntdRegistry>
+          <Providers>{children}</Providers>
+          <Toaster position="top-right" />
         </NextIntlClientProvider>
       </body>
     </html>

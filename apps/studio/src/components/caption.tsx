@@ -1,17 +1,26 @@
-'use client';
+import type React from 'react';
 
-import { Typography, theme } from 'antd';
-import type { TextProps } from 'antd/es/typography/Text';
+/** body-sm (12/20) secondary text: hints, metadata, timestamps. */
+export interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> {
+  type?: 'secondary' | 'danger';
+  italic?: boolean;
+}
 
-/** body-sm (12/20) secondary text: hints, metadata, timestamps. The only small-text style in Studio. */
-export function Caption({ type = 'secondary', style, ...props }: TextProps) {
-  const { token } = theme.useToken();
-
+export function Caption({
+  className = '',
+  children,
+  type = 'secondary',
+  italic,
+  ...props
+}: CaptionProps) {
+  const colorClass = type === 'danger' ? 'text-destructive' : 'text-muted-foreground';
+  const italicClass = italic ? 'italic' : '';
   return (
-    <Typography.Text
-      type={type}
-      style={{ fontSize: token.fontSizeSM, lineHeight: token.lineHeightSM, ...style }}
+    <span
+      className={`text-xs leading-normal ${colorClass} ${italicClass} ${className}`.trim()}
       {...props}
-    />
+    >
+      {children}
+    </span>
   );
 }

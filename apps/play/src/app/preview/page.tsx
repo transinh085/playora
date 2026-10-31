@@ -15,7 +15,7 @@ import {
   toPlayOutcome,
 } from '@playora/game-sdk';
 import { getTemplate, getTemplateSurfaces } from '@playora/templates';
-import { Skeleton } from 'antd';
+import { Skeleton } from '@playora/ui/components/skeleton';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
@@ -189,7 +189,7 @@ function PreviewSurface() {
       <Suspense
         fallback={
           <div className="flex min-h-dvh flex-col items-center justify-center p-6">
-            <Skeleton active paragraph={{ rows: 6 }} />
+            <Skeleton className="h-48 w-full max-w-sm rounded-xl" />
           </div>
         }
       >

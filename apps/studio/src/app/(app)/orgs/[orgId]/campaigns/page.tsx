@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button } from '@playora/ui/components/button';
 import { Plus } from 'lucide-react';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
@@ -19,11 +19,12 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgI
         title={t('title')}
         description={t('subtitle')}
         extra={
-          <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
-            <Button type="primary" icon={<Plus className="size-4" />} tabIndex={-1}>
+          <Button asChild className="rounded-full">
+            <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
+              <Plus className="mr-1.5 size-4" />
               {t('create')}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       />
       <CampaignList orgId={orgId} />

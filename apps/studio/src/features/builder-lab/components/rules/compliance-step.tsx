@@ -1,7 +1,10 @@
 'use client';
 
 import { generateTerms } from '@playora/core/compliance';
-import { Button, Card, Flex, Input, Tag, Typography, theme } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent } from '@playora/ui/components/card';
+import { Textarea } from '@playora/ui/components/textarea';
 import { FileText, RotateCcw, ShoppingBag, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -22,7 +25,6 @@ export function ComplianceStep({
   onChange: (patch: Partial<CampaignCompliance>) => void;
 }) {
   const t = useTranslations('builderLab.rules.compliance');
-  const { token } = theme.useToken();
   const compliance = campaign.compliance;
 
   const generatedTerms = useMemo(() => {
@@ -39,18 +41,15 @@ export function ComplianceStep({
   const isCustom = compliance.termsText !== null;
 
   return (
-    <Flex vertical gap={20}>
+    <div className="flex flex-col gap-5">
       {/* Question: Khách có phải mua hàng mới được chơi không? */}
-      <Flex vertical gap={8}>
-        <Typography.Text strong className="text-sm">
-          {t('question')}
-        </Typography.Text>
+      <div className="flex flex-col gap-2">
+        <span className="font-semibold text-sm">{t('question')}</span>
         <div role="radiogroup" aria-label={t('question')} className="grid gap-3 sm:grid-cols-2">
           {/* purchase_linked */}
           <Card
             role="radio"
             aria-checked={compliance.promotionType === 'purchase_linked'}
-            hoverable
             tabIndex={0}
             onClick={() => onChange({ promotionType: 'purchase_linked' })}
             onKeyDown={(e) => {
@@ -59,38 +58,29 @@ export function ComplianceStep({
                 onChange({ promotionType: 'purchase_linked' });
               }
             }}
-            className="cursor-pointer transition-all"
-            style={{
-              borderColor:
-                compliance.promotionType === 'purchase_linked'
-                  ? token.colorPrimary
-                  : token.colorBorderSecondary,
-              background:
-                compliance.promotionType === 'purchase_linked'
-                  ? token.colorPrimaryBg
-                  : token.colorBgContainer,
-            }}
+            className={`cursor-pointer rounded-2xl transition-all ${
+              compliance.promotionType === 'purchase_linked'
+                ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                : 'border-border hover:border-foreground/30'
+            }`}
           >
-            <Flex gap={12} align="start">
+            <CardContent className="flex items-start gap-3 p-4">
               <IconTile tone={compliance.promotionType === 'purchase_linked' ? 'primary' : 'info'}>
                 <ShoppingBag className="size-5" />
               </IconTile>
-              <Flex vertical gap={4} className="min-w-0 flex-1">
-                <Typography.Text strong className="text-sm">
-                  {t('purchaseLinked')}
-                </Typography.Text>
-                <Typography.Text type="secondary" className="text-xs leading-relaxed">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="font-semibold text-sm">{t('purchaseLinked')}</span>
+                <span className="text-muted-foreground text-xs leading-relaxed">
                   {t('purchaseLinkedHint')}
-                </Typography.Text>
-              </Flex>
-            </Flex>
+                </span>
+              </div>
+            </CardContent>
           </Card>
 
           {/* not_linked */}
           <Card
             role="radio"
             aria-checked={compliance.promotionType === 'not_linked'}
-            hoverable
             tabIndex={0}
             onClick={() => onChange({ promotionType: 'not_linked' })}
             onKeyDown={(e) => {
@@ -99,73 +89,72 @@ export function ComplianceStep({
                 onChange({ promotionType: 'not_linked' });
               }
             }}
-            className="cursor-pointer transition-all"
-            style={{
-              borderColor:
-                compliance.promotionType === 'not_linked'
-                  ? token.colorPrimary
-                  : token.colorBorderSecondary,
-              background:
-                compliance.promotionType === 'not_linked'
-                  ? token.colorPrimaryBg
-                  : token.colorBgContainer,
-            }}
+            className={`cursor-pointer rounded-2xl transition-all ${
+              compliance.promotionType === 'not_linked'
+                ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                : 'border-border hover:border-foreground/30'
+            }`}
           >
-            <Flex gap={12} align="start">
+            <CardContent className="flex items-start gap-3 p-4">
               <IconTile tone={compliance.promotionType === 'not_linked' ? 'success' : 'info'}>
                 <Sparkles className="size-5" />
               </IconTile>
-              <Flex vertical gap={4} className="min-w-0 flex-1">
-                <Typography.Text strong className="text-sm">
-                  {t('notLinked')}
-                </Typography.Text>
-                <Typography.Text type="secondary" className="text-xs leading-relaxed">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="font-semibold text-sm">{t('notLinked')}</span>
+                <span className="text-muted-foreground text-xs leading-relaxed">
                   {t('notLinkedHint')}
-                </Typography.Text>
-              </Flex>
-            </Flex>
+                </span>
+              </div>
+            </CardContent>
           </Card>
         </div>
-      </Flex>
+      </div>
 
       {/* Terms: preview / edit */}
-      <Flex vertical gap={8}>
-        <Flex justify="space-between" align="center">
-          <Flex align="center" gap={8}>
-            <Typography.Text strong className="text-sm">
-              {t('termsTitle')}
-            </Typography.Text>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm">{t('termsTitle')}</span>
             {isCustom ? (
-              <Tag color="orange">{t('customBadge')}</Tag>
+              <Badge
+                variant="outline"
+                className="border-amber-500/30 text-amber-600 bg-amber-50 dark:bg-amber-950/20"
+              >
+                {t('customBadge')}
+              </Badge>
             ) : (
-              <Tag color="blue">{t('generatedBadge')}</Tag>
+              <Badge variant="secondary">{t('generatedBadge')}</Badge>
             )}
-          </Flex>
+          </div>
           {isCustom ? (
             <Button
-              type="text"
-              danger
-              icon={<RotateCcw className="size-4" />}
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full"
               onClick={() => onChange({ termsText: null })}
             >
+              <RotateCcw className="mr-1.5 size-4" />
               {t('resetTerms')}
             </Button>
           ) : (
             <Button
-              icon={<FileText className="size-4" />}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
               onClick={() => onChange({ termsText: generatedTerms })}
             >
+              <FileText className="mr-1.5 size-4" />
               {t('editTerms')}
             </Button>
           )}
-        </Flex>
+        </div>
 
-        <Typography.Text type="secondary" className="text-xs">
-          {t('termsHint')}
-        </Typography.Text>
+        <span className="text-muted-foreground text-xs">{t('termsHint')}</span>
 
         {isCustom ? (
-          <Input.TextArea
+          <Textarea
             rows={10}
             value={compliance.termsText ?? ''}
             onChange={(e) => onChange({ termsText: e.target.value })}
@@ -173,18 +162,11 @@ export function ComplianceStep({
             className="font-mono text-xs"
           />
         ) : (
-          <div
-            className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg p-3 text-xs leading-relaxed"
-            style={{
-              background: token.colorBgLayout,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              color: token.colorText,
-            }}
-          >
+          <div className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-xl border bg-muted/30 p-3 text-xs leading-relaxed text-foreground">
             {generatedTerms}
           </div>
         )}
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }

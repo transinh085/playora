@@ -1,14 +1,34 @@
-import { theme as antdTheme, type ThemeConfig } from 'antd';
 import { font, ink, semantic, teal } from './tokens';
 
 export type StudioThemeMode = 'light' | 'dark';
 
+export interface ThemeToken {
+  colorSuccess?: string;
+  colorWarning?: string;
+  colorError?: string;
+  borderRadius?: number;
+  fontFamily?: string;
+  wireframe?: boolean;
+  colorPrimary?: string;
+  colorInfo?: string;
+  colorPrimaryBg?: string;
+  colorPrimaryBgHover?: string;
+  colorInfoBg?: string;
+  colorLink?: string;
+  colorTextLightSolid?: string;
+  [key: string]: unknown;
+}
+
+export interface ThemeConfig {
+  algorithm?: unknown;
+  token?: ThemeToken;
+  components?: Record<string, unknown>;
+}
+
 /**
- * Studio follows the games-vt admin look (docs/engineering/design-system.md §3): antd's own neutrals and type scale, radius 8,
- * borderless cards at radius 12, 36px buttons at weight 500, filled inputs (set on the provider).
- * Only the brand colour is Playora's.
+ * Studio theme tokens (docs/engineering/design-system.md §3).
  */
-const shared: ThemeConfig['token'] = {
+const shared: ThemeToken = {
   colorSuccess: '#10b981',
   colorWarning: '#f59e0b',
   colorError: '#ef4444',
@@ -17,7 +37,7 @@ const shared: ThemeConfig['token'] = {
   wireframe: false,
 };
 
-const components: ThemeConfig['components'] = {
+const components: Record<string, unknown> = {
   Button: { controlHeight: 36, fontWeight: 500 },
   Card: {
     borderRadiusLG: 12,
@@ -29,12 +49,11 @@ const components: ThemeConfig['components'] = {
 };
 
 export const studioLightTheme: ThemeConfig = {
-  algorithm: antdTheme.defaultAlgorithm,
+  algorithm: 'default',
   token: {
     ...shared,
     colorPrimary: semantic.light.primary,
     colorInfo: semantic.light.primary,
-    // antd derives a greyish tint from this teal; pin the pale fills (menu selection, icon tiles).
     colorPrimaryBg: teal[50],
     colorPrimaryBgHover: teal[100],
     colorInfoBg: teal[50],
@@ -46,7 +65,7 @@ export const studioLightTheme: ThemeConfig = {
 };
 
 export const studioDarkTheme: ThemeConfig = {
-  algorithm: antdTheme.darkAlgorithm,
+  algorithm: 'dark',
   token: {
     ...shared,
     colorPrimary: semantic.dark.primary,
@@ -55,7 +74,6 @@ export const studioDarkTheme: ThemeConfig = {
     colorPrimaryBgHover: teal[800],
     colorInfoBg: teal[900],
     colorLink: teal[300],
-    // Dark primary is a light teal, so text on solid buttons must be dark to stay above 4.5:1.
     colorTextLightSolid: ink[950],
   },
   components: {
@@ -64,7 +82,7 @@ export const studioDarkTheme: ThemeConfig = {
   },
 };
 
-/** Returns the Ant Design `ThemeConfig` for Studio (`light` or `dark`). */
+/** Returns the ThemeConfig for Studio (`light` or `dark`). */
 export function getStudioTheme(mode: StudioThemeMode = 'light'): ThemeConfig {
   return mode === 'dark' ? studioDarkTheme : studioLightTheme;
 }

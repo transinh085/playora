@@ -1,12 +1,29 @@
-import { Form, type FormInstance, type FormRule } from 'antd';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
+import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
 import type { z } from 'zod';
+
+export interface FormInstance<Values = any> {
+  getFieldsValue: (all?: true) => Values;
+  setFields: (fields: Array<{ name: (string | number)[]; errors?: string[] }>) => void;
+  setFieldsValue?: (values: Partial<Values>) => void;
+  resetFields?: (fields?: (string | number)[]) => void;
+}
+
+export interface FormRule {
+  validator?: (
+    rule?: { field?: string | (string | number)[] } | object,
+    value?: unknown,
+  ) => Promise<void>;
+  message?: string;
+}
 
 export interface FormValuesStore {
   getFieldsValue: (all?: true) => unknown;
 }
 
-export type FormErrorTarget<Values = unknown> = Pick<FormInstance<Values>, 'setFields'>;
+export interface FormErrorTarget<Values = unknown> {
+  setFields: (fields: Array<{ name: (string | number)[]; errors?: string[] }>) => void;
+}
 
 export type ZodValidatorRule = {
   validator: (
@@ -19,7 +36,7 @@ export type ZodFormRule = ((form: FormValuesStore) => ZodValidatorRule) & ZodVal
 
 /**
  * Converts a dot-delimited field path (`'consents.x'`, `'items.0.name'`, `'slug'`)
- * into an Ant Design `NamePath` array (`['consents', 'x']`, `['items', 0, 'name']`, `['slug']`).
+ * into a name path array (`['consents', 'x']`, `['items', 0, 'name']`, `['slug']`).
  */
 export function toNamePath(field: string | readonly (string | number)[]): (string | number)[] {
   if (Array.isArray(field)) {
@@ -120,11 +137,7 @@ function createValidator<S extends z.ZodType>(
 }
 
 /**
- * Ant Design `Form.Item` rule adapter backed by a Zod schema.
- *
- * Runs `schema.safeParse(form.getFieldsValue(true))` and rejects with the message of the first
- * issue whose `issue.path` matches the `Form.Item`'s `name` (supporting flat fields, nested paths,
- * and cross-field `refine` / `superRefine`).
+ * Form rule adapter backed by a Zod schema.
  */
 export function zodRule<S extends z.ZodType>(schema: S, form?: FormValuesStore): ZodFormRule {
   const defaultValidator = createValidator(schema, form);
@@ -140,18 +153,25 @@ export interface UseZodFormResult<S extends z.ZodType> {
   parse: (values?: z.input<S>) => z.output<S>;
 }
 
-/**
- * Binds an Ant Design `FormInstance` to a contract Zod schema.
- *
- * - `form`: Ant Design form instance (`Form.useForm()`).
- * - `rules`: pass directly to `<Form.Item rules={rules}>`.
- * - `parse(values)`: parses form values through `schema.parse` and returns `z.output<S>`.
- */
 export function useZodForm<S extends z.ZodType>(
   schema: S,
   existingForm?: FormInstance<z.input<S>>,
 ): UseZodFormResult<S> {
-  const [form] = Form.useForm<z.input<S>>(existingForm);
+  const storeRef = useRef<Record<string, unknown>>({});
+  const form = useMemo<FormInstance<z.input<S>>>(
+    () =>
+      existingForm ?? {
+        getFieldsValue: () => storeRef.current as z.input<S>,
+        setFieldsValue: (val) => {
+          Object.assign(storeRef.current, val);
+        },
+        resetFields: () => {
+          storeRef.current = {};
+        },
+        setFields: () => {},
+      },
+    [existingForm],
+  );
 
   const rules = useMemo<FormRule[]>(() => [zodRule(schema, form)], [schema, form]);
 
@@ -183,9 +203,8 @@ interface ApiErrorDetailsShape {
 }
 
 /**
- * Maps an API error (`details.field` or `details.body.fieldErrors`) onto Ant Design form fields
- * via `form.setFields`. Returns `false` when no field error could be attached so the caller can
- * fall back to `message.error(...)`.
+ * Maps an API error (`details.field` or `details.body.fieldErrors`) onto form fields
+ * via `form.setFields`.
  */
 export function applyApiError<Values = unknown, Code extends string = string>(
   form: FormErrorTarget<Values>,
@@ -206,8 +225,6 @@ export function applyApiError<Values = unknown, Code extends string = string>(
 
   if (!details) return false;
 
-  type FieldName = Parameters<FormInstance<Values>['setFields']>[0][number]['name'];
-
   if (typeof details.field === 'string' && details.field.trim().length > 0) {
     const code = (typeof errObj.code === 'string' ? errObj.code : 'INTERNAL') as Code;
     const message = messageFor
@@ -218,7 +235,7 @@ export function applyApiError<Values = unknown, Code extends string = string>(
 
     form.setFields([
       {
-        name: toNamePath(details.field) as unknown as FieldName,
+        name: toNamePath(details.field),
         errors: [message],
       },
     ]);
@@ -234,10 +251,62 @@ export function applyApiError<Values = unknown, Code extends string = string>(
     if (entries.length > 0) {
       form.setFields(
         entries.map(([field, messages]) => ({
-          name: toNamePath(field) as unknown as FieldName,
+          name: toNamePath(field),
           errors: messages,
         })),
       );
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Maps an API error (`details.field` or `details.body.fieldErrors`) onto React Hook Form fields
+ * via `setError`.
+ */
+export function applyApiErrorToRHF<T extends FieldValues = FieldValues>(
+  setError: UseFormSetError<T>,
+  error: unknown,
+  messageFor?: (code: any) => string,
+): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const errObj = error as {
+    code?: unknown;
+    message?: unknown;
+    details?: unknown;
+  };
+  const details =
+    errObj.details && typeof errObj.details === 'object'
+      ? (errObj.details as ApiErrorDetailsShape)
+      : undefined;
+
+  if (!details) return false;
+
+  if (typeof details.field === 'string' && details.field.trim().length > 0) {
+    const code = typeof errObj.code === 'string' ? errObj.code : 'INTERNAL';
+    const message = messageFor
+      ? messageFor(code)
+      : typeof errObj.message === 'string' && errObj.message.length > 0
+        ? errObj.message
+        : code;
+
+    setError(details.field as Path<T>, { message });
+    return true;
+  }
+
+  const fieldErrors = details.body?.fieldErrors ?? details.fieldErrors;
+  if (fieldErrors && typeof fieldErrors === 'object') {
+    const entries = Object.entries(fieldErrors).filter(
+      ([field, messages]) =>
+        field.trim().length > 0 && Array.isArray(messages) && messages.length > 0,
+    );
+    if (entries.length > 0) {
+      for (const [field, messages] of entries) {
+        setError(field as Path<T>, { message: messages[0] });
+      }
       return true;
     }
   }

@@ -1,6 +1,7 @@
 'use client';
 
-import { Alert, Card, Flex, Typography } from 'antd';
+import { Alert, AlertDescription, AlertTitle } from '@playora/ui/components/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
@@ -45,12 +46,10 @@ export function RulesPrizesPanel({
   };
 
   return (
-    <Flex vertical gap={16} className="w-full">
+    <div className="flex w-full flex-col gap-4">
       <div>
-        <Typography.Title level={4} className="!mb-1">
-          {t('title')}
-        </Typography.Title>
-        <Typography.Text type="secondary">{t('subtitle')}</Typography.Text>
+        <h2 className="font-semibold text-lg leading-tight tracking-tight">{t('title')}</h2>
+        <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
       </div>
 
       <StepCard step={1} title={t('steps.mode')} hint={t('steps.modeHint')}>
@@ -87,24 +86,28 @@ export function RulesPrizesPanel({
       </StepCard>
 
       {issues.length > 0 && (
-        <Alert
-          type="error"
-          showIcon
-          title={t('issues.title')}
-          description={
-            <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5">
+        <Alert variant="destructive">
+          <AlertTitle>{t('issues.title')}</AlertTitle>
+          <AlertDescription className="mt-1">
+            <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5 text-xs">
               {issues.map((issue) => (
                 <li key={issue.key}>{t(`issues.${issue.key}`, issue.values)}</li>
               ))}
             </ul>
-          }
-        />
+          </AlertDescription>
+        </Alert>
       )}
 
-      <Card title={t('sim.title')} extra={<Caption>{t('sim.extra')}</Caption>}>
-        <SimulatorCard campaign={campaign} blocked={issues.length > 0} onRulesChange={setRules} />
+      <Card className="rounded-2xl border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base font-semibold">{t('sim.title')}</CardTitle>
+          <Caption>{t('sim.extra')}</Caption>
+        </CardHeader>
+        <CardContent>
+          <SimulatorCard campaign={campaign} blocked={issues.length > 0} onRulesChange={setRules} />
+        </CardContent>
       </Card>
-    </Flex>
+    </div>
   );
 }
 
@@ -121,18 +124,17 @@ function StepCard({
 }) {
   const t = useTranslations('builderLab.rules');
   return (
-    <Card
-      title={
-        <Flex vertical className="py-3">
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col gap-0.5">
           <Caption>{t('steps.label', { step })}</Caption>
-          <span>{title}</span>
-        </Flex>
-      }
-    >
-      <Flex vertical gap={12}>
-        <Typography.Text type="secondary">{hint}</Typography.Text>
+          <CardTitle className="text-base font-semibold">{title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3 pt-0">
+        <p className="text-muted-foreground text-xs">{hint}</p>
         {children}
-      </Flex>
+      </CardContent>
     </Card>
   );
 }

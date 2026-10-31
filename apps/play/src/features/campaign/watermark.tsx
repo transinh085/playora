@@ -1,6 +1,6 @@
 'use client';
 
-import { Tag, Typography } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
 import { useTranslations } from 'next-intl';
 
 export const WATERMARK_HREF = 'https://playora.vn/?ref=watermark';
@@ -9,10 +9,10 @@ export const WATERMARK_HREF = 'https://playora.vn/?ref=watermark';
 export function PlayoraWatermark() {
   const t = useTranslations('play');
   return (
-    <Tag variant="filled" className="m-0" data-testid="playora-watermark">
-      <Typography.Link href={WATERMARK_HREF} target="_blank" rel="noopener">
+    <Badge variant="secondary" className="m-0 text-xs shadow-xs" data-testid="playora-watermark">
+      <a href={WATERMARK_HREF} target="_blank" rel="noopener" className="hover:underline">
         {t('watermark')}
-      </Typography.Link>
-    </Tag>
+      </a>
+    </Badge>
   );
 }

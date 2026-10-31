@@ -52,21 +52,34 @@ Mục tiêu: những gì Builder Lab đang làm bằng backend giả chạy bằ
 
 ### P2 — Sẵn sàng pilot · 14/12 → 03/01 (3 tuần)
 
-| # | Việc | PRD |
-|---|---|---|
-| P2.1 | Art thật cho 3 mẫu × skin Tết và quanh năm (thuê ngoài hoặc mua bộ hình) | BLD-06 |
-| P2.2 | Mẫu standee/tent card in QR cho quầy | EVT-10 |
-| P2.3 | Kích hoạt gói thủ công, watermark Free | BIL-01, BIL-02 |
-| P2.4 | Thể lệ mẫu và consent theo [compliance](../business/compliance.md); ý kiến luật sư cho kịch bản quán | — |
-| P2.5 | Hạ tầng production + backup + runbook ([operations](../operations/environments-deploy.md)) | — |
-| P2.6 | Cào thẻ, mở hộp trên API thật; hứng quà nếu còn thời gian | GAM-04 |
+Phạm vi mở rộng theo [D-26](./decisions.md) (review tính năng 31/10). Cắt từ dưới lên (Could → Should) nếu trễ; không dời mốc pilot.
 
-**Gate P2:** checklist kỹ thuật trong [runbook](../operations/runbook.md) xanh; ≥ 5 quán đã hẹn ngày chạy.
+| # | Việc | PRD | Ưu tiên |
+|---|---|---|---|
+| P2.1 | Art thật cho 3 mẫu × skin Tết và quanh năm (thuê ngoài hoặc mua bộ hình) | BLD-06 | Must |
+| P2.2 | Mẫu standee/tent card in QR cho quầy | EVT-10 | ✅ đã xong |
+| P2.3 | Kích hoạt gói thủ công, watermark Free | BIL-01, BIL-02 | ✅ đã xong |
+| P2.4 | Thể lệ mẫu và consent theo [compliance](../business/compliance.md); ý kiến luật sư cho kịch bản quán | — | Must |
+| P2.5 | Hạ tầng production + backup + runbook ([operations](../operations/environments-deploy.md)) | — | Must |
+| P2.6 | Cào thẻ, mở hộp trên API thật; hứng quà nếu còn thời gian | GAM-04 | ✅ cào thẻ, mở hộp · hứng quà dời M2 |
+| P2.7 | Hạn mức chặn lúc phát giải, quầy không bao giờ từ chối ([D-23](./decisions.md)) | BIL-02 | Must |
+| P2.8 | Cứu mã quà: tra theo SĐT ở quầy, lưu + khôi phục "Quà của tôi" ([D-25](./decisions.md)) | PRZ-15, PRZ-16 | Must |
+| P2.9 | Máy quầy ghép QR ([D-24](./decisions.md), [ADR-017](../adr/017-counter-device-pairing.md)) + nhãn quán | ORG-10, PRZ-17 | Must / Should |
+| P2.10 | Quầy PWA + chế độ tập huấn | PRZ-18, PRZ-19 | Should |
+| P2.11 | Email tóm tắt hằng ngày | ANL-10 | Should |
+| P2.12 | Bìa minh bạch, QR chơi thử trên điện thoại, checklist "Sẵn sàng mở bán", nút Zalo OA, câu hỏi baseline | BLD-25, BLD-26, BLD-29, RET-07, PLB-08 | Should |
+| P2.13 | Export CSV/XLSX | ANL-02 | Should |
+| P2.14 | Lỗ hổng M1 lộ ra khi đối chiếu PRD với code ([D-28](./decisions.md)): link nháp công khai, danh sách người chơi, thêm tồn kho khi đang chạy | BLD-23, EVT-02, PRZ-01 | Should |
+| P2.15 | Quà lần sau; hiệu quả theo quà; màu từ logo; thao tác khẩn trên điện thoại | RET-06, PLB-10, BLD-27, EVT-15 | Could |
+| P2.16 | Sửa nóng chữ/nhãn; chỉnh hạn đổi quà; luật kiểm tra còn thiếu (mô phỏng, chưa chơi thử, giải không gắn ô) ([D-28](./decisions.md)) | BLD-08, PRZ-10, BLD-09 | Could |
+
+**Gate P2:** checklist kỹ thuật trong [runbook](../operations/runbook.md) xanh; ≥ 5 quán đã hẹn ngày chạy; xong mọi việc **Must**.
 
 ### Pilot Tết · 04/01 → 21/02/2027
 
 - Dựng hộ miễn phí 5–10 quán F&B ([D-19](./decisions.md)) bằng chính Studio; ghi lại mọi chỗ mình thấy khó.
 - Mỗi tuần: gọi từng quán 10 phút, đọc số liệu cùng họ.
+- Tuần đầu (04/01 → 10/01): bật theo dõi nhịp phát quà (PRZ-22) nếu chưa kịp ở P2, dùng số liệu thật của các quán để chỉnh tỷ lệ trúng.
 - Không phát hành tính năng mới trong 7 ngày quanh Tết (30/01 – 10/02); chỉ sửa lỗi.
 
 ### Tổng kết · 22/02 → 28/02
@@ -90,7 +103,7 @@ Mục tiêu: những gì Builder Lab đang làm bằng backend giả chạy bằ
 
 | Giai đoạn | Thời gian `[GĐ]` | Trọng tâm | Gate |
 |---|---|---|---|
-| **M2** Self-serve + giữ chân v1 | 03 – 05/2027 (8/3, 30/4) | PayOS thuê bao; chợ mẫu công khai (SEO); điểm danh, bốc mỗi ngày; chụp ảnh → xoá nền; AI chữ và AI dựng nháp; renderer instant-win mới (đập trứng, lật thẻ, lưới 9 ô); OTP; bốc thăm cuối chương trình | ≥ 50 quán trả phí; retention tháng 2 ≥ 60% |
+| **M2** Self-serve + giữ chân v1 | 03 – 05/2027 (8/3, 30/4) | PayOS thuê bao; chợ mẫu công khai (SEO); điểm danh, bốc mỗi ngày; chụp ảnh → xoá nền; AI chữ và AI dựng nháp; renderer instant-win mới (đập trứng, lật thẻ, lưới 9 ô); OTP; bốc thăm cuối chương trình; từ review 31/10: thẻ thành viên + hồ sơ khách theo tổ chức (RET-08, ANL-08), khách quay lại theo lượt ghé (PLB-09), chơi trước SĐT sau (EVT-17), luồng "60 giây" (BLD-28), nhật ký quầy (PRZ-20), hồ sơ thông báo khuyến mại (CMP-06) | ≥ 50 quán trả phí; retention tháng 2 ≥ 60% |
 | **M3** Zalo + giữ chân v2 | 06 – 09/2027 (hè, Trung thu) | Zalo OA/ZNS/đăng nhập; nhắc quay lại; hub điểm; sưu tầm thẻ; mã tham gia; kiosk; benchmark theo ngành; playbook ngành thứ hai | ≥ 200 quán trả phí |
 | **M4** Kênh + Tết 2028 | 10 – 12/2027 | Agency/reseller; POS (KiotViet, Sapo); up hoá đơn; webhook/API; mở bán Tết 2028 từ tháng 9 | 1.000 quán trả phí mùa Tết 2028 |
 

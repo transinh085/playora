@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Card, Flex, Typography, theme } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { Card } from '@playora/ui/components/card';
 import type { LucideIcon } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Consistent, delightful empty state following the Playora / games-vt admin aesthetic.
+ * Consistent, delightful empty state following the Playora / Luma aesthetic.
  * Clean neutral surface, muted icon tile, clear typography, and a prominent call-to-action.
  */
 export function EmptyState({
@@ -31,65 +32,39 @@ export function EmptyState({
   extra,
   bordered = true,
 }: EmptyStateProps) {
-  const { token } = theme.useToken();
-
   const actionButton =
     actionText &&
     (actionHref ? (
-      <Link href={actionHref as Route}>
-        <Button type="primary" size="middle">
-          {actionText}
-        </Button>
-      </Link>
+      <Button asChild className="rounded-full shadow-xs">
+        <Link href={actionHref as Route}>{actionText}</Link>
+      </Button>
     ) : onAction ? (
-      <Button type="primary" size="middle" onClick={onAction}>
+      <Button className="rounded-full shadow-xs" onClick={onAction}>
         {actionText}
       </Button>
     ) : null);
 
   return (
     <Card
-      variant="borderless"
-      style={bordered ? { border: `1px solid ${token.colorBorderSecondary}` } : undefined}
-      styles={{ body: { padding: '48px 24px' } }}
+      className={`rounded-2xl p-12 text-center shadow-xs ${
+        bordered ? 'border-border/80' : 'border-0 shadow-none'
+      }`}
     >
-      <Flex
-        vertical
-        align="center"
-        justify="center"
-        gap={16}
-        className="text-center max-w-md mx-auto"
-      >
-        <div
-          className="flex items-center justify-center rounded-2xl transition-transform duration-200"
-          style={{
-            width: 56,
-            height: 56,
-            backgroundColor: token.colorFillSecondary,
-            color: token.colorPrimary,
-          }}
-        >
+      <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Icon className="size-7 stroke-[1.75]" />
         </div>
         <div className="space-y-1">
-          <Typography.Title level={5} className="!m-0" style={{ fontWeight: 600 }}>
-            {title}
-          </Typography.Title>
-          <Typography.Paragraph
-            type="secondary"
-            className="!m-0"
-            style={{ fontSize: 13, lineHeight: 1.5 }}
-          >
-            {description}
-          </Typography.Paragraph>
+          <h3 className="m-0 text-base font-semibold text-foreground">{title}</h3>
+          <p className="m-0 text-xs text-muted-foreground leading-relaxed">{description}</p>
         </div>
         {(actionButton || extra) && (
-          <Flex gap={8} align="center" className="mt-2">
+          <div className="mt-2 flex items-center gap-2">
             {actionButton}
             {extra}
-          </Flex>
+          </div>
         )}
-      </Flex>
+      </div>
     </Card>
   );
 }

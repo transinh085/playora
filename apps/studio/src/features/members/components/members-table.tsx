@@ -1,16 +1,34 @@
 'use client';
 
 import {
-  Avatar,
-  Button,
-  Flex,
-  Popconfirm,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@playora/ui/components/alert-dialog';
+import { Avatar, AvatarFallback } from '@playora/ui/components/avatar';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import {
   Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@playora/ui/components/select';
+import {
   Table,
-  type TableProps,
-  Tag,
-  Typography,
-} from 'antd';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@playora/ui/components/table';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { TableCard } from '@/components/table-card';
@@ -53,100 +71,130 @@ export function MembersTable({
 }: MembersTableProps) {
   const t = useTranslations();
 
-  const columns: TableProps<MemberItem>['columns'] = [
-    {
-      title: t('members.memberColumn'),
-      key: 'member',
-      render: (_, member) => {
-        const isSelf = member.userId === currentUserId;
-        return (
-          <Flex align="center" gap={12}>
-            <Avatar size={32}>
-              {(member.user.name || member.user.email).slice(0, 1).toUpperCase()}
-            </Avatar>
-            <Flex vertical>
-              <Flex align="center" gap={8}>
-                <Typography.Text strong>{member.user.name}</Typography.Text>
-                {isSelf && <Tag variant="filled">{t('members.you')}</Tag>}
-              </Flex>
-              <Caption>{member.user.email}</Caption>
-            </Flex>
-          </Flex>
-        );
-      },
-    },
-    {
-      title: t('members.role'),
-      key: 'role',
-      render: (_, member) => {
-        const primaryRole: OrgRole = parseMemberRoles(member.role)[0] ?? 'viewer';
-        const isSelf = member.userId === currentUserId;
-        const targetIsOwner = isOwnerRole(member.role);
-        const canEditRole =
-          canManage && (!targetIsOwner || (actorIsOwner && (!isSelf || ownerCount > 1)));
-
-        if (!canEditRole) {
-          return <Tag variant="filled">{t(`members.roles.${primaryRole}`)}</Tag>;
-        }
-
-        return (
-          <Select<OrgRole>
-            value={primaryRole}
-            disabled={busyId === member.id}
-            onChange={(value) => onRoleChange(member.id, value)}
-            aria-label={`${t('members.role')} ${member.user.email}`}
-            className="w-40"
-            options={assignableRoles.map((role) => ({
-              value: role,
-              label: t(`members.roles.${role}`),
-            }))}
-          />
-        );
-      },
-    },
-    ...(canManage
-      ? ([
-          {
-            title: t('members.actionsColumn'),
-            key: 'actions',
-            align: 'right' as const,
-            render: (_: unknown, member: MemberItem) => {
+  return (
+    <TableCard>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[45%]">{t('members.memberColumn')}</TableHead>
+              <TableHead>{t('members.role')}</TableHead>
+              {canManage && (
+                <TableHead className="text-right">{t('members.actionsColumn')}</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {members.map((member) => {
               const isSelf = member.userId === currentUserId;
+              const primaryRole: OrgRole = parseMemberRoles(member.role)[0] ?? 'viewer';
               const targetIsOwner = isOwnerRole(member.role);
+              const canEditRole =
+                canManage && (!targetIsOwner || (actorIsOwner && (!isSelf || ownerCount > 1)));
               const canRemove =
                 canManage && !isSelf && (!targetIsOwner || (actorIsOwner && ownerCount > 1));
 
-              if (!canRemove) return null;
-
               return (
-                <Popconfirm
-                  title={t('members.removeConfirm')}
-                  okText={t('common.delete')}
-                  cancelText={t('common.cancel')}
-                  okButtonProps={{ danger: true }}
-                  onConfirm={() => onRemoveMember(member.id)}
-                  disabled={busyId === member.id}
-                >
-                  <Button type="link" danger size="small" disabled={busyId === member.id}>
-                    {t('members.remove')}
-                  </Button>
-                </Popconfirm>
-              );
-            },
-          },
-        ] satisfies TableProps<MemberItem>['columns'])
-      : []),
-  ];
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="size-8 rounded-full border border-border/80 bg-primary/10 text-primary font-bold text-xs">
+                        <AvatarFallback>
+                          {(member.user.name || member.user.email).slice(0, 1).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm text-foreground">
+                            {member.user.name}
+                          </span>
+                          {isSelf && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] py-0 px-1.5 font-normal"
+                            >
+                              {t('members.you')}
+                            </Badge>
+                          )}
+                        </div>
+                        <Caption>{member.user.email}</Caption>
+                      </div>
+                    </div>
+                  </TableCell>
 
-  return (
-    <TableCard>
-      <Table<MemberItem>
-        rowKey="id"
-        dataSource={members}
-        columns={columns}
-        pagination={false}
-        scroll={{ x: 560 }}
-      />
+                  <TableCell>
+                    {!canEditRole ? (
+                      <Badge variant="outline" className="text-xs font-normal">
+                        {t(`members.roles.${primaryRole}`)}
+                      </Badge>
+                    ) : (
+                      <Select
+                        value={primaryRole}
+                        disabled={busyId === member.id}
+                        onValueChange={(val) => onRoleChange(member.id, val as OrgRole)}
+                      >
+                        <SelectTrigger
+                          className="w-36 rounded-xl text-xs h-8"
+                          aria-label={`${t('members.role')} ${member.user.email}`}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {assignableRoles.map((role) => (
+                            <SelectItem key={role} value={role} className="text-xs">
+                              {t(`members.roles.${role}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </TableCell>
+
+                  {canManage && (
+                    <TableCell className="text-right">
+                      {canRemove && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2 text-xs"
+                              disabled={busyId === member.id}
+                            >
+                              {t('members.remove')}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-2xl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-base font-bold">
+                                {t('members.removeConfirm')}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-xs text-muted-foreground">
+                                {member.user.name} ({member.user.email})
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-full">
+                                {t('common.cancel')}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
+                                onClick={() => onRemoveMember(member.id)}
+                              >
+                                {t('common.delete')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </TableCard>
   );
 }

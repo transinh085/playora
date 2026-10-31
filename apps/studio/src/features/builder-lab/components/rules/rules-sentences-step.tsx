@@ -1,6 +1,9 @@
 'use client';
 
-import { Checkbox, Flex, Input, InputNumber, Radio, Switch, Typography, theme } from 'antd';
+import { Checkbox } from '@playora/ui/components/checkbox';
+import { Input } from '@playora/ui/components/input';
+import { RadioGroup, RadioGroupItem } from '@playora/ui/components/radio-group';
+import { Switch } from '@playora/ui/components/switch';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
@@ -20,7 +23,7 @@ const DEFAULT_OPEN_DAYS = [2, 3, 4];
 
 /**
  * Step 3: each rule is one sentence with its control inline (docs/product/specs/builder.md §4.2). Dates use native
- * `datetime-local`/`time` inputs in antd `Input` (good pickers on phones, no extra date library).
+ * `datetime-local`/`time` inputs in `Input` (good pickers on phones, no extra date library).
  */
 export function RulesSentencesStep({
   rules,
@@ -35,7 +38,6 @@ export function RulesSentencesStep({
 }) {
   const t = useTranslations('builderLab.rules.sentences');
   const tw = useTranslations('builderLab.weekdays');
-  const { token } = theme.useToken();
   const locale = useLocale();
   const hours = rules.openingHours;
 
@@ -45,21 +47,25 @@ export function RulesSentencesStep({
     apply: (v: number) => void,
     max = 99,
   ): React.ReactNode => (
-    <InputNumber
+    <Input
+      type="number"
       aria-label={label}
       min={1}
       max={max}
-      precision={0}
-      style={{ width: 72 }}
+      step={1}
+      className="inline-block w-20 text-center font-mono"
       value={value}
-      onChange={(v) => v !== null && apply(v)}
+      onChange={(e) => {
+        const val = parseInt(e.target.value, 10);
+        if (!Number.isNaN(val) && val >= 1) apply(val);
+      }}
     />
   );
   const time = (value: string, label: string, apply: (v: string) => void) => (
     <Input
       type="time"
       aria-label={label}
-      style={{ width: 120 }}
+      className="inline-block w-32 font-mono"
       value={value}
       onChange={(e) => e.target.value && apply(e.target.value)}
     />
@@ -68,7 +74,7 @@ export function RulesSentencesStep({
     <Input
       type="datetime-local"
       aria-label={label}
-      style={{ width: 220 }}
+      className="inline-block w-56 font-mono text-xs"
       value={isoToLocalInput(iso)}
       onChange={(e) => {
         const next = localInputToIso(e.target.value);
@@ -104,11 +110,11 @@ export function RulesSentencesStep({
     {
       key: 'hours',
       node: (
-        <>
+        <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('hoursLabel')}
             checked={hours !== null}
-            onChange={(on) => onChange({ openingHours: on ? DEFAULT_HOURS : null })}
+            onCheckedChange={(on) => onChange({ openingHours: on ? DEFAULT_HOURS : null })}
           />
           {hours
             ? t.rich('hoursOn', {
@@ -122,148 +128,172 @@ export function RulesSentencesStep({
                   ),
               })
             : t('hoursOff')}
-        </>
+        </div>
       ),
     },
     {
       key: 'days',
       node: (
-        <>
+        <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('daysLabel')}
             checked={rules.openDays !== null}
-            onChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
+            onCheckedChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
           />
           {rules.openDays !== null ? (
-            <>
-              {t('daysOn')}
-              <Checkbox.Group
-                aria-label={t('daysLabel')}
-                value={rules.openDays}
-                options={WEEKDAYS.map((d) => ({ value: d, label: tw(weekdayKey(d)) }))}
-                onChange={(days) =>
-                  days.length > 0 &&
-                  onChange({ openDays: days.length === 7 ? null : sortWeekdays(days) })
-                }
-              />
-            </>
+            <div className="flex flex-wrap items-center gap-3">
+              <span>{t('daysOn')}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {WEEKDAYS.map((d) => {
+                  const isChecked = rules.openDays?.includes(d) ?? false;
+                  return (
+                    <label
+                      key={d}
+                      htmlFor={`rules-open-day-${d}`}
+                      className="flex cursor-pointer items-center gap-1.5 text-xs"
+                    >
+                      <Checkbox
+                        id={`rules-open-day-${d}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const current = rules.openDays ?? [];
+                          let nextDays: number[];
+                          if (checked) {
+                            nextDays = [...current, d];
+                          } else {
+                            nextDays = current.filter((day) => day !== d);
+                          }
+                          if (nextDays.length > 0) {
+                            onChange({
+                              openDays: nextDays.length === 7 ? null : sortWeekdays(nextDays),
+                            });
+                          }
+                        }}
+                      />
+                      <span>{tw(weekdayKey(d))}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           ) : (
             t('daysOff')
           )}
-        </>
+        </div>
       ),
     },
     {
       key: 'pacing',
       node: (
-        <>
+        <div className="flex items-center gap-2">
           <Switch
             aria-label={t('pacingLabel')}
             checked={rules.pacing}
-            onChange={(pacing) => onChange({ pacing })}
+            onCheckedChange={(pacing) => onChange({ pacing })}
           />
-          {t('pacing')}
-        </>
+          <span>{t('pacing')}</span>
+        </div>
       ),
     },
     {
       key: 'budget',
       node: (
-        <>
+        <div className="flex flex-wrap items-center gap-2">
           <Switch
             aria-label={t('budgetLabel')}
             checked={rules.budgetVnd !== null}
-            onChange={(on) => onChange({ budgetVnd: on ? Math.max(totalValueVnd, 100_000) : null })}
+            onCheckedChange={(on) =>
+              onChange({ budgetVnd: on ? Math.max(totalValueVnd, 100_000) : null })
+            }
           />
           {rules.budgetVnd !== null
             ? t.rich('budgetOn', {
                 amount: () => (
-                  <InputNumber
-                    aria-label={t('budgetLabel')}
-                    min={0}
-                    max={10_000_000_000}
-                    step={100_000}
-                    suffix="đ"
-                    style={{ width: 180 }}
-                    value={rules.budgetVnd}
-                    formatter={(v) => groupDigits(v, locale)}
-                    parser={(v) => parseDigits(v)}
-                    onChange={(v) => v !== null && onChange({ budgetVnd: v })}
-                  />
+                  <div className="relative inline-block w-44">
+                    <Input
+                      aria-label={t('budgetLabel')}
+                      type="text"
+                      className="pr-6 font-mono"
+                      value={groupDigits(rules.budgetVnd ?? 0, locale)}
+                      onChange={(e) => {
+                        const val = parseDigits(e.target.value);
+                        if (val !== null) onChange({ budgetVnd: val });
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                      đ
+                    </span>
+                  </div>
                 ),
               })
             : t('budgetOff')}
-        </>
+        </div>
       ),
     },
     {
       key: 'form',
       node: (
-        <>
+        <div className="flex items-center gap-2">
           <Switch
             aria-label={t('formLabel')}
             checked={rules.collectForm}
-            onChange={(collectForm) => onChange({ collectForm })}
+            onCheckedChange={(collectForm) => onChange({ collectForm })}
           />
-          {t('form')}
-        </>
+          <span>{t('form')}</span>
+        </div>
       ),
     },
     {
       key: 'redeemFirst',
       node: (
-        <>
+        <div className="flex items-center gap-2">
           <Switch
             aria-label={t('redeemFirst')}
             checked={rules.requireRedeemBeforeReplay}
-            onChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
+            onCheckedChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
           />
-          {t('redeemFirst')}
-        </>
+          <span>{t('redeemFirst')}</span>
+        </div>
       ),
     },
     {
       key: 'antiFraud',
       node: (
-        <Flex vertical gap={4}>
-          <span>{t('antiFraud')}</span>
-          <Radio.Group
-            aria-label={t('antiFraud')}
+        <div className="flex flex-col gap-2 w-full">
+          <span className="font-medium text-sm">{t('antiFraud')}</span>
+          <RadioGroup
             value={rules.antiFraud}
-            onChange={(e) => onChange({ antiFraud: e.target.value })}
+            onValueChange={(val) => onChange({ antiFraud: val as 'standard' | 'low' })}
+            className="flex flex-col gap-2"
           >
-            <Flex vertical gap={4}>
-              {(['standard', 'low'] as const).map((level) => (
-                <Radio key={level} value={level}>
-                  {t(`antiFraudLevels.${level}`)}
-                  <Caption className="block">{t(`antiFraudHints.${level}`)}</Caption>
-                </Radio>
-              ))}
-            </Flex>
-          </Radio.Group>
-        </Flex>
+            {(['standard', 'low'] as const).map((level) => (
+              <label
+                key={level}
+                htmlFor={`anti-fraud-${level}`}
+                className="flex cursor-pointer items-start gap-2.5 rounded-xl border p-2.5 hover:bg-muted/30 transition-colors"
+              >
+                <RadioGroupItem value={level} id={`anti-fraud-${level}`} className="mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium text-xs">{t(`antiFraudLevels.${level}`)}</span>
+                  <Caption>{t(`antiFraudHints.${level}`)}</Caption>
+                </div>
+              </label>
+            ))}
+          </RadioGroup>
+        </div>
       ),
     },
   ];
 
   return (
-    <Flex vertical gap={0}>
-      {rows.map((row, i) => (
-        <div
-          key={row.key}
-          className="flex flex-wrap items-center gap-x-2 gap-y-2 py-3"
-          style={{
-            borderTop: i === 0 ? undefined : `1px solid ${token.colorBorderSecondary}`,
-            fontSize: token.fontSize,
-            lineHeight: `${token.controlHeight}px`,
-            color: token.colorText,
-          }}
-        >
+    <div className="flex flex-col divide-y divide-border">
+      {rows.map((row) => (
+        <div key={row.key} className="flex flex-wrap items-center gap-x-2 gap-y-2 py-3 text-sm">
           {row.node}
         </div>
       ))}
       <RulesSummary rules={rules} prizes={prizes} />
-    </Flex>
+    </div>
   );
 }
 
@@ -273,7 +303,6 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   const tw = useTranslations('builderLab.weekdays');
   const format = useFormatter();
   const locale = useLocale();
-  const { token } = theme.useToken();
   const lines = useMemo(
     () =>
       summarizeRules(rules, prizes, {
@@ -289,15 +318,12 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   );
 
   return (
-    <div
-      className="mt-2 p-4"
-      style={{ background: token.colorFillQuaternary, borderRadius: token.borderRadiusLG }}
-    >
-      <Typography.Text strong>{t('title')}</Typography.Text>
-      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5">
+    <div className="mt-4 rounded-2xl border bg-muted/20 p-4">
+      <span className="font-semibold text-sm">{t('title')}</span>
+      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
         {lines.map((line) => (
           <li key={line.key}>
-            <Typography.Text>{t(line.key, line.values)}</Typography.Text>
+            <span>{t(line.key, line.values)}</span>
           </li>
         ))}
       </ul>

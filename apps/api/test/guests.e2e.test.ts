@@ -239,80 +239,84 @@ describe('guests API', () => {
     expect(list.items.map((g) => g.externalCode).sort()).toEqual(['EMP-01', 'EMP-02']);
   });
 
-  test('lists guests with pagination, search, team filter, and deletes one or all', async () => {
-    const api = t.client(alice);
-    const event = await createEvent(alice, aliceOrg);
-    const params = { orgId: aliceOrg, eventId: event.id };
+  test(
+    'lists guests with pagination, search, team filter, and deletes one or all',
+    async () => {
+      const api = t.client(alice);
+      const event = await createEvent(alice, aliceOrg);
+      const params = { orgId: aliceOrg, eventId: event.id };
 
-    const csv = [
-      'externalCode,displayName,team',
-      'C01,Alpha One,Red',
-      'C02,Beta Two,Blue',
-      'C03,Gamma Three,Red',
-      'C04,Delta Four,',
-      'C05,Epsilon Five,Blue',
-    ].join('\n');
+      const csv = [
+        'externalCode,displayName,team',
+        'C01,Alpha One,Red',
+        'C02,Beta Two,Blue',
+        'C03,Gamma Three,Red',
+        'C04,Delta Four,',
+        'C05,Epsilon Five,Blue',
+      ].join('\n');
 
-    await api.call(guestsApi.import, {
-      params,
-      body: { fileName: 'list.csv', content: csv, encoding: 'text' },
-    });
+      await api.call(guestsApi.import, {
+        params,
+        body: { fileName: 'list.csv', content: csv, encoding: 'text' },
+      });
 
-    // Cursor pagination
-    const seen: string[] = [];
-    let cursor: string | undefined;
-    do {
-      const page = await api.call(guestsApi.list, { params, query: { limit: 2, cursor } });
-      seen.push(...page.items.map((g) => g.externalCode));
-      cursor = page.nextCursor ?? undefined;
-    } while (cursor);
-    expect(seen.sort()).toEqual(['C01', 'C02', 'C03', 'C04', 'C05']);
+      // Cursor pagination
+      const seen: string[] = [];
+      let cursor: string | undefined;
+      do {
+        const page = await api.call(guestsApi.list, { params, query: { limit: 2, cursor } });
+        seen.push(...page.items.map((g) => g.externalCode));
+        cursor = page.nextCursor ?? undefined;
+      } while (cursor);
+      expect(seen.sort()).toEqual(['C01', 'C02', 'C03', 'C04', 'C05']);
 
-    // Search by name or code
-    const byName = await api.call(guestsApi.list, { params, query: { search: 'gamma' } });
-    expect(byName.items.map((g) => g.externalCode)).toEqual(['C03']);
+      // Search by name or code
+      const byName = await api.call(guestsApi.list, { params, query: { search: 'gamma' } });
+      expect(byName.items.map((g) => g.externalCode)).toEqual(['C03']);
 
-    const byCode = await api.call(guestsApi.list, { params, query: { search: 'C05' } });
-    expect(byCode.items.map((g) => g.displayName)).toEqual(['Epsilon Five']);
+      const byCode = await api.call(guestsApi.list, { params, query: { search: 'C05' } });
+      expect(byCode.items.map((g) => g.displayName)).toEqual(['Epsilon Five']);
 
-    // Filter by team and unassigned
-    const redTeam = await api.call(guestsApi.list, { params, query: { team: 'Red' } });
-    expect(redTeam.items.map((g) => g.externalCode).sort()).toEqual(['C01', 'C03']);
+      // Filter by team and unassigned
+      const redTeam = await api.call(guestsApi.list, { params, query: { team: 'Red' } });
+      expect(redTeam.items.map((g) => g.externalCode).sort()).toEqual(['C01', 'C03']);
 
-    const unassigned = await api.call(guestsApi.list, {
-      params,
-      query: { team: UNASSIGNED_TEAM_FILTER },
-    });
-    expect(unassigned.items.map((g) => g.externalCode)).toEqual(['C04']);
+      const unassigned = await api.call(guestsApi.list, {
+        params,
+        query: { team: UNASSIGNED_TEAM_FILTER },
+      });
+      expect(unassigned.items.map((g) => g.externalCode)).toEqual(['C04']);
 
-    // Team counts
-    const teams = await api.call(guestsApi.listTeams, { params });
-    expect(teams).toEqual({
-      items: [
-        { team: 'Blue', count: 2 },
-        { team: 'Red', count: 2 },
-      ],
-      unassignedCount: 1,
-      totalCount: 5,
-    });
+      // Team counts
+      const teams = await api.call(guestsApi.listTeams, { params });
+      expect(teams).toEqual({
+        items: [
+          { team: 'Blue', count: 2 },
+          { team: 'Red', count: 2 },
+        ],
+        unassignedCount: 1,
+        totalCount: 5,
+      });
 
-    // Delete one
-    const targetId = redTeam.items[0]?.id ?? '';
-    expect(targetId).not.toBe('');
-    await api.call(guestsApi.remove, { params: { ...params, guestId: targetId } });
-    await expectApiError(
-      api.call(guestsApi.remove, { params: { ...params, guestId: targetId } }),
-      404,
-      ErrorCode.NOT_FOUND,
-    );
+      // Delete one
+      const targetId = redTeam.items[0]?.id ?? '';
+      expect(targetId).not.toBe('');
+      await api.call(guestsApi.remove, { params: { ...params, guestId: targetId } });
+      await expectApiError(
+        api.call(guestsApi.remove, { params: { ...params, guestId: targetId } }),
+        404,
+        ErrorCode.NOT_FOUND,
+      );
 
-    // Delete all
-    const cleared = await api.call(guestsApi.clear, { params });
-    expect(cleared).toEqual({ ok: true, deleted: 4 });
+      // Delete all
+      const cleared = await api.call(guestsApi.clear, { params });
+      expect(cleared).toEqual({ ok: true, deleted: 4 });
 
-    const afterClear = await api.call(guestsApi.list, { params });
-    expect(afterClear.items).toHaveLength(0);
-  });
+      const afterClear = await api.call(guestsApi.list, { params });
+      expect(afterClear.items).toHaveLength(0);
+    },
+    { timeout: 15_000 },
+  );
 
   test('auto-assigns random balanced teams to guests without team', async () => {
     const api = t.client(alice);

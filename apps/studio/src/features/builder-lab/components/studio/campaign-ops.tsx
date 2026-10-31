@@ -1,22 +1,32 @@
 'use client';
 
 import {
-  App,
-  Button,
-  Card,
-  Empty,
-  Flex,
-  Input,
-  Popconfirm,
-  Progress,
-  Result,
-  Skeleton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@playora/ui/components/alert-dialog';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@playora/ui/components/card';
+import { Input } from '@playora/ui/components/input';
+import { Progress } from '@playora/ui/components/progress';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
+import {
   Table,
-  Tabs,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@playora/ui/components/table';
+import { Tabs, TabsList, TabsTrigger } from '@playora/ui/components/tabs';
+import { cn } from '@playora/ui/lib/utils';
 import {
   CircleX,
   ExternalLink,
@@ -68,12 +78,9 @@ import { PlaybookTag } from './playbook-tag';
 const TABS = ['overview', 'share', 'prizes', 'players', 'settings'] as const;
 type TabKey = (typeof TABS)[number];
 
-/**
- * One campaign in "operate" mode (docs/product/specs/studio-ux.md §2): numbers, share kit, prizes, players and lifecycle.
- * Design changes happen in the full-screen editor; this page is where the owner comes back daily.
- */
 export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: string }) {
   const t = useTranslations('campaigns');
+  const _tCommon = useTranslations('common');
   const tl = useTranslations('builderLab.home');
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
@@ -83,18 +90,22 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   const query = useCampaign(orgId, campaignId);
   const routes = campaignRoutes(orgId);
 
-  if (query.isPending) return <Skeleton active paragraph={{ rows: 8 }} />;
+  if (query.isPending) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </div>
+    );
+  }
   if (query.isError || !query.data) {
     return (
-      <Result
-        status="404"
-        title={t('notFound')}
-        extra={
-          <Link href={routes.list}>
-            <Button type="primary">{t('backToList')}</Button>
-          </Link>
-        }
-      />
+      <div className="py-12 text-center text-muted-foreground">
+        <p className="mb-4">{t('notFound')}</p>
+        <Link href={routes.list}>
+          <Button>{t('backToList')}</Button>
+        </Link>
+      </div>
     );
   }
 
@@ -105,32 +116,37 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   const setTab = (key: string) => router.replace(`${pathname}?tab=${key}` as never);
 
   return (
-    <Flex vertical gap={20}>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title={campaign.name}
         tags={
-          <>
+          <div className="flex items-center gap-1.5">
             <PhaseTag phase={phase} />
             <PlaybookTag playbook={campaign.playbook} />
-          </>
+          </div>
         }
         description={`${tl(`templates.${campaign.templateKey}`)} · ${tl(`skins.${campaign.skinKey}`)} · ${campaignPeriod(format, campaign)}${campaign.version ? ` · v${campaign.version}` : ''}`}
         backHref={routes.list}
         backLabel={t('backToList')}
         extra={<HeaderActions orgId={orgId} campaign={campaign} />}
       />
-      <Tabs
-        activeKey={tab}
-        onChange={setTab}
-        items={TABS.map((key) => ({ key, label: t(`tabs.${key}`) }))}
-        className="!-mb-2"
-      />
+
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="h-10 rounded-full border bg-muted/50 p-1">
+          {TABS.map((key) => (
+            <TabsTrigger key={key} value={key} className="rounded-full text-xs">
+              {t(`tabs.${key}`)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
       {tab === 'overview' && <OverviewTab orgId={orgId} campaign={campaign} />}
       {tab === 'share' && <ShareTab orgId={orgId} campaign={campaign} />}
       {tab === 'prizes' && <PrizesTab orgId={orgId} campaign={campaign} />}
       {tab === 'players' && <PlayersTab orgId={orgId} campaign={campaign} />}
       {tab === 'settings' && <SettingsTab orgId={orgId} campaign={campaign} />}
-    </Flex>
+    </div>
   );
 }
 
@@ -143,7 +159,8 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const reportLink = (
     <Link href={routes.report(campaign.id)}>
-      <Button icon={<FileText className="size-4" />} tabIndex={-1}>
+      <Button variant="outline" size="sm" className="gap-2">
+        <FileText className="size-4" />
         {t('viewReport')}
       </Button>
     </Link>
@@ -151,53 +168,55 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
-      <Button
-        type={phase === 'draft' ? 'primary' : 'default'}
-        icon={<Pencil className="size-4" />}
-        tabIndex={-1}
-      >
+      <Button variant={phase === 'draft' ? 'default' : 'outline'} size="sm" className="gap-2">
+        <Pencil className="size-4" />
         {phase === 'draft' ? t('continueEditing') : t('editDesign')}
       </Button>
     </Link>
   );
+
   const share = (
     <Link href={routes.share(campaign.id)}>
-      <Button icon={<Share2 className="size-4" />}>{t('share.action')}</Button>
+      <Button variant="outline" size="sm" className="gap-2">
+        <Share2 className="size-4" />
+        {t('share.action')}
+      </Button>
     </Link>
   );
+
   if (phase === 'draft') {
     return (
-      <Flex gap={8} wrap>
+      <div className="flex flex-wrap items-center gap-2">
         {edit}
         {share}
-      </Flex>
+      </div>
     );
   }
+
   return (
-    <Flex gap={8} wrap>
+    <div className="flex flex-wrap items-center gap-2">
       {reportLink}
       {edit}
       {share}
       {phase === 'paused' ? (
         <Button
-          type="primary"
-          icon={<Play className="size-4" />}
-          loading={resume.isPending}
+          size="sm"
+          className="gap-2"
+          disabled={resume.isPending}
           onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
         >
+          <Play className="size-4" />
           {t('resume')}
         </Button>
       ) : (
-        <Button
-          type="primary"
-          icon={<ExternalLink className="size-4" />}
-          href={routes.play(campaign.id)}
-          target="_blank"
-        >
-          {t('openPlay')}
-        </Button>
+        <a href={routes.play(campaign.id)} target="_blank" rel="noreferrer">
+          <Button size="sm" className="gap-2">
+            <ExternalLink className="size-4" />
+            {t('openPlay')}
+          </Button>
+        </a>
       )}
-    </Flex>
+    </div>
   );
 }
 
@@ -210,7 +229,7 @@ function OverviewTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   });
 
   return (
-    <Flex vertical gap={20}>
+    <div className="flex flex-col gap-5">
       {campaign.status === 'draft' && <DraftChecklist orgId={orgId} campaign={campaign} />}
       {report.isError && <QueryError onRetry={() => report.refetch()} />}
       <PlaybookGoalBanner campaign={campaign} report={report.data} />
@@ -232,107 +251,60 @@ function OverviewTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
         />
         <RecentPlays orgId={orgId} campaign={campaign} />
       </div>
-    </Flex>
+    </div>
   );
 }
 
-/** Before the first publish: what still blocks it, each with a way into the editor. */
 function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const tp = useTranslations('builderLab.publish');
-  const { token } = theme.useToken();
   const issues = preflight(campaign);
   const errors = issues.filter((issue) => issue.level === 'error');
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card
-      variant="borderless"
-      title={errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      data-testid="draft-checklist"
-    >
-      <Flex vertical gap={12}>
-        <Typography.Text type="secondary">{t('draft.hint')}</Typography.Text>
+    <Card className="rounded-2xl border" data-testid="draft-checklist">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">
+          {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Caption>{t('draft.hint')}</Caption>
         {issues.map((issue) => {
           const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
           return (
-            <Flex key={issue.id} align="center" gap={10}>
+            <div key={issue.id} className="flex items-center gap-2.5 text-sm">
               <Icon
-                className="size-4 shrink-0"
-                style={{ color: issue.level === 'error' ? token.colorError : token.colorWarning }}
+                className={cn(
+                  'size-4 shrink-0',
+                  issue.level === 'error' ? 'text-destructive' : 'text-amber-500',
+                )}
               />
-              <Typography.Text className="flex-1">
-                {tp(`issues.${issue.code}`, issue.params)}
-              </Typography.Text>
+              <span className="flex-1">{tp(`issues.${issue.code}`, issue.params)}</span>
               <Link
                 href={routes.edit(campaign.id, issue.where.area === 'screens' ? 'quick' : 'rules')}
+                className="text-xs text-primary hover:underline font-medium"
               >
                 {t('draft.fix')}
               </Link>
-            </Flex>
-          );
-        })}
-        <Flex gap={8} wrap className="mt-2">
-          <Button href={routes.rehearsal(campaign.id)} target="_blank">
-            {t('rehearse')}
-          </Button>
-        </Flex>
-      </Flex>
-    </Card>
-  );
-}
-
-function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
-  const t = useTranslations('campaigns');
-  const { token } = theme.useToken();
-  const stats = useCampaignStats(orgId, campaign.id);
-  const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
-
-  return (
-    <Card
-      variant="borderless"
-      title={t('stock.title')}
-      extra={<Link href={campaignRoutes(orgId).edit(campaign.id, 'rules')}>{t('stock.edit')}</Link>}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      loading={stats.isPending}
-      data-testid="prize-stock"
-    >
-      <Flex vertical gap={14}>
-        {campaign.prizes.map((prize) => {
-          const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
-          const issued = vouchers.filter((v) => v.prizeId === prize.id);
-          const redeemed = issued.filter((v) => v.redeemedAt).length;
-          const percent = prize.quantity ? Math.round((left / prize.quantity) * 100) : 0;
-          return (
-            <div key={prize.id}>
-              <Flex justify="space-between" gap={8}>
-                <Typography.Text strong ellipsis>
-                  {prize.name}
-                </Typography.Text>
-                <Caption className="tabular-nums">
-                  {t('stock.left', { left, total: prize.quantity })}
-                </Caption>
-              </Flex>
-              <Progress
-                percent={percent}
-                showInfo={false}
-                size="small"
-                status={percent < 20 ? 'exception' : 'normal'}
-                className="!m-0"
-              />
-              <Caption>{t('stock.issued', { issued: issued.length, redeemed })}</Caption>
             </div>
           );
         })}
-      </Flex>
+        <div className="pt-2">
+          <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm">
+              {t('rehearse')}
+            </Button>
+          </a>
+        </div>
+      </CardContent>
     </Card>
   );
 }
 
 function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
-  const { token } = theme.useToken();
   const isLive = campaignPhase(campaign) === 'live';
   const plays = useCampaignPlays(orgId, campaign.id, {
     refetchInterval: isLive ? 30_000 : undefined,
@@ -340,17 +312,22 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const recent = (plays.data ?? []).slice(0, 8);
 
   return (
-    <Card
-      variant="borderless"
-      title={t('recent.title')}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      loading={plays.isPending}
-    >
-      {recent.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('recent.empty')} />
-      ) : (
-        <PlaysTable campaign={campaign} rows={recent} compact />
-      )}
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">{t('recent.title')}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {plays.isPending ? (
+          <div className="p-4 space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : recent.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+        ) : (
+          <PlaysTable campaign={campaign} rows={recent} compact />
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -367,51 +344,45 @@ function PlaysTable({
   const t = useTranslations('campaigns');
   const format = useFormatter();
   const prizeName = (id: string | null) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
-  const OUTCOME_COLOR = { win: 'success', lose: 'default', closed: 'warning', no_turns: 'default' };
 
   return (
-    <Table
-      size={compact ? 'small' : 'middle'}
-      rowKey="id"
-      pagination={compact ? false : { pageSize: 20, hideOnSinglePage: true }}
-      dataSource={rows}
-      columns={[
-        {
-          title: t('players.time'),
-          dataIndex: 'at',
-          render: (at: string) =>
-            format.dateTime(new Date(at), { dateStyle: 'short', timeStyle: 'short' }),
-        },
-        ...(compact
-          ? []
-          : [
-              {
-                title: t('players.player'),
-                dataIndex: 'playerId',
-                render: (id: string) => <span className="font-mono">{id.slice(0, 8)}</span>,
-              },
-            ]),
-        {
-          title: t('players.outcome'),
-          dataIndex: 'outcome',
-          render: (outcome: keyof typeof OUTCOME_COLOR) => (
-            <Tag className="!m-0" color={OUTCOME_COLOR[outcome]}>
-              {t(`outcome.${outcome}`)}
-            </Tag>
-          ),
-        },
-        { title: t('players.prize'), dataIndex: 'prizeId', render: prizeName },
-        ...(compact
-          ? []
-          : [
-              {
-                title: t('players.code'),
-                dataIndex: 'voucherCode',
-                render: (code: string | null) => <span className="font-mono">{code ?? '—'}</span>,
-              },
-            ]),
-      ]}
-    />
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t('players.time')}</TableHead>
+            {!compact && <TableHead>{t('players.player')}</TableHead>}
+            <TableHead>{t('players.outcome')}</TableHead>
+            <TableHead>{t('players.prize')}</TableHead>
+            {!compact && <TableHead>{t('players.code')}</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell className="text-xs">
+                {format.dateTime(new Date(row.at), { dateStyle: 'short', timeStyle: 'short' })}
+              </TableCell>
+              {!compact && (
+                <TableCell className="font-mono text-xs">{row.playerId.slice(0, 8)}</TableCell>
+              )}
+              <TableCell>
+                <Badge
+                  variant={row.outcome === 'win' ? 'default' : 'secondary'}
+                  className="text-[10px]"
+                >
+                  {t(`outcome.${row.outcome}`)}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
+              {!compact && (
+                <TableCell className="font-mono text-xs">{row.voucherCode ?? '—'}</TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -419,60 +390,115 @@ function ShareTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   return <CampaignShareView orgId={orgId} campaignId={campaign.id} embedded />;
 }
 
+function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
+  const t = useTranslations('campaigns');
+  const stats = useCampaignStats(orgId, campaign.id);
+  const vouchers = useCampaignVouchers(orgId, campaign.id).data ?? [];
+
+  return (
+    <Card className="rounded-2xl border" data-testid="prize-stock">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="text-base font-semibold">{t('stock.title')}</CardTitle>
+        <Link
+          href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
+          className="text-xs text-primary hover:underline"
+        >
+          {t('stock.edit')}
+        </Link>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {campaign.prizes.map((prize) => {
+          const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
+          const issued = vouchers.filter((v) => v.prizeId === prize.id);
+          const redeemed = issued.filter((v) => v.redeemedAt).length;
+          const percent = prize.quantity ? Math.round((left / prize.quantity) * 100) : 0;
+          return (
+            <div key={prize.id} className="space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{prize.name}</span>
+                <Caption className="tabular-nums">
+                  {t('stock.left', { left, total: prize.quantity })}
+                </Caption>
+              </div>
+              <Progress
+                value={percent}
+                className={cn('h-1.5', percent < 20 && '[&>div]:bg-destructive')}
+              />
+              <Caption>{t('stock.issued', { issued: issued.length, redeemed })}</Caption>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
   const format = useFormatter();
-  const { token } = theme.useToken();
   const vouchers = useCampaignVouchers(orgId, campaign.id);
   const prizeName = (id: string) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} />
-      <Card
-        variant="borderless"
-        title={t('vouchers.title')}
-        extra={<Link href={campaignRoutes(orgId).redeem}>{t('vouchers.desk')}</Link>}
-        style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-        styles={{ body: { padding: 0 } }}
-      >
-        <Table
-          rowKey="code"
-          loading={vouchers.isPending}
-          dataSource={vouchers.data ?? []}
-          pagination={{ pageSize: 20, hideOnSinglePage: true }}
-          locale={{
-            emptyText: (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('vouchers.empty')} />
-            ),
-          }}
-          columns={[
-            {
-              title: t('vouchers.code'),
-              dataIndex: 'code',
-              render: (code: string) => <span className="font-mono">{code}</span>,
-            },
-            { title: t('players.prize'), dataIndex: 'prizeId', render: prizeName },
-            {
-              title: t('vouchers.issued'),
-              dataIndex: 'issuedAt',
-              render: (at: string) =>
-                format.dateTime(new Date(at), { dateStyle: 'short', timeStyle: 'short' }),
-            },
-            {
-              title: t('vouchers.status'),
-              dataIndex: 'redeemedAt',
-              render: (at: string | null) =>
-                at ? (
-                  <Tag className="!m-0" color="success">
-                    {t('vouchers.redeemed')}
-                  </Tag>
-                ) : (
-                  <Tag className="!m-0">{t('vouchers.pending')}</Tag>
-                ),
-            },
-          ]}
-        />
+      <Card className="rounded-2xl border">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base font-semibold">{t('vouchers.title')}</CardTitle>
+          <Link
+            href={campaignRoutes(orgId).redeem}
+            className="text-xs text-primary hover:underline"
+          >
+            {t('vouchers.desk')}
+          </Link>
+        </CardHeader>
+        <CardContent className="p-0">
+          {vouchers.isPending ? (
+            <div className="p-4 space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (vouchers.data ?? []).length === 0 ? (
+            <div className="py-8 text-center text-xs text-muted-foreground">
+              {t('vouchers.empty')}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('vouchers.code')}</TableHead>
+                    <TableHead>{t('players.prize')}</TableHead>
+                    <TableHead>{t('vouchers.issued')}</TableHead>
+                    <TableHead>{t('vouchers.status')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(vouchers.data ?? []).map((row) => (
+                    <TableRow key={row.code}>
+                      <TableCell className="font-mono text-xs">{row.code}</TableCell>
+                      <TableCell className="text-xs">{prizeName(row.prizeId)}</TableCell>
+                      <TableCell className="text-xs">
+                        {format.dateTime(new Date(row.issuedAt), {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={row.redeemedAt ? 'default' : 'secondary'}
+                          className="text-[10px]"
+                        >
+                          {row.redeemedAt ? t('vouchers.redeemed') : t('vouchers.pending')}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
@@ -480,34 +506,33 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
 
 function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
-  const { token } = theme.useToken();
   const plays = useCampaignPlays(orgId, campaign.id);
   return (
-    <Card
-      variant="borderless"
-      title={t('players.title', { count: plays.data?.length ?? 0 })}
-      style={{ border: `1px solid ${token.colorBorderSecondary}` }}
-      styles={{ body: { padding: 0 } }}
-      loading={plays.isPending}
-    >
-      {plays.data?.length ? (
-        <PlaysTable campaign={campaign} rows={plays.data} />
-      ) : (
-        <Empty
-          className="py-8"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={t('recent.empty')}
-        />
-      )}
+    <Card className="rounded-2xl border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">
+          {t('players.title', { count: plays.data?.length ?? 0 })}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {plays.isPending ? (
+          <div className="p-4 space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        ) : (plays.data ?? []).length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">{t('recent.empty')}</div>
+        ) : (
+          <PlaysTable campaign={campaign} rows={plays.data ?? []} />
+        )}
+      </CardContent>
     </Card>
   );
 }
 
-/** Lifecycle actions (docs/product/specs/builder.md §6): pause, end, extend; delete only when nothing is running. */
 function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
-  const { token } = theme.useToken();
-  const { message } = App.useApp();
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const phase = campaignPhase(campaign);
   const update = useUpdateCampaign(orgId, campaign.id);
@@ -516,85 +541,133 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const onActionError = useCampaignActionError(orgId);
   const end = useEndCampaign(orgId);
   const remove = useDeleteCampaign(orgId);
-  const border = { border: `1px solid ${token.colorBorderSecondary}` };
 
   const extend = (value: string) => {
     const endsAt = localInputToIso(value);
     if (!endsAt || endsAt <= campaign.rules.startsAt) return;
     update.mutate(
       { rules: { ...campaign.rules, endsAt } },
-      { onSuccess: () => message.success(t('settings.extended')) },
+      { onSuccess: () => toast.success(t('settings.extended')) },
     );
   };
 
   return (
-    <Flex vertical gap={20} className="max-w-3xl">
-      <Card variant="borderless" title={t('settings.scheduleTitle')} style={border}>
-        <Flex vertical gap={8}>
-          <Typography.Text type="secondary">{t('settings.scheduleHint')}</Typography.Text>
+    <div className="flex max-w-3xl flex-col gap-5">
+      <Card className="rounded-2xl border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">{t('settings.scheduleTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Caption>{t('settings.scheduleHint')}</Caption>
           <Input
             type="datetime-local"
             aria-label={t('settings.endsAt')}
             defaultValue={isoToLocalInput(campaign.rules.endsAt)}
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
-            className="!w-64"
+            className="w-64"
           />
-        </Flex>
+        </CardContent>
       </Card>
 
       {campaign.status === 'published' && phase !== 'ended' && (
-        <Card variant="borderless" title={t('settings.runTitle')} style={border}>
-          <Flex gap={8} wrap align="center">
-            {phase === 'paused' ? (
-              <Button
-                icon={<Play className="size-4" />}
-                onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
-              >
-                {t('resume')}
-              </Button>
-            ) : (
-              <Button icon={<Pause className="size-4" />} onClick={() => pause.mutate(campaign.id)}>
-                {t('settings.pause')}
-              </Button>
-            )}
-            <Popconfirm
-              title={t('settings.endConfirm')}
-              okText={t('settings.end')}
-              okButtonProps={{ danger: true }}
-              onConfirm={() => end.mutate(campaign.id)}
-            >
-              <Button danger icon={<Square className="size-4" />}>
-                {t('settings.end')}
-              </Button>
-            </Popconfirm>
-            <Caption>{t('settings.runHint')}</Caption>
-          </Flex>
+        <Card className="rounded-2xl border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">{t('settings.runTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              {phase === 'paused' ? (
+                <Button
+                  className="gap-2 rounded-full"
+                  onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
+                >
+                  <Play className="size-4" />
+                  {t('resume')}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="gap-2 rounded-full"
+                  onClick={() => pause.mutate(campaign.id)}
+                >
+                  <Pause className="size-4" />
+                  {t('settings.pause')}
+                </Button>
+              )}
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="gap-2 rounded-full">
+                    <Square className="size-4" />
+                    {t('settings.end')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('settings.endConfirm')}</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground"
+                      onClick={() => end.mutate(campaign.id)}
+                    >
+                      {t('settings.end')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Caption>{t('settings.runHint')}</Caption>
+            </div>
+          </CardContent>
         </Card>
       )}
 
-      <Card variant="borderless" title={t('settings.deleteTitle')} style={border}>
-        <Flex gap={12} align="center" wrap>
-          <Popconfirm
-            title={t('settings.deleteConfirm', { name: campaign.name })}
-            okText={t('settings.delete')}
-            okButtonProps={{ danger: true }}
-            disabled={isRunning(phase)}
-            onConfirm={async () => {
-              await remove.mutateAsync(campaign.id);
-              message.success(t('settings.deleted'));
-              router.push(campaignRoutes(orgId).list);
-            }}
-          >
-            <Button danger icon={<Trash2 className="size-4" />} disabled={isRunning(phase)}>
-              {t('settings.delete')}
-            </Button>
-          </Popconfirm>
-          <Caption>
-            {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
-          </Caption>
-        </Flex>
+      <Card className="rounded-2xl border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">{t('settings.deleteTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="gap-2 rounded-full"
+                  disabled={isRunning(phase)}
+                >
+                  <Trash2 className="size-4" />
+                  {t('settings.delete')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t('settings.deleteConfirm', { name: campaign.name })}
+                  </AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground"
+                    onClick={async () => {
+                      await remove.mutateAsync(campaign.id);
+                      toast.success(t('settings.deleted'));
+                      router.push(campaignRoutes(orgId).list);
+                    }}
+                  >
+                    {t('settings.delete')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Caption>
+              {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
+            </Caption>
+          </div>
+        </CardContent>
       </Card>
-    </Flex>
+    </div>
   );
 }

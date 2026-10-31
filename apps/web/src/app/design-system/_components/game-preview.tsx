@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge } from '@playora/ui/components/badge';
+import { Switch } from '@playora/ui/components/switch';
 import { Countdown } from '@playora/ui/game/countdown';
 import { GameButton } from '@playora/ui/game/game-button';
 import { GameResult } from '@playora/ui/game/game-result';
@@ -8,7 +10,6 @@ import { JoinPanel } from '@playora/ui/game/join-panel';
 import { Leaderboard } from '@playora/ui/game/leaderboard';
 import { TeamBar } from '@playora/ui/game/team-bar';
 import { type BrandKitTheme, type Skin, skins } from '@playora/ui/theme';
-import { Segmented, Switch, Tag } from 'antd';
 import { useState } from 'react';
 
 const SKIN_LABEL: Record<Skin, string> = {
@@ -62,18 +63,12 @@ function SkinShowcaseCard({
       className="grid min-h-0 w-full content-start gap-5 rounded-3xl border-4 border-foreground/15 p-6"
     >
       <div className="flex items-center justify-between gap-2">
-        <Tag
-          variant="filled"
-          className="m-0 border-0 px-3 py-0.5 font-game text-xs font-bold"
-          styles={{
-            root: {
-              backgroundColor: 'var(--game-surface)',
-              color: 'var(--game-fg)',
-            },
-          }}
+        <Badge
+          variant="secondary"
+          className="m-0 border-0 px-3 py-1 font-game text-xs font-bold bg-[var(--game-surface)] text-[var(--game-fg)]"
         >
           {badgeLabel}: {SKIN_LABEL[skin]}
-        </Tag>
+        </Badge>
         <div className="text-3xl">
           <Countdown seconds={4} />
         </div>
@@ -83,10 +78,9 @@ function SkinShowcaseCard({
         className="rounded-game border border-game-border bg-game-surface p-3 text-sm"
         url="playora.vn/yep-abc"
         code="4821"
-        qr={<div className="size-full rounded-xs border border-game-border bg-game-fg/15" />}
       />
 
-      <div className="grid gap-2.5 text-sm">
+      <div className="grid gap-2">
         {TEAMS.map((t, i) => (
           <TeamBar
             key={t.team}
@@ -134,11 +128,22 @@ export function GamePreview() {
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <Segmented<Skin>
-          options={skins.map((s) => ({ label: SKIN_LABEL[s], value: s }))}
-          value={skin}
-          onChange={(val) => setSkin(val)}
-        />
+        <div className="inline-flex rounded-full bg-muted p-1 text-xs">
+          {skins.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSkin(s)}
+              className={`rounded-full px-3 py-1 font-medium transition-all ${
+                skin === s
+                  ? 'bg-background text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {SKIN_LABEL[s]}
+            </button>
+          ))}
+        </div>
         <label
           htmlFor="brand-kit-toggle"
           className="flex cursor-pointer items-center gap-2 text-sm"
@@ -146,7 +151,7 @@ export function GamePreview() {
           <Switch
             id="brand-kit-toggle"
             checked={branded}
-            onChange={(checked) => setBranded(checked)}
+            onCheckedChange={(checked) => setBranded(checked)}
           />
           <span>Áp brand kit mẫu (đỏ #E30613)</span>
         </label>

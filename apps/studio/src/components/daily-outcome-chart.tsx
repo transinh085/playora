@@ -1,6 +1,6 @@
 'use client';
 
-import { Empty, Flex, Typography, theme } from 'antd';
+import { BarChart2 } from 'lucide-react';
 
 export interface DailyOutcomePoint {
   day: string;
@@ -35,7 +35,6 @@ function defaultFormatDay(day: string): string {
 
 /**
  * Accessible inline SVG bar + line chart for daily campaign outcomes (`plays · wins · visits`).
- * Uses Ant Design theme tokens exclusively (`docs/engineering/design-system.md` §3.4).
  */
 export function DailyOutcomeChart({
   data,
@@ -44,16 +43,17 @@ export function DailyOutcomeChart({
   data: readonly DailyOutcomePoint[];
   labels: DailyOutcomeChartLabels;
 }) {
-  const { token } = theme.useToken();
   const hasActivity = data.some((d) => d.plays > 0 || d.wins > 0 || d.visits > 0);
 
   if (data.length === 0 || !hasActivity) {
     return (
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description={labels.empty}
+      <div
+        className="flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground"
         data-testid="daily-chart-empty"
-      />
+      >
+        <BarChart2 className="size-8 opacity-40" />
+        <p className="text-xs">{labels.empty}</p>
+      </div>
     );
   }
 
@@ -75,62 +75,59 @@ export function DailyOutcomeChart({
   const totalVisits = data.reduce((sum, d) => sum + d.visits, 0);
 
   const series = [
-    { key: 'plays', label: labels.plays, total: totalPlays, color: token.colorInfo },
-    { key: 'wins', label: labels.wins, total: totalWins, color: token.colorWarning },
-    { key: 'visits', label: labels.visits, total: totalVisits, color: token.colorSuccess },
-  ] as const;
+    { key: 'plays', label: labels.plays, total: totalPlays, color: 'oklch(0.56 0.16 255)' },
+    { key: 'wins', label: labels.wins, total: totalWins, color: 'oklch(0.75 0.16 70)' },
+    { key: 'visits', label: labels.visits, total: totalVisits, color: 'oklch(0.56 0.15 152)' },
+  ];
 
   const visitLinePoints = data
-    .map((d, i) => {
-      const cx = PAD_LEFT + i * slotWidth + slotWidth / 2;
-      const cy = yFor(d.visits);
-      return `${cx},${cy}`;
+    .map((d, index) => {
+      const centerX = PAD_LEFT + index * slotWidth + slotWidth / 2;
+      const y = yFor(d.visits);
+      return `${centerX},${y}`;
     })
     .join(' ');
 
   return (
-    <Flex vertical gap={12} data-testid="daily-outcome-chart">
-      <Flex gap={16} wrap align="center">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-end gap-4 text-xs">
         {series.map((s) => (
-          <Flex key={s.key} align="center" gap={6}>
+          <div key={s.key} className="flex items-center gap-1.5">
             <span
-              aria-hidden
-              className="inline-block size-2.5 shrink-0"
-              style={{ backgroundColor: s.color, borderRadius: 2 }}
+              className="inline-block size-2.5 rounded-xs"
+              style={{ backgroundColor: s.color }}
             />
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {s.label}: <strong style={{ color: token.colorText }}>{s.total}</strong>
-            </Typography.Text>
-          </Flex>
+            <span className="text-muted-foreground">{s.label}:</span>
+            <span className="font-semibold text-foreground">{s.total}</span>
+          </div>
         ))}
-      </Flex>
+      </div>
 
       <svg
-        role="img"
-        aria-label={labels.ariaLabel}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="w-full overflow-visible"
+        role="img"
+        aria-label={labels.ariaLabel}
       >
-        <title>{labels.ariaLabel}</title>
-
         {ticks.map((tick) => {
           const y = yFor(tick);
           return (
             <g key={tick}>
               <line
                 x1={PAD_LEFT}
-                y1={y}
                 x2={WIDTH - PAD_RIGHT}
+                y1={y}
                 y2={y}
-                stroke={tick === 0 ? token.colorBorder : token.colorBorderSecondary}
-                strokeDasharray={tick === 0 ? undefined : '3 3'}
-                strokeWidth={1}
+                stroke="currentColor"
+                className="text-border/60"
+                strokeWidth={0.75}
+                strokeDasharray={tick === 0 ? undefined : '2 3'}
               />
               <text
                 x={PAD_LEFT - 6}
-                y={y + 4}
+                y={y + 3}
                 textAnchor="end"
-                fill={token.colorTextSecondary}
+                className="fill-muted-foreground text-[10px]"
                 fontSize={10}
               >
                 {tick}
@@ -140,13 +137,14 @@ export function DailyOutcomeChart({
         })}
 
         {data.map((point, index) => {
-          const centerX = PAD_LEFT + index * slotWidth + slotWidth / 2;
+          const slotX = PAD_LEFT + index * slotWidth;
+          const centerX = slotX + slotWidth / 2;
           const startX = centerX - groupWidth / 2;
           const bars = [
-            { key: 'plays', value: point.plays, color: token.colorInfo },
-            { key: 'wins', value: point.wins, color: token.colorWarning },
-            { key: 'visits', value: point.visits, color: token.colorSuccess },
-          ] as const;
+            { key: 'plays', value: point.plays, color: series[0]?.color ?? '#8b5cf6' },
+            { key: 'wins', value: point.wins, color: series[1]?.color ?? '#f59e0b' },
+            { key: 'visits', value: point.visits, color: series[2]?.color ?? '#10b981' },
+          ];
           const showLabel = index % labelEvery === 0 || index === data.length - 1;
           const tooltipText = labels.dayTooltip
             ? labels.dayTooltip(point)
@@ -177,7 +175,7 @@ export function DailyOutcomeChart({
                   x={centerX}
                   y={HEIGHT - 8}
                   textAnchor="middle"
-                  fill={token.colorTextSecondary}
+                  className="fill-muted-foreground text-[10px]"
                   fontSize={10}
                 >
                   {formatDay(point.day)}
@@ -190,7 +188,7 @@ export function DailyOutcomeChart({
         {data.length > 1 && totalVisits > 0 && (
           <polyline
             fill="none"
-            stroke={token.colorPrimary}
+            stroke="var(--primary)"
             strokeWidth={1.75}
             points={visitLinePoints}
             strokeLinecap="round"
@@ -198,6 +196,6 @@ export function DailyOutcomeChart({
           />
         )}
       </svg>
-    </Flex>
+    </div>
   );
 }

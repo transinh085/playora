@@ -2,24 +2,17 @@
 
 import { useRouteQuery } from '@playora/api-client/react';
 import { meApi } from '@playora/contracts';
-import {
-  Button,
-  Divider,
-  Flex,
-  Grid,
-  Input,
-  Result,
-  Segmented,
-  Spin,
-  Tooltip,
-  Typography,
-  theme,
-} from 'antd';
+import { Button } from '@playora/ui/components/button';
+import { Input } from '@playora/ui/components/input';
+import { Separator } from '@playora/ui/components/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
+import { cn } from '@playora/ui/lib/utils';
 import {
   ArrowLeft,
   CloudAlert,
   CloudCheck,
   Gift,
+  Loader2,
   LoaderCircle,
   PencilRuler,
   Play,
@@ -56,30 +49,25 @@ export function BuilderEditor({
   const t = useTranslations('builderLab.editor');
   const router = useRouter();
   const query = useCampaign(orgId, campaignId);
-  const { draft, update, flush, saveState } = useCampaignDraft(orgId, query.data);
+  const { draft, patchDraft, flush, saveState } = useCampaignDraft(orgId, query.data);
   const home = campaignRoutes(orgId).list;
 
   if (query.isError) {
     return (
-      <Flex className="h-dvh" align="center" justify="center">
-        <Result
-          status="404"
-          title={t('notFound')}
-          subTitle={t('notFoundHint')}
-          extra={
-            <Button type="primary" onClick={() => router.push(home)}>
-              {t('backHome')}
-            </Button>
-          }
-        />
-      </Flex>
+      <div className="flex h-dvh flex-col items-center justify-center p-8 text-center">
+        <h3 className="text-lg font-bold">{t('notFound')}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t('notFoundHint')}</p>
+        <Button className="mt-4" onClick={() => router.push(home)}>
+          {t('backHome')}
+        </Button>
+      </div>
     );
   }
   if (!draft || !query.data) {
     return (
-      <Flex className="h-dvh" align="center" justify="center">
-        <Spin size="large" />
-      </Flex>
+      <div className="flex h-dvh items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
     );
   }
   return (
@@ -88,7 +76,7 @@ export function BuilderEditor({
       initialMode={initialMode}
       server={query.data}
       draft={draft}
-      update={update}
+      update={patchDraft}
       flush={flush}
       saveState={saveState}
     />
@@ -113,57 +101,58 @@ function EditorShell({
   saveState: SaveState;
 }) {
   const t = useTranslations('builderLab.editor');
-  const { token } = theme.useToken();
-  const wide = Grid.useBreakpoint().lg ?? true;
   const [mode, setMode] = useState<EditorMode>(initialMode);
   const [screen, setScreen] = useState<ScreenKey>('cover');
   const [publishing, setPublishing] = useState(false);
   const links = labLinks(orgId, draft.id);
-  const border = `1px solid ${token.colorBorderSecondary}`;
   const myOrgs = useRouteQuery(api, meApi.orgs, {});
   const organizerName = myOrgs.data?.items.find((o) => o.id === orgId)?.name;
 
   const modeSwitch = (
-    <Segmented
-      value={mode}
-      onChange={(value) => setMode(value as EditorMode)}
-      options={[
-        { value: 'quick', label: t('modes.quick'), icon: <Zap className="size-3.5" /> },
-        {
-          value: 'customize',
-          label: t('modes.customize'),
-          icon: <PencilRuler className="size-3.5" />,
-        },
-        { value: 'rules', label: t('modes.rules'), icon: <Gift className="size-3.5" /> },
-      ]}
-    />
+    <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+      {[
+        { value: 'quick' as const, label: t('modes.quick'), icon: Zap },
+        { value: 'customize' as const, label: t('modes.customize'), icon: PencilRuler },
+        { value: 'rules' as const, label: t('modes.rules'), icon: Gift },
+      ].map((item) => {
+        const Icon = item.icon;
+        const isActive = mode === item.value;
+        return (
+          <button
+            key={item.value}
+            type="button"
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-all',
+              isActive
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+            onClick={() => setMode(item.value)}
+          >
+            <Icon className="size-3.5" />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 
   return (
-    <div
-      className="grid h-dvh"
-      style={{
-        gridTemplateRows: wide ? '56px minmax(0, 1fr)' : '56px auto minmax(0, 1fr)',
-        background: token.colorBgLayout,
-      }}
-    >
-      <header
-        className="flex items-center justify-between gap-3 px-3"
-        style={{ background: token.colorBgContainer, borderBottom: border }}
-      >
-        <Flex align="center" gap={8} className="min-w-0 flex-1">
-          <Tooltip title={t('back')}>
-            <Link href={campaignRoutes(orgId).detail(draft.id)} aria-label={t('back')}>
-              <Button
-                type="text"
-                tabIndex={-1}
-                aria-hidden
-                icon={<ArrowLeft className="size-4" />}
-              />
-            </Link>
+    <div className="grid h-dvh grid-rows-[56px_auto_minmax(0,1fr)] lg:grid-rows-[56px_minmax(0,1fr)] bg-background">
+      <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href={campaignRoutes(orgId).detail(draft.id)} aria-label={t('back')}>
+                <Button variant="ghost" size="icon" className="size-8" tabIndex={-1}>
+                  <ArrowLeft className="size-4" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>{t('back')}</TooltipContent>
           </Tooltip>
+
           <Input
-            variant="borderless"
             aria-label={t('name')}
             value={draft.name}
             maxLength={80}
@@ -171,56 +160,48 @@ function EditorShell({
             onBlur={() => {
               if (!draft.name.trim()) update({ name: server.name.trim() || t('untitled') });
             }}
-            style={{ fontWeight: 600, maxWidth: 280 }}
+            className="h-8 max-w-[280px] border-none bg-transparent font-semibold shadow-none focus-visible:ring-1"
           />
           <SaveIndicator state={saveState} />
-        </Flex>
+        </div>
 
-        {wide && modeSwitch}
+        <div className="hidden lg:block">{modeSwitch}</div>
 
-        <Flex align="center" justify="end" gap={8} className="min-w-0 flex-1">
-          {wide && <CampaignStatusTag campaign={server} />}
-          {wide && <Divider orientation="vertical" />}
-          <Button
-            icon={<Play className="size-4" />}
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <div className="hidden lg:flex items-center gap-2">
+            <CampaignStatusTag campaign={server} />
+            <Separator orientation="vertical" className="h-4" />
+          </div>
+
+          <a
             href={links.rehearsal}
             target="_blank"
+            rel="noreferrer"
             onClick={() => void flush()}
             aria-label={t('rehearse')}
           >
-            {wide ? t('rehearse') : null}
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Play className="size-3.5" />
+              <span className="hidden lg:inline">{t('rehearse')}</span>
+            </Button>
+          </a>
+
+          <Button size="sm" className="gap-1.5 rounded-full" onClick={() => setPublishing(true)}>
+            <Rocket className="size-3.5" />
+            <span>{t('publish')}</span>
           </Button>
-          <Button
-            type="primary"
-            icon={<Rocket className="size-4" />}
-            onClick={() => setPublishing(true)}
-          >
-            {t('publish')}
-          </Button>
-        </Flex>
+        </div>
       </header>
 
-      {!wide && (
-        <Flex
-          align="center"
-          justify="space-between"
-          gap={8}
-          wrap
-          className="px-3 py-2"
-          style={{ background: token.colorBgContainer, borderBottom: border }}
-        >
-          {modeSwitch}
-          <CampaignStatusTag campaign={server} />
-        </Flex>
-      )}
+      <div className="flex items-center justify-between border-b bg-card px-3 py-2 lg:hidden">
+        {modeSwitch}
+        <CampaignStatusTag campaign={server} />
+      </div>
 
       <div className="min-h-0">
         {mode === 'quick' && (
           <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] lg:overflow-hidden">
-            <aside
-              className="p-4 lg:min-h-0 lg:overflow-y-auto"
-              style={{ background: token.colorBgContainer, borderRight: wide ? border : undefined }}
-            >
+            <aside className="border-r p-4 bg-card lg:min-h-0 lg:overflow-y-auto">
               <QuickEditPanel campaign={draft} onChange={update} onShowScreen={setScreen} />
             </aside>
             <main className="flex justify-center p-6 lg:min-h-0 lg:overflow-y-auto">
@@ -238,14 +219,9 @@ function EditorShell({
                 onChange={(patch) => update(patch)}
               />
             </div>
-            <aside
-              className="hidden lg:flex flex-col items-center justify-start p-6 overflow-y-auto"
-              style={{ background: token.colorBgContainer, borderLeft: wide ? border : undefined }}
-            >
+            <aside className="hidden flex-col items-center justify-start border-l bg-card p-6 overflow-y-auto lg:flex">
               <div className="mb-4 text-center">
-                <Typography.Text strong className="block text-sm" style={{ fontWeight: 600 }}>
-                  {t('liveGamePreview')}
-                </Typography.Text>
+                <span className="block text-sm font-semibold">{t('liveGamePreview')}</span>
                 <Caption>{t('liveGamePreviewHint')}</Caption>
               </div>
               <PhonePreview
@@ -277,21 +253,20 @@ function EditorShell({
 
 function SaveIndicator({ state }: { state: SaveState }) {
   const t = useTranslations('builderLab.editor.save');
-  const { token } = theme.useToken();
   const busy = state === 'pending' || state === 'saving';
   const Icon = busy ? LoaderCircle : state === 'error' ? CloudAlert : CloudCheck;
   return (
-    <Flex
-      align="center"
-      gap={4}
-      className="shrink-0"
+    <div
+      className={cn(
+        'flex items-center gap-1 shrink-0 text-xs',
+        state === 'error' ? 'text-destructive' : 'text-muted-foreground',
+      )}
       role="status"
-      style={{ color: state === 'error' ? token.colorError : token.colorTextTertiary }}
     >
       <Icon className={`size-3.5 ${busy ? 'animate-spin' : ''}`} />
       <Caption type={state === 'error' ? 'danger' : 'secondary'} className="hidden sm:inline">
         {busy ? t('saving') : state === 'error' ? t('error') : t('saved')}
       </Caption>
-    </Flex>
+    </div>
   );
 }

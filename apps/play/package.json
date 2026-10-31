@@ -18,7 +18,7 @@
     "@playora/i18n": "workspace:*",
     "@playora/templates": "workspace:*",
     "@playora/ui": "workspace:*",
-    "antd": "6.6.5",
+    "lucide-react": "1.61.0",
     "next": "16.4.3",
     "next-intl": "4.14.9",
     "qrcode": "1.5.4",

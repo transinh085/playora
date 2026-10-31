@@ -1,6 +1,18 @@
 'use client';
 
-import { App, Button, Popconfirm, Skeleton } from 'antd';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@playora/ui/components/alert-dialog';
+import { Button } from '@playora/ui/components/button';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import { toast } from '@playora/ui/components/sonner';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -16,7 +28,6 @@ import { PendingInvitationsTable } from './pending-invitations-table';
 export function MembersView({ orgId }: { orgId: string }) {
   const t = useTranslations();
   const router = useRouter();
-  const { message } = App.useApp();
   const { invalidateMembers, invalidateMyOrgs } = useInvalidateOrgMembers(orgId);
   const { data: session } = authClient.useSession();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -25,8 +36,9 @@ export function MembersView({ orgId }: { orgId: string }) {
 
   if (query.isPending) {
     return (
-      <div className="flex flex-col gap-5">
-        <Skeleton active paragraph={{ rows: 6 }} className="py-4" />
+      <div className="flex flex-col gap-5 py-4 space-y-3">
+        <Skeleton className="h-8 w-48 rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
     );
   }
@@ -59,11 +71,11 @@ export function MembersView({ orgId }: { orgId: string }) {
         role: role as never,
       });
       if (error) {
-        message.error(error.message ?? t('common.unknownError'));
+        toast.error(error.message ?? t('common.unknownError'));
         return;
       }
       await Promise.all([invalidateMembers(), invalidateMyOrgs()]);
-      message.success(t('members.roleUpdated'));
+      toast.success(t('members.roleUpdated'));
     } finally {
       setBusyId(null);
     }
@@ -77,11 +89,11 @@ export function MembersView({ orgId }: { orgId: string }) {
         memberIdOrEmail: memberId,
       });
       if (error) {
-        message.error(error.message ?? t('common.unknownError'));
+        toast.error(error.message ?? t('common.unknownError'));
         return;
       }
       await invalidateMembers();
-      message.success(t('members.removed'));
+      toast.success(t('members.removed'));
     } finally {
       setBusyId(null);
     }
@@ -92,11 +104,11 @@ export function MembersView({ orgId }: { orgId: string }) {
     try {
       const { error } = await authClient.organization.leave({ organizationId: orgId });
       if (error) {
-        message.error(error.message ?? t('common.unknownError'));
+        toast.error(error.message ?? t('common.unknownError'));
         return;
       }
       await invalidateMyOrgs();
-      message.success(t('members.left'));
+      toast.success(t('members.left'));
       router.replace('/');
       router.refresh();
     } finally {
@@ -114,11 +126,11 @@ export function MembersView({ orgId }: { orgId: string }) {
         resend: true,
       });
       if (error) {
-        message.error(error.message ?? t('common.unknownError'));
+        toast.error(error.message ?? t('common.unknownError'));
         return;
       }
       await invalidateMembers();
-      message.success(t('members.resent', { email }));
+      toast.success(t('members.resent', { email }));
     } finally {
       setBusyId(null);
     }
@@ -129,11 +141,11 @@ export function MembersView({ orgId }: { orgId: string }) {
     try {
       const { error } = await authClient.organization.cancelInvitation({ invitationId: invId });
       if (error) {
-        message.error(error.message ?? t('common.unknownError'));
+        toast.error(error.message ?? t('common.unknownError'));
         return;
       }
       await invalidateMembers();
-      message.success(t('members.cancelled', { email }));
+      toast.success(t('members.cancelled', { email }));
     } finally {
       setBusyId(null);
     }
@@ -147,16 +159,31 @@ export function MembersView({ orgId }: { orgId: string }) {
         extra={
           <>
             {canLeave && (
-              <Popconfirm
-                title={t('members.leaveConfirm')}
-                okText={t('members.leave')}
-                cancelText={t('common.cancel')}
-                okButtonProps={{ danger: true }}
-                onConfirm={onLeaveOrg}
-                disabled={busyId === 'leave'}
-              >
-                <Button disabled={busyId === 'leave'}>{t('members.leave')}</Button>
-              </Popconfirm>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="rounded-full" disabled={busyId === 'leave'}>
+                    {t('members.leave')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-base font-bold">
+                      {t('members.leaveConfirm')}
+                    </AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-full">
+                      {t('common.cancel')}
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-white hover:bg-destructive/90 rounded-full"
+                      onClick={onLeaveOrg}
+                    >
+                      {t('members.leave')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
           </>

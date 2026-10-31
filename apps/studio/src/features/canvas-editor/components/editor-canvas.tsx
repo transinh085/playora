@@ -1,7 +1,7 @@
 'use client';
 
 import { type CanvasLabels, type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
-import { Tag, theme } from 'antd';
+import { Badge } from '@playora/ui/components/badge';
 import { type Dispatch, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
 import {
@@ -109,7 +109,6 @@ export function EditorCanvas({
   prizes?: CanvasPrize[];
   onContextMenu?: (e: React.MouseEvent, id: string | null) => void;
 }) {
-  const { token } = theme.useToken();
   const committed = currentScreen(state);
   const artboardRef = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -222,10 +221,7 @@ export function EditorCanvas({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
-      if (
-        target?.closest('input, textarea, [contenteditable="true"], .ant-select, .ant-color-picker')
-      )
-        return;
+      if (target?.closest('input, textarea, [contenteditable="true"], [role="combobox"]')) return;
       const { state: s, dispatch: send } = latest.current;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && e.key.toLowerCase() === 'z') {
@@ -285,8 +281,8 @@ export function EditorCanvas({
     <div
       ref={artboardRef}
       role="application"
-      className="relative"
-      style={{ width, height, boxShadow: token.boxShadowSecondary, borderRadius: 4 }}
+      className="relative rounded-lg shadow-xl"
+      style={{ width, height }}
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes(TOOLBOX_MIME)) e.preventDefault();
       }}
@@ -314,7 +310,6 @@ export function EditorCanvas({
         // biome-ignore lint/a11y/noStaticElementInteractions: interaction canvas surface with click-to-deselect and context menu
         <div
           className="absolute inset-0"
-          style={{ ['--canvas-hover' as string]: token.colorPrimaryBorder }}
           onPointerDown={() => dispatch({ type: 'select', id: null })}
           onContextMenu={(e) => onContextMenu?.(e, null)}
           role="presentation"
@@ -325,7 +320,7 @@ export function EditorCanvas({
               <div
                 key={el.id}
                 data-testid={`canvas-element-${el.type}`}
-                className="hover:outline hover:outline-(--canvas-hover)"
+                className="hover:outline hover:outline-primary/50"
                 style={{ ...frame(el), cursor: el.locked ? 'default' : 'move' }}
                 onContextMenu={(e) => onContextMenu?.(e, el.id)}
                 onPointerDown={(e) => {
@@ -355,7 +350,7 @@ export function EditorCanvas({
             <div
               style={{
                 ...frame(selected),
-                outline: `1.5px ${selected.locked ? 'dashed' : 'solid'} ${token.colorPrimary}`,
+                outline: `1.5px ${selected.locked ? 'dashed' : 'solid'} hsl(var(--primary))`,
                 pointerEvents: 'none',
               }}
             >
@@ -383,8 +378,8 @@ export function EditorCanvas({
                         width: 10,
                         height: 10,
                         borderRadius: 2,
-                        background: token.colorBgContainer,
-                        border: `1.5px solid ${token.colorPrimary}`,
+                        background: 'hsl(var(--background))',
+                        border: '1.5px solid hsl(var(--primary))',
                         cursor: CURSORS[`${hx},${hy}`],
                         pointerEvents: 'auto',
                       }}
@@ -397,7 +392,7 @@ export function EditorCanvas({
                       top: -28,
                       width: 1.5,
                       height: 22,
-                      background: token.colorPrimary,
+                      background: 'hsl(var(--primary))',
                     }}
                   />
                   <button
@@ -419,8 +414,8 @@ export function EditorCanvas({
                       width: 14,
                       height: 14,
                       borderRadius: '50%',
-                      background: token.colorBgContainer,
-                      border: `1.5px solid ${token.colorPrimary}`,
+                      background: 'hsl(var(--background))',
+                      border: '1.5px solid hsl(var(--primary))',
                       cursor: 'grab',
                       padding: 0,
                       pointerEvents: 'auto',
@@ -436,7 +431,7 @@ export function EditorCanvas({
               key={`${g.axis}${g.at}`}
               style={{
                 position: 'absolute',
-                background: token.colorError,
+                background: 'hsl(var(--destructive))',
                 pointerEvents: 'none',
                 ...(g.axis === 'x'
                   ? { left: g.at * zoom, top: 0, bottom: 0, width: 1 }
@@ -461,13 +456,11 @@ export function EditorCanvas({
               started: false,
             };
           }}
-          className="absolute left-1/2 -translate-x-1/2"
+          className="absolute left-1/2 -translate-x-1/2 rounded bg-muted-foreground/40 hover:bg-muted-foreground/60 transition-colors"
           style={{
             bottom: -14,
             width: 48,
             height: 8,
-            borderRadius: 4,
-            background: token.colorTextQuaternary,
             cursor: 'ns-resize',
             padding: 0,
             border: 0,
@@ -476,13 +469,11 @@ export function EditorCanvas({
       )}
 
       {badge && (
-        <Tag
-          color="processing"
-          className="!absolute left-1/2 -translate-x-1/2"
-          style={{ bottom: -40 }}
-        >
-          {badge}
-        </Tag>
+        <div className="absolute left-1/2 -translate-x-1/2 -bottom-10 pointer-events-none">
+          <Badge variant="secondary" className="px-2 py-0.5 text-xs font-mono shadow">
+            {badge}
+          </Badge>
+        </div>
       )}
     </div>
   );

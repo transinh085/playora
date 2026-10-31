@@ -1,7 +1,7 @@
 'use client';
 
 import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
-import { Button, Typography, theme } from 'antd';
+import { Button } from '@playora/ui/components/button';
 import { Gift } from 'lucide-react';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
@@ -102,21 +102,14 @@ export function RedeemFirstBanner({
   labels: CampaignPlayerLabels;
   onOpenVouchers: () => void;
 }) {
-  const { token } = theme.useToken();
   return (
     <div className="absolute inset-x-3 bottom-4 z-10" data-testid="redeem-first-notice">
-      <div
-        className="flex flex-col items-center gap-3 p-4 text-center"
-        style={{
-          background: token.colorBgElevated,
-          borderRadius: token.borderRadiusLG * 2,
-          boxShadow: token.boxShadowSecondary,
-        }}
-      >
-        <Typography.Text strong className="text-sm">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-4 text-center shadow-lg">
+        <span className="text-sm font-semibold text-card-foreground">
           {labels.redeemFirstMessage ?? 'Đổi quà ở quầy trước để chơi lượt tiếp theo'}
-        </Typography.Text>
-        <Button type="primary" shape="round" icon={<Gift size={16} />} onClick={onOpenVouchers}>
+        </span>
+        <Button className="rounded-full gap-2" onClick={onOpenVouchers}>
+          <Gift size={16} />
           {labels.myPrizes}
         </Button>
       </div>

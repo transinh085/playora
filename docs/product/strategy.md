@@ -65,6 +65,7 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
 | #2 | SME có điểm bán khác: spa/làm đẹp, gym, nha khoa, bán lẻ; shop online có fanpage | Mở rộng khi playbook F&B đã chạy |
 | #3 | Agency nhỏ, freelancer marketing | Kênh bán lại (M4) |
 | — | Brand lớn, HR nội bộ | Dùng gói chung, không có tính năng riêng |
+| Tương lai | Agency làm cho nhãn hàng (M4); nhãn hàng tiêu dùng chạy minigame trực tiếp cho người tiêu dùng (sau Gate M3) | Persona tương lai ở [prd §2.2](./prd.md#22-persona-tương-lai-m3m4-chưa-xây-tính-năng-riêng); không có tính năng riêng trước Gate M3, chỉ giữ thiết kế không đóng cửa ([D-27](./decisions.md)) |
 
 **Vì sao chọn một ngành trước:** một người làm không thể viết playbook, skin, case study và số liệu benchmark cho mười ngành cùng lúc. F&B đồ uống có tần suất ghé cao, quà rẻ (topping, size up), quầy thu ngân sẵn để đổi quà, và đông nhất trong tệp của 凡科. Chọn lại nếu phỏng vấn M0 cho thấy ngành khác đau hơn ([decisions D-17](./decisions.md)).
 

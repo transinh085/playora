@@ -1,23 +1,26 @@
 'use client';
 
 import type { MyOrg } from '@playora/contracts';
+import { Avatar, AvatarFallback } from '@playora/ui/components/avatar';
+import { Button } from '@playora/ui/components/button';
 import {
-  Avatar,
-  Breadcrumb,
-  Button,
-  Drawer,
-  Dropdown,
-  Flex,
-  Grid,
-  Layout,
-  Menu,
-  type MenuProps,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@playora/ui/components/dropdown-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@playora/ui/components/sheet';
+import {
   Tooltip,
-  Typography,
-  theme,
-} from 'antd';
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import {
   CalendarDays,
+  ChevronRight,
   ChevronsUpDown,
   Gem,
   House,
@@ -39,14 +42,12 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { LABS_ENABLED } from '@/lib/env';
 import { can, isRedeemerOnly, type PermissionRequest } from '@/lib/permissions';
 import { Caption } from './caption';
 import { LogoMark } from './logo';
-
-const { Sider, Header, Content } = Layout;
 
 type NavKey =
   | 'home'
@@ -58,18 +59,16 @@ type NavKey =
   | 'settings'
   | 'billing'
   | 'canvasLab';
+
 interface NavItem {
   key: NavKey;
   icon: typeof CalendarDays;
   path: string;
   permission?: PermissionRequest;
 }
+
 type NavGroupKey = 'start' | 'campaigns' | 'brand' | 'organization' | 'labs';
 
-/**
- * Sidebar navigation, grouped like the games-vt admin (docs/engineering/design-system.md §3.4, docs/product/specs/studio-ux.md §3). Only routes that
- * exist are listed; Labs prototypes stay out of customer builds (LABS_ENABLED).
- */
 const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
   {
     key: 'start',
@@ -134,7 +133,6 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
     : []),
 ];
 
-/** Longest path first, so `campaigns/new` wins over `campaigns`. */
 const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items).sort(
   (a, b) => b.path.length - a.path.length,
 );
@@ -143,15 +141,20 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
-  const { token } = theme.useToken();
-  const screens = Grid.useBreakpoint();
-  const isMobile = screens.md === false;
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { orgId } = useParams<{ orgId?: string }>();
   const { data: session } = authClient.useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const current = orgs.find((o) => o.id === orgId) ?? orgs[0];
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   async function signOut() {
     await authClient.signOut();
@@ -168,41 +171,8 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
     : undefined;
   const inEvent = /\/campaigns\/(?!new\b)[^/]+/.test(pathname);
 
-  const navMenuItems: MenuProps['items'] = current
-    ? NAV_GROUPS.flatMap((group): NonNullable<MenuProps['items']> => {
-        const visibleItems = group.items.filter(
-          (item) => !item.permission || can(current.role, item.permission),
-        );
-        if (visibleItems.length === 0) return [];
-        const children = visibleItems.map(({ key, icon: Icon, path }) => ({
-          key,
-          icon: <Icon className="size-4" />,
-          label: (
-            <Link
-              href={(path ? `${orgHome}/${path}` : orgHome) as Route}
-              onClick={() => setDrawerOpen(false)}
-            >
-              {t(`nav.${key}`)}
-            </Link>
-          ),
-        }));
-        // Home stands alone above the labelled groups.
-        return group.key === 'start'
-          ? children
-          : [
-              {
-                key: group.key,
-                type: 'group' as const,
-                label: t(`navGroups.${group.key}`).toUpperCase(),
-                children,
-              },
-            ];
-      })
-    : [];
-
   const breadcrumbs = [
-    { title: <Link href={orgLanding as Route}>{t('shell.home')}</Link> },
-    // Plain text, not links: the sidebar already links each section (and e2e finds those by name).
+    { title: t('shell.home'), href: orgLanding },
     ...(activeNav && activeNav.key !== 'home' ? [{ title: t(`nav.${activeNav.key}`) }] : []),
     ...(inEvent ? [{ title: t('shell.eventDetail') }] : []),
   ];
@@ -210,179 +180,225 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   const showLabels = !collapsed || isMobile;
   const userName = session?.user.name ?? '';
 
-  const sidebar = (
-    <Flex vertical className="h-full">
+  const sidebarContent = (
+    <div className="flex h-full flex-col">
       <Link
         href="/"
         aria-label={t('common.appName')}
-        className="flex h-16 shrink-0 items-center gap-3"
-        style={{
-          padding: showLabels ? '0 24px' : '0 20px',
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          color: 'inherit',
-        }}
+        className={`flex h-16 shrink-0 items-center gap-3 border-b border-border/80 transition-all ${
+          showLabels ? 'px-6' : 'justify-center px-2'
+        }`}
       >
-        <LogoMark className="size-9" aria-hidden />
+        <LogoMark className="size-9 shrink-0" aria-hidden />
         {showLabels && (
           <div className="min-w-0">
-            <div
-              className="font-display"
-              style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}
-            >
+            <div className="font-display text-base font-bold leading-tight tracking-tight text-foreground">
               playora
             </div>
-            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-              {t('shell.studio')}
-            </Typography.Text>
+            <p className="text-[11px] text-muted-foreground">{t('shell.studio')}</p>
           </div>
         )}
       </Link>
+
       {current && showLabels && (
-        <div className="px-4 pt-4">
-          <Dropdown
-            menu={{
-              items: orgs.map((org) => ({
-                key: org.id,
-                label: org.name,
-                onClick: () =>
-                  router.push(
-                    isRedeemerOnly(org.role) ? `/orgs/${org.id}/redeem` : `/orgs/${org.id}`,
-                  ),
-              })),
-              selectedKeys: [current.id],
-            }}
-            trigger={['click']}
-          >
-            <Button block aria-label={t('shell.switchOrg')} className="!justify-between">
-              <Typography.Text ellipsis>{current.name}</Typography.Text>
-              <ChevronsUpDown className="size-4 shrink-0" />
-            </Button>
-          </Dropdown>
+        <div className="p-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between rounded-xl border-border/80 bg-background/50 px-3 text-xs shadow-xs"
+                aria-label={t('shell.switchOrg')}
+              >
+                <span className="truncate font-medium">{current.name}</span>
+                <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 rounded-xl">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                {t('shell.switchOrg')}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {orgs.map((org) => (
+                <DropdownMenuItem
+                  key={org.id}
+                  className={`text-xs ${org.id === current.id ? 'font-semibold bg-accent' : ''}`}
+                  onClick={() =>
+                    router.push(
+                      isRedeemerOnly(org.role) ? `/orgs/${org.id}/redeem` : `/orgs/${org.id}`,
+                    )
+                  }
+                >
+                  {org.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
+
       {current && (
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden pb-4">
-          <Menu
-            mode="inline"
-            inlineCollapsed={!showLabels}
-            selectedKeys={activeNav ? [activeNav.key] : []}
-            items={navMenuItems}
-            className="mt-2"
-          />
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-4">
+          {NAV_GROUPS.map((group) => {
+            const visibleItems = group.items.filter(
+              (item) => !item.permission || can(current.role, item.permission),
+            );
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div key={group.key} className="space-y-1">
+                {group.key !== 'start' && showLabels && (
+                  <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                    {t(`navGroups.${group.key}`)}
+                  </p>
+                )}
+                {visibleItems.map(({ key, icon: Icon, path }) => {
+                  const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
+                  const isActive = activeNav?.key === key;
+
+                  return (
+                    <TooltipProvider key={key}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            href={href}
+                            onClick={() => setDrawerOpen(false)}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                              isActive
+                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                            } ${!showLabels ? 'justify-center px-0' : ''}`}
+                          >
+                            <Icon className="size-4 shrink-0" />
+                            {showLabels && <span className="truncate">{t(`nav.${key}`)}</span>}
+                          </Link>
+                        </TooltipTrigger>
+                        {!showLabels && (
+                          <TooltipContent side="right">{t(`nav.${key}`)}</TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
       )}
-    </Flex>
+    </div>
   );
 
   return (
-    <Layout className="min-h-dvh">
-      {isMobile ? (
-        <Drawer
-          placement="left"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          closable={false}
-          size={280}
-          styles={{ body: { padding: 0 } }}
-        >
-          {sidebar}
-        </Drawer>
-      ) : (
-        <Sider
-          width={250}
-          collapsed={collapsed}
-          trigger={null}
-          className="sticky top-0 h-dvh"
-          style={{ borderRight: `1px solid ${token.colorBorderSecondary}` }}
-        >
-          {sidebar}
-        </Sider>
-      )}
-      <Layout className="min-w-0">
-        <Header
-          className="sticky top-0 z-10 flex items-center justify-between"
-          style={{
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            padding: isMobile ? '0 12px' : undefined,
-          }}
-        >
-          <Flex align="center" gap={16}>
-            <Tooltip
-              title={
+    <div className="flex min-h-dvh bg-background text-foreground">
+      {/* Mobile Drawer */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent side="left" className="w-[280px] p-0 bg-card">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation Menu</SheetTitle>
+          </SheetHeader>
+          {sidebarContent}
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sider */}
+      <aside
+        className={`sticky top-0 hidden h-dvh shrink-0 border-r border-border/80 bg-card transition-all duration-200 md:block ${
+          collapsed ? 'w-16' : 'w-60'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border/80 bg-background/80 px-4 backdrop-blur-md sm:px-6">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9 rounded-xl"
+              aria-label={
                 isMobile ? t('shell.openNav') : collapsed ? t('shell.expand') : t('shell.collapse')
               }
+              onClick={() => (isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed))}
             >
-              <Button
-                type="text"
-                aria-label={
-                  isMobile
-                    ? t('shell.openNav')
-                    : collapsed
-                      ? t('shell.expand')
-                      : t('shell.collapse')
-                }
-                icon={
-                  isMobile ? (
-                    <MenuIcon className="size-4" />
-                  ) : collapsed ? (
-                    <PanelLeftOpen className="size-4" />
-                  ) : (
-                    <PanelLeftClose className="size-4" />
-                  )
-                }
-                onClick={() => (isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed))}
-              />
-            </Tooltip>
-            {!isMobile && <Breadcrumb items={breadcrumbs} />}
-          </Flex>
-          <Flex align="center" gap={16}>
+              {isMobile ? (
+                <MenuIcon className="size-4" />
+              ) : collapsed ? (
+                <PanelLeftOpen className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </Button>
+
+            {!isMobile && (
+              <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                {breadcrumbs.map((crumb, idx) => (
+                  <span key={crumb.title} className="flex items-center gap-1.5">
+                    {idx > 0 && <ChevronRight className="size-3 text-muted-foreground/40" />}
+                    {crumb.href ? (
+                      <Link href={crumb.href as Route} className="hover:text-foreground">
+                        {crumb.title}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-foreground">{crumb.title}</span>
+                    )}
+                  </span>
+                ))}
+              </nav>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
             <Button
-              type="text"
-              shape="circle"
+              variant="ghost"
+              size="icon"
+              className="size-9 rounded-full"
               aria-label="Theme"
-              icon={
-                resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />
-              }
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-            />
-            <Dropdown
-              menu={{
-                items: [
-                  {
-                    key: 'sign-out',
-                    icon: <LogOut className="size-4" />,
-                    label: t('auth.signOut'),
-                    danger: true,
-                    onClick: signOut,
-                  },
-                ],
-              }}
-              placement="bottomRight"
-              trigger={['click']}
-              arrow
             >
-              <button
-                type="button"
-                aria-label="User menu"
-                className="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0"
-              >
-                <Avatar style={{ backgroundColor: token.colorPrimary, fontWeight: 600 }}>
-                  {userName.slice(0, 1).toUpperCase() || '?'}
-                </Avatar>
-                {!isMobile && (
-                  <Flex vertical align="start" style={{ lineHeight: 1.2 }}>
-                    <Typography.Text strong style={{ fontSize: 13 }}>
-                      {userName}
-                    </Typography.Text>
-                    <Caption style={{ fontSize: 11 }}>{session?.user.email}</Caption>
-                  </Flex>
-                )}
-              </button>
-            </Dropdown>
-          </Flex>
-        </Header>
-        <Content style={{ margin: isMobile ? 12 : 24 }}>{children}</Content>
-      </Layout>
-    </Layout>
+              {resolvedTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="User menu"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-full border-0 bg-transparent p-0 outline-none"
+                >
+                  <Avatar className="size-8 rounded-full border border-border/80 bg-primary font-bold text-primary-foreground text-xs">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {userName.slice(0, 1).toUpperCase() || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!isMobile && (
+                    <div className="text-left leading-tight hidden lg:block">
+                      <p className="text-xs font-semibold text-foreground">{userName}</p>
+                      <Caption className="text-[10px] block">{session?.user.email}</Caption>
+                    </div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5">
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-semibold text-foreground">{userName}</p>
+                  <p className="text-[11px] text-muted-foreground">{session?.user.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-xl text-xs gap-2"
+                  onClick={signOut}
+                >
+                  <LogOut className="size-3.5" />
+                  {t('auth.signOut')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
   );
 }

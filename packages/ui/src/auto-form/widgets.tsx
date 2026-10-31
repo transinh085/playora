@@ -1,23 +1,11 @@
 'use client';
 
+import { Button } from '@playora/ui/components/button';
+import { Card } from '@playora/ui/components/card';
+import { Input } from '@playora/ui/components/input';
+import { Slider } from '@playora/ui/components/slider';
+import { Switch } from '@playora/ui/components/switch';
 import { cn } from '@playora/ui/lib/utils';
-import {
-  Button,
-  Card,
-  ColorPicker,
-  Form,
-  type FormListFieldData,
-  type FormRule,
-  Input,
-  InputNumber,
-  Segmented,
-  Select,
-  Slider,
-  Space,
-  Switch,
-  Typography,
-  theme,
-} from 'antd';
 import { ArrowDown, ArrowUp, ImageIcon, Plus, Trash2 } from 'lucide-react';
 import type * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale, WidgetProps } from './types';
@@ -26,18 +14,21 @@ import { createDefaultValueForField, resolveLocalized } from './utils';
 /** body-sm (12/20) secondary text for hints inside the form (mirrors Studio's `Caption`). */
 export function FieldHint({
   children,
+  className,
   type = 'secondary',
   ...rest
-}: Omit<React.ComponentProps<typeof Typography.Text>, 'style'>) {
-  const { token } = theme.useToken();
+}: React.ComponentProps<'p'> & { type?: 'secondary' | 'danger' }) {
   return (
-    <Typography.Text
-      type={type}
+    <p
+      className={cn(
+        'text-xs',
+        type === 'danger' ? 'text-destructive font-medium' : 'text-muted-foreground',
+        className,
+      )}
       {...rest}
-      style={{ fontSize: token.fontSizeSM, lineHeight: token.lineHeightSM }}
     >
       {children}
-    </Typography.Text>
+    </p>
   );
 }
 
@@ -62,22 +53,22 @@ export function SliderWidgetControl(props: {
           min={field.min ?? 0}
           max={field.max ?? 100}
           step={field.step ?? 1}
-          value={numericVal}
+          value={[numericVal]}
           disabled={disabled}
-          onChange={handleChange}
+          onValueChange={(vals) => handleChange(vals[0] ?? 0)}
         />
       </div>
-      <InputNumber
+      <input
+        type="number"
         id={id}
         aria-label={`${label} value`}
         min={field.min}
         max={field.max}
         step={field.step ?? 1}
-        precision={field.integer ? 0 : undefined}
         value={numericVal}
         disabled={disabled}
-        onChange={handleChange}
-        className="w-24"
+        onChange={(e) => handleChange(e.target.value === '' ? null : Number(e.target.value))}
+        className="h-9 w-24 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
       />
     </div>
   );
@@ -91,25 +82,27 @@ export function ColorWidgetControl(props: {
   brandPalette?: readonly string[];
   disabled?: boolean;
 }) {
-  const { id, value, onChange, locale, brandPalette, disabled } = props;
+  const { id, value, onChange, brandPalette, disabled } = props;
   const colorStr = typeof value === 'string' ? value : '';
-  const presets = brandPalette?.length
-    ? [
-        {
-          label: locale === 'en' ? 'Brand palette' : 'Bảng màu thương hiệu',
-          colors: [...brandPalette],
-        },
-      ]
-    : undefined;
   return (
-    <div id={id} className="grid gap-2">
-      <ColorPicker
-        value={colorStr || undefined}
-        showText
-        disabled={disabled}
-        presets={presets}
-        onChange={(_, cssHex) => onChange?.(cssHex)}
-      />
+    <div id={id} className="grid gap-2" data-slot="color-picker">
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={colorStr || '#000000'}
+          disabled={disabled}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="size-8 cursor-pointer rounded border border-input bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <input
+          type="text"
+          value={colorStr}
+          placeholder="#000000"
+          disabled={disabled}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="h-8 w-28 rounded-md border border-input bg-transparent px-2 text-xs font-mono shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
       {brandPalette && brandPalette.length > 0 && (
         <div className="flex flex-wrap items-center gap-2" data-slot="brand-palette">
           {brandPalette.map((swatch) => (
@@ -122,8 +115,9 @@ export function ColorWidgetControl(props: {
               disabled={disabled}
               onClick={() => onChange?.(swatch)}
               className={cn(
-                'size-6 cursor-pointer rounded-full border disabled:cursor-not-allowed disabled:opacity-50',
-                colorStr.toLowerCase() === swatch.toLowerCase() && 'ring-2',
+                'size-6 cursor-pointer rounded-full border border-border/60 transition-transform hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                colorStr.toLowerCase() === swatch.toLowerCase() &&
+                  'ring-2 ring-primary ring-offset-2',
               )}
               style={{ backgroundColor: swatch }}
             />
@@ -166,7 +160,7 @@ export function AssetWidgetControl(props: {
       {props.renderAssetPicker ? (
         props.renderAssetPicker(pickerProps)
       ) : (
-        <Space.Compact block>
+        <div className="flex items-center gap-2">
           <Input
             id={id}
             value={strVal}
@@ -175,14 +169,15 @@ export function AssetWidgetControl(props: {
             onChange={(e) => onChange?.(e.target.value)}
           />
           <Button
-            type="default"
+            type="button"
+            variant="outline"
             disabled={disabled}
-            icon={<ImageIcon className="size-4" />}
             onClick={() => props.onPickAsset?.(pickerProps)}
           >
+            <ImageIcon className="size-4 mr-1.5" />
             {locale === 'en' ? 'Choose asset' : 'Chọn tài nguyên'}
           </Button>
-        </Space.Compact>
+        </div>
       )}
     </div>
   );
@@ -191,99 +186,142 @@ export function AssetWidgetControl(props: {
 export function LocalizedWidgetControl(props: {
   field: FieldDescriptor;
   label: string;
-  relNamePath: (string | number)[];
-  rules: FormRule[];
+  value?: { vi?: string; en?: string };
+  onChange?: (next: { vi?: string; en?: string }) => void;
   disabled?: boolean;
 }) {
-  const { field, label, relNamePath, rules, disabled } = props;
+  const { field, label, value = {}, onChange, disabled } = props;
   return (
-    <Space.Compact block data-slot="localized-widget">
+    <div className="grid grid-cols-2 gap-2" data-slot="localized-widget">
       {(['vi', 'en'] as const).map((lang) => (
-        <Form.Item key={lang} name={[...relNamePath, lang]} noStyle rules={rules}>
-          <Input
+        <div
+          key={lang}
+          className="flex items-center rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring"
+        >
+          <span className="select-none px-2.5 text-xs font-semibold text-muted-foreground uppercase border-r border-input">
+            {lang}
+          </span>
+          <input
             data-lang={lang}
             data-lang-input={lang}
-            prefix={lang.toUpperCase()}
             aria-label={`${label} (${lang.toUpperCase()})`}
             maxLength={field.maxLength}
+            value={value[lang] ?? ''}
             placeholder={resolveLocalized(field.placeholder, lang)}
             disabled={disabled}
+            onChange={(e) => onChange?.({ ...value, [lang]: e.target.value })}
+            className="h-9 w-full bg-transparent px-3 text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           />
-        </Form.Item>
+        </div>
       ))}
-    </Space.Compact>
+    </div>
   );
 }
 
 export function ListWidgetControl(props: {
   field: FieldDescriptor;
-  relNamePath: (string | number)[];
+  value?: unknown[];
+  onChange?: (next: unknown[]) => void;
   locale: Locale;
   disabled?: boolean;
-  renderItemFields: (lf: FormListFieldData, idx: number) => React.ReactNode;
+  renderItemFields: (
+    itemVal: unknown,
+    idx: number,
+    onItemChange: (newVal: unknown) => void,
+  ) => React.ReactNode;
 }) {
-  const { field, relNamePath, locale, disabled, renderItemFields } = props;
+  const { field, value = [], onChange, locale, disabled, renderItemFields } = props;
+  const list = Array.isArray(value) ? value : [];
   const itemLabel = resolveLocalized(field.itemLabel, locale, locale === 'en' ? 'Item' : 'Mục');
+  const canAdd = field.maxItems === undefined || list.length < field.maxItems;
+  const canRemove = field.minItems === undefined || list.length > field.minItems;
+
+  const handleAdd = () => {
+    if (!canAdd) return;
+    onChange?.([...list, createDefaultValueForField(field.item)]);
+  };
+
+  const handleRemove = (idx: number) => {
+    if (!canRemove) return;
+    onChange?.(list.filter((_, i) => i !== idx));
+  };
+
+  const handleMove = (fromIdx: number, toIdx: number) => {
+    if (toIdx < 0 || toIdx >= list.length) return;
+    const next = [...list];
+    const [item] = next.splice(fromIdx, 1);
+    if (item !== undefined) {
+      next.splice(toIdx, 0, item);
+      onChange?.(next);
+    }
+  };
+
+  const handleItemChange = (idx: number, newVal: unknown) => {
+    const next = [...list];
+    next[idx] = newVal;
+    onChange?.(next);
+  };
+
   return (
-    <Form.List name={relNamePath}>
-      {(listFields, { add, remove, move }) => {
-        const canAdd = field.maxItems === undefined || listFields.length < field.maxItems;
-        const canRemove = field.minItems === undefined || listFields.length > field.minItems;
-        return (
-          <div className="grid gap-3" data-slot="list-widget">
-            {listFields.map((lf, idx) => (
-              <Card
-                key={lf.key}
-                size="small"
-                data-slot="list-item"
-                title={`${itemLabel} #${idx + 1}`}
-                extra={
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="text"
-                      size="small"
-                      disabled={disabled || idx === 0}
-                      aria-label={`${locale === 'en' ? 'Move up' : 'Lên'} #${idx + 1}`}
-                      icon={<ArrowUp className="size-3.5" />}
-                      onClick={() => idx > 0 && move(idx, idx - 1)}
-                    />
-                    <Button
-                      type="text"
-                      size="small"
-                      disabled={disabled || idx === listFields.length - 1}
-                      aria-label={`${locale === 'en' ? 'Move down' : 'Xuống'} #${idx + 1}`}
-                      icon={<ArrowDown className="size-3.5" />}
-                      onClick={() => idx < listFields.length - 1 && move(idx, idx + 1)}
-                    />
-                    <Button
-                      type="text"
-                      danger
-                      size="small"
-                      disabled={disabled || !canRemove}
-                      aria-label={`${locale === 'en' ? 'Remove' : 'Xoá'} #${idx + 1}`}
-                      icon={<Trash2 className="size-3.5" />}
-                      onClick={() => canRemove && remove(lf.name)}
-                    />
-                  </div>
-                }
+    <div className="grid gap-3" data-slot="list-widget">
+      {list.map((itemVal, idx) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: stable numeric index for form list
+        <Card key={idx} className="p-3" data-slot="list-item">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/40">
+            <span className="text-sm font-medium">
+              {itemLabel} #{idx + 1}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                disabled={disabled || idx === 0}
+                aria-label={`${locale === 'en' ? 'Move up' : 'Lên'} #${idx + 1}`}
+                onClick={() => handleMove(idx, idx - 1)}
               >
-                {renderItemFields(lf, idx)}
-              </Card>
-            ))}
-            <Button
-              type="dashed"
-              size="small"
-              disabled={disabled || !canAdd}
-              icon={<Plus className="size-4" />}
-              onClick={() => canAdd && add(createDefaultValueForField(field.item))}
-              className="w-fit"
-            >
-              {locale === 'en' ? `Add ${itemLabel}` : `Thêm ${itemLabel}`}
-            </Button>
+                <ArrowUp className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                disabled={disabled || idx === list.length - 1}
+                aria-label={`${locale === 'en' ? 'Move down' : 'Xuống'} #${idx + 1}`}
+                onClick={() => handleMove(idx, idx + 1)}
+              >
+                <ArrowDown className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7 text-destructive hover:text-destructive"
+                disabled={disabled || !canRemove}
+                aria-label={`${locale === 'en' ? 'Remove' : 'Xoá'} #${idx + 1}`}
+                onClick={() => handleRemove(idx)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
           </div>
-        );
-      }}
-    </Form.List>
+          <div>{renderItemFields(itemVal, idx, (newVal) => handleItemChange(idx, newVal))}</div>
+        </Card>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={disabled || !canAdd}
+        onClick={handleAdd}
+        className="w-fit"
+      >
+        <Plus className="size-4 mr-1.5" />
+        {locale === 'en' ? `Add ${itemLabel}` : `Thêm ${itemLabel}`}
+      </Button>
+    </div>
   );
 }
 
@@ -307,47 +345,129 @@ export function renderScalarControl(args: {
   label: string;
   placeholder: string;
   locale: Locale;
+  value?: unknown;
+  onChange?: (next: unknown) => void;
   disabled: boolean;
   brandPalette?: readonly string[];
   slot?: AssetSlot;
   renderAssetPicker?: AutoFormProps['renderAssetPicker'];
   onPickAsset?: AutoFormProps['onPickAsset'];
 }): React.ReactNode {
-  const { field, label, placeholder, locale, disabled } = args;
+  const { field, label, placeholder, locale, value, onChange, disabled } = args;
   const options = (field.options ?? []).map((opt) => ({
     value: opt.value,
     label: resolveLocalized(opt.label, locale, opt.value),
   }));
+
   switch (field.widget) {
     case 'text':
-      return <Input placeholder={placeholder} maxLength={field.maxLength} disabled={disabled} />;
+      return (
+        <Input
+          id={field.path}
+          placeholder={placeholder}
+          maxLength={field.maxLength}
+          value={typeof value === 'string' ? value : ''}
+          onChange={(e) => onChange?.(e.target.value)}
+          disabled={disabled}
+        />
+      );
     case 'number':
       return (
-        <InputNumber
+        <Input
+          id={field.path}
+          type="number"
           min={field.min}
           max={field.max}
           step={field.step ?? (field.integer ? 1 : undefined)}
-          precision={field.integer ? 0 : undefined}
           placeholder={placeholder}
+          value={typeof value === 'number' ? value : ((value as string) ?? '')}
+          onChange={(e) => onChange?.(e.target.value === '' ? undefined : Number(e.target.value))}
           disabled={disabled}
           className="w-full"
         />
       );
     case 'slider':
-      return <SliderWidgetControl field={field} label={label} disabled={disabled} />;
+      return (
+        <SliderWidgetControl
+          id={field.path}
+          field={field}
+          label={label}
+          value={typeof value === 'number' ? value : undefined}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      );
     case 'switch':
-      return <Switch aria-label={label} disabled={disabled} />;
+      return (
+        <Switch
+          id={field.path}
+          checked={Boolean(value)}
+          onCheckedChange={onChange}
+          aria-label={label}
+          disabled={disabled}
+        />
+      );
     case 'segmented':
-      return <Segmented options={options} disabled={disabled} />;
+      return (
+        <div
+          className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground"
+          data-slot="segmented"
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange?.(opt.value)}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+                value === opt.value
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'hover:bg-background/50 hover:text-foreground',
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      );
     case 'select':
-      return <Select options={options} disabled={disabled} />;
+      return (
+        <select
+          id={field.path}
+          value={typeof value === 'string' ? value : ''}
+          onChange={(e) => onChange?.(e.target.value)}
+          disabled={disabled}
+          className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      );
     case 'color':
       return (
-        <ColorWidgetControl locale={locale} brandPalette={args.brandPalette} disabled={disabled} />
+        <ColorWidgetControl
+          id={field.path}
+          value={typeof value === 'string' ? value : undefined}
+          onChange={onChange}
+          locale={locale}
+          brandPalette={args.brandPalette}
+          disabled={disabled}
+        />
       );
     case 'asset':
     case 'sound':
-      return <AssetWidgetControl {...args} />;
+      return (
+        <AssetWidgetControl
+          {...args}
+          id={field.path}
+          value={typeof value === 'string' ? value : undefined}
+          onChange={onChange}
+        />
+      );
     default:
       return null;
   }

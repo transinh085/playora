@@ -1,6 +1,12 @@
 'use client';
 
-import { Button, Flex, Menu, Tooltip, Typography, theme } from 'antd';
+import { Button } from '@playora/ui/components/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import {
   Award,
   ClipboardList,
@@ -74,63 +80,74 @@ function ScreensPanelView({
 }) {
   const t = useTranslations('canvasLab');
   return (
-    <Menu
-      mode="inline"
-      selectedKeys={[state.screen]}
-      onClick={({ key }) => dispatch({ type: 'selectScreen', screen: key as ScreenKey })}
-      items={SCREEN_KEYS.map((key) => {
+    <div className="flex flex-col gap-1">
+      {SCREEN_KEYS.map((key) => {
         const Icon = SCREEN_ICONS[key];
-        return { key, icon: <Icon className="size-4" />, label: t(`screenNames.${key}`) };
+        const selected = state.screen === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => dispatch({ type: 'selectScreen', screen: key as ScreenKey })}
+            className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+              selected
+                ? 'bg-primary/10 font-medium text-primary'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }`}
+          >
+            <Icon className="size-4 shrink-0" />
+            <span className="truncate">{t(`screenNames.${key}`)}</span>
+          </button>
+        );
       })}
-    />
+    </div>
   );
 }
 
 export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
   const t = useTranslations('canvasLab');
-  const { token } = theme.useToken();
   return (
-    <Flex vertical gap={12}>
-      {TOOLBOX_GROUPS.map((group) => (
-        <div key={group.category} className="flex flex-col gap-1.5">
-          <Caption className="text-xs uppercase tracking-wider opacity-60 font-semibold">
-            {t(`toolboxCategories.${group.category}`)}
-          </Caption>
-          <div className="grid grid-cols-3 gap-2">
-            {group.types.map((type) => {
-              const Icon = TYPE_ICONS[type];
-              return (
-                <Tooltip key={type} title={t('addHint')}>
-                  <button
-                    type="button"
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData(TOOLBOX_MIME, type);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    onClick={() => onAdd(type)}
-                    data-testid={`toolbox-${type}`}
-                    className="flex cursor-grab flex-col items-center gap-1 p-2 text-center transition-colors hover:border-primary"
-                    style={{
-                      border: `1px solid ${token.colorBorderSecondary}`,
-                      borderRadius: token.borderRadius,
-                      background: token.colorBgContainer,
-                    }}
-                  >
-                    <IconTile size={28}>
-                      <Icon className="size-3.5" />
-                    </IconTile>
-                    <span className="text-[11px] leading-tight line-clamp-1">
-                      {t(`types.${type}`)}
-                    </span>
-                  </button>
-                </Tooltip>
-              );
-            })}
+    <TooltipProvider>
+      <div className="flex flex-col gap-3">
+        {TOOLBOX_GROUPS.map((group) => (
+          <div key={group.category} className="flex flex-col gap-1.5">
+            <Caption className="text-xs uppercase tracking-wider opacity-60 font-semibold">
+              {t(`toolboxCategories.${group.category}`)}
+            </Caption>
+            <div className="grid grid-cols-3 gap-2">
+              {group.types.map((type) => {
+                const Icon = TYPE_ICONS[type];
+                return (
+                  <Tooltip key={type}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData(TOOLBOX_MIME, type);
+                          e.dataTransfer.effectAllowed = 'copy';
+                        }}
+                        onClick={() => onAdd(type)}
+                        data-testid={`toolbox-${type}`}
+                        className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
+                      >
+                        <IconTile size={28}>
+                          <Icon className="size-3.5" />
+                        </IconTile>
+                        <span className="text-[11px] leading-tight line-clamp-1">
+                          {t(`types.${type}`)}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('addHint')}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-    </Flex>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -142,7 +159,6 @@ function LayersPanelView({
   dispatch: Dispatch<EditorAction>;
 }) {
   const t = useTranslations('canvasLab');
-  const { token } = theme.useToken();
   const elements = currentScreen(state).elements;
   const [dragId, setDragId] = useState<string | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
@@ -150,7 +166,7 @@ function LayersPanelView({
   const rows = elements.map((el, index) => ({ el, index })).reverse();
 
   return (
-    <Flex vertical gap={2}>
+    <div className="flex flex-col gap-1">
       {rows.map(({ el, index }) => {
         const Icon = TYPE_ICONS[el.type];
         const selected = el.id === state.selectedId;
@@ -185,50 +201,51 @@ function LayersPanelView({
               if (e.key === 'Enter') dispatch({ type: 'select', id: el.id });
             }}
             data-testid="layer-row"
-            className="flex cursor-pointer items-center gap-2 px-2 py-1.5"
-            style={{
-              borderRadius: token.borderRadiusSM,
-              background: selected ? token.colorPrimaryBg : undefined,
-              borderTop:
-                overIndex === index && dragId !== el.id
-                  ? `2px solid ${token.colorPrimary}`
-                  : '2px solid transparent',
-              opacity: el.hidden ? 0.5 : 1,
-            }}
+            className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
+              selected ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
+            } ${overIndex === index && dragId !== el.id ? 'border-t-2 border-primary' : 'border-t-2 border-transparent'} ${
+              el.hidden ? 'opacity-50' : ''
+            }`}
           >
-            <Typography.Text type="secondary" className="flex cursor-grab">
+            <span className="flex cursor-grab text-muted-foreground">
               <GripVertical className="size-3.5" />
-            </Typography.Text>
-            <Typography.Text type={selected ? undefined : 'secondary'} className="flex">
+            </span>
+            <span className={selected ? 'flex text-primary' : 'flex text-muted-foreground'}>
               <Icon className="size-3.5" />
-            </Typography.Text>
-            <Typography.Text ellipsis className="min-w-0 flex-1" strong={selected}>
+            </span>
+            <span className={`min-w-0 flex-1 truncate text-xs ${selected ? 'font-semibold' : ''}`}>
               {el.name}
-            </Typography.Text>
+            </span>
             <Button
-              type="text"
-              size="small"
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-6 text-muted-foreground hover:text-foreground"
               aria-label={el.hidden ? t('show') : t('hide')}
-              icon={el.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch({ type: 'update', id: el.id, patch: { hidden: !el.hidden } });
               }}
-            />
+            >
+              {el.hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+            </Button>
             <Button
-              type="text"
-              size="small"
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-6 text-muted-foreground hover:text-foreground"
               aria-label={el.locked ? t('unlock') : t('lock')}
-              icon={el.locked ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch({ type: 'update', id: el.id, patch: { locked: !el.locked } });
               }}
-            />
+            >
+              {el.locked ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
+            </Button>
           </div>
         );
       })}
-    </Flex>
+    </div>
   );
 }
 

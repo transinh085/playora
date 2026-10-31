@@ -35,7 +35,7 @@ export type { CanvasLabels };
 /**
  * Renders one canvas screen (ADR-014 §5). Pure presentation: Play renders it through
  * `CampaignPlayer`, and the Studio editor draws its selection layer on top. Colours here are game content (brand
- * kit), not Studio chrome, so they are resolved from the brand palette rather than antd tokens.
+ * kit), not Studio chrome, so they are resolved from the brand palette rather than theme tokens.
  */
 export interface CanvasPrize {
   name: string;

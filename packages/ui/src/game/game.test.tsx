@@ -11,7 +11,7 @@ import {
   TeamBar,
 } from './index';
 
-describe('@playora/ui/game components (antd)', () => {
+describe('@playora/ui/game components', () => {
   test('GameRoot wraps PlayProvider, applies data-skin and --game-* brand vars, and supports asChild', () => {
     const html = renderToStaticMarkup(
       <GameRoot
@@ -32,7 +32,6 @@ describe('@playora/ui/game components (antd)', () => {
     expect(html).toContain('data-slot="game-button"');
     expect(html).toContain('data-variant="primary"');
     expect(html).toContain('data-size="lg"');
-    expect(html).toContain('ant-btn');
 
     const asChildHtml = renderToStaticMarkup(
       <GameRoot asChild skin="yep">
@@ -45,7 +44,7 @@ describe('@playora/ui/game components (antd)', () => {
     expect(asChildHtml).toContain('custom-main');
   });
 
-  test('Countdown, JoinPanel, Leaderboard, TeamBar and GameResult render on antd primitives', () => {
+  test('Countdown, JoinPanel, Leaderboard, TeamBar and GameResult render properly', () => {
     expect(formatSeconds(65)).toBe('1:05');
     expect(formatSeconds(4.2)).toBe('5');
 
@@ -76,11 +75,9 @@ describe('@playora/ui/game components (antd)', () => {
     expect(html).toContain('data-urgent="true"');
     expect(html).toContain('data-slot="team-bar"');
     expect(html).toContain('data-leading="true"');
-    expect(html).toContain('ant-progress');
     expect(html).toContain('data-slot="leaderboard"');
     expect(html).toContain('data-me="true"');
     expect(html).toContain('data-slot="game-result"');
     expect(html).toContain('data-outcome="win"');
-    expect(html).toContain('ant-alert');
   });
 });

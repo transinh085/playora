@@ -1,12 +1,12 @@
 'use client';
 
-import { toNamePath, zodRule } from '@playora/ui/form';
+import { Alert, AlertTitle } from '@playora/ui/components/alert';
+import { Badge } from '@playora/ui/components/badge';
+import { Card } from '@playora/ui/components/card';
 import { cn } from '@playora/ui/lib/utils';
-import { Alert, Card, Collapse, Form, type FormRule, Tag } from 'antd';
 import * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale } from './types';
 import {
-  extractChangedPath,
   findFieldByPath,
   getValueAtPath,
   groupLabelFor,
@@ -28,7 +28,6 @@ import {
 interface FieldRendererProps {
   field: FieldDescriptor;
   path: string;
-  relNamePath: (string | number)[];
   locale: Locale;
   hotEditablePaths: readonly string[];
   published?: boolean;
@@ -37,9 +36,10 @@ interface FieldRendererProps {
   renderAssetPicker?: AutoFormProps['renderAssetPicker'];
   onPickAsset?: AutoFormProps['onPickAsset'];
   widgets?: AutoFormProps['widgets'];
-  rules: FormRule[];
   errors?: AutoFormProps['errors'];
   disabled?: boolean;
+  effectiveValue: Record<string, unknown>;
+  onFieldChange: (fieldPath: string, nextVal: unknown) => void;
 }
 
 function renderFieldLabel(field: FieldDescriptor, label: string, locale: Locale) {
@@ -47,14 +47,25 @@ function renderFieldLabel(field: FieldDescriptor, label: string, locale: Locale)
     <span className="inline-flex items-center gap-2">
       <span>{label}</span>
       {field.hotEditable && (
-        <Tag className="m-0">{locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}</Tag>
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+          {locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}
+        </Badge>
       )}
     </span>
   );
 }
 
 function AutoFormField(props: FieldRendererProps) {
-  const { field, path, relNamePath, locale, hotEditablePaths, published, disabled } = props;
+  const {
+    field,
+    path,
+    locale,
+    hotEditablePaths,
+    published,
+    disabled,
+    effectiveValue,
+    onFieldChange,
+  } = props;
   const label = resolveLocalized(field.label, locale, field.key);
   const description = resolveLocalized(field.description, locale);
   const placeholder = resolveLocalized(field.placeholder, locale);
@@ -62,18 +73,19 @@ function AutoFormField(props: FieldRendererProps) {
   const isFieldDisabled =
     Boolean(disabled) || (Boolean(published) && !isFieldHotEditable(field, path, hotEditablePaths));
   const CustomWidget = props.widgets?.[field.widget];
+  const value = getValueAtPath(effectiveValue, path) ?? field.defaultValue;
 
   if (!CustomWidget && (field.widget === 'object' || (field.type === 'object' && field.fields))) {
     return (
       <Card
-        size="small"
         role="group"
         aria-label={label}
         data-slot="autoform-object"
         data-widget="object"
         data-field-path={path}
-        title={renderFieldLabel(field, label, locale)}
+        className="p-4"
       >
+        <div className="font-semibold text-sm mb-3">{renderFieldLabel(field, label, locale)}</div>
         <div className="grid gap-3">
           {description && <FieldHint>{description}</FieldHint>}
           {(field.fields ?? []).map((child) => (
@@ -82,7 +94,6 @@ function AutoFormField(props: FieldRendererProps) {
               {...props}
               field={child}
               path={path ? `${path}.${child.key}` : child.key}
-              relNamePath={[...relNamePath, child.key]}
             />
           ))}
           {errorMsg && (
@@ -96,7 +107,6 @@ function AutoFormField(props: FieldRendererProps) {
   }
 
   let control: React.ReactNode = null;
-  let directBind = true;
 
   if (CustomWidget) {
     control = (
@@ -104,6 +114,8 @@ function AutoFormField(props: FieldRendererProps) {
         Component={CustomWidget}
         field={field}
         path={path}
+        value={value}
+        onChange={(nextVal) => onFieldChange(path, nextVal)}
         locale={locale}
         disabled={isFieldDisabled}
         brandPalette={props.brandPalette}
@@ -111,40 +123,38 @@ function AutoFormField(props: FieldRendererProps) {
       />
     );
   } else if (!SUPPORTED_WIDGETS.has(field.widget)) {
-    directBind = false;
     const msg =
       locale === 'en'
         ? `Unsupported widget: ${String(field.widget)}`
         : `Widget chưa hỗ trợ: ${String(field.widget)}`;
     control = (
       <Alert
-        type="warning"
-        showIcon
+        variant="default"
         data-widget-fallback={String(field.widget)}
         data-widget-unsupported={String(field.widget)}
-        title={msg}
-      />
+      >
+        <AlertTitle>{msg}</AlertTitle>
+      </Alert>
     );
   } else if (field.widget === 'localized') {
-    directBind = false;
     control = (
       <LocalizedWidgetControl
         field={field}
         label={label}
-        relNamePath={relNamePath}
-        rules={props.rules}
+        value={value as { vi?: string; en?: string }}
+        onChange={(nextVal) => onFieldChange(path, nextVal)}
         disabled={isFieldDisabled}
       />
     );
   } else if (field.widget === 'list') {
-    directBind = false;
     control = (
       <ListWidgetControl
         field={field}
-        relNamePath={relNamePath}
+        value={value as unknown[]}
+        onChange={(nextVal) => onFieldChange(path, nextVal)}
         locale={locale}
         disabled={isFieldDisabled}
-        renderItemFields={(lf, idx) => {
+        renderItemFields={(_itemVal, idx, onItemChange) => {
           const itemPath = `${path}.${idx}`;
           if (!field.item) return null;
           if (field.item.type === 'object' && field.item.fields) {
@@ -156,7 +166,6 @@ function AutoFormField(props: FieldRendererProps) {
                     {...props}
                     field={subField}
                     path={`${itemPath}.${subField.key}`}
-                    relNamePath={[lf.name, subField.key]}
                     disabled={isFieldDisabled}
                   />
                 ))}
@@ -165,11 +174,12 @@ function AutoFormField(props: FieldRendererProps) {
           }
           return (
             <AutoFormField
+              key={itemPath}
               {...props}
               field={field.item}
               path={itemPath}
-              relNamePath={[lf.name]}
               disabled={isFieldDisabled}
+              onFieldChange={(_p, nextVal) => onItemChange(nextVal)}
             />
           );
         }}
@@ -181,6 +191,8 @@ function AutoFormField(props: FieldRendererProps) {
       label,
       placeholder,
       locale,
+      value,
+      onChange: (nextVal) => onFieldChange(path, nextVal),
       disabled: isFieldDisabled,
       brandPalette: props.brandPalette,
       slot: field.slotKey ? props.assetSlotMap.get(field.slotKey) : undefined,
@@ -189,68 +201,50 @@ function AutoFormField(props: FieldRendererProps) {
     });
   }
 
+  const id = path;
+
   return (
     <div
       data-slot="autoform-field"
       data-widget={field.widget}
       data-field-path={path}
       data-disabled={isFieldDisabled ? 'true' : undefined}
+      className="grid gap-1.5"
     >
-      <Form.Item
-        name={directBind ? relNamePath : undefined}
-        label={renderFieldLabel(field, label, locale)}
-        valuePropName={field.widget === 'switch' ? 'checked' : 'value'}
-        required={field.required}
-        rules={directBind ? props.rules : undefined}
-        validateStatus={errorMsg ? 'error' : undefined}
-        extra={
-          errorMsg ? (
-            <span role="alert" data-slot="field-error">
-              {errorMsg}
-            </span>
-          ) : (
-            description || undefined
-          )
-        }
-      >
-        {control}
-      </Form.Item>
+      <div className="flex items-center justify-between">
+        <label
+          htmlFor={id}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          {renderFieldLabel(field, label, locale)}
+          {field.required && <span className="text-destructive ml-1">*</span>}
+        </label>
+      </div>
+      {control}
+      {errorMsg ? (
+        <span role="alert" data-slot="field-error" className="text-xs text-destructive">
+          {errorMsg}
+        </span>
+      ) : description ? (
+        <span className="text-xs text-muted-foreground">{description}</span>
+      ) : null}
     </div>
   );
 }
 
 export function AutoForm(props: AutoFormProps) {
-  const {
-    descriptor,
-    value,
-    onChange,
-    locale = 'vi',
-    configSchema,
-    activeGroup,
-    disabled,
-    className,
-  } = props;
-  const [form] = Form.useForm<Record<string, unknown>>(props.form);
+  const { descriptor, value, onChange, locale = 'vi', activeGroup, disabled, className } = props;
   const isGamePublished = Boolean(props.published || props.isPublished);
   const effectiveValue = React.useMemo(
     () => withFieldDefaults(descriptor.fields, value),
     [descriptor.fields, value],
   );
 
-  React.useEffect(() => {
-    if (JSON.stringify(form.getFieldsValue(true)) !== JSON.stringify(effectiveValue)) {
-      form.setFieldsValue(effectiveValue);
-    }
-  }, [form, effectiveValue]);
-
-  const rules = React.useMemo<FormRule[]>(
-    () => (configSchema ? [zodRule(configSchema, form)] : []),
-    [configSchema, form],
-  );
   const assetSlotMap = React.useMemo(
     () => new Map((props.assetSlots ?? []).map((slot) => [slot.key, slot])),
     [props.assetSlots],
   );
+
   const visibleFields = React.useMemo(
     () =>
       !activeGroup || activeGroup === 'all'
@@ -258,6 +252,7 @@ export function AutoForm(props: AutoFormProps) {
         : descriptor.fields.filter((f) => f.group === activeGroup),
     [descriptor.fields, activeGroup],
   );
+
   const groupedSections = React.useMemo(() => {
     const map = new Map<string, FieldDescriptor[]>(descriptor.groups.map((g) => [g, []]));
     for (const f of visibleFields) {
@@ -267,27 +262,22 @@ export function AutoForm(props: AutoFormProps) {
     return [...map.entries()].filter(([, list]) => list.length > 0);
   }, [descriptor.groups, visibleFields]);
 
-  const handleValuesChange = React.useCallback(
-    (changedValues: Record<string, unknown>, allValues: Record<string, unknown>) => {
-      const changedPath = extractChangedPath(changedValues);
-      let nextRoot: Record<string, unknown> = { ...effectiveValue, ...allValues };
-      if (changedPath) {
-        const changedField = findFieldByPath(descriptor.fields, changedPath);
-        const changedVal = getValueAtPath(nextRoot, changedPath);
-        const presetPatch =
-          changedField?.presets && typeof changedVal === 'string'
-            ? changedField.presets[changedVal]
-            : undefined;
-        if (presetPatch) {
-          for (const [presetKey, presetVal] of Object.entries(presetPatch)) {
-            nextRoot = setValueAtPath(nextRoot, presetKey, presetVal);
-          }
-          form.setFieldsValue(nextRoot);
+  const handleFieldChange = React.useCallback(
+    (fieldPath: string, nextVal: unknown) => {
+      let nextRoot = setValueAtPath(effectiveValue, fieldPath, nextVal);
+      const changedField = findFieldByPath(descriptor.fields, fieldPath);
+      const presetPatch =
+        changedField?.presets && typeof nextVal === 'string'
+          ? changedField.presets[nextVal]
+          : undefined;
+      if (presetPatch) {
+        for (const [presetKey, presetVal] of Object.entries(presetPatch)) {
+          nextRoot = setValueAtPath(nextRoot, presetKey, presetVal);
         }
       }
-      onChange(nextRoot, changedPath);
+      onChange(nextRoot, fieldPath);
     },
-    [descriptor.fields, effectiveValue, form, onChange],
+    [descriptor.fields, effectiveValue, onChange],
   );
 
   const renderFields = (fields: readonly FieldDescriptor[]) => (
@@ -297,7 +287,6 @@ export function AutoForm(props: AutoFormProps) {
           key={field.path}
           field={field}
           path={field.path}
-          relNamePath={toNamePath(field.path)}
           locale={locale}
           hotEditablePaths={descriptor.hotEditablePaths}
           published={isGamePublished}
@@ -306,9 +295,10 @@ export function AutoForm(props: AutoFormProps) {
           renderAssetPicker={props.renderAssetPicker}
           onPickAsset={props.onPickAsset}
           widgets={props.widgets}
-          rules={rules}
           errors={props.errors}
           disabled={disabled}
+          effectiveValue={effectiveValue}
+          onFieldChange={handleFieldChange}
         />
       ))}
     </div>
@@ -316,26 +306,31 @@ export function AutoForm(props: AutoFormProps) {
 
   return (
     <div data-slot="auto-form" className={cn('grid gap-4', className)}>
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={effectiveValue}
-        onValuesChange={handleValuesChange}
-        disabled={disabled}
-      >
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         {groupedSections.length > 0 ? (
-          <Collapse
-            defaultActiveKey={groupedSections.map(([grp]) => grp)}
-            items={groupedSections.map(([grp, list]) => ({
-              key: grp,
-              label: groupLabelFor(grp, locale),
-              children: renderFields(list),
-            }))}
-          />
+          <div data-slot="autoform-groups" className="space-y-4">
+            {groupedSections.map(([grp, list]) => (
+              <details
+                key={grp}
+                open
+                data-slot="autoform-group"
+                data-group={grp}
+                className="group rounded-2xl border border-border/70 bg-card p-4 transition-all"
+              >
+                <summary className="flex cursor-pointer items-center justify-between text-base font-semibold text-foreground select-none list-none [&::-webkit-details-marker]:hidden">
+                  <span>{groupLabelFor(grp, locale)}</span>
+                  <span className="text-muted-foreground transition-transform group-open:rotate-180">
+                    ▾
+                  </span>
+                </summary>
+                <div className="mt-4 pt-3 border-t border-border/40">{renderFields(list)}</div>
+              </details>
+            ))}
+          </div>
         ) : (
           renderFields(visibleFields)
         )}
-      </Form>
+      </form>
     </div>
   );
 }

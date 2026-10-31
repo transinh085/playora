@@ -1,6 +1,6 @@
-import type { FormInstance } from 'antd';
 import type * as React from 'react';
 import type { z } from 'zod';
+import type { FormInstance } from '../form';
 
 export type Locale = 'vi' | 'en';
 export type LocalizedText = Partial<Record<Locale, string>> & { vi: string };

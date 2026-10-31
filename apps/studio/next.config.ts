@@ -22,7 +22,7 @@ const config: NextConfig = {
   ],
   typedRoutes: true,
   experimental: {
-    optimizePackageImports: ['antd'],
+    optimizePackageImports: ['lucide-react'],
   },
   env: {
     NEXT_PUBLIC_PLAY_URL:

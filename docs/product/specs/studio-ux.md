@@ -24,7 +24,7 @@
 - UI gọi đối tượng chính là **Chương trình** (en: *Campaign*). API và DB giữ tên `events`.
 - **M1: mỗi chương trình một game.** Dữ liệu vẫn cho nhiều game; UI ẩn danh sách game và sắp xếp.
 - **Trạng thái do hệ thống suy ra** (thay cho ô chọn tay): Nháp → Publish → Đã lên lịch → đến giờ → Đang chạy ⇄ Tạm dừng → Đã kết thúc ([builder §6](./builder.md#6-vòng-đời-chương-trình)).
-- **Soạn (Builder):** toàn màn hình, 4 bước Giao diện → Giải thưởng → Luật chơi → Phát hành; cột trái là các màn người chơi thấy + lớp (ADR-014), giữa là preview điện thoại thật, phải là thuộc tính. Mặc định khi chương trình là Nháp.
+- **Soạn (Builder):** toàn màn hình, ba chế độ Sửa nhanh · Tuỳ biến · Luật & giải + hộp Phát hành ([builder §4.2](./builder.md#42-ba-chế-độ-trên-cùng-một-dữ-liệu)); cột trái là các màn người chơi thấy + lớp (ADR-014), giữa là preview điện thoại thật, phải là thuộc tính. Mặc định khi chương trình là Nháp.
 - **Vận hành:** trong khung app; tab Tổng quan · Người chơi · Giải & đổi quà · Kênh & QR · Cài đặt. Mặc định khi đã publish.
 - Bấm một chương trình ở bất cứ đâu thì mở đúng chế độ theo trạng thái.
 
@@ -39,7 +39,7 @@ MINIGAME
 THƯƠNG HIỆU
   Brand kit · Thư viện ảnh
 TỔ CHỨC
-  Cài đặt                Chung · Thành viên & vai trò · Gói
+  Cài đặt                Chung · Thành viên & vai trò · Máy quầy (ORG-10) · Gói
 THỬ NGHIỆM               chỉ hiện khi NEXT_PUBLIC_STUDIO_LABS=1 hoặc môi trường dev
 ```
 
@@ -47,7 +47,7 @@ Mục chưa có trang thì không hiện trên menu.
 
 ## 4. Luồng chính
 
-"Bạn muốn gì?" → playbook (nhập ngân sách, giá vốn quà, ngày chạy; hoặc "Tạo trống" từ Kho mẫu) → Tạo nhanh (tên và brand kit điền sẵn, slug tự sinh) → Builder (4 bước) → Checklist trước publish + chơi thử bằng link nháp → **Màn chia sẻ** (QR, standee, link theo kênh, mời nhân viên đổi quà) → Vận hành → Nhân viên quét mã đổi quà.
+"Bạn muốn gì?" → playbook (nhập ngân sách, giá vốn quà, ngày chạy; hoặc "Tạo trống" từ Kho mẫu) → Tạo nhanh (tên và brand kit điền sẵn, slug tự sinh) → Builder (3 chế độ) → chơi thử → hộp Phát hành (kiểm tra + checklist pháp lý) → **Màn chia sẻ** (QR, standee, link theo kênh, mời nhân viên đổi quà) → Vận hành → Nhân viên quét mã đổi quà.
 
 Mỗi màn kết thúc bằng việc đưa người dùng sang bước sau, không trả về danh sách.
 

@@ -11,20 +11,12 @@ import {
   type PlayerFormValues,
   type PlayerVoucher,
 } from '@playora/ui/campaign';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { toast } from '@playora/ui/components/sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@playora/ui/components/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  App,
-  Button,
-  ConfigProvider,
-  Flex,
-  Result,
-  Spin,
-  Tag,
-  Tooltip,
-  Typography,
-  theme,
-} from 'antd';
-import { ArrowLeft, Gift, RotateCcw, UserPlus } from 'lucide-react';
+import { ArrowLeft, Gift, Loader2, RotateCcw, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { type CSSProperties, type ReactNode, useCallback, useRef, useState } from 'react';
@@ -67,69 +59,52 @@ export function LabPlayer({
   let content: ReactNode;
   if (campaign.isPending) {
     content = (
-      <Flex vertical align="center" justify="center" gap="middle" className="h-full">
-        <Spin />
-        <Typography.Text type="secondary">{t('loading')}</Typography.Text>
-      </Flex>
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <Loader2 className="size-6 animate-spin text-primary" />
+        <span className="text-xs text-muted-foreground">{t('loading')}</span>
+      </div>
     );
   } else if (campaign.isError || !campaign.data) {
     content = (
-      <Result
-        status="404"
-        title={t('errors.notFoundTitle')}
-        subTitle={t('errors.notFoundBody')}
-        extra={
-          <Link href={routes.list}>
-            <Button type="primary">{t('errors.backToCampaigns')}</Button>
-          </Link>
-        }
-      />
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <h3 className="text-lg font-bold">{t('errors.notFoundTitle')}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t('errors.notFoundBody')}</p>
+        <Link href={routes.list} className="mt-4">
+          <Button>{t('errors.backToCampaigns')}</Button>
+        </Link>
+      </div>
     );
   } else if (!rehearsal && campaign.data.status !== 'published') {
     content = (
-      <Result
-        status="warning"
-        title={t('errors.notPublishedTitle')}
-        subTitle={t('errors.notPublishedBody')}
-        extra={
-          <Flex gap="small" justify="center" wrap>
-            <Link href={routes.rehearsal(campaignId)}>
-              <Button type="primary">{t('errors.openRehearsal')}</Button>
-            </Link>
-            <Link href={routes.edit(campaignId)}>
-              <Button>{t('backToEditor')}</Button>
-            </Link>
-          </Flex>
-        }
-      />
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <h3 className="text-lg font-bold">{t('errors.notPublishedTitle')}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t('errors.notPublishedBody')}</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Link href={routes.rehearsal(campaignId)}>
+            <Button>{t('errors.openRehearsal')}</Button>
+          </Link>
+          <Link href={routes.edit(campaignId)}>
+            <Button variant="outline">{t('backToEditor')}</Button>
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-      <Backdrop>
-        {content ? (
-          <div className="flex h-full items-center justify-center p-4">{content}</div>
-        ) : (
-          campaign.data && (
-            <PlayerSession
-              key={campaign.data.id}
-              orgId={orgId}
-              campaign={campaign.data}
-              rehearsal={rehearsal}
-            />
-          )
-        )}
-      </Backdrop>
-    </ConfigProvider>
-  );
-}
-
-function Backdrop({ children }: { children: ReactNode }) {
-  const { token } = theme.useToken();
-  return (
-    <div className="flex h-dvh flex-col" style={{ background: token.colorBgLayout }}>
-      {children}
+    <div className="flex h-dvh flex-col bg-background">
+      {content ? (
+        <div className="flex h-full items-center justify-center p-4">{content}</div>
+      ) : (
+        campaign.data && (
+          <PlayerSession
+            key={campaign.data.id}
+            orgId={orgId}
+            campaign={campaign.data}
+            rehearsal={rehearsal}
+          />
+        )
+      )}
     </div>
   );
 }
@@ -150,8 +125,6 @@ function PlayerSession({
   const t = useTranslations('builderLab.player');
   const tErrors = useTranslations('errors');
   const labels = useCampaignPlayerLabels();
-  const { message } = App.useApp();
-  const { token } = theme.useToken();
   const qc = useQueryClient();
   const rehearsalPlay = useRehearsalPlay(orgId, campaign.id);
   const stats = useCampaignStats(orgId, campaign.id).data;
@@ -226,7 +199,7 @@ function PlayerSession({
         error instanceof ApiError && tErrors.has(error.code)
           ? tErrors(error.code)
           : t('errors.playFailed');
-      message.error(msg);
+      toast.error(msg);
       throw error;
     }
   };
@@ -282,14 +255,14 @@ function PlayerSession({
           : error instanceof ApiError && tErrors.has(error.code)
             ? tErrors(error.code)
             : t('errors.playFailed');
-      message.error(msg);
+      toast.error(msg);
       throw error;
     }
   };
 
   const onAction = (element: ButtonElement) => {
     if (element.action === 'zalo' || element.action === 'phone' || element.action === 'link') {
-      message.info(t(`actions.${element.action}`));
+      toast.info(t(`actions.${element.action}`));
     }
   };
 
@@ -299,7 +272,7 @@ function PlayerSession({
     tokenRef.current = null;
     setVouchers([]);
     player.current?.reset();
-    message.success(t('newPlayerDone'));
+    toast.success(t('newPlayerDone'));
   };
 
   const redeemUrl = (code: string) =>
@@ -307,77 +280,98 @@ function PlayerSession({
 
   return (
     <>
-      <Flex
-        align="center"
-        gap="small"
-        className="px-4 py-3 max-[479px]:hidden"
-        style={{ borderBottom: `1px solid ${token.colorBorderSecondary}` }}
-      >
-        <Tooltip title={t('backToEditor')}>
-          <Link href={routes.edit(campaign.id)}>
-            <Button type="text" icon={<ArrowLeft size={16} />} aria-label={t('backToEditor')} />
-          </Link>
+      <div className="flex items-center gap-2 border-b bg-card px-4 py-2.5 max-[479px]:hidden">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href={routes.edit(campaign.id)}>
+              <Button variant="ghost" size="icon" className="size-8" aria-label={t('backToEditor')}>
+                <ArrowLeft className="size-4" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>{t('backToEditor')}</TooltipContent>
         </Tooltip>
-        <Typography.Text strong ellipsis className="min-w-0">
-          {campaign.name}
-        </Typography.Text>
+
+        <span className="min-w-0 truncate text-sm font-semibold">{campaign.name}</span>
+
         {rehearsal ? (
-          <Tag color="gold">{t('rehearsal')}</Tag>
+          <Badge variant="outline" className="border-amber-500/40 text-amber-600">
+            {t('rehearsal')}
+          </Badge>
         ) : (
-          <Tag color="green">{t('live')}</Tag>
+          <Badge variant="outline" className="border-emerald-500/30 text-emerald-600">
+            {t('live')}
+          </Badge>
         )}
+
         <div className="flex-1" />
+
         {playerId && (
-          <Typography.Text type="secondary" className="font-mono max-md:hidden">
+          <span className="font-mono text-xs text-muted-foreground max-md:hidden">
             {t('playerId', { id: playerId.slice(0, 6) })}
-          </Typography.Text>
+          </span>
         )}
-        <Button icon={<Gift size={16} />} onClick={() => player.current?.openVouchers()}>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => player.current?.openVouchers()}
+        >
+          <Gift className="size-3.5" />
           {t('myPrizes')}
         </Button>
-        <Button icon={<RotateCcw size={16} />} onClick={() => player.current?.restart()}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => player.current?.restart()}
+        >
+          <RotateCcw className="size-3.5" />
           {t('restart')}
         </Button>
-        <Button icon={<UserPlus size={16} />} onClick={newPlayer}>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={newPlayer}>
+          <UserPlus className="size-3.5" />
           {t('newPlayer')}
         </Button>
-      </Flex>
+      </div>
 
       <div className="flex min-h-0 flex-1 items-center justify-center min-[480px]:p-6">
-        <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
-          <div
-            className="relative h-full w-full overflow-hidden min-[480px]:h-[min(844px,100%)] min-[480px]:w-[390px] min-[480px]:rounded-[44px] min-[480px]:[box-shadow:var(--bezel)]"
-            style={
-              {
-                '--bezel': `0 0 0 10px ${token.colorBgContainer}, 0 0 0 11px ${token.colorBorder}, 0 30px 80px rgba(0,0,0,.55)`,
-              } as CSSProperties
-            }
-          >
-            <CampaignPlayer
-              ref={player}
-              campaign={campaign}
-              labels={labels}
-              onSubmitForm={onSubmitForm}
-              onPlay={onPlay}
-              onAction={onAction}
-              vouchers={vouchers}
-              vouchersLoading={vouchersLoading}
-              onVouchersOpenChange={(open) => {
-                if (open && !rehearsal) void refreshLiveVouchers();
-              }}
-              remainingByPrize={stats?.remainingByPrize}
-              playDisabled={!playerId}
-              rehearsal={rehearsal}
-              redeemUrl={redeemUrl}
-            />
+        <div
+          className="relative h-full w-full overflow-hidden min-[480px]:h-[min(844px,100%)] min-[480px]:w-[390px] min-[480px]:rounded-[44px] min-[480px]:[box-shadow:var(--bezel)]"
+          style={
+            {
+              '--bezel': '0 0 0 10px #18181b, 0 0 0 11px #27272a, 0 30px 80px rgba(0,0,0,.55)',
+            } as CSSProperties
+          }
+        >
+          <CampaignPlayer
+            ref={player}
+            campaign={campaign}
+            labels={labels}
+            onSubmitForm={onSubmitForm}
+            onPlay={onPlay}
+            onAction={onAction}
+            vouchers={vouchers}
+            vouchersLoading={vouchersLoading}
+            onVouchersOpenChange={(open) => {
+              if (open && !rehearsal) void refreshLiveVouchers();
+            }}
+            remainingByPrize={stats?.remainingByPrize}
+            playDisabled={!playerId}
+            rehearsal={rehearsal}
+            redeemUrl={redeemUrl}
+          />
 
-            {rehearsal && (
-              <Tag color="gold" className="absolute top-2 left-2 z-10 min-[480px]:hidden">
-                {t('rehearsal')}
-              </Tag>
-            )}
-          </div>
-        </ConfigProvider>
+          {rehearsal && (
+            <Badge
+              variant="outline"
+              className="absolute left-2 top-2 z-10 border-amber-500/40 bg-card/80 text-amber-600 backdrop-blur-xs min-[480px]:hidden"
+            >
+              {t('rehearsal')}
+            </Badge>
+          )}
+        </div>
       </div>
     </>
   );

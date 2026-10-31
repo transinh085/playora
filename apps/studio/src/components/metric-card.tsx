@@ -1,7 +1,15 @@
 'use client';
 
-import { Card, Col, Flex, Row, Tooltip, Typography, theme } from 'antd';
+import { Card } from '@playora/ui/components/card';
+import { Skeleton } from '@playora/ui/components/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@playora/ui/components/tooltip';
 import { CircleHelp } from 'lucide-react';
+import type React from 'react';
 import { IconTile, type Tone } from './icon-tile';
 
 export interface MetricCardItem {
@@ -15,7 +23,7 @@ export interface MetricCardItem {
   testId?: string;
 }
 
-/** One headline number with its label and a tinted icon tile. After games-vt's MetricCard. */
+/** One headline number with its label and a tinted icon tile. Luma style rounded cards with soft elevation. */
 export function MetricCard({
   label,
   value,
@@ -27,50 +35,50 @@ export function MetricCard({
   testId,
   loading,
 }: MetricCardItem & { loading?: boolean }) {
-  const { token } = theme.useToken();
+  if (loading) {
+    return (
+      <Card className="rounded-2xl border-border/80 p-5 shadow-xs">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+          <Skeleton className="size-11 rounded-2xl" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card
-      variant="borderless"
-      loading={loading}
       data-testid={testId}
       data-highlighted={highlighted ? 'true' : undefined}
-      style={{
-        border: highlighted
-          ? `1.5px solid ${token.colorPrimary}`
-          : `1px solid ${token.colorBorderSecondary}`,
-      }}
-      styles={{ body: { padding: '16px 20px' } }}
+      className={`rounded-2xl p-5 shadow-xs transition-shadow hover:shadow-md ${
+        highlighted ? 'border-primary ring-1 ring-primary/20' : 'border-border/80'
+      }`}
     >
-      <Flex align="center" justify="space-between" gap={8}>
+      <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <Flex align="center" gap={4}>
-            <Typography.Text type="secondary" ellipsis style={{ fontSize: 13, fontWeight: 500 }}>
-              {label}
-            </Typography.Text>
+          <div className="flex items-center gap-1.5">
+            <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
             {tooltip && (
-              <Tooltip title={tooltip}>
-                <Typography.Text type="secondary">
-                  <CircleHelp className="size-3" />
-                </Typography.Text>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help text-muted-foreground hover:text-foreground">
+                      <CircleHelp className="size-3" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{tooltip}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
-          </Flex>
-          <Typography.Text
-            ellipsis
-            className="mt-1.5 mb-0.5 block"
-            style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2 }}
-          >
-            {value}
-          </Typography.Text>
-          {subtext && (
-            <Typography.Text type="secondary" ellipsis className="block" style={{ fontSize: 12 }}>
-              {subtext}
-            </Typography.Text>
-          )}
+          </div>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">{value}</p>
+          {subtext && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtext}</p>}
         </div>
         <IconTile tone={tone}>{icon}</IconTile>
-      </Flex>
+      </div>
     </Card>
   );
 }
@@ -78,12 +86,10 @@ export function MetricCard({
 /** Responsive row of MetricCards: 1 column on phones, 2 on tablets, 4 on desktop. */
 export function MetricGrid({ items, loading }: { items: MetricCardItem[]; loading?: boolean }) {
   return (
-    <Row gutter={[16, 16]}>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => (
-        <Col key={item.label} xs={24} sm={12} xl={6}>
-          <MetricCard {...item} loading={loading} />
-        </Col>
+        <MetricCard key={item.label} {...item} loading={loading} />
       ))}
-    </Row>
+    </div>
   );
 }

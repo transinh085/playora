@@ -1,9 +1,20 @@
 'use client';
 
-import { App, Card, ColorPicker, Flex, Typography, theme } from 'antd';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@playora/ui/components/alert-dialog';
+import { Card, CardContent } from '@playora/ui/components/card';
+import { Input } from '@playora/ui/components/input';
 import { Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import {
   type BrandColorKey,
@@ -32,7 +43,9 @@ export function QuickEditPanel({
 }) {
   const t = useTranslations('builderLab.quickEdit');
   const tBrand = useTranslations('canvasLab.brand');
-  const { modal } = App.useApp();
+  const tCommon = useTranslations('common');
+  const [pendingSkin, setPendingSkin] = useState<SkinKey | null>(null);
+
   const slots = presentSlots(campaign.screens);
   const imageSlots = slots.filter((s) => SLOT_KIND[s] === 'image');
   const textSlots = slots.filter((s) => SLOT_KIND[s] !== 'image');
@@ -57,16 +70,17 @@ export function QuickEditPanel({
 
   const pickSkin = (skinKey: SkinKey) => {
     if (skinKey === campaign.skinKey) return;
-    modal.confirm({
-      title: t('skinConfirmTitle'),
-      content: t('skinConfirm'),
-      okText: t('skinConfirmOk'),
-      onOk: () => onChange(switchSkin(campaign, skinKey)),
-    });
+    setPendingSkin(skinKey);
+  };
+
+  const confirmSkin = () => {
+    if (!pendingSkin) return;
+    onChange(switchSkin(campaign, pendingSkin));
+    setPendingSkin(null);
   };
 
   return (
-    <Flex vertical gap={24}>
+    <div className="flex flex-col gap-6">
       {imageSlots.length > 0 && (
         <Section title={t('images')} hint={t('imagesHint')}>
           {imageSlots.map(renderSlot)}
@@ -81,23 +95,48 @@ export function QuickEditPanel({
         <SkinPicker campaign={campaign} onPick={pickSkin} />
       </Section>
       <Section title={t('brand')} hint={t('brandHint')}>
-        <Flex vertical gap={10}>
+        <div className="flex flex-col gap-2.5">
           {BRAND_KEYS.map((key) => (
-            <Flex key={key} align="center" justify="space-between" gap={12}>
-              <Typography.Text>{tBrand(key)}</Typography.Text>
-              <ColorPicker
-                showText
-                disabledAlpha
-                value={campaign.brand[key]}
-                onChange={(color) =>
-                  onChange({ brand: { ...campaign.brand, [key]: color.toHexString() } })
-                }
-              />
-            </Flex>
+            <div key={key} className="flex items-center justify-between gap-3">
+              <span className="text-sm">{tBrand(key)}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={campaign.brand[key] || '#000000'}
+                  onChange={(e) =>
+                    onChange({ brand: { ...campaign.brand, [key]: e.target.value } })
+                  }
+                  className="size-8 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
+                  aria-label={tBrand(key)}
+                />
+                <Input
+                  value={campaign.brand[key] || ''}
+                  onChange={(e) =>
+                    onChange({ brand: { ...campaign.brand, [key]: e.target.value } })
+                  }
+                  className="w-24 font-mono text-xs uppercase"
+                />
+              </div>
+            </div>
           ))}
-        </Flex>
+        </div>
       </Section>
-    </Flex>
+
+      <AlertDialog open={!!pendingSkin} onOpenChange={(open) => !open && setPendingSkin(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('skinConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('skinConfirm')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full">{tCommon('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSkin} className="rounded-full">
+              {t('skinConfirmOk')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
 
@@ -111,22 +150,19 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Flex vertical gap={12}>
+    <div className="flex flex-col gap-3">
       <div>
-        <Typography.Text strong className="block">
-          {title}
-        </Typography.Text>
+        <span className="block font-semibold text-sm">{title}</span>
         <Caption>{hint}</Caption>
       </div>
       {children}
-    </Flex>
+    </div>
   );
 }
 
 /** The template's skins as small cover previews in the skin's own colours. */
 function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: SkinKey) => void }) {
   const t = useTranslations('builderLab.home');
-  const { token } = theme.useToken();
   const skins = getTemplate(campaign.templateKey).skins;
   const covers = useMemo(
     () => skins.map((skin) => buildScreens(campaign.templateKey, skin.key).cover),
@@ -141,37 +177,27 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
         return (
           <Card
             key={skin.key}
-            variant="borderless"
             onClick={() => onPick(skin.key)}
             data-testid={`skin-${skin.key}`}
-            style={{
-              border: `${active ? 2 : 1}px solid ${active ? token.colorPrimary : token.colorBorderSecondary}`,
-              overflow: 'hidden',
-            }}
-            styles={{ body: { padding: 8 } }}
-            cover={
-              <div style={{ height: 96 }} className="relative">
-                {cover && <FitScreen screen={cover} brand={skin.brand} />}
-                {active && (
-                  <span
-                    className="absolute top-1.5 right-1.5 flex items-center justify-center"
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: token.colorPrimary,
-                      color: token.colorWhite,
-                    }}
-                  >
-                    <Check className="size-3" />
-                  </span>
-                )}
-              </div>
-            }
+            className={`cursor-pointer overflow-hidden rounded-2xl transition-all ${
+              active
+                ? 'border-2 border-primary ring-2 ring-primary/20'
+                : 'border border-border hover:border-foreground/30'
+            }`}
           >
-            <Typography.Text ellipsis className="block text-center" style={{ fontSize: 13 }}>
-              {t(`skins.${skin.key}`)}
-            </Typography.Text>
+            <div className="relative h-24 w-full bg-muted/40">
+              {cover && <FitScreen screen={cover} brand={skin.brand} />}
+              {active && (
+                <span className="absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                  <Check className="size-3" />
+                </span>
+              )}
+            </div>
+            <CardContent className="p-2">
+              <span className="block truncate text-center text-xs font-medium">
+                {t(`skins.${skin.key}`)}
+              </span>
+            </CardContent>
           </Card>
         );
       })}

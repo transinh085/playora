@@ -11,6 +11,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@hookform/resolvers": "6.0.0",
     "@playora/api-client": "workspace:*",
     "@playora/auth": "workspace:*",
     "@playora/contracts": "workspace:*",
@@ -19,7 +20,6 @@
     "@playora/i18n": "workspace:*",
     "@playora/ui": "workspace:*",
     "@tanstack/react-query": "5.104.5",
-    "antd": "6.6.5",
     "better-auth": "1.7.12",
     "lucide-react": "1.61.0",
     "next": "16.4.3",
@@ -27,6 +27,7 @@
     "next-themes": "0.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "react-hook-form": "7.90.0",
     "zod": "4.6.7"
   },
   "devDependencies": {

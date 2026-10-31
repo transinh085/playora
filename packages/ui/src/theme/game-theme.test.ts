@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test';
-import { theme as antdTheme } from 'antd';
 import {
   brandKitVars,
   contrastRatio,
@@ -58,14 +57,12 @@ describe('brandKitVars', () => {
 });
 
 describe('gameThemeConfig & resolveGameTheme', () => {
-  test('generates valid antd ThemeConfig for all shipped skins', () => {
+  test('generates valid ThemeConfig for all shipped skins', () => {
     for (const skin of skins) {
       const resolved = resolveGameTheme({ skin });
       expect(resolved.skin).toBe(skin);
-      const designTokens = antdTheme.getDesignToken(resolved.theme);
-      expect(designTokens.colorPrimary).toBeTruthy();
-      expect(designTokens.colorPrimaryHover).not.toBe('#0d0d0d');
-      expect(designTokens.borderRadius).toBe(tokens.radius.game);
+      expect(resolved.theme.token?.colorPrimary).toBeTruthy();
+      expect(resolved.theme.token?.borderRadius).toBe(tokens.radius.game);
     }
   });
 
@@ -90,18 +87,12 @@ describe('gameThemeConfig & resolveGameTheme', () => {
 });
 
 describe('studioTheme', () => {
-  test('maps primitive tokens into light and dark antd ThemeConfig', () => {
+  test('maps primitive tokens into light and dark ThemeConfig', () => {
     const lightCfg = getStudioTheme('light');
     const darkCfg = getStudioTheme('dark');
     expect(lightCfg.token?.colorPrimary).toBe(tokens.teal[600]);
     expect(darkCfg.token?.colorPrimary).toBe(tokens.teal[400]);
-
-    const light = antdTheme.getDesignToken(lightCfg);
-    const dark = antdTheme.getDesignToken(darkCfg);
-
-    expect(light.colorPrimary.toLowerCase()).toBe(tokens.teal[600]);
-    expect(dark.colorPrimary).not.toBe('#000000');
-    expect(light.borderRadius).toBe(8);
-    expect(dark.borderRadius).toBe(8);
+    expect(lightCfg.token?.borderRadius).toBe(8);
+    expect(darkCfg.token?.borderRadius).toBe(8);
   });
 });

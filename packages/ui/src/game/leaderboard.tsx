@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@playora/ui/lib/utils';
-import { Tag } from 'antd';
 import type * as React from 'react';
 
 export interface LeaderboardEntry {
@@ -12,7 +11,6 @@ export interface LeaderboardEntry {
   meta?: string;
 }
 
-const MEDAL_VARS = ['var(--medal-gold)', 'var(--medal-silver)', 'var(--medal-bronze)'] as const;
 const MEDAL_CLASSES = ['bg-medal-gold', 'bg-medal-silver', 'bg-medal-bronze'] as const;
 
 export type LeaderboardProps = React.ComponentProps<'ol'> & {
@@ -21,7 +19,7 @@ export type LeaderboardProps = React.ComponentProps<'ol'> & {
 };
 
 /**
- * Ranked list for the phone result view built with Ant Design `Tag` badges.
+ * Ranked list for the phone result view.
  * `highlightId` marks the viewer's own row.
  */
 function Leaderboard({ entries, highlightId, className, ...props }: LeaderboardProps) {
@@ -36,35 +34,19 @@ function Leaderboard({ entries, highlightId, className, ...props }: LeaderboardP
             className="flex animate-rise-in items-center gap-[0.6em] rounded-game bg-game-surface px-[0.7em] py-[0.4em] data-me:ring-2 data-me:ring-game-primary"
             style={{ animationDelay: `${i * 60}ms` }}
           >
-            <Tag
-              variant="filled"
+            <span
               className={cn(
                 'm-0 grid size-[1.6em] shrink-0 place-items-center rounded-full border-0 p-0 font-game text-[0.75em] font-bold tabular-nums',
                 isTop3 ? `${MEDAL_CLASSES[i]} text-stage` : 'bg-transparent text-game-muted',
               )}
-              styles={{
-                root: {
-                  backgroundColor: isTop3 ? MEDAL_VARS[i] : 'transparent',
-                  color: isTop3 ? 'var(--stage-950)' : 'var(--game-muted)',
-                },
-              }}
             >
               {i + 1}
-            </Tag>
+            </span>
             <span className="min-w-0 flex-1 truncate font-semibold">{entry.name}</span>
             {entry.meta && (
-              <Tag
-                variant="filled"
-                className="m-0 hidden truncate border-0 bg-transparent px-[0.5em] py-0 text-[0.7em] text-game-muted sm:inline-block"
-                styles={{
-                  root: {
-                    backgroundColor: 'transparent',
-                    color: 'var(--game-muted)',
-                  },
-                }}
-              >
+              <span className="m-0 hidden truncate border-0 bg-transparent px-[0.5em] py-0 text-[0.7em] text-game-muted sm:inline-block">
                 {entry.meta}
-              </Tag>
+              </span>
             )}
             <span className="font-game font-bold tabular-nums">
               {entry.score.toLocaleString('vi-VN')}

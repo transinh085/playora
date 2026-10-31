@@ -1,8 +1,8 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
+import { toast } from '@playora/ui/components/sonner';
 import { applyApiError, type FormErrorTarget } from '@playora/ui/form';
-import { App } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type Campaign, useUpdateCampaign } from '../../api';
@@ -24,7 +24,6 @@ export function useCampaignDraft(
   server: Campaign | undefined,
   form?: FormErrorTarget,
 ) {
-  const { message } = App.useApp();
   const tErrors = useTranslations('errors');
   const save = useUpdateCampaign(orgId, server?.id ?? '');
   const [draft, setDraft] = useState<Campaign | null>(null);
@@ -57,16 +56,16 @@ export function useCampaignDraft(
         codeMsg,
       );
       if (collected[0]) {
-        message.error(collected[0]);
+        toast.error(collected[0]);
         return;
       }
       if (err instanceof ApiError) {
-        message.error(tErrors.has(err.code) ? tErrors(err.code) : err.message);
+        toast.error(tErrors.has(err.code) ? tErrors(err.code) : err.message);
         return;
       }
-      message.error(tErrors('INTERNAL'));
+      toast.error(tErrors('INTERNAL'));
     },
-    [form, message, tErrors],
+    [form, tErrors],
   );
 
   const flush = useCallback(async (): Promise<boolean> => {
@@ -99,27 +98,24 @@ export function useCampaignDraft(
     return run;
   }, [reportSaveError]);
 
-  const update = useCallback(
+  const patchDraft = useCallback(
     (patch: DraftPatch) => {
-      setDraft((current) => (current ? { ...current, ...patch } : current));
+      setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
       pending.current = { ...pending.current, ...patch };
       setSaveState('pending');
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => void flush(), AUTOSAVE_MS);
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        void flush();
+      }, AUTOSAVE_MS);
     },
     [flush],
   );
 
-  // Leaving the editor saves whatever is still waiting.
-  const id = server?.id;
-  useEffect(() => {
-    if (!id) return;
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-      if (Object.keys(pending.current).length) saveRef.current.mutate(pending.current);
-      pending.current = {};
-    };
-  }, [id]);
-
-  return { draft, update, flush, saveState };
+  return {
+    draft,
+    saveState,
+    patchDraft,
+    flush,
+  };
 }

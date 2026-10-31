@@ -1,5 +1,4 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { Form, Input } from 'antd';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { z } from 'zod';
@@ -50,12 +49,13 @@ function SampleEventForm({
 }: {
   onParseReady: (parseFn: (v?: EventInput) => EventOutput) => void;
 }) {
-  const { form, rules, parse } = useZodForm(EventSchema);
+  const { parse } = useZodForm(EventSchema);
   onParseReady(parse);
   return createElement(
-    Form<EventInput>,
-    { form, layout: 'vertical' },
-    createElement(Form.Item, { name: 'slug', label: 'Slug', rules }, createElement(Input, null)),
+    'form',
+    null,
+    createElement('label', null, 'Slug'),
+    createElement('input', { name: 'slug' }),
   );
 }
 

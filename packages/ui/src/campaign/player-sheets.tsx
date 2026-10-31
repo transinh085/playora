@@ -1,21 +1,11 @@
 'use client';
 
 import type { CampaignPrize, CampaignRules, PlayResult, VoucherStatus } from '@playora/contracts';
-import {
-  Badge,
-  Button,
-  Collapse,
-  Drawer,
-  Empty,
-  Flex,
-  QRCode,
-  Result,
-  Spin,
-  Tag,
-  Typography,
-  theme,
-} from 'antd';
-import { ChevronDown, Gift } from 'lucide-react';
+import { Badge } from '@playora/ui/components/badge';
+import { Button } from '@playora/ui/components/button';
+import { QRCodeSvg } from '@playora/ui/components/qr-code';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@playora/ui/components/sheet';
+import { Check, ChevronDown, Copy, Gift, Info, Loader2 } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import type { CampaignPlayerLabels } from './labels';
 
@@ -53,7 +43,7 @@ export function voucherStatusOf(
   return voucher.status ?? (voucher.redeemedAt ? 'redeemed' : 'issued');
 }
 
-/** Status tag: "Chưa đổi" (green), "Đã đổi", "Hết hạn", "Đã huỷ". */
+/** Status tag: "Chưa đổi" (green/teal), "Đã đổi", "Hết hạn", "Đã huỷ". */
 export function VoucherStatusTag({
   voucher,
   labels,
@@ -64,24 +54,36 @@ export function VoucherStatusTag({
   const l = labels.vouchers;
   switch (voucherStatusOf(voucher)) {
     case 'redeemed':
-      return <Tag data-status="redeemed">{l.redeemed}</Tag>;
+      return (
+        <Badge variant="secondary" data-status="redeemed" className="font-normal text-xs">
+          {l.redeemed}
+        </Badge>
+      );
     case 'expired':
       return (
-        <Tag color="warning" data-status="expired">
+        <Badge
+          variant="outline"
+          data-status="expired"
+          className="border-amber-500/50 text-amber-600 dark:text-amber-400 font-normal text-xs"
+        >
           {l.expired}
-        </Tag>
+        </Badge>
       );
     case 'void':
       return (
-        <Tag color="error" data-status="void">
+        <Badge variant="destructive" data-status="void" className="font-normal text-xs">
           {l.void}
-        </Tag>
+        </Badge>
       );
     default:
       return (
-        <Tag color="success" data-status="issued">
+        <Badge
+          variant="default"
+          data-status="issued"
+          className="bg-teal-600 hover:bg-teal-600 text-white font-normal text-xs"
+        >
           {l.notRedeemed}
-        </Tag>
+        </Badge>
       );
   }
 }
@@ -100,11 +102,16 @@ export function LiveClock({ labels }: { labels: CampaignPlayerLabels }) {
   }, []);
   if (!now) return null;
   return (
-    <Badge
-      status="processing"
+    <div
       data-testid="voucher-live-clock"
-      text={<span className="font-mono tabular-nums">{labels.vouchers.liveClock(now)}</span>}
-    />
+      className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-50/50 px-3 py-1 text-xs text-teal-800 dark:border-teal-400/20 dark:bg-teal-950/40 dark:text-teal-200"
+    >
+      <span className="relative flex size-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-teal-500" />
+      </span>
+      <span className="font-mono tabular-nums">{labels.vouchers.liveClock(now)}</span>
+    </div>
   );
 }
 
@@ -119,70 +126,97 @@ export function VoucherList({
   labels: CampaignPlayerLabels;
 }) {
   const l = labels.vouchers;
-  const { token } = theme.useToken();
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const handleCopy = (code: string) => {
+    navigator.clipboard?.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 1500);
+  };
 
   if (loading && vouchers.length === 0) {
     return (
-      <Flex justify="center" className="py-6">
-        <Spin />
-      </Flex>
+      <div className="flex justify-center py-6">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
     );
   }
-  if (vouchers.length === 0) return <Empty description={l.empty} />;
+  if (vouchers.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground">
+        <Gift className="size-8 opacity-40" />
+        <p className="text-sm">{l.empty}</p>
+      </div>
+    );
+  }
   return (
-    <Flex vertical gap="small" data-testid="voucher-list">
+    <div className="flex flex-col gap-2.5" data-testid="voucher-list">
       {vouchers.map((voucher) => {
         const status = voucherStatusOf(voucher);
         return (
-          <Flex
+          <div
             key={voucher.code}
-            gap="middle"
-            align="center"
-            className="p-3"
+            className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-xs"
             data-testid="voucher-row"
             data-status={status}
-            style={{
-              border: `1px solid ${token.colorBorderSecondary}`,
-              borderRadius: token.borderRadiusLG,
-              opacity: status === 'issued' ? 1 : 0.6,
-            }}
+            style={{ opacity: status === 'issued' ? 1 : 0.6 }}
           >
             {voucher.prizeImage ? (
-              <img src={voucher.prizeImage} alt="" width={40} height={40} />
+              <img src={voucher.prizeImage} alt="" className="size-10 rounded-lg object-cover" />
             ) : (
-              <Gift size={32} color={token.colorTextTertiary} />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Gift className="size-5" />
+              </div>
             )}
-            <Flex vertical className="min-w-0 flex-1">
-              <Typography.Text strong ellipsis>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">
                 {voucher.prizeName ?? l.unknownPrize}
-              </Typography.Text>
-              <Typography.Text
-                copyable={status === 'issued'}
-                delete={status !== 'issued'}
-                className="font-mono"
-              >
-                {voucher.code}
-              </Typography.Text>
-              <Typography.Text type="secondary">{l.issuedAt(voucher.issuedAt)}</Typography.Text>
+              </p>
+              <div className="flex items-center gap-1.5 font-mono text-xs">
+                <span
+                  className={
+                    status !== 'issued'
+                      ? 'line-through text-muted-foreground'
+                      : 'font-medium text-foreground'
+                  }
+                >
+                  {voucher.code}
+                </span>
+                {status === 'issued' && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(voucher.code)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Copy"
+                  >
+                    {copiedCode === voucher.code ? (
+                      <Check className="size-3 text-teal-600" />
+                    ) : (
+                      <Copy className="size-3" />
+                    )}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{l.issuedAt(voucher.issuedAt)}</p>
               {status === 'issued' && voucher.expiresAt && (
-                <Typography.Text type="secondary">{l.expiresAt(voucher.expiresAt)}</Typography.Text>
+                <p className="text-xs text-muted-foreground">{l.expiresAt(voucher.expiresAt)}</p>
               )}
-            </Flex>
+            </div>
             <VoucherStatusTag voucher={voucher} labels={labels} />
-          </Flex>
+          </div>
         );
       })}
-    </Flex>
+    </div>
   );
 }
 
-/** Bottom sheet rendered in place, so it stays inside the player box (which is `relative`). */
+/** Bottom sheet rendered inside the player box. */
 export function PhoneSheet({
   open,
   onClose,
   title,
   children,
-  size = 'auto',
+  size: _size,
 }: {
   open: boolean;
   onClose: () => void;
@@ -191,26 +225,23 @@ export function PhoneSheet({
   size?: number | string;
 }) {
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      placement="bottom"
-      title={title}
-      size={size}
-      getContainer={false}
-      rootStyle={{ position: 'absolute' }}
-      styles={{
-        wrapper: {
-          maxHeight: '85%',
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          overflow: 'hidden',
-        },
-      }}
-      destroyOnHidden
-    >
-      {children}
-    </Drawer>
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="bottom"
+        className="max-h-[85vh] rounded-t-3xl border-t border-border bg-card px-4 pb-6 pt-4 overflow-y-auto"
+      >
+        {title ? (
+          <SheetHeader className="mb-3 text-left">
+            <SheetTitle className="text-base font-semibold">{title}</SheetTitle>
+          </SheetHeader>
+        ) : (
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sheet</SheetTitle>
+          </SheetHeader>
+        )}
+        {children}
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -241,30 +272,26 @@ export function NoticeContent({
         : null;
 
   return (
-    <Result
-      status={kind === 'noTurns' ? 'info' : 'warning'}
-      title={notice.title}
-      subTitle={
-        extraText ? (
-          <Flex vertical gap={4} align="center">
-            <span>{notice.body}</span>
-            <Typography.Text
-              type="secondary"
-              data-testid={kind === 'noTurns' ? 'next-turn-notice' : 'open-days-notice'}
-            >
-              {extraText}
-            </Typography.Text>
-          </Flex>
-        ) : (
-          notice.body
-        )
-      }
-      extra={
-        <Button type="primary" onClick={onClose}>
-          {notice.ok}
-        </Button>
-      }
-    />
+    <div className="flex flex-col items-center gap-3 py-4 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Info className="size-6" />
+      </div>
+      <h3 className="text-lg font-bold text-foreground">{notice.title}</h3>
+      <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground">
+        <span>{notice.body}</span>
+        {extraText && (
+          <span
+            data-testid={kind === 'noTurns' ? 'next-turn-notice' : 'open-days-notice'}
+            className="text-xs text-muted-foreground"
+          >
+            {extraText}
+          </span>
+        )}
+      </div>
+      <Button className="mt-2 w-full rounded-full" onClick={onClose}>
+        {notice.ok}
+      </Button>
+    </div>
   );
 }
 
@@ -330,51 +357,44 @@ export function RulesSheet({
   ];
   return (
     <PhoneSheet open={open} onClose={onClose} title={l.title}>
-      <Flex vertical gap="middle">
-        {rehearsal && <Tag color="gold">{l.rehearsalNote}</Tag>}
-        <ul className="m-0 flex flex-col gap-2 pl-5">
+      <div className="flex flex-col gap-4">
+        {rehearsal && (
+          <Badge
+            variant="outline"
+            className="w-fit border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200"
+          >
+            {l.rehearsalNote}
+          </Badge>
+        )}
+        <ul className="m-0 flex flex-col gap-2 pl-5 text-sm text-foreground">
           {lines.map((line) => (
-            <li key={line}>
-              <Typography.Text>{line}</Typography.Text>
-            </li>
+            <li key={line}>{line}</li>
           ))}
         </ul>
         {prizes.length > 0 && (
-          <div>
-            <Typography.Title level={5}>{l.prizes}</Typography.Title>
-            <ul className="m-0 flex flex-col gap-1 pl-5">
+          <div className="flex flex-col gap-1.5">
+            <h4 className="text-sm font-semibold text-foreground">{l.prizes}</h4>
+            <ul className="m-0 flex flex-col gap-1 pl-5 text-sm text-muted-foreground">
               {prizes.map((prize) => (
                 <li key={prize.id}>
-                  <Typography.Text>
-                    {prize.quantity === undefined
-                      ? prize.name
-                      : l.prizeLine(prize.name, prize.quantity)}
-                  </Typography.Text>
+                  {prize.quantity === undefined
+                    ? prize.name
+                    : l.prizeLine(prize.name, prize.quantity)}
                 </li>
               ))}
             </ul>
           </div>
         )}
         {terms && (
-          <Collapse
-            size="small"
-            items={[
-              {
-                key: 'terms',
-                label: l.fullTerms,
-                children: (
-                  <Typography.Paragraph className="m-0 whitespace-pre-wrap">
-                    {terms}
-                  </Typography.Paragraph>
-                ),
-              },
-            ]}
-          />
+          <details className="rounded-xl border border-border bg-muted/30 p-3 text-sm">
+            <summary className="cursor-pointer font-medium text-foreground">{l.fullTerms}</summary>
+            <p className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{terms}</p>
+          </details>
         )}
-        <Button type="primary" block onClick={onClose}>
+        <Button className="w-full rounded-full" onClick={onClose}>
           {l.ok}
         </Button>
-      </Flex>
+      </div>
     </PhoneSheet>
   );
 }
@@ -398,16 +418,18 @@ export function MyPrizesSheet({
 }) {
   const l = labels.vouchers;
   return (
-    <PhoneSheet open={open} onClose={onClose} title={l.title} size="70%">
-      <Flex vertical gap="middle">
-        <LiveClock labels={labels} />
+    <PhoneSheet open={open} onClose={onClose} title={l.title}>
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-center">
+          <LiveClock labels={labels} />
+        </div>
         <VoucherList vouchers={vouchers} loading={loading} labels={labels} />
         {pageHref && (
-          <Button type="link" href={pageHref} block>
-            {l.openPage}
+          <Button variant="link" asChild className="w-full">
+            <a href={pageHref}>{l.openPage}</a>
           </Button>
         )}
-      </Flex>
+      </div>
     </PhoneSheet>
   );
 }
@@ -434,14 +456,21 @@ export function VoucherCard({
   onOpenPrizes: () => void;
   labels: CampaignPlayerLabels;
 }) {
-  const { token } = theme.useToken();
+  const [copied, setCopied] = useState(false);
   const code = result.voucher?.code;
   if (!code) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   if (!expanded) {
     return (
       <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
-        <Button type="primary" shape="round" icon={<Gift size={16} />} onClick={onToggle}>
+        <Button className="rounded-full gap-2 shadow-lg" onClick={onToggle}>
+          <Gift size={16} />
           {labels.voucher.show}
         </Button>
       </div>
@@ -450,42 +479,51 @@ export function VoucherCard({
 
   return (
     <div className="absolute inset-x-3 bottom-3 z-10">
-      <div
-        className="flex flex-col items-center gap-2 p-4"
-        style={{
-          background: token.colorBgElevated,
-          borderRadius: token.borderRadiusLG * 2,
-          boxShadow: token.boxShadowSecondary,
-        }}
-      >
-        <Flex justify="space-between" align="center" className="w-full">
-          <Typography.Text type="secondary">{labels.voucher.title}</Typography.Text>
-          <Button
-            type="text"
-            size="small"
-            icon={<ChevronDown size={16} />}
+      <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-card p-4 shadow-xl">
+        <div className="flex w-full items-center justify-between">
+          <span className="text-xs text-muted-foreground">{labels.voucher.title}</span>
+          <button
+            type="button"
             onClick={onToggle}
             aria-label={labels.voucher.collapse}
-          />
-        </Flex>
-        <QRCode value={redeemUrl} size={132} bordered={false} />
-        <Typography.Text
-          strong
-          copyable={!status || status === 'issued'}
-          delete={Boolean(status && status !== 'issued')}
-          className="font-mono"
-          data-testid="voucher-code"
-          style={{ fontSize: token.fontSizeHeading3, letterSpacing: 4 }}
-        >
-          {code}
-        </Typography.Text>
+            className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+        <div className="rounded-xl border border-border/80 bg-white p-2 shadow-xs">
+          <QRCodeSvg value={redeemUrl} size={132} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            data-testid="voucher-code"
+            className={`font-mono text-xl font-bold tracking-widest ${
+              status && status !== 'issued'
+                ? 'line-through text-muted-foreground'
+                : 'text-foreground'
+            }`}
+          >
+            {code}
+          </span>
+          {(!status || status === 'issued') && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Copy"
+            >
+              {copied ? <Check size={14} className="text-teal-600" /> : <Copy size={14} />}
+            </button>
+          )}
+        </div>
         {status && status !== 'issued' ? (
           <VoucherStatusTag voucher={{ status, redeemedAt: null }} labels={labels} />
         ) : (
-          <Typography.Text>{labels.voucher.hint}</Typography.Text>
+          <span className="text-xs text-muted-foreground">{labels.voucher.hint}</span>
         )}
         <LiveClock labels={labels} />
-        <Button block onClick={onOpenPrizes} icon={<Gift size={16} />}>
+        <Button variant="outline" className="w-full rounded-full gap-2" onClick={onOpenPrizes}>
+          <Gift size={16} />
           {labels.myPrizes}
         </Button>
       </div>

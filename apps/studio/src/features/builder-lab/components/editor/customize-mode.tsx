@@ -1,7 +1,8 @@
 'use client';
 
 import { toCanvasPrizes } from '@playora/ui/campaign';
-import { Alert, Grid } from 'antd';
+import { Alert, AlertTitle } from '@playora/ui/components/alert';
+import { Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
@@ -19,7 +20,6 @@ export function CustomizeMode({
   onChange: (patch: DraftPatch) => void;
 }) {
   const t = useTranslations('builderLab.editor');
-  const wide = Grid.useBreakpoint().lg ?? true;
   // Stable between autosaves that only touch the screens, so the canvas does not redraw the stage.
   const { organizationId, templateKey, brand, prizes } = campaign;
   const renderStage = useCallback(
@@ -34,9 +34,14 @@ export function CustomizeMode({
 
   return (
     <div className="flex h-full flex-col">
-      {!wide && <Alert banner type="info" title={t('customizeNarrow')} />}
+      <div className="lg:hidden">
+        <Alert className="rounded-none border-x-0 border-t-0">
+          <Info className="size-4" />
+          <AlertTitle className="text-xs">{t('customizeNarrow')}</AlertTitle>
+        </Alert>
+      </div>
       <div className="min-h-0 flex-1 overflow-x-auto">
-        <div className="h-full" style={{ minWidth: 1000 }}>
+        <div className="h-full min-w-[1000px]">
           <CanvasWorkspace
             value={campaign.screens}
             onChange={(screens) => onChange({ screens })}
