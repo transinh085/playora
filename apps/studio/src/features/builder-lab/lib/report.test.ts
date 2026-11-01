@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import type { CampaignReport } from '@playora/contracts';
 import {
   buildReportInsights,
+  computeBaselineComparison,
   computePlaybookKeyMetric,
   dayWeekday,
   formatCostPerVisitMetric,
@@ -150,6 +151,20 @@ describe('computePlaybookKeyMetric', () => {
       metricKey: 'openWeekdayVisits',
       value: 1,
       values: { visits: 1, days: 1 },
+    });
+  });
+
+  test('computeBaselineComparison computes percentage vs normal-day guest baseline (PLB-08)', () => {
+    expect(computeBaselineComparison(sampleReport, null)).toBeNull();
+    expect(computeBaselineComparison(sampleReport, undefined)).toBeNull();
+    expect(computeBaselineComparison(sampleReport, 0)).toBeNull();
+
+    // 12 visits over 4 active days = 3 visits/day; baseline = 60 guests/day -> 5%
+    expect(computeBaselineComparison(sampleReport, 60)).toEqual({
+      visitsPerDay: 3,
+      baselineGuestsPerDay: 60,
+      percentOfBaseline: 5,
+      days: 4,
     });
   });
 });

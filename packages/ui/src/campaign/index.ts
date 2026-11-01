@@ -27,6 +27,7 @@ export {
   type PlayerFormValues,
   validatePlayerForm,
 } from './form-validation';
+export { GiftBox } from './gift-box';
 export {
   type CampaignMessageKey,
   type CampaignPlayerLabels,
@@ -53,5 +54,8 @@ export {
   VoucherRestoreBox,
   VoucherStatusTag,
   voucherStatusOf,
+  ZaloOaCtaButton,
 } from './player-sheets';
+export { ScratchCard } from './scratch-card';
+export { SpinWheel, wrapWheelLabel } from './spin-wheel';
 export { useReducedMotion } from './use-play-round';

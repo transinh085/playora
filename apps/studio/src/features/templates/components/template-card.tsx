@@ -6,8 +6,8 @@ import {
   RiBookmarkFill,
   RiBookmarkLine,
   RiEyeLine,
-  RiFireLine,
   RiMagicLine,
+  RiTimeLine,
 } from '@remixicon/react';
 import { useTranslations } from 'next-intl';
 import { FitScreen } from '@/features/builder-lab/components/editor/fit-screen';
@@ -44,11 +44,11 @@ export function TemplateCard({
           </div>
         )}
 
-        {/* Usage count micro-stat pill */}
+        {/* Honest play duration pill */}
         <div className="pointer-events-none absolute left-2.5 top-2.5 z-20 flex items-center gap-1 rounded-full bg-background-primary-default/90 px-2 py-0.5 border border-border-card-default shadow-2xs backdrop-blur-xs">
-          <RiFireLine className="size-3 text-orange-500 fill-orange-500" />
+          <RiTimeLine className="size-3 text-accent-500" />
           <span className="text-[10px] font-medium text-text-primary tracking-tight">
-            {t('usageTag', { count: template.usageCount })}
+            {template.playDuration}
           </span>
         </div>
 

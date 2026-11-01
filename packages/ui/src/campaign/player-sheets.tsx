@@ -174,26 +174,70 @@ export function VoucherStatusTag({
  * A clock ticking every second next to the vouchers (docs/product/specs/prizes-redemption.md §6.2):
  * staff can tell a live screen from a screenshot. Client-only, so it never mismatches on hydration.
  */
-export function LiveClock({ labels }: { labels: CampaignPlayerLabels }) {
-  const [now, setNow] = useState<Date | null>(null);
+export function LiveClock({
+  labels,
+  initialNow = null,
+}: {
+  labels: CampaignPlayerLabels;
+  initialNow?: Date | null;
+}) {
+  const [now, setNow] = useState<Date | null>(initialNow);
   useEffect(() => {
     const tick = () => setNow(new Date());
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-  if (!now) return null;
   return (
     <div
-      data-testid="voucher-live-clock"
-      className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-caption-1-medium text-accent-soft-foreground"
+      data-testid="live-verification-bar"
+      className="relative inline-flex w-full items-center justify-center overflow-hidden rounded-full border border-accent/30 bg-accent-soft px-3.5 py-1.5 text-caption-1-medium text-accent-soft-foreground"
+      style={{
+        backgroundImage:
+          'linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.45) 50%, transparent 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'mech-shimmer 2.2s linear infinite',
+      }}
     >
-      <span className="relative flex size-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-accent" />
-      </span>
-      <span className="font-mono tabular-nums">{labels.vouchers.liveClock(now)}</span>
+      <div
+        data-testid="voucher-live-clock"
+        className="relative z-10 inline-flex items-center gap-2"
+      >
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-accent" />
+        </span>
+        <span className="font-mono tabular-nums" suppressHydrationWarning>
+          {now ? labels.vouchers.liveClock(now) : '••:••:••'}
+        </span>
+      </div>
     </div>
+  );
+}
+
+/** Optional "Quan tâm Zalo OA của quán" button shown on win voucher, lose screen, and My Prizes (RET-07). */
+export function ZaloOaCtaButton({
+  zaloOaUrl,
+  label,
+}: {
+  zaloOaUrl?: string | null;
+  label?: string;
+}) {
+  if (!zaloOaUrl?.trim()) return null;
+  return (
+    <a
+      href={zaloOaUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-testid="zalo-oa-cta"
+      className={buttonVariants({
+        variant: 'secondary',
+        fullWidth: true,
+        className: 'rounded-full',
+      })}
+    >
+      {label ?? 'Quan tâm Zalo OA của quán'}
+    </a>
   );
 }
 
@@ -632,6 +676,7 @@ export function MyPrizesSheet({
   redeemUrl,
   onRestorePrizes,
   defaultOpenRestore = false,
+  zaloOaUrl,
 }: {
   open: boolean;
   onClose: () => void;
@@ -643,6 +688,7 @@ export function MyPrizesSheet({
   redeemUrl?: (code: string) => string;
   onRestorePrizes?: (phone: string, codeSuffix: string) => Promise<void>;
   defaultOpenRestore?: boolean;
+  zaloOaUrl?: string | null;
 }) {
   const l = labels.vouchers;
   return (
@@ -659,6 +705,7 @@ export function MyPrizesSheet({
             defaultOpen={defaultOpenRestore}
           />
         )}
+        <ZaloOaCtaButton zaloOaUrl={zaloOaUrl} label={labels.zaloOaCta} />
         {pageHref && (
           <a href={pageHref} className={buttonVariants({ variant: 'ghost', fullWidth: true })}>
             {l.openPage}
@@ -681,6 +728,7 @@ export function VoucherCard({
   onOpenPrizes,
   labels,
   status,
+  zaloOaUrl,
 }: {
   result: PlayResult;
   redeemUrl: string;
@@ -690,6 +738,7 @@ export function VoucherCard({
   onToggle: () => void;
   onOpenPrizes: () => void;
   labels: CampaignPlayerLabels;
+  zaloOaUrl?: string | null;
 }) {
   const [copied, setCopied] = useState(false);
   const code = result.voucher?.code;
@@ -783,6 +832,7 @@ export function VoucherCard({
             {labels.myPrizes}
           </Button>
         </div>
+        <ZaloOaCtaButton zaloOaUrl={zaloOaUrl} label={labels.zaloOaCta} />
       </div>
     </div>
   );

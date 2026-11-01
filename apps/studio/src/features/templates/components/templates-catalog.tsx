@@ -78,7 +78,7 @@ export function TemplatesCatalog({ orgId }: { orgId: string }) {
       return true;
     }).sort((a, b) => {
       if (filters.sortBy === 'duration') {
-        return a.playDuration.localeCompare(b.playDuration);
+        return a.durationSeconds - b.durationSeconds;
       }
       if (filters.sortBy === 'newest') {
         return b.id.localeCompare(a.id);

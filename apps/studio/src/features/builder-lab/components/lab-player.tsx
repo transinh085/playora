@@ -148,6 +148,7 @@ function PlayerSession({
   const campaignWithTerms = useMemo(
     () => ({
       ...campaign,
+      zaloOaUrl: campaign.rules.zaloOaUrl ?? null,
       terms:
         campaign.compliance.termsText ??
         generateTerms({

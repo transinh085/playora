@@ -29,6 +29,7 @@ describe('goal-first create (docs/product/specs/playbooks.md §2.1)', () => {
     for (const title of ['Tết kéo khách', 'Khách quay lại lần 2', 'Lấp ngày vắng']) {
       expect(html).toContain(title);
     }
+    expect(html).toContain('data-testid="playbook-mini-preview"');
     expect(html).toContain('Đo bằng');
     expect(html).toContain('Tự chọn mẫu');
     expect(html).not.toContain('builderLab.');

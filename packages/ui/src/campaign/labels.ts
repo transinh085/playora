@@ -105,6 +105,7 @@ export interface CampaignPlayerLabels {
     ok: string;
   };
   redeemFirstMessage?: string;
+  zaloOaCta?: string;
 }
 
 /** Keys used under the `campaignPlayer` message namespace. */
@@ -188,7 +189,8 @@ export type CampaignMessageKey =
   | 'rules.rehearsalNote'
   | 'rules.fullTerms'
   | 'rules.ok'
-  | 'redeemFirstMessage';
+  | 'redeemFirstMessage'
+  | 'zaloOaCta';
 
 /** A translator scoped to `campaignPlayer` (next-intl's `useTranslations('campaignPlayer')` fits). */
 export type CampaignTranslate = (
@@ -309,5 +311,6 @@ export function createCampaignPlayerLabels(
       ok: t('rules.ok'),
     },
     redeemFirstMessage: t('redeemFirstMessage'),
+    zaloOaCta: t('zaloOaCta'),
   };
 }

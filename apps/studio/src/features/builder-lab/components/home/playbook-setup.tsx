@@ -10,6 +10,9 @@ import {
   Input,
   InputGroup,
   Label,
+  ListBox,
+  Select,
+  Switch,
   Tooltip,
   toast,
 } from '@playora/ui/components';
@@ -41,6 +44,7 @@ import { RulesSummary } from '../rules/rules-sentences-step';
 const DEBOUNCE_MS = 250;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const DEFAULT_QUIET_DAYS = [2, 3, 4];
 
 type SetupErrorKey =
   | 'name'
@@ -74,9 +78,10 @@ function setupSchema(m: (key: SetupErrorKey) => string, today: string) {
             costVnd: z
               .number({ error: m('prizeCost') })
               .int()
-              .min(1, m('prizeCost'))
+              .min(0, m('prizeCost'))
               .max(1_000_000_000),
             weight: z.number().min(0),
+            quantity: z.number().int().min(0).max(1_000_000).optional(),
             image: z.string().optional(),
           }),
         )
@@ -91,6 +96,7 @@ function setupSchema(m: (key: SetupErrorKey) => string, today: string) {
         .int()
         .min(1, m('guests'))
         .max(100_000),
+      baselineGuestsPerDay: z.number().int().min(1).max(100_000).nullable().optional(),
     })
     .refine((v) => v.endDate >= v.startDate, { path: ['endDate'], message: m('endBeforeStart') })
     .refine((v) => v.endDate >= today, { path: ['endDate'], message: m('endInPast') })
@@ -124,6 +130,13 @@ export function PlaybookSetupForm({
   const create = useCreateCampaign(orgId);
   const brandKits = useBrandKits(orgId);
   const pb = PLAYBOOKS[playbook];
+  const [selectedBrandKitId, setSelectedBrandKitId] = useState<string>('default');
+
+  useEffect(() => {
+    if (brandKits.data?.items[0]?.id && selectedBrandKitId === 'default') {
+      setSelectedBrandKitId(brandKits.data.items[0].id);
+    }
+  }, [brandKits.data?.items, selectedBrandKitId]);
 
   const [initial] = useState(() => defaultSetup(playbook, t(`items.${playbook}.defaultName`)));
   const schema = useMemo(
@@ -155,18 +168,27 @@ export function PlaybookSetupForm({
     }
   }, [values, schema, playbook]);
 
+  const hasZeroCostPrize = (values.prizes ?? []).some((p) => p.costVnd === 0);
+
   const onSubmit = async (setup: PlaybookSetup) => {
     const s = suggestPlaybook(playbook, setup);
     try {
-      const primaryKit = brandKits.data?.items[0];
+      const chosenKit =
+        selectedBrandKitId && selectedBrandKitId !== 'default'
+          ? brandKits.data?.items.find((k) => k.id === selectedBrandKitId)
+          : undefined;
+      const submittedPrizes = s.prizes.map((p) => ({
+        ...p,
+        quantity: Math.max(1, p.quantity),
+      }));
       const campaign = await create.mutateAsync({
         name: setup.name.trim(),
         templateKey: pb.templateKey,
         skinKey: pb.skinKey,
-        brand: brandFromKit(primaryKit),
-        brandKit: primaryKit,
+        brand: brandFromKit(chosenKit),
+        brandKit: chosenKit,
         playbook,
-        prizes: s.prizes.filter((p) => p.quantity > 0),
+        prizes: submittedPrizes,
         rules: s.rules,
       });
       toast.success(t('suggestion.created'));
@@ -216,6 +238,35 @@ export function PlaybookSetupForm({
                 )}
               />
 
+              {/* Brand Kit Selector */}
+              {(brandKits.data?.items.length ?? 0) > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t('setup.brandKit')}</Label>
+                  <Select
+                    aria-label={t('setup.brandKit')}
+                    selectedKey={selectedBrandKitId}
+                    onSelectionChange={(k) => k !== null && setSelectedBrandKitId(String(k))}
+                  >
+                    <Select.Trigger>
+                      <Select.Value />
+                      <Select.Indicator />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        <ListBox.Item id="default" textValue={t('setup.defaultBrandKit')}>
+                          {t('setup.defaultBrandKit')}
+                        </ListBox.Item>
+                        {(brandKits.data?.items ?? []).map((kit) => (
+                          <ListBox.Item key={kit.id} id={kit.id} textValue={kit.name}>
+                            {kit.name}
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+                </div>
+              )}
+
               <Controller
                 control={form.control}
                 name="budgetVnd"
@@ -249,6 +300,15 @@ export function PlaybookSetupForm({
                   <Caption className="block">{t('setup.prizesHint')}</Caption>
                 </div>
 
+                {hasZeroCostPrize && (
+                  <Alert status="warning" data-testid="zero-cost-prize-warning">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{t('setup.zeroCostHint')}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                )}
+
                 <div className="space-y-2.5">
                   {fields.map((fieldItem, index) => {
                     const quantity = suggestion?.prizes[index]?.quantity;
@@ -258,7 +318,7 @@ export function PlaybookSetupForm({
                         className="flex items-center gap-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default/40 p-3"
                         data-testid="playbook-prize"
                       >
-                        <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_160px] gap-2">
+                        <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_140px_100px]">
                           <Controller
                             control={form.control}
                             name={`prizes.${index}.name`}
@@ -302,6 +362,25 @@ export function PlaybookSetupForm({
                                   </p>
                                 )}
                               </div>
+                            )}
+                          />
+
+                          <Controller
+                            control={form.control}
+                            name={`prizes.${index}.quantity`}
+                            render={({ field }) => (
+                              <Input
+                                type="number"
+                                min={0}
+                                step={1}
+                                aria-label={t('setup.prizeQuantity')}
+                                placeholder={quantity !== undefined ? String(quantity) : '—'}
+                                value={field.value ?? ''}
+                                onChange={(e) => {
+                                  const raw = e.target.value.trim();
+                                  field.onChange(raw === '' ? undefined : Number(raw));
+                                }}
+                              />
                             )}
                           />
                         </div>
@@ -442,15 +521,33 @@ export function PlaybookSetupForm({
                 />
               </div>
 
-              {initial.openDays !== null && (
-                <Controller
-                  control={form.control}
-                  name="openDays"
-                  render={({ field, fieldState }) => {
-                    const currentDays = field.value ?? [];
-                    return (
-                      <div className="flex flex-col gap-1.5">
+              {/* Open Days on all playbooks */}
+              <Controller
+                control={form.control}
+                name="openDays"
+                render={({ field, fieldState }) => {
+                  const isCustomDays = field.value !== null;
+                  const currentDays = field.value ?? [];
+                  return (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-2">
                         <Label>{t('setup.openDays')}</Label>
+                        <Switch
+                          aria-label={t('setup.openDays')}
+                          isSelected={isCustomDays}
+                          onChange={(on) =>
+                            field.onChange(on ? (pb.openDays ?? DEFAULT_QUIET_DAYS) : null)
+                          }
+                        >
+                          <Switch.Control>
+                            <Switch.Thumb />
+                          </Switch.Control>
+                        </Switch>
+                      </div>
+                      <Caption>
+                        {isCustomDays ? t('setup.openDaysCustom') : t('setup.openDaysAll')}
+                      </Caption>
+                      {isCustomDays && (
                         <div className="flex flex-wrap gap-4 pt-1">
                           {WEEKDAYS.map((d) => {
                             const checked = currentDays.includes(d);
@@ -476,42 +573,79 @@ export function PlaybookSetupForm({
                             );
                           })}
                         </div>
-                        {fieldState.error?.message && (
-                          <p className="text-caption-regular text-danger">
-                            {fieldState.error.message}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
-              )}
-
-              <Controller
-                control={form.control}
-                name="guestsPerDay"
-                render={({ field, fieldState }) => (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="setup-guests">{t('setup.guests')}</Label>
-                    <Input
-                      id="setup-guests"
-                      type="number"
-                      min={1}
-                      max={100_000}
-                      step={10}
-                      className="max-w-xs"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                    <p className="text-caption-regular text-text-secondary">
-                      {t('setup.guestsHint')}
-                    </p>
-                    {fieldState.error?.message && (
-                      <p className="text-caption-regular text-danger">{fieldState.error.message}</p>
-                    )}
-                  </div>
-                )}
+                      )}
+                      {fieldState.error?.message && (
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }}
               />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  control={form.control}
+                  name="guestsPerDay"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-guests">{t('setup.guests')}</Label>
+                      <Input
+                        id="setup-guests"
+                        type="number"
+                        min={1}
+                        max={100_000}
+                        step={10}
+                        fullWidth
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                      <p className="text-caption-regular text-text-secondary">
+                        {t('setup.guestsHint')}
+                      </p>
+                      {fieldState.error?.message && (
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+
+                {/* Optional normal-day guest baseline (PLB-08) */}
+                <Controller
+                  control={form.control}
+                  name="baselineGuestsPerDay"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="setup-baseline-guests">{t('setup.baselineGuests')}</Label>
+                      <Input
+                        id="setup-baseline-guests"
+                        data-testid="setup-baseline-guests"
+                        type="number"
+                        min={1}
+                        max={100_000}
+                        step={10}
+                        fullWidth
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const raw = e.target.value.trim();
+                          field.onChange(raw === '' ? null : Number(raw));
+                        }}
+                      />
+                      <p className="text-caption-regular text-text-secondary">
+                        {t('setup.baselineGuestsHint')}
+                      </p>
+                      {fieldState.error?.message && (
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+              </div>
             </form>
           </Card.Content>
         </Card>
@@ -548,82 +682,94 @@ export function SuggestionCard({
           {t('title')}
         </Card.Title>
       </Card.Header>
-      <Card.Content className="space-y-4 p-6">
-        {suggestion === null ? (
-          <Alert status="default">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>{t('invalid')}</Alert.Title>
-            </Alert.Content>
-          </Alert>
+      <Card.Content className="p-6">
+        {!suggestion ? (
+          <div className="space-y-4">
+            <Caption className="block">{t('invalid')}</Caption>
+            <Button
+              variant="primary"
+              type="submit"
+              form="playbook-setup"
+              className="w-full justify-center"
+              isDisabled
+              data-testid="playbook-create-submit"
+            >
+              {t('create')}
+            </Button>
+          </div>
         ) : (
           <div className="space-y-4" data-testid="playbook-suggestion">
-            <p className="m-0 rounded-2xl border border-accent-500/20 bg-accent-500/5 p-3.5 text-body-medium text-text-primary">
+            <p className="m-0 text-body-medium text-text-primary">
               {t('sentence', {
                 budget: formatVnd(budgetVnd, locale),
                 count: suggestion.totalPrizes,
                 oneIn: suggestion.oneIn,
-                days: suggestion.openDays,
+                days: suggestion.days,
               })}
             </p>
-            <div className="grid gap-3">
-              <MetricCard
-                label={t('prizes')}
-                value={suggestion.totalPrizes}
-                subtext={t('prizesSub', { plays: suggestion.expectedPlays })}
-                icon={<Gift className="size-5" />}
-                tone="success"
-              />
+
+            <div className="grid grid-cols-3 gap-2.5">
               <MetricCard
                 label={t('winRate')}
                 value={`${toPercent(suggestion.winRate)}%`}
                 subtext={t('winRateSub', { oneIn: suggestion.oneIn })}
-                icon={<Percent className="size-5" />}
+                icon={<Percent className="size-4" />}
                 tone="primary"
+              />
+              <MetricCard
+                label={t('prizes')}
+                value={String(suggestion.totalPrizes)}
+                subtext={t('prizesSub', { plays: suggestion.expectedPlays })}
+                icon={<Gift className="size-4" />}
+                tone="info"
               />
               <MetricCard
                 label={t('cost')}
                 value={formatVnd(suggestion.totalCostVnd, locale)}
                 subtext={t('costSub', { budget: formatVnd(budgetVnd, locale) })}
-                icon={<Coins className="size-5" />}
-                tone="warning"
+                icon={<Coins className="size-4" />}
+                tone="success"
               />
             </div>
-            {suggestion.tooFewPrizes ? (
+
+            <Caption className="block">
+              {t('risk', { percent: toPercent(suggestion.risk) })}
+            </Caption>
+
+            {suggestion.tooFewPrizes && (
               <Alert status="warning">
                 <Alert.Indicator />
                 <Alert.Content>
-                  <Alert.Title>{t('tooFew')}</Alert.Title>
+                  <Alert.Description>{t('tooFew')}</Alert.Description>
                 </Alert.Content>
               </Alert>
-            ) : (
-              <Caption className="block">
-                {t('risk', { percent: Math.round(suggestion.risk * 100) })}
-              </Caption>
             )}
+
             {zero.map((p) => (
               <Alert key={p.id} status="warning">
                 <Alert.Indicator />
                 <Alert.Content>
-                  <Alert.Title>{t('zeroPrize', { name: p.name })}</Alert.Title>
+                  <Alert.Description>{t('zeroPrize', { name: p.name })}</Alert.Description>
                 </Alert.Content>
               </Alert>
             ))}
+
             <RulesSummary rules={suggestion.rules} prizes={suggestion.prizes} />
+
+            <Caption className="block">{t('editLater')}</Caption>
+
+            <Button
+              variant="primary"
+              type="submit"
+              form="playbook-setup"
+              className="w-full justify-center"
+              isDisabled={pending || suggestion.totalPrizes === 0}
+              data-testid="playbook-create-submit"
+            >
+              {t('create')}
+            </Button>
           </div>
         )}
-
-        <Card.Footer className="flex flex-col gap-2 p-0 pt-2">
-          <Button
-            type="submit"
-            form="playbook-setup"
-            className="w-full justify-center"
-            isDisabled={pending || suggestion === null || suggestion.totalPrizes === 0}
-          >
-            {t('create')}
-          </Button>
-          <Caption className="text-center">{t('editLater')}</Caption>
-        </Card.Footer>
       </Card.Content>
     </Card>
   );

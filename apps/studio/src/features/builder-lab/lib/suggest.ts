@@ -25,7 +25,7 @@ export const MAX_WIN_RATE = 0.8;
 export const COVER_SHARE = 0.9;
 /** Acceptable chance of running out before `COVER_SHARE` of the campaign. */
 export const MAX_EXHAUST_RISK = 0.1;
-const SEEDS = 10;
+export const SEEDS = 25;
 const BISECT_STEPS = 7;
 /** Simulated plays per run are capped by scaling traffic and stock together (keeps it < 300 ms). */
 export const MAX_SIM_PLAYS = 4_000;
@@ -33,23 +33,39 @@ export const MAX_SIM_PLAYS = 4_000;
 /** `q_i = floor(B × w_i / c_i)`, never exceeding the budget in total. */
 export function prizeQuantities(
   budgetVnd: number,
-  items: readonly { costVnd: number; weight: number }[],
+  items: readonly { costVnd: number; weight: number; quantity?: number }[],
 ): number[] {
   const budget = Math.max(0, Math.floor(budgetVnd));
   const weights = items.map((p) => Math.max(0, p.weight));
   const totalWeight = weights.reduce((a, b) => a + b, 0);
   const share = (i: number) =>
     totalWeight > 0 ? (weights[i] ?? 0) / totalWeight : 1 / Math.max(1, items.length);
-  const qty = items.map((p, i) =>
-    p.costVnd > 0 ? Math.max(0, Math.floor((budget * share(i)) / p.costVnd + 1e-9)) : 0,
-  );
-  // Floating-point guard: trim the dearest prize until the total fits the budget.
-  let cost = qty.reduce((sum, q, i) => sum + q * (items[i]?.costVnd ?? 0), 0);
+  const qty = items.map((p, i) => {
+    if (p.quantity !== undefined && Number.isFinite(p.quantity)) {
+      return Math.max(0, Math.floor(p.quantity));
+    }
+    return p.costVnd > 0 ? Math.max(0, Math.floor((budget * share(i)) / p.costVnd + 1e-9)) : 0;
+  });
+  // Ensure any positive-weight prize with costVnd > 0 gets at least 1 unit when the budget can afford it.
+  let cost = qty.reduce((sum, q, i) => sum + q * Math.max(0, items[i]?.costVnd ?? 0), 0);
+  items.forEach((p, i) => {
+    if (
+      p.quantity === undefined &&
+      p.costVnd > 0 &&
+      (weights[i] ?? 0) > 0 &&
+      qty[i] === 0 &&
+      cost + p.costVnd <= budget
+    ) {
+      qty[i] = 1;
+      cost += p.costVnd;
+    }
+  });
+  // Floating-point / custom-quantity guard: trim the dearest prize until the total fits the budget.
   while (cost > budget) {
     let dearest = -1;
     qty.forEach((q, i) => {
-      if (q > 0 && (dearest < 0 || (items[i]?.costVnd ?? 0) > (items[dearest]?.costVnd ?? 0)))
-        dearest = i;
+      const c = items[i]?.costVnd ?? 0;
+      if (q > 0 && c > 0 && (dearest < 0 || c > (items[dearest]?.costVnd ?? 0))) dearest = i;
     });
     if (dearest < 0) break;
     qty[dearest] = (qty[dearest] ?? 0) - 1;
@@ -196,13 +212,23 @@ export function suggestPlaybook(
   setup: PlaybookSetup,
   opts: { seed?: string; seeds?: number } = {},
 ): PlaybookSuggestion {
-  const quantities = prizeQuantities(setup.budgetVnd, setup.prizes);
+  const rawQuantities = prizeQuantities(setup.budgetVnd, setup.prizes);
+  const defaultZeroCostQty = Math.max(10, Math.round(setup.guestsPerDay));
+  const quantities = setup.prizes.map((p, i) => {
+    if (p.quantity !== undefined && Number.isFinite(p.quantity)) {
+      return Math.max(0, Math.floor(p.quantity));
+    }
+    if (p.costVnd === 0) {
+      return defaultZeroCostQty;
+    }
+    return rawQuantities[i] ?? 0;
+  });
   const prizes: CampaignPrize[] = setup.prizes.map((p, i) => ({
     id: `p${i + 1}`,
     name: p.name.trim(),
     image: presetSrc(p.image ?? 'gift'),
     quantity: quantities[i] ?? 0,
-    valueVnd: Math.round(p.costVnd),
+    valueVnd: Math.max(0, Math.round(p.costVnd)),
   }));
   const days = Math.max(1, daysBetween(setup.startDate, setup.endDate));
   const open = openDayCount(setup.startDate, setup.endDate, setup.openDays);

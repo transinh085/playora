@@ -301,6 +301,7 @@ export class PlaysService {
           timezone: event.timezone,
           redeemGraceDays: VOUCHER_GRACE_MS / 86_400_000,
         }),
+      zaloOaUrl: doc.rules.zaloOaUrl ?? null,
     };
   }
 
@@ -629,6 +630,7 @@ export class PlaysService {
           timezone: event.timezone,
           redeemGraceDays: VOUCHER_GRACE_MS / 86_400_000,
         }),
+      zaloOaUrl: doc.rules.zaloOaUrl ?? null,
       testerCount,
       maxTesters: MAX_DRAFT_TESTERS,
     };

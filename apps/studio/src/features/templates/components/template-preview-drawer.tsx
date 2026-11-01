@@ -1,5 +1,6 @@
 'use client';
 
+import { Mechanism } from '@playora/ui/campaign';
 import {
   Alert,
   Button,
@@ -15,22 +16,25 @@ import {
   RiBookmarkFill,
   RiBookmarkLine,
   RiCheckDoubleLine,
-  RiFireLine,
   RiGiftLine,
   RiMagicLine,
+  RiPaletteLine,
   RiShieldCheckLine,
   RiTimeLine,
 } from '@remixicon/react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FitScreen } from '@/features/builder-lab/components/editor/fit-screen';
-import { buildScreens, type SkinKey } from '@/features/builder-lab/lib/starter';
+import { buildScreens, defaultPrizes, type SkinKey } from '@/features/builder-lab/lib/starter';
+import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
 import { type CatalogTemplate, SKINS_INFO } from '../data/mock-templates';
 
 function isValidSkinKey(key: string): key is SkinKey {
   return key === 'tet' || key === 'grand-opening' || key === 'everyday';
 }
+
+const PREVIEW_PRIZES = defaultPrizes();
 
 export function TemplatePreviewDrawer({
   template,
@@ -48,8 +52,11 @@ export function TemplatePreviewDrawer({
   onToggleSave?: (templateId: string) => void;
 }) {
   const t = useTranslations('templatesCatalog.drawer');
+  const mechanismLabels = useMechanismLabels();
   const [activeScreen, setActiveScreen] = useState<ScreenKey>('cover');
   const [selectedSkinKey, setSelectedSkinKey] = useState<string>('');
+  const [simulatedOutcome, setSimulatedOutcome] = useState<'win' | 'lose'>('win');
+  const [roundKey, setRoundKey] = useState(0);
 
   // Cache template in ref so drawer stays populated during 300ms exit animation
   const lastTemplateRef = useRef<CatalogTemplate | null>(template);
@@ -69,6 +76,8 @@ export function TemplatePreviewDrawer({
     if (template) {
       setSelectedSkinKey(template.skinKey);
       setActiveScreen('cover');
+      setSimulatedOutcome('win');
+      setRoundKey((k) => k + 1);
     }
   }, [template]);
 
@@ -78,7 +87,7 @@ export function TemplatePreviewDrawer({
     const skinOption = displayTemplate.availableSkins.find((s) => s.key === skinKey);
     const skinInfo = SKINS_INFO[skinKey];
     const screens =
-      skinKey === displayTemplate.skinKey || !displayTemplate.isReal
+      skinKey === displayTemplate.skinKey
         ? displayTemplate.screens
         : buildScreens(displayTemplate.realTemplateKey, skinKey);
 
@@ -93,6 +102,49 @@ export function TemplatePreviewDrawer({
   if (!displayTemplate || !effectiveSkin) return null;
 
   const currentDoc = effectiveSkin.screens[activeScreen];
+  const sampleWinPrize = PREVIEW_PRIZES[0];
+
+  const previewStage =
+    activeScreen === 'game' ? (
+      <Mechanism
+        key={`${displayTemplate.realTemplateKey}-${effectiveSkin.skinKey}-${simulatedOutcome}-${roundKey}`}
+        mechanism={displayTemplate.realTemplateKey}
+        skinKey={effectiveSkin.skinKey}
+        brand={effectiveSkin.brand}
+        prizes={PREVIEW_PRIZES}
+        labels={mechanismLabels}
+        play={{
+          onPlay: async () => {
+            if (simulatedOutcome === 'win' && sampleWinPrize) {
+              return {
+                playId: `preview-${roundKey}`,
+                outcome: 'win',
+                reason: 'win',
+                prize: {
+                  id: sampleWinPrize.id,
+                  name: sampleWinPrize.name,
+                  image: sampleWinPrize.image,
+                },
+                voucher: { code: 'DEMO88', expiresAt: null },
+                turnsLeftToday: 2,
+              };
+            }
+            return {
+              playId: `preview-${roundKey}`,
+              outcome: 'lose',
+              reason: 'lose',
+              prize: null,
+              voucher: null,
+              turnsLeftToday: 2,
+            };
+          },
+          onDone: (res) => {
+            setRoundKey((k) => k + 1);
+            setActiveScreen(res.outcome === 'win' ? 'resultWin' : 'resultLose');
+          },
+        }}
+      />
+    ) : undefined;
 
   return (
     <Drawer isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -135,8 +187,8 @@ export function TemplatePreviewDrawer({
             <Drawer.Body className="m-0 mt-0 flex flex-1 flex-col overflow-hidden p-0 text-text-primary lg:flex-row">
               {/* Left Column: Phone Canvas Preview */}
               <div className="flex flex-col items-center justify-center overflow-y-auto border-b border-border-card-default bg-background-tertiary-default/50 p-6 lg:w-[440px] lg:shrink-0 lg:border-r lg:border-b-0">
-                {/* Screen Switcher */}
-                <div className="mb-5 shrink-0">
+                {/* Screen Switcher (All 5 screens) */}
+                <div className="mb-3 shrink-0">
                   <Tabs
                     selectedKey={activeScreen}
                     onSelectionChange={(key) => setActiveScreen(String(key) as ScreenKey)}
@@ -145,6 +197,10 @@ export function TemplatePreviewDrawer({
                       <Tabs.List aria-label="Screen preview">
                         <Tabs.Tab id="cover" className="whitespace-nowrap">
                           {t('screens.cover')}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                        <Tabs.Tab id="form" className="whitespace-nowrap">
+                          {t('screens.form')}
                           <Tabs.Indicator />
                         </Tabs.Tab>
                         <Tabs.Tab id="game" className="whitespace-nowrap">
@@ -164,6 +220,46 @@ export function TemplatePreviewDrawer({
                   </Tabs>
                 </div>
 
+                {/* Simulated Win / Lose toggle on the Game screen */}
+                {activeScreen === 'game' && (
+                  <div
+                    data-testid="preview-outcome-toggle"
+                    className="mb-3 flex items-center gap-1.5 rounded-full border border-border-card-default bg-background-primary-default px-2.5 py-1 text-caption-2-medium"
+                  >
+                    <span className="text-text-tertiary">{t('tryPlayInteractive')}:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSimulatedOutcome('win');
+                        setRoundKey((k) => k + 1);
+                      }}
+                      className={cx(
+                        'cursor-pointer rounded-full px-2.5 py-0.5 transition-colors',
+                        simulatedOutcome === 'win'
+                          ? 'bg-accent text-accent-foreground font-semibold'
+                          : 'text-text-secondary hover:text-text-primary',
+                      )}
+                    >
+                      {t('screens.win')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSimulatedOutcome('lose');
+                        setRoundKey((k) => k + 1);
+                      }}
+                      className={cx(
+                        'cursor-pointer rounded-full px-2.5 py-0.5 transition-colors',
+                        simulatedOutcome === 'lose'
+                          ? 'bg-accent text-accent-foreground font-semibold'
+                          : 'text-text-secondary hover:text-text-primary',
+                      )}
+                    >
+                      {t('screens.lose')}
+                    </button>
+                  </div>
+                )}
+
                 {/* Smartphone Canvas Frame */}
                 <PhoneMockup size="sm">
                   {currentDoc && (
@@ -171,6 +267,20 @@ export function TemplatePreviewDrawer({
                       key={`${effectiveSkin.skinKey}-${activeScreen}`}
                       screen={currentDoc}
                       brand={effectiveSkin.brand}
+                      stage={previewStage}
+                      prizes={PREVIEW_PRIZES.map((p) => ({
+                        id: p.id,
+                        name: p.name,
+                        image: p.image,
+                        remaining: p.quantity,
+                      }))}
+                      onButton={(el) => {
+                        if (el.action === 'start' || el.action === 'next') {
+                          if (activeScreen === 'cover') setActiveScreen('game');
+                          else if (activeScreen === 'form') setActiveScreen('game');
+                          else setActiveScreen('cover');
+                        }
+                      }}
                       scroll
                       animate={0}
                     />
@@ -208,20 +318,20 @@ export function TemplatePreviewDrawer({
                       {t('expectedOutcomesTitle')}
                     </span>
                     <div className="grid grid-cols-3 gap-3">
-                      {/* 1. Usage Count */}
+                      {/* 1. Skins count */}
                       <Card
                         variant="secondary"
                         className="flex flex-col gap-1 border border-border-card-default p-3"
                       >
                         <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
-                          <RiFireLine className="size-3.5 fill-orange-500 text-orange-500" />
-                          {t('usageCount')}
+                          <RiPaletteLine className="size-3.5 text-accent-500" />
+                          {t('availableSkinsTitle')}
                         </span>
                         <span className="text-body-semibold text-text-primary">
-                          {displayTemplate.usageCount}+
+                          {displayTemplate.availableSkins.length}
                         </span>
                         <span className="text-[11px] leading-tight text-text-tertiary">
-                          {t('usageHint')}
+                          Tết · Khai trương · Quanh năm
                         </span>
                       </Card>
 

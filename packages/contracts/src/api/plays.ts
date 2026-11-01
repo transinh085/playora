@@ -53,6 +53,8 @@ export const PublicCampaign = z.object({
   watermark: z.boolean(),
   /** Full terms ("thể lệ"): the shop's own text or the one generated from the settings. */
   terms: z.string(),
+  /** Optional Zalo Official Account link for post-play follow CTA (RET-07). */
+  zaloOaUrl: z.string().nullable().optional(),
 });
 export type PublicCampaign = z.infer<typeof PublicCampaign>;
 
@@ -140,6 +142,8 @@ export const PublicDraftCampaign = z.object({
   collectForm: z.boolean(),
   registrationForm: PublicRegistrationForm,
   terms: z.string(),
+  /** Optional Zalo Official Account link for post-play follow CTA (RET-07). */
+  zaloOaUrl: z.string().nullable().optional(),
   testerCount: z.number().int().min(0),
   maxTesters: z.number().int().positive(),
 });

@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidZaloOaUrl } from '@playora/contracts';
 import {
   Card,
   Checkbox,
@@ -11,7 +12,7 @@ import {
   Switch,
 } from '@playora/ui/components';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import type { CampaignPrize, CampaignRules } from '../../api';
 import {
@@ -46,6 +47,8 @@ export function RulesSentencesStep({
   const tw = useTranslations('builderLab.weekdays');
   const locale = useLocale();
   const hours = rules.openingHours;
+  const [zaloDraft, setZaloDraft] = useState(rules.zaloOaUrl ?? '');
+  const zaloInvalid = zaloDraft.trim().length > 0 && !isValidZaloOaUrl(zaloDraft.trim());
 
   const intNumber = (
     value: number,
@@ -311,6 +314,65 @@ export function RulesSentencesStep({
               </Radio>
             ))}
           </RadioGroup>
+        </div>
+      ),
+    },
+    {
+      key: 'baselineGuests',
+      node: (
+        <div className="flex flex-wrap items-center gap-2">
+          <Switch
+            aria-label={t('baselineGuestsLabel')}
+            isSelected={
+              rules.baselineGuestsPerDay !== null && rules.baselineGuestsPerDay !== undefined
+            }
+            onChange={(on) => onChange({ baselineGuestsPerDay: on ? 80 : null })}
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
+          {rules.baselineGuestsPerDay !== null && rules.baselineGuestsPerDay !== undefined
+            ? t.rich('baselineGuestsOn', {
+                guests: () =>
+                  intNumber(
+                    rules.baselineGuestsPerDay ?? 80,
+                    t('baselineGuestsLabel'),
+                    (v) => onChange({ baselineGuestsPerDay: v }),
+                    100_000,
+                  ),
+              })
+            : t('baselineGuestsOff')}
+        </div>
+      ),
+    },
+    {
+      key: 'zaloOaUrl',
+      node: (
+        <div className="flex w-full flex-col gap-1.5">
+          <Label className="font-medium text-xs">{t('zaloOaLabel')}</Label>
+          <Input
+            type="url"
+            aria-label={t('zaloOaLabel')}
+            placeholder={t('zaloOaPlaceholder')}
+            value={zaloDraft}
+            onChange={(e) => {
+              const raw = e.target.value;
+              setZaloDraft(raw);
+              const trimmed = raw.trim();
+              if (!trimmed) {
+                onChange({ zaloOaUrl: null });
+              } else if (isValidZaloOaUrl(trimmed)) {
+                onChange({ zaloOaUrl: trimmed });
+              }
+            }}
+            data-testid="rules-zalo-oa-url"
+          />
+          {zaloInvalid ? (
+            <span className="text-rose-600 text-xs dark:text-rose-400">{t('zaloOaInvalid')}</span>
+          ) : (
+            <Caption>{t('zaloOaHint')}</Caption>
+          )}
         </div>
       ),
     },

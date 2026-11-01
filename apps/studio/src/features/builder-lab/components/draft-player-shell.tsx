@@ -52,6 +52,7 @@ function toDraftDocument(campaign: PublicDraftCampaign): CampaignPlayerDocument 
   return {
     name: campaign.name,
     templateKey: campaign.templateKey,
+    skinKey: campaign.skinKey,
     brand: campaign.brand,
     screens: toCanvasDoc(campaign.screens),
     prizes: campaign.prizes,
@@ -64,6 +65,7 @@ function toDraftDocument(campaign: PublicDraftCampaign): CampaignPlayerDocument 
       collectForm: campaign.collectForm,
     },
     terms: campaign.terms,
+    zaloOaUrl: campaign.zaloOaUrl ?? null,
   };
 }
 

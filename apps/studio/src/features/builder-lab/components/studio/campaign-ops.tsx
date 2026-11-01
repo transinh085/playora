@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidZaloOaUrl } from '@playora/contracts';
 import {
   Button,
   Card,
@@ -626,6 +627,28 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
     );
   };
 
+  const saveBaselineGuests = (raw: string) => {
+    const trimmed = raw.trim();
+    const next = trimmed ? Number.parseInt(trimmed, 10) : null;
+    if (next !== null && (Number.isNaN(next) || next < 1 || next > 100_000)) return;
+    if ((campaign.rules.baselineGuestsPerDay ?? null) === next) return;
+    update.mutate(
+      { rules: { ...campaign.rules, baselineGuestsPerDay: next } },
+      { onSuccess: () => toast.success(t('settings.baselineSaved')) },
+    );
+  };
+
+  const saveZaloOaUrl = (raw: string) => {
+    const trimmed = raw.trim();
+    if (trimmed && !isValidZaloOaUrl(trimmed)) return;
+    const next = trimmed || null;
+    if ((campaign.rules.zaloOaUrl ?? null) === next) return;
+    update.mutate(
+      { rules: { ...campaign.rules, zaloOaUrl: next } },
+      { onSuccess: () => toast.success(t('settings.zaloOaSaved')) },
+    );
+  };
+
   return (
     <div className="flex max-w-4xl flex-col">
       <Card className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
@@ -646,6 +669,50 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
             className="w-56 font-mono"
+          />
+        </div>
+
+        {/* Baseline Guests Section (PLB-08) */}
+        <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="max-w-md space-y-1">
+            <h3 className="m-0 text-body-medium text-text-primary">
+              {t('settings.baselineTitle')}
+            </h3>
+            <p className="m-0 text-body-2-regular text-text-secondary">
+              {t('settings.baselineHint')}
+            </p>
+          </div>
+          <Input
+            type="number"
+            min={1}
+            max={100_000}
+            aria-label={t('settings.baselineTitle')}
+            placeholder={t('settings.baselinePlaceholder')}
+            defaultValue={
+              campaign.rules.baselineGuestsPerDay ? String(campaign.rules.baselineGuestsPerDay) : ''
+            }
+            onBlur={(e) => saveBaselineGuests(e.target.value)}
+            className="w-40 font-mono"
+            data-testid="settings-baseline-guests"
+          />
+        </div>
+
+        {/* Zalo OA URL Section (RET-07) */}
+        <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="max-w-md space-y-1">
+            <h3 className="m-0 text-body-medium text-text-primary">{t('settings.zaloOaTitle')}</h3>
+            <p className="m-0 text-body-2-regular text-text-secondary">
+              {t('settings.zaloOaHint')}
+            </p>
+          </div>
+          <Input
+            type="url"
+            aria-label={t('settings.zaloOaTitle')}
+            placeholder="https://zalo.me/..."
+            defaultValue={campaign.rules.zaloOaUrl ?? ''}
+            onBlur={(e) => saveZaloOaUrl(e.target.value)}
+            className="w-64"
+            data-testid="settings-zalo-oa-url"
           />
         </div>
 

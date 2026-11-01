@@ -18,7 +18,9 @@ export function CampaignStage({
   interactive = false,
   onPlayed,
 }: {
-  campaign: Pick<Campaign, 'templateKey' | 'brand' | 'prizes'>;
+  campaign: Pick<Campaign, 'templateKey' | 'brand' | 'prizes'> & {
+    skinKey?: Campaign['skinKey'];
+  };
   interactive?: boolean;
   onPlayed?: (result: PlayResult) => void;
 }) {
@@ -29,6 +31,7 @@ export function CampaignStage({
     <Mechanism
       key={round}
       mechanism={getTemplate(campaign.templateKey).mechanism}
+      skinKey={campaign.skinKey}
       brand={campaign.brand}
       prizes={campaign.prizes}
       labels={labels}

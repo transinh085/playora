@@ -15,27 +15,54 @@ function drawFoil(canvas: HTMLCanvasElement, brand: BrandPalette, label: string)
   ctx.globalCompositeOperation = 'source-over';
   const gradient = ctx.createLinearGradient(0, 0, w, h);
   gradient.addColorStop(0, brand.accent);
-  gradient.addColorStop(0.5, '#fff6d6');
+  gradient.addColorStop(0.32, '#fff8dc');
+  gradient.addColorStop(0.55, brand.accent);
+  gradient.addColorStop(0.82, '#fff1b8');
   gradient.addColorStop(1, brand.accent);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, w, h);
-  // Diagonal sheen stripes.
-  ctx.strokeStyle = 'rgba(255,255,255,.28)';
-  ctx.lineWidth = Math.max(2, w / 60);
-  for (let x = -h; x < w; x += w / 10) {
+
+  // Diagonal metallic sheen stripes.
+  ctx.strokeStyle = 'rgba(255,255,255,.32)';
+  ctx.lineWidth = Math.max(2, w / 55);
+  for (let x = -h; x < w; x += w / 9) {
     ctx.beginPath();
     ctx.moveTo(x, h);
     ctx.lineTo(x + h, 0);
     ctx.stroke();
   }
+
+  // Inner ornamental frame on the foil.
+  const inset = Math.max(8, Math.min(w, h) * 0.06);
+  ctx.strokeStyle = `${brand.primary}33`;
+  ctx.lineWidth = Math.max(1.5, Math.min(w, h) * 0.012);
+  ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+
   const font =
     getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() ||
     'sans-serif';
   ctx.fillStyle = brand.primary;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `800 ${Math.round(Math.min(w / 11, h / 5))}px ${font}`;
+  const fontSize = Math.round(Math.min(w / 11, h / 5));
+  ctx.font = `800 ${fontSize}px ${font}`;
   ctx.fillText(label, w / 2, h / 2);
+}
+
+function drawSparkle(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  color: string,
+) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, Math.max(1.5, r * 0.12), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 /** Scratch-off card: the hidden layer shows the server's result under a canvas foil. */
@@ -68,12 +95,12 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
     return () => observer.disconnect();
   }, [brand, label]);
 
-  // Reveal once enough is scratched and the server has answered.
+  // Reveal once enough is scratched and the server has answered; transition cleanly to result screen.
   const { result, finish } = round;
   useEffect(() => {
     if (cleared && result && !finished.current) {
       finished.current = true;
-      finish(result, reduced ? 300 : 1100);
+      finish(result, reduced ? 200 : 450);
     }
   }, [cleared, result, finish, reduced]);
 
@@ -94,14 +121,18 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
     const ctx = canvasRef.current?.getContext('2d');
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
+    const brush = Math.min(canvas.width, canvas.height) * 0.16;
     ctx.globalCompositeOperation = 'destination-out';
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = Math.min(canvas.width, canvas.height) * 0.16;
+    ctx.lineWidth = brush;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x + 0.01, to.y);
     ctx.stroke();
+    if (!reduced && moves.current % 3 === 0) {
+      drawSparkle(ctx, to.x + (Math.random() - 0.5) * brush, to.y, brush, '#ffffff');
+    }
   };
 
   const checkProgress = () => {
@@ -135,8 +166,12 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
     checkProgress();
   };
 
+  const showFoil = !cleared || !round.result;
+
   return (
     <div
+      data-testid="scratch-card-stage"
+      data-phase={round.phase}
       style={{
         width: '100%',
         height: '100%',
@@ -158,7 +193,13 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
           boxSizing: 'border-box',
         }}
       >
-        <ResultFace result={round.result} brand={brand} reduced={reduced} labels={labels} />
+        <ResultFace
+          result={round.result}
+          pending={round.phase === 'pending' || (cleared && !round.result)}
+          brand={brand}
+          reduced={reduced}
+          labels={labels}
+        />
         {/* biome-ignore lint/a11y/useSemanticElements: the scratch surface has to be a canvas */}
         <canvas
           ref={canvasRef}
@@ -185,8 +226,8 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
             height: '100%',
             touchAction: 'none',
             cursor: canScratch ? 'grab' : 'default',
-            opacity: cleared ? 0 : 1,
-            transition: reduced ? undefined : 'opacity 500ms ease-out',
+            opacity: showFoil ? 1 : 0,
+            transition: reduced ? undefined : 'opacity 320ms ease-out',
             pointerEvents: canScratch ? 'auto' : 'none',
           }}
         />
@@ -197,16 +238,44 @@ export function ScratchCard({ brand, play, labels }: Omit<MechanismProps, 'mecha
 
 function ResultFace({
   result,
+  pending,
   brand,
   reduced,
   labels,
 }: {
   result: PlayResult | null;
+  pending: boolean;
   brand: BrandPalette;
   reduced: boolean;
   labels: MechanismLabels;
 }) {
-  if (!result) return null;
+  if (!result) {
+    return (
+      <div
+        data-testid="scratch-pending-shimmer"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '2.5cqmin',
+          padding: '6cqmin',
+          textAlign: 'center',
+          color: brand.primary,
+          fontFamily: 'var(--font-display)',
+          background: `linear-gradient(110deg, ${brand.text} 25%, ${brand.accent}55 50%, ${brand.text} 75%)`,
+          backgroundSize: '200% 100%',
+          animation: !reduced && pending ? 'mech-shimmer 1.4s linear infinite' : undefined,
+        }}
+      >
+        <div style={{ fontSize: '8cqmin', fontWeight: 800, opacity: 0.85 }}>
+          {pending ? 'Đang mở quà…' : labels.scratchHere}
+        </div>
+      </div>
+    );
+  }
   const win = result.outcome === 'win' && result.prize;
   return (
     <div
@@ -223,7 +292,7 @@ function ResultFace({
         color: brand.primary,
         fontFamily: 'var(--font-display)',
         background: `radial-gradient(circle at 50% 40%, ${brand.text}, ${brand.accent}55)`,
-        animation: reduced ? undefined : 'mech-pop 500ms ease-out both',
+        animation: reduced ? undefined : 'mech-pop 380ms ease-out both',
       }}
     >
       {win && result.prize?.image ? (

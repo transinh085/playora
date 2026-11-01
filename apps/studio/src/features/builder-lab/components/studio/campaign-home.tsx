@@ -50,6 +50,7 @@ const LOW_STOCK_SHARE = 0.2;
 
 export function CampaignHome({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
+  const tp = useTranslations('builderLab.playbooks.items');
   const now = useNow({ updateInterval: 60_000 }).getTime();
   const campaigns = useCampaigns(orgId);
   const items = campaigns.data ?? [];
@@ -184,24 +185,24 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   }[] = [
     {
       key: 'tet_traffic',
-      title: t('playbooks.grandOpening'),
-      desc: t('playbooks.grandOpeningDesc'),
+      title: tp('tet_traffic.title'),
+      desc: tp('tet_traffic.goal'),
       href: `${routes.create}?playbook=tet_traffic`,
       tone: 'primary',
       icon: <Sparkles className="size-4" />,
     },
     {
       key: 'second_visit',
-      title: t('playbooks.secondVisit'),
-      desc: t('playbooks.secondVisitDesc'),
+      title: tp('second_visit.title'),
+      desc: tp('second_visit.goal'),
       href: `${routes.create}?playbook=second_visit`,
       tone: 'success',
       icon: <Repeat className="size-4" />,
     },
     {
       key: 'slow_days',
-      title: t('playbooks.slowDays'),
-      desc: t('playbooks.slowDaysDesc'),
+      title: tp('slow_days.title'),
+      desc: tp('slow_days.goal'),
       href: `${routes.create}?playbook=slow_days`,
       tone: 'warning',
       icon: <Calendar className="size-4" />,

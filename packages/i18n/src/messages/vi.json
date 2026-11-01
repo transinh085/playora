@@ -872,7 +872,14 @@
         "antiFraudHints": {
           "standard": "Hỏi captcha một lần mỗi phiên chơi, giới hạn tốc độ chơi theo khách, thiết bị và IP. Nên dùng.",
           "low": "Không hỏi captcha, chỉ giới hạn lỏng theo IP; hợp với game vui tại quán, quà giá trị nhỏ."
-        }
+        },
+        "baselineGuestsLabel": "Khách ngày thường (khách/ngày)",
+        "baselineGuestsOn": "Ngày thường quán đón khoảng <n></n> khách/ngày (để so sánh hiệu quả)",
+        "baselineGuestsOff": "So sánh khách tới quầy với ngày thường (nhập số khách ngày thường)",
+        "zaloOaLabel": "Link Zalo OA của quán",
+        "zaloOaPlaceholder": "https://zalo.me/...",
+        "zaloOaHint": "Hiện nút “Quan tâm Zalo OA của quán” trên màn trúng quà, hụt quà và Quà của tôi.",
+        "zaloOaInvalid": "Link Zalo OA phải thuộc tên miền zalo.me hoặc oa.zalo.me"
       },
       "summary": {
         "title": "Tóm tắt luật",
@@ -1236,6 +1243,8 @@
         "prizesHint": "Tên quà và giá vốn (chi phí thật của quán cho mỗi món). Số lượng được tính từ ngân sách.",
         "prizeName": "Tên quà",
         "prizeCost": "Giá vốn",
+        "prizeQuantity": "Số lượng",
+        "zeroCostHint": "Quà 0đ không trừ vào ngân sách — hãy đặt số lượng phát tối đa phù hợp.",
         "addPrize": "Thêm quà",
         "removePrize": "Xoá quà",
         "newPrize": "Quà {n}",
@@ -1245,15 +1254,21 @@
         "hoursStart": "Giờ mở cửa",
         "hoursEnd": "Giờ đóng cửa",
         "openDays": "Mở vào các ngày",
+        "openDaysAll": "Mở tất cả các ngày trong tuần",
+        "openDaysCustom": "Chỉ mở vào các ngày chọn bên dưới",
         "guests": "Khách mỗi ngày (ước tính)",
         "guestsHint": "Số khách ghé quán và có thể chơi mỗi ngày mở cửa.",
         "guestsSuffix": "khách/ngày",
+        "baselineGuests": "Ngày thường quán có khoảng bao nhiêu khách/ngày? (tuỳ chọn)",
+        "baselineGuestsHint": "Dùng để so sánh khách tới quầy/ngày với ngày thường trong Báo cáo kết quả.",
+        "brandKit": "Bộ thương hiệu (Brand Kit)",
+        "defaultBrandKit": "Mặc định của giao diện",
         "errors": {
           "name": "Nhập tên chương trình.",
           "budget": "Ngân sách tối thiểu 10.000 đ.",
           "prizes": "Cần ít nhất một món quà.",
           "prizeName": "Nhập tên quà.",
-          "prizeCost": "Giá vốn phải lớn hơn 0.",
+          "prizeCost": "Giá vốn phải từ 0 đ trở lên.",
           "date": "Chọn ngày.",
           "endBeforeStart": "Ngày kết thúc phải từ ngày bắt đầu trở đi.",
           "endInPast": "Ngày kết thúc đã qua.",
@@ -1380,7 +1395,8 @@
       "ok": "Đã hiểu",
       "fullTerms": "Thể lệ đầy đủ"
     },
-    "redeemFirstMessage": "Đổi quà ở quầy trước để chơi lượt tiếp theo"
+    "redeemFirstMessage": "Đổi quà ở quầy trước để chơi lượt tiếp theo",
+    "zaloOaCta": "Quan tâm Zalo OA của quán"
   },
   "campaigns": {
     "title": "Chương trình",
@@ -1539,6 +1555,14 @@
       "scheduleHint": "Gia hạn bằng cách dời giờ kết thúc. Dữ liệu người chơi và mã quà được giữ nguyên.",
       "endsAt": "Kết thúc lúc",
       "extended": "Đã đổi giờ kết thúc",
+      "baselineTitle": "Khách ngày thường (so sánh hiệu quả)",
+      "baselineHint": "Ngày thường quán có khoảng bao nhiêu khách/ngày? Dùng để tính % khách tới quầy so với ngày thường.",
+      "baselinePlaceholder": "VD: 80",
+      "baselineSaved": "Đã cập nhật số khách ngày thường",
+      "zaloOaTitle": "Link Zalo OA của quán",
+      "zaloOaHint": "Hiện nút Quan tâm Zalo OA trên màn kết quả và phiếu quà (zalo.me / oa.zalo.me).",
+      "zaloOaSaved": "Đã cập nhật link Zalo OA",
+      "zaloOaInvalid": "Link Zalo OA phải thuộc tên miền zalo.me hoặc oa.zalo.me",
       "runTitle": "Chạy chương trình",
       "pause": "Tạm dừng",
       "end": "Kết thúc ngay",
@@ -1699,6 +1723,7 @@
       "goalLabel": "Mục tiêu chương trình",
       "periodLabel": "Thời gian chạy",
       "keyMetricLabel": "Chỉ số trọng tâm",
+      "baselineComparison": "Khách tới quầy/ngày = {percent}% khách ngày thường (ước tính, theo số bạn nhập: {baseline} khách/ngày)",
       "playbooks": {
         "tet_traffic": {
           "title": "Tết kéo khách",
@@ -2185,6 +2210,7 @@
       "completionHint": "Người chơi tương tác hết game",
       "screens": {
         "cover": "Bìa",
+        "form": "Biểu mẫu",
         "game": "Màn chơi",
         "win": "Trúng quà",
         "lose": "Hụt quà"

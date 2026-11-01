@@ -184,13 +184,21 @@ export function openDayCount(
 export interface PlaybookSetup {
   name: string;
   budgetVnd: number;
-  prizes: { name: string; costVnd: number; weight: number; image?: string }[];
+  prizes: {
+    name: string;
+    costVnd: number;
+    weight: number;
+    quantity?: number;
+    image?: string;
+  }[];
   /** Local dates, inclusive. */
   startDate: string;
   endDate: string;
   openingHours: { start: string; end: string } | null;
   openDays: number[] | null;
   guestsPerDay: number;
+  /** Optional self-reported normal-day guest count for PLB-08 baseline comparison. */
+  baselineGuestsPerDay?: number | null;
 }
 
 /** The setup form's starting values for a playbook. */
@@ -215,7 +223,10 @@ export function defaultSetup(key: PlaybookKey, name: string, now = new Date()): 
  */
 export function playbookRules(
   key: PlaybookKey,
-  setup: Pick<PlaybookSetup, 'budgetVnd' | 'startDate' | 'endDate' | 'openingHours' | 'openDays'>,
+  setup: Pick<
+    PlaybookSetup,
+    'budgetVnd' | 'startDate' | 'endDate' | 'openingHours' | 'openDays' | 'baselineGuestsPerDay'
+  >,
   overallWinRate = 0.25,
 ): CampaignRules {
   const pb = PLAYBOOKS[key];
@@ -228,5 +239,8 @@ export function playbookRules(
     openingHours: setup.openingHours ? { ...setup.openingHours } : null,
     budgetVnd: setup.budgetVnd,
     openDays: openDays && openDays.length < 7 ? openDays : null,
+    ...(setup.baselineGuestsPerDay !== undefined
+      ? { baselineGuestsPerDay: setup.baselineGuestsPerDay }
+      : {}),
   };
 }

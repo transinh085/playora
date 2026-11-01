@@ -25,6 +25,8 @@ export default async function MyPrizesPage({ params }: Props) {
         name: campaign.name,
         brand: campaign.brand,
         skinKey: campaign.skinKey,
+        organizationId: campaign.organizationId,
+        zaloOaUrl: campaign.zaloOaUrl,
       }}
     />
   );

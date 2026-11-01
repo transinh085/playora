@@ -1,9 +1,19 @@
 /// <reference types="bun" />
 import { describe, expect, mock, test } from 'bun:test';
 import { ApiError } from '@playora/api-client';
-import { ErrorCode, type PlayResult } from '@playora/contracts';
+import { ErrorCode, isValidZaloOaUrl, type PlayResult } from '@playora/contracts';
 import { getMessages } from '@playora/i18n';
-import { createCampaignPlayerLabels, NoticeContent, RedeemFirstBanner } from '@playora/ui/campaign';
+import {
+  createCampaignPlayerLabels,
+  GiftBox,
+  LiveClock,
+  NoticeContent,
+  RedeemFirstBanner,
+  SpinWheel,
+  VoucherCard,
+  wrapWheelLabel,
+  ZaloOaCtaButton,
+} from '@playora/ui/campaign';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { formatOpenDays } from './open-days';
 import { executePlayWithCaptcha } from './play-captcha';
@@ -255,6 +265,116 @@ describe('P1 Anti-fraud & Playbook rules', () => {
       expect(html).toContain('data-testid="open-days-notice"');
       expect(html).toContain('Thứ Hai, Thứ Tư, Thứ Sáu');
       expect(html).toContain('Chương trình chỉ mở vào các ngày: Thứ Hai, Thứ Tư, Thứ Sáu.');
+    });
+  });
+
+  describe('Đợt 5: Game renderers, anti-screenshot clock & Zalo OA CTA (GAM-04, GAM-05, PRZ-03, RET-07)', () => {
+    const brand = {
+      primary: '#C81E1E',
+      accent: '#F59E0B',
+      background: '#FFF8F1',
+      text: '#1C1917',
+      surface: '#FFFFFF',
+    };
+    const prizes = [
+      { id: 'p1', name: 'Mua 1 tặng 1 Trà Đào Cam Sả', quantity: 10 },
+      { id: 'p2', name: 'Giảm 20k đơn từ 50k', quantity: 20 },
+    ];
+    const messagesVi = getMessages('vi');
+    const labels = createCampaignPlayerLabels(
+      (key, values) => {
+        const parts = key.split('.');
+        let curr: unknown = messagesVi.campaignPlayer;
+        for (const p of parts) {
+          curr = (curr as Record<string, unknown>)?.[p];
+        }
+        let str = String(curr ?? key);
+        if (values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replace(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      },
+      (d) => d.toISOString(),
+    );
+
+    test('wrapWheelLabel wraps long prize names across 2 radial lines up to 22 chars (GAM-04)', () => {
+      expect(wrapWheelLabel('Ly trà đào')).toEqual(['Ly trà đào']);
+      const wrapped = wrapWheelLabel('Mua 1 tặng 1 Trà Đào Cam Sả');
+      expect(wrapped.length).toBe(2);
+      expect(wrapped[0]?.length).toBeLessThanOrEqual(12);
+      expect(wrapped[1]?.length).toBeLessThanOrEqual(12);
+
+      const wheelHtml = renderToStaticMarkup(
+        <SpinWheel brand={brand} prizes={prizes} skinKey="tet" labels={labels.mechanism} />,
+      );
+      expect(wheelHtml).toContain('data-testid="wheel-rim-pegs"');
+      expect(wheelHtml).toContain('data-testid="wheel-pointer"');
+    });
+
+    test('GiftBox renders distinct skin-aware SVG variants for tet, grand-opening, and everyday (GAM-05)', () => {
+      const tetHtml = renderToStaticMarkup(
+        <GiftBox brand={brand} prizes={prizes} skinKey="tet" labels={labels.mechanism} />,
+      );
+      expect(tetHtml).toContain('data-skin-variant="tet"');
+      expect(tetHtml).toContain('LỘC');
+      expect(tetHtml).toContain('PHÚC');
+
+      const openingHtml = renderToStaticMarkup(
+        <GiftBox brand={brand} prizes={prizes} skinKey="grand-opening" labels={labels.mechanism} />,
+      );
+      expect(openingHtml).toContain('data-skin-variant="grand-opening"');
+      expect(openingHtml).toContain('egg-grad-0');
+
+      const everydayHtml = renderToStaticMarkup(
+        <GiftBox brand={brand} prizes={prizes} skinKey="everyday" labels={labels.mechanism} />,
+      );
+      expect(everydayHtml).toContain('data-skin-variant="everyday"');
+    });
+
+    test('LiveClock and VoucherCard render animated anti-screenshot verification bar and Zalo OA CTA (PRZ-03, RET-07)', () => {
+      const clockHtml = renderToStaticMarkup(
+        <LiveClock labels={labels} initialNow={new Date('2026-01-20T03:00:00.000Z')} />,
+      );
+      expect(clockHtml).toContain('data-testid="live-verification-bar"');
+      expect(clockHtml).toContain('data-testid="voucher-live-clock"');
+
+      const voucherHtml = renderToStaticMarkup(
+        <VoucherCard
+          result={{
+            playId: '00000000-0000-4000-8000-000000000001',
+            outcome: 'win',
+            reason: 'won',
+            prize: { id: 'p1', name: 'Ly Trà Đào' },
+            voucher: { code: 'TET2026A', expiresAt: null },
+            turnsLeftToday: 0,
+          }}
+          redeemUrl="https://studio.playora.vn/redeem?code=TET2026A"
+          status="issued"
+          expanded
+          onToggle={() => {}}
+          onOpenPrizes={() => {}}
+          labels={labels}
+          zaloOaUrl="https://zalo.me/playoracafe"
+        />,
+      );
+      expect(voucherHtml).toContain('data-testid="live-verification-bar"');
+      expect(voucherHtml).toContain('data-testid="zalo-oa-cta"');
+      expect(voucherHtml).toContain('Quan tâm Zalo OA của quán');
+
+      const hiddenCtaHtml = renderToStaticMarkup(
+        <ZaloOaCtaButton zaloOaUrl={null} label={labels.zaloOaCta} />,
+      );
+      expect(hiddenCtaHtml).toBe('');
+    });
+
+    test('isValidZaloOaUrl accepts zalo.me and oa.zalo.me links and rejects others (RET-07)', () => {
+      expect(isValidZaloOaUrl('https://zalo.me/123456789')).toBe(true);
+      expect(isValidZaloOaUrl('https://oa.zalo.me/playoracafe')).toBe(true);
+      expect(isValidZaloOaUrl('https://zalo.me/')).toBe(false);
+      expect(isValidZaloOaUrl('https://example.com/zalo')).toBe(false);
+      expect(isValidZaloOaUrl('not-a-url')).toBe(false);
     });
   });
 });

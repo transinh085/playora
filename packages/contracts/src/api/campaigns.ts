@@ -69,6 +69,25 @@ export type CampaignPrize = z.infer<typeof CampaignPrize>;
 
 const TimeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$|^24:00$/, 'Giờ phải ở dạng HH:mm');
 
+export function isValidZaloOaUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    const host = parsed.hostname.toLowerCase();
+    return (
+      (host === 'zalo.me' || host === 'oa.zalo.me' || host.endsWith('.zalo.me')) &&
+      parsed.pathname.length > 1
+    );
+  } catch {
+    return false;
+  }
+}
+
+export const ZaloOaUrl = z
+  .url('Link Zalo OA không hợp lệ')
+  .max(500)
+  .refine(isValidZaloOaUrl, 'Link Zalo OA phải thuộc tên miền zalo.me hoặc oa.zalo.me');
+
 export const CampaignRules = z
   .object({
     mode: CampaignPrizeMode,
@@ -96,6 +115,13 @@ export const CampaignRules = z
     requireRedeemBeforeReplay: z.boolean().default(false),
     /** Anti-fraud level (docs/product/specs/participation.md §4); `high` arrives in M2. */
     antiFraud: z.enum(['low', 'standard']).default('standard'),
+    /**
+     * Self-reported normal-day guest count ("Ngày thường quán có khoảng bao nhiêu khách/ngày?")
+     * for PLB-08 baseline comparison in Campaign Overview and One-Page Report.
+     */
+    baselineGuestsPerDay: z.number().int().min(1).max(100_000).nullable().optional(),
+    /** Optional Zalo Official Account link shown on result and voucher screens (RET-07). */
+    zaloOaUrl: ZaloOaUrl.nullable().optional(),
   })
   .refine((r) => Date.parse(r.startsAt) < Date.parse(r.endsAt), {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',

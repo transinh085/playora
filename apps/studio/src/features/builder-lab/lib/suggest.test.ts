@@ -144,4 +144,28 @@ describe('suggestPlaybook', () => {
     const s = suggestPlaybook('second_visit', setup);
     expect(s.rules).toEqual({ ...playbookRules('second_visit', setup), overallWinRate: s.winRate });
   });
+
+  test('supports custom prize quantities, 0đ prizes, and never drops affordable prizes (PLB-01, PLB-02)', () => {
+    const setup = defaultSetup('tet_traffic', 'Tết', NOW);
+    const s = suggestPlaybook('tet_traffic', {
+      ...setup,
+      budgetVnd: 500_000,
+      baselineGuestsPerDay: 90,
+      prizes: [
+        { name: 'Thẻ tích điểm miễn phí', costVnd: 0, weight: 1 },
+        { name: 'Quà đặc biệt', costVnd: 450_000, weight: 0.01 },
+        { name: 'Quà cố định', costVnd: 10_000, weight: 1, quantity: 3 },
+      ],
+    });
+    expect(s.prizes).toHaveLength(3);
+    // 0đ prize gets a sensible default quantity (> 0) without consuming budget
+    expect(s.prizes[0]?.valueVnd).toBe(0);
+    expect(s.prizes[0]?.quantity).toBeGreaterThan(0);
+    // Expensive prize gets at least quantity = 1 when affordable within budget
+    expect(s.prizes[1]?.quantity).toBeGreaterThanOrEqual(1);
+    // Explicit custom quantity is honoured
+    expect(s.prizes[2]?.quantity).toBe(3);
+    expect(s.totalCostVnd).toBeLessThanOrEqual(500_000);
+    expect(s.rules.baselineGuestsPerDay).toBe(90);
+  });
 });

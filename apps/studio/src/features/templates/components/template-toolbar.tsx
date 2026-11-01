@@ -40,10 +40,6 @@ const MECHANICS: { key: TemplateMechanic; labelKey: string }[] = [
   { key: 'spin-wheel', labelKey: 'spinWheel' },
   { key: 'scratch-card', labelKey: 'scratchCard' },
   { key: 'gift-box', labelKey: 'giftBox' },
-  { key: 'egg-smash', labelKey: 'eggSmash' },
-  { key: 'catch-items', labelKey: 'catchItems' },
-  { key: 'memory-match', labelKey: 'memoryMatch' },
-  { key: 'lucky-envelope', labelKey: 'luckyEnvelope' },
 ];
 
 const VERTICALS: { key: TemplateVertical; labelKey: string }[] = [

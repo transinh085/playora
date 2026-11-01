@@ -19,15 +19,17 @@ function render(node: React.ReactNode, locale: 'vi' | 'en' = 'vi') {
   );
 }
 
-describe('Templates Catalog Mock Data', () => {
-  test('has rich mock templates covering diverse occasions and mechanics', () => {
-    expect(MOCK_TEMPLATES.length).toBeGreaterThanOrEqual(12);
+describe('Templates Catalog Mock Data (BLD-01, BLD-06)', () => {
+  test('exposes only authentic M1 mechanisms (3 mechanisms × 3 skins = 9 templates) with all 3 skins selectable', () => {
+    expect(MOCK_TEMPLATES.length).toBe(9);
 
-    const mechanics = new Set(MOCK_TEMPLATES.map((t) => t.mechanic));
+    const mechanics = new Set<string>(MOCK_TEMPLATES.map((t) => t.mechanic));
     expect(mechanics.has('spin-wheel')).toBe(true);
     expect(mechanics.has('scratch-card')).toBe(true);
     expect(mechanics.has('gift-box')).toBe(true);
-    expect(mechanics.has('egg-smash')).toBe(true);
+    expect(mechanics.has('egg-smash')).toBe(false);
+    expect(mechanics.has('envelope')).toBe(false);
+    expect(mechanics.has('claw')).toBe(false);
 
     const occasions = new Set(MOCK_TEMPLATES.map((t) => t.occasion));
     expect(occasions.has('tet')).toBe(true);
@@ -35,21 +37,23 @@ describe('Templates Catalog Mock Data', () => {
     expect(occasions.has('everyday')).toBe(true);
 
     for (const tpl of MOCK_TEMPLATES) {
+      expect(tpl.isReal).toBe(true);
+      expect(tpl.templateKey).toBe(tpl.mechanic);
       expect(tpl.name).toBeTruthy();
-      expect(tpl.availableSkins.length).toBeGreaterThanOrEqual(1);
+      expect(tpl.availableSkins.map((s) => s.key)).toEqual(['tet', 'grand-opening', 'everyday']);
       expect(tpl.screens.cover).toBeTruthy();
+      expect(tpl.screens.form).toBeTruthy();
       expect(tpl.screens.game).toBeTruthy();
       expect(tpl.screens.resultWin).toBeTruthy();
       expect(tpl.screens.resultLose).toBeTruthy();
-      expect(tpl.usageCount).toBeTruthy();
-      expect(tpl.completionRate).toBeTruthy();
+      expect(tpl.durationSeconds).toBeGreaterThan(0);
       expect(tpl.setupTime).toBeTruthy();
     }
   });
 });
 
 describe('Templates UI Components', () => {
-  test('renders template card with real canvas preview, usage count, and bookmark action', () => {
+  test('renders template card with real canvas preview, play duration badge, and bookmark action', () => {
     const template = MOCK_TEMPLATES[0] as CatalogTemplate;
     const htmlVi = render(
       <TemplateCard
@@ -62,7 +66,8 @@ describe('Templates UI Components', () => {
       'vi',
     );
     expect(htmlVi).toContain(template.name);
-    expect(htmlVi).toContain('lượt dùng');
+    expect(htmlVi).toContain(template.playDuration);
+    expect(htmlVi).not.toContain('lượt dùng');
     expect(htmlVi).toContain('Xem trước');
     expect(htmlVi).toContain('Dùng mẫu');
     expect(htmlVi).toContain('Đã lưu');
@@ -81,7 +86,7 @@ describe('Templates UI Components', () => {
     expect(htmlEn).toContain('Preview');
     expect(htmlEn).toContain('Use template');
     expect(htmlEn).toContain('Save template');
-    expect(htmlEn).toContain('uses');
+    expect(htmlEn).toContain(template.playDuration);
     expect(htmlEn).not.toContain('templatesCatalog.');
   });
 

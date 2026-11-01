@@ -79,6 +79,34 @@ export interface PlaybookKeyMetric {
   values: Record<string, string | number>;
 }
 
+export interface BaselineComparison {
+  visitsPerDay: number;
+  baselineGuestsPerDay: number;
+  percentOfBaseline: number;
+  days: number;
+}
+
+/**
+ * Computes the self-reported normal-day baseline comparison (`PLB-08`):
+ * "Khách tới quầy/ngày = X% khách ngày thường (ước tính, theo số bạn nhập)".
+ * Returns `null` when `baselineGuestsPerDay` is not set.
+ */
+export function computeBaselineComparison(
+  report: Pick<CampaignReport, 'visits' | 'byDay'>,
+  baselineGuestsPerDay: number | null | undefined,
+): BaselineComparison | null {
+  if (!baselineGuestsPerDay || baselineGuestsPerDay <= 0) return null;
+  const days = Math.max(1, report.byDay.length);
+  const visitsPerDay = Math.round((report.visits / days) * 10) / 10;
+  const percentOfBaseline = Math.round((visitsPerDay / baselineGuestsPerDay) * 1000) / 10;
+  return {
+    visitsPerDay,
+    baselineGuestsPerDay,
+    percentOfBaseline,
+    days,
+  };
+}
+
 const DEFAULT_SLOW_WEEKDAYS = [1, 2, 3] as const;
 
 /**

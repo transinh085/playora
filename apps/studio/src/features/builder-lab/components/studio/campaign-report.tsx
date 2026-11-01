@@ -23,6 +23,7 @@ import { type Campaign, type CampaignReport, useCampaign, useCampaignReport } fr
 import { campaignPhase } from '../../lib/phase';
 import {
   buildReportInsights,
+  computeBaselineComparison,
   computePlaybookKeyMetric,
   formatCostPerVisitMetric,
   formatCount,
@@ -85,7 +86,11 @@ export function PlaybookGoalBanner({
   const locale = useLocale();
   const format = useFormatter();
 
-  if (!campaign.playbook && !showWhenCustom) return null;
+  const baselineComparison = report
+    ? computeBaselineComparison(report, campaign.rules.baselineGuestsPerDay)
+    : null;
+
+  if (!campaign.playbook && !showWhenCustom && !baselineComparison) return null;
 
   const keyMetric =
     report && campaign.playbook
@@ -137,6 +142,17 @@ export function PlaybookGoalBanner({
             <Caption>
               {tr('periodLabel')}: {campaignPeriod(format, campaign)}
             </Caption>
+            {baselineComparison && (
+              <p
+                data-testid="baseline-comparison"
+                className="m-0 pt-1 text-caption-1-medium text-teal-800 dark:text-teal-200"
+              >
+                {tr('baselineComparison', {
+                  percent: formatCount(baselineComparison.percentOfBaseline, locale),
+                  baseline: formatCount(baselineComparison.baselineGuestsPerDay, locale),
+                })}
+              </p>
+            )}
           </div>
         </div>
 

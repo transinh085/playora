@@ -19,8 +19,14 @@ import {
 import { Button, Chip, toast } from '@playora/ui/components';
 import Script from 'next/script';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { TurnstileModal, type TurnstileModalHandle } from '@/features/captcha';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  isTurnstileReady,
+  removeTurnstile,
+  renderTurnstile,
+  TurnstileModal,
+  type TurnstileModalHandle,
+} from '@/features/captcha';
 import { api, playerApi } from '@/lib/api';
 import { buttonActionHref } from './button-action';
 import { CampaignFrame } from './campaign-frame';
@@ -42,6 +48,7 @@ export function toPlayerDocument(campaign: PublicCampaign): CampaignPlayerDocume
   return {
     name: campaign.name,
     templateKey: campaign.templateKey,
+    skinKey: campaign.skinKey,
     brand: campaign.brand,
     screens: toCanvasDoc(campaign.screens),
     prizes: campaign.prizes,
@@ -54,6 +61,7 @@ export function toPlayerDocument(campaign: PublicCampaign): CampaignPlayerDocume
       collectForm: campaign.collectForm,
     },
     terms: campaign.terms,
+    zaloOaUrl: campaign.zaloOaUrl ?? null,
   };
 }
 
@@ -112,14 +120,14 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
     });
   };
 
-  const onCaptchaSuccess = (token: string) => {
+  const onCaptchaSuccess = useCallback((token: string) => {
     captchaTokenRef.current = token;
     setCaptchaModalOpen(false);
     if (captchaResolverRef.current) {
       captchaResolverRef.current.resolve(token);
       captchaResolverRef.current = null;
     }
-  };
+  }, []);
 
   const onCaptchaClose = () => {
     setCaptchaModalOpen(false);
@@ -129,12 +137,45 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
     }
   };
 
-  // Open Turnstile before first play of the session if captchaSiteKey is set
+  // Silent background Turnstile pre-fetch (EVT-13): never block the Cover screen on load.
+  // TurnstileModal only opens if acquireCaptchaToken() is called during play without a token.
+  const bgTurnstileRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (campaign.captchaSiteKey && hydrated && !captchaTokenRef.current) {
-      setCaptchaModalOpen(true);
+    const siteKey = campaign.captchaSiteKey;
+    if (!siteKey || !hydrated || captchaTokenRef.current) return;
+
+    let mounted = true;
+    let widgetId: string | null = null;
+    let pollId: ReturnType<typeof setInterval> | null = null;
+
+    const tryBackgroundRender = () => {
+      if (!mounted || !bgTurnstileRef.current || captchaTokenRef.current) return;
+      if (!isTurnstileReady()) return;
+      if (pollId) {
+        clearInterval(pollId);
+        pollId = null;
+      }
+      widgetId = renderTurnstile(bgTurnstileRef.current, {
+        sitekey: siteKey,
+        appearance: 'interaction-only',
+        callback: (token) => {
+          if (mounted) onCaptchaSuccess(token);
+        },
+      });
+    };
+
+    if (isTurnstileReady()) {
+      tryBackgroundRender();
+    } else {
+      pollId = setInterval(tryBackgroundRender, 250);
     }
-  }, [campaign.captchaSiteKey, hydrated]);
+
+    return () => {
+      mounted = false;
+      if (pollId) clearInterval(pollId);
+      if (widgetId) removeTurnstile(widgetId);
+    };
+  }, [campaign.captchaSiteKey, hydrated, onCaptchaSuccess]);
 
   const errorText = (error: unknown, fallback: string) => {
     if (error instanceof ApiError) return tErrors.has(error.code) ? tErrors(error.code) : fallback;
@@ -300,47 +341,51 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         duplicatePhone={duplicatePhone}
         onRestorePrizes={onRestorePrizes}
       />
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-        {turnsLeft !== undefined && (
-          <Chip
-            variant="soft"
-            size="sm"
-            color="default"
-            className="m-0 bg-background/80 text-xs font-normal backdrop-blur-xs"
-            data-testid="turns-left"
-          >
-            {t('turnsLeft', { count: turnsLeft })}
-            {turnsLeft === 0 &&
-              nextTurnFormatted &&
-              ` · ${t('nextTurnAt', { time: nextTurnFormatted })}`}
-          </Chip>
-        )}
-        <div className="relative inline-flex">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="h-7 rounded-full bg-background/80 px-3 text-xs shadow-xs backdrop-blur-xs"
-            onPress={() => player.current?.openVouchers()}
-          >
-            {t('myPrizes')}
-          </Button>
-          {unredeemed > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-              {unredeemed}
-            </span>
+      <div className="pointer-events-none absolute inset-x-2 top-2 z-10 flex items-center justify-between gap-2">
+        <div className="pointer-events-auto">{campaign.watermark && <PlayoraWatermark />}</div>
+        <div className="pointer-events-auto flex items-center gap-1.5">
+          {turnsLeft !== undefined && (
+            <Chip
+              variant="soft"
+              size="sm"
+              color="default"
+              className="m-0 h-6 bg-background/85 px-2 text-[11px] font-normal backdrop-blur-xs"
+              data-testid="turns-left"
+            >
+              {t('turnsLeft', { count: turnsLeft })}
+              {turnsLeft === 0 &&
+                nextTurnFormatted &&
+                ` · ${t('nextTurnAt', { time: nextTurnFormatted })}`}
+            </Chip>
           )}
+          <div className="relative inline-flex">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-6 rounded-full bg-background/85 px-2.5 text-[11px] shadow-xs backdrop-blur-xs"
+              onPress={() => player.current?.openVouchers()}
+            >
+              {t('myPrizes')}
+            </Button>
+            {unredeemed > 0 && (
+              <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {unredeemed}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      {campaign.watermark && (
-        <div className="absolute top-3 left-3 z-10">
-          <PlayoraWatermark />
-        </div>
-      )}
       {campaign.captchaSiteKey && (
         <>
           <Script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
             strategy="lazyOnload"
+          />
+          <div
+            ref={bgTurnstileRef}
+            aria-hidden
+            data-testid="turnstile-background"
+            className="pointer-events-none sr-only overflow-hidden"
           />
           <TurnstileModal
             ref={turnstileModalRef}

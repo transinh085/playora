@@ -7,6 +7,8 @@ import type React from 'react';
 import { Caption } from '@/components/caption';
 import { IconTile, type Tone } from '@/components/icon-tile';
 import { PLAYBOOK_KEYS, PLAYBOOKS, type PlaybookKey } from '../../lib/playbooks';
+import { buildScreens, skinBrand } from '../../lib/starter';
+import { FitScreen } from '../editor/fit-screen';
 
 const ICONS: Record<PlaybookKey, { icon: React.ReactNode; tone: Tone }> = {
   tet_traffic: { icon: <Sparkles className="size-5" />, tone: 'primary' },
@@ -16,8 +18,8 @@ const ICONS: Record<PlaybookKey, { icon: React.ReactNode; tone: Tone }> = {
 
 /**
  * Screen 1 of campaign creation (`docs/product/specs/playbooks.md` §2.1):
- * "Bạn muốn gì?" — three outcome cards (goal, mechanism, metric) and a visible
- * escape hatch to the raw template gallery.
+ * "Bạn muốn gì?" — three outcome cards (goal, mechanism, metric, and visual mini-preview)
+ * and a visible escape hatch to the raw template gallery.
  */
 export function GoalPicker({
   onPick,
@@ -27,6 +29,7 @@ export function GoalPicker({
   onCustom: () => void;
 }) {
   const t = useTranslations('builderLab.playbooks');
+  const th = useTranslations('builderLab.home');
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,57 +44,77 @@ export function GoalPicker({
         {PLAYBOOK_KEYS.map((key) => {
           const spec = PLAYBOOKS[key];
           const { icon, tone } = ICONS[spec.key];
+          const coverScreen = buildScreens(spec.templateKey, spec.skinKey).cover;
+          const brand = skinBrand(spec.skinKey);
           return (
             <Card
               key={spec.key}
               data-testid={`playbook-card-${spec.key}`}
-              className="flex h-full flex-col justify-between gap-5 p-6 transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
+              className="flex h-full flex-col justify-between gap-5 overflow-hidden p-0 transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
             >
-              <div className="space-y-4">
-                <Card.Header className="gap-3 p-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <IconTile tone={tone} size={44}>
-                      {icon}
-                    </IconTile>
-                    <Chip variant="soft" color="default">
+              <div>
+                {/* Visual mini-preview of the playbook's template × skin */}
+                <div
+                  data-testid="playbook-mini-preview"
+                  className="relative h-44 w-full overflow-hidden border-b border-separator-border"
+                  style={{ background: brand.background }}
+                >
+                  <div className="pointer-events-none h-full w-full">
+                    <FitScreen screen={coverScreen} brand={brand} />
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-3 bottom-2.5 flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-black/65 px-2.5 py-0.5 text-caption-2-medium text-white backdrop-blur-xs">
+                      {th(`templates.${spec.templateKey}`)} · {th(`skins.${spec.skinKey}`)}
+                    </span>
+                    <Chip variant="soft" color="default" size="sm">
                       {t('daysTag', { days: spec.days })}
                     </Chip>
                   </div>
+                </div>
 
-                  <div>
-                    <Card.Title className="m-0 text-title-3-semibold text-text-primary">
-                      {t(`items.${spec.key}.title`)}
-                    </Card.Title>
-                    <Card.Description className="mt-1 m-0 text-body-2-medium text-accent-600 dark:text-accent-400">
-                      {t(`items.${spec.key}.goal`)}
-                    </Card.Description>
-                  </div>
-                </Card.Header>
+                <div className="space-y-4 p-6 pb-0">
+                  <Card.Header className="gap-3 p-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <IconTile tone={tone} size={44}>
+                        {icon}
+                      </IconTile>
+                    </div>
 
-                <Card.Content className="p-0">
-                  <dl className="m-0 space-y-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-4">
                     <div>
-                      <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
-                        {t('mechanismLabel')}
-                      </dt>
-                      <dd className="mt-0.5 m-0 text-body-2-regular text-text-primary">
-                        {t(`items.${spec.key}.mechanism`)}
-                      </dd>
+                      <Card.Title className="m-0 text-title-3-semibold text-text-primary">
+                        {t(`items.${spec.key}.title`)}
+                      </Card.Title>
+                      <Card.Description className="mt-1 m-0 text-body-2-medium text-accent-600 dark:text-accent-400">
+                        {t(`items.${spec.key}.goal`)}
+                      </Card.Description>
                     </div>
-                    <Separator />
-                    <div>
-                      <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
-                        {t('metricLabel')}
-                      </dt>
-                      <dd className="mt-0.5 m-0 text-body-2-medium text-text-primary">
-                        {t(`items.${spec.key}.metric`)}
-                      </dd>
-                    </div>
-                  </dl>
-                </Card.Content>
+                  </Card.Header>
+
+                  <Card.Content className="p-0">
+                    <dl className="m-0 space-y-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-4">
+                      <div>
+                        <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                          {t('mechanismLabel')}
+                        </dt>
+                        <dd className="mt-0.5 m-0 text-body-2-regular text-text-primary">
+                          {t(`items.${spec.key}.mechanism`)}
+                        </dd>
+                      </div>
+                      <Separator />
+                      <div>
+                        <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                          {t('metricLabel')}
+                        </dt>
+                        <dd className="mt-0.5 m-0 text-body-2-medium text-text-primary">
+                          {t(`items.${spec.key}.metric`)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </Card.Content>
+                </div>
               </div>
 
-              <Card.Footer className="p-0">
+              <Card.Footer className="p-6 pt-0">
                 <Button
                   variant="primary"
                   className="w-full justify-center"

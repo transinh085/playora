@@ -65,27 +65,21 @@ export function CreateFromTemplateDialog({
       brandKits.data?.items.find((k) => k.id === selectedBrandKitId) ?? brandKits.data?.items[0];
 
     try {
-      // Map to real M1 template engine if real, or fallback to real engine equivalent for M2 mock
-      const effectiveTemplateKey = displayTemplate.realTemplateKey ?? 'spin-wheel';
-      const effectiveSkinKey: 'tet' | 'grand-opening' | 'everyday' =
-        displayTemplate.isReal &&
-        (displayTemplate.skinKey === 'grand-opening' || displayTemplate.skinKey === 'everyday')
-          ? displayTemplate.skinKey
-          : 'tet';
+      const effectiveTemplateKey = displayTemplate.realTemplateKey;
+      const effectiveSkinKey = displayTemplate.skinKey;
 
       const campaign = await create.mutateAsync({
         templateKey: effectiveTemplateKey,
         skinKey: effectiveSkinKey,
         name: name.trim(),
-        brand: brandFromKit(chosenKit),
+        brand: {
+          ...displayTemplate.brand,
+          ...brandFromKit(chosenKit),
+        },
         brandKit: chosenKit,
       });
 
-      if (!displayTemplate.isReal) {
-        toast.info(t('m2FallbackNotice'));
-      } else {
-        toast.success(t('createdSuccess'));
-      }
+      toast.success(t('createdSuccess'));
 
       onClose();
       router.push(campaignRoutes(orgId).edit(campaign.id));

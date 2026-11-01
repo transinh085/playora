@@ -1,7 +1,12 @@
 'use client';
 
 import { Button } from '@heroui/react';
-import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
+import type {
+  CampaignBrand,
+  CampaignSkinKey,
+  CampaignTemplateKey,
+  PlayResult,
+} from '@playora/contracts';
 import { RiGiftLine } from '@remixicon/react';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
@@ -30,6 +35,7 @@ import {
   type PlayerVoucher,
   RulesSheet,
   VoucherCard,
+  ZaloOaCtaButton,
 } from './player-sheets';
 import { useReducedMotion } from './use-play-round';
 
@@ -37,6 +43,7 @@ import { useReducedMotion } from './use-play-round';
 export interface CampaignPlayerDocument {
   name: string;
   templateKey: CampaignTemplateKey;
+  skinKey?: CampaignSkinKey;
   brand: CampaignBrand;
   screens: CanvasDoc;
   /** Full prizes in the Studio; the public player only knows id, name and image. */
@@ -44,6 +51,8 @@ export interface CampaignPlayerDocument {
   rules: CampaignPlayerRules;
   /** Full terms ("thể lệ", CMP-04) shown under the short rules; omitted in previews without them. */
   terms?: string;
+  /** Optional Zalo Official Account link shown on result and voucher screens (RET-07). */
+  zaloOaUrl?: string | null;
 }
 
 /** Imperative controls for host chrome (the Studio lab toolbar). */
@@ -251,6 +260,13 @@ export function CampaignPlayer({
     switch (played.outcome) {
       case 'win':
         if (!muted) playWebAudioChime('win');
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          try {
+            navigator.vibrate([40, 60, 100]);
+          } catch {
+            // Ignore vibration errors on unsupported browsers.
+          }
+        }
         setInternalBlockedReason(null);
         setResult(played);
         setVoucherExpanded(true);
@@ -296,6 +312,7 @@ export function CampaignPlayer({
       <Mechanism
         key={round}
         mechanism={campaign.templateKey}
+        skinKey={campaign.skinKey}
         brand={campaign.brand}
         prizes={campaign.prizes}
         labels={labels.mechanism}
@@ -362,6 +379,37 @@ export function CampaignPlayer({
         )}
       </div>
 
+      {screen === 'resultWin' && !reduced && (
+        <div
+          data-testid="win-confetti"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+        >
+          {Array.from({ length: 18 }, (_, i) => {
+            const colors = ['#ffd43b', '#ff6b6b', '#20c997', '#ffffff', campaign.brand.accent];
+            const color = colors[i % colors.length];
+            const left = `${(i * 5.5 + 3) % 96}%`;
+            const delay = `${(i % 6) * 110}ms`;
+            return (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: static confetti particles
+                key={i}
+                style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left,
+                  width: i % 2 === 0 ? '8px' : '6px',
+                  height: i % 2 === 0 ? '14px' : '8px',
+                  borderRadius: '2px',
+                  background: color,
+                  animation: `mech-confetti-fall 2.1s ease-out ${delay} forwards`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
       {screen === 'resultWin' && result && voucherCode && (
         <VoucherCard
           result={result}
@@ -371,7 +419,16 @@ export function CampaignPlayer({
           onOpenPrizes={() => setSheet('vouchers')}
           labels={labels}
           status={voucherStatus}
+          zaloOaUrl={campaign.zaloOaUrl}
         />
+      )}
+
+      {screen === 'resultLose' && campaign.zaloOaUrl && (
+        <div className="absolute inset-x-4 bottom-4 z-10 flex justify-center">
+          <div className="w-full max-w-xs rounded-3xl border border-border bg-surface/95 p-3 shadow-overlay backdrop-blur-xs">
+            <ZaloOaCtaButton zaloOaUrl={campaign.zaloOaUrl} label={labels.zaloOaCta} />
+          </div>
+        </div>
       )}
 
       {screen === 'game' && isBlockedRedeemFirst && (
@@ -408,6 +465,7 @@ export function CampaignPlayer({
         redeemUrl={redeemUrl}
         onRestorePrizes={onRestorePrizes}
         defaultOpenRestore={openRestoreOnSheet}
+        zaloOaUrl={campaign.zaloOaUrl}
       />
     </div>
   );

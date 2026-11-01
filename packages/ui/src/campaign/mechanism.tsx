@@ -1,6 +1,6 @@
 'use client';
 
-import type { CampaignTemplateKey, PlayResult } from '@playora/contracts';
+import type { CampaignSkinKey, CampaignTemplateKey, PlayResult } from '@playora/contracts';
 import { GiftBox } from './gift-box';
 import { MECH_KEYFRAMES } from './keyframes';
 import type { MechanismLabels } from './labels';
@@ -16,6 +16,7 @@ import type { WheelPrize } from './wheel-math';
  */
 export interface MechanismProps {
   mechanism: CampaignTemplateKey;
+  skinKey?: CampaignSkinKey;
   brand: BrandPalette;
   prizes: readonly WheelPrize[];
   labels: MechanismLabels;
@@ -32,7 +33,11 @@ export interface MechanismProps {
  */
 export function Mechanism({ mechanism, ...props }: MechanismProps) {
   return (
-    <div style={{ width: '100%', height: '100%', userSelect: 'none' }}>
+    <div
+      data-mechanism={mechanism}
+      data-skin-key={props.skinKey ?? 'everyday'}
+      style={{ width: '100%', height: '100%', userSelect: 'none' }}
+    >
       <style>{MECH_KEYFRAMES}</style>
       {mechanism === 'spin-wheel' ? (
         <SpinWheel {...props} />

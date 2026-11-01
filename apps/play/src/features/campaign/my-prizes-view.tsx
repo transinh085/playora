@@ -2,7 +2,7 @@
 
 import { ApiError } from '@playora/api-client';
 import { type PublicCampaign, playsApi } from '@playora/contracts';
-import { LiveClock, VoucherList, VoucherRestoreBox } from '@playora/ui/campaign';
+import { LiveClock, VoucherList, VoucherRestoreBox, ZaloOaCtaButton } from '@playora/ui/campaign';
 import { buttonVariants } from '@playora/ui/components';
 import { Gift } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
@@ -21,7 +21,10 @@ import { toPlayerVouchers, VOUCHER_POLL_MS } from './vouchers';
 export function MyPrizesView({
   campaign,
 }: {
-  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'brand' | 'skinKey' | 'organizationId'>;
+  campaign: Pick<
+    PublicCampaign,
+    'slug' | 'name' | 'brand' | 'skinKey' | 'organizationId' | 'zaloOaUrl'
+  >;
 }) {
   return (
     <CampaignFrame brand={campaign.brand} skinKey={campaign.skinKey}>
@@ -33,7 +36,7 @@ export function MyPrizesView({
 function MyPrizes({
   campaign,
 }: {
-  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'organizationId'>;
+  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'organizationId' | 'zaloOaUrl'>;
 }) {
   const t = useTranslations('play');
   const tErrors = useTranslations('errors');
@@ -110,6 +113,9 @@ function MyPrizes({
             labels={labels}
             redeemUrl={redeemUrl}
           />
+          {campaign.zaloOaUrl && (
+            <ZaloOaCtaButton zaloOaUrl={campaign.zaloOaUrl} label={labels.zaloOaCta} />
+          )}
           <VoucherRestoreBox labels={labels} onRestorePrizes={onRestorePrizes} />
           <a
             href={gameHref}

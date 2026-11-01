@@ -4,8 +4,11 @@ export const MECH_KEYFRAMES = `
 @keyframes mech-wheel-bulb { from { opacity: 1 } to { opacity: .25 } }
 @keyframes mech-wheel-pulse { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.08) } }
 @keyframes mech-wheel-flash { 0%, 100% { opacity: .05 } 50% { opacity: .45 } }
+@keyframes mech-pointer-tick { 0%, 100% { transform: rotate(0deg) } 35% { transform: rotate(-18deg) } 70% { transform: rotate(6deg) } }
 @keyframes mech-float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3%) } }
 @keyframes mech-shake { 0%, 100% { transform: rotate(0) } 20% { transform: rotate(-7deg) } 40% { transform: rotate(6deg) } 60% { transform: rotate(-5deg) } 80% { transform: rotate(4deg) } }
 @keyframes mech-lid-off { 0% { transform: none } 40% { transform: translateY(-30%) rotate(-8deg) } 100% { transform: translate(-30%, -120%) rotate(-35deg); opacity: 0 } }
 @keyframes mech-rays { from { transform: rotate(0) } to { transform: rotate(360deg) } }
+@keyframes mech-shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+@keyframes mech-confetti-fall { 0% { opacity: 1; transform: translate3d(0, -10%, 0) rotate(0deg) } 100% { opacity: 0; transform: translate3d(var(-- confetti-dx, 12px), 105vh, 0) rotate(540deg) } }
 `;

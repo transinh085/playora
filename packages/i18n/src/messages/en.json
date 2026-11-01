@@ -872,7 +872,14 @@
         "antiFraudHints": {
           "standard": "A captcha once per play session, and speed limits per guest, device and IP. Recommended.",
           "low": "No captcha, only a loose limit per IP; fine for in-store fun with small prizes."
-        }
+        },
+        "baselineGuestsLabel": "Normal-day guests (per day)",
+        "baselineGuestsOn": "Normal day baseline: <n></n> guests/day (for outcome comparison)",
+        "baselineGuestsOff": "Compare counter visits with normal-day guests",
+        "zaloOaLabel": "Shop Zalo OA URL",
+        "zaloOaPlaceholder": "https://zalo.me/...",
+        "zaloOaHint": "Shows “Follow shop on Zalo OA” button on win, lose, and My Prizes screens.",
+        "zaloOaInvalid": "Zalo OA link must use zalo.me or oa.zalo.me"
       },
       "summary": {
         "title": "Rules summary",
@@ -1236,6 +1243,8 @@
         "prizesHint": "Prize name and what each one really costs you. Quantities are worked out from the budget.",
         "prizeName": "Prize name",
         "prizeCost": "Cost",
+        "prizeQuantity": "Quantity",
+        "zeroCostHint": "0đ prizes do not consume budget — set a suitable maximum quantity.",
         "addPrize": "Add prize",
         "removePrize": "Remove prize",
         "newPrize": "Prize {n}",
@@ -1245,15 +1254,21 @@
         "hoursStart": "Opens at",
         "hoursEnd": "Closes at",
         "openDays": "Open on",
+        "openDaysAll": "Open every day of the week",
+        "openDaysCustom": "Open only on selected weekdays",
         "guests": "Guests per day (estimate)",
         "guestsHint": "Guests who visit and could play on each open day.",
         "guestsSuffix": "guests/day",
+        "baselineGuests": "How many guests visit on a normal day? (optional)",
+        "baselineGuestsHint": "Used to compare daily counter visits against a normal day in the Outcome Report.",
+        "brandKit": "Brand Kit",
+        "defaultBrandKit": "Template default palette",
         "errors": {
           "name": "Enter a campaign name.",
           "budget": "The budget must be at least 10,000 đ.",
           "prizes": "Add at least one prize.",
           "prizeName": "Enter a prize name.",
-          "prizeCost": "The cost must be more than 0.",
+          "prizeCost": "The cost must be 0 or more.",
           "date": "Pick a date.",
           "endBeforeStart": "The end date must be on or after the start date.",
           "endInPast": "The end date has passed.",
@@ -1380,7 +1395,8 @@
       "ok": "Got it",
       "fullTerms": "Full terms"
     },
-    "redeemFirstMessage": "Redeem your prize at the counter before playing the next turn"
+    "redeemFirstMessage": "Redeem your prize at the counter before playing the next turn",
+    "zaloOaCta": "Follow shop on Zalo OA"
   },
   "campaigns": {
     "title": "Campaigns",
@@ -1539,6 +1555,14 @@
       "scheduleHint": "Extend by moving the end time. Players and codes are kept.",
       "endsAt": "Ends at",
       "extended": "End time updated",
+      "baselineTitle": "Normal-day guests (baseline comparison)",
+      "baselineHint": "How many guests visit on a normal day? Used to compare counter visits/day against your baseline.",
+      "baselinePlaceholder": "e.g. 80",
+      "baselineSaved": "Updated normal-day baseline",
+      "zaloOaTitle": "Shop Zalo OA link",
+      "zaloOaHint": "Shows Follow Zalo OA button on result and voucher screens (zalo.me / oa.zalo.me).",
+      "zaloOaSaved": "Updated Zalo OA link",
+      "zaloOaInvalid": "Zalo OA link must use zalo.me or oa.zalo.me",
       "runTitle": "Running",
       "pause": "Pause",
       "end": "End now",
@@ -1699,6 +1723,7 @@
       "goalLabel": "Campaign goal",
       "periodLabel": "Run period",
       "keyMetricLabel": "Key metric",
+      "baselineComparison": "Counter visits/day = {percent}% of normal-day guests (est., based on your {baseline} guests/day baseline)",
       "playbooks": {
         "tet_traffic": {
           "title": "Lunar New Year traffic",
@@ -2185,6 +2210,7 @@
       "completionHint": "Players finishing the game",
       "screens": {
         "cover": "Cover",
+        "form": "Form",
         "game": "Game",
         "win": "Win result",
         "lose": "Lose result"
