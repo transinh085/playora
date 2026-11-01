@@ -12,12 +12,16 @@ import {
 import {
   type CampaignPrize,
   type campaignsApi,
+  type DraftResetBody,
   ErrorCode,
   type MyVoucher,
   type PlayerState,
   type PlayResult,
   type PublicCampaign,
+  type PublicDraftCampaign,
   type playsApi,
+  type RehearsalLinkBody,
+  type RehearsalLinkResponse,
   type RestorePrizesBody,
   type RestorePrizesResponse,
   type RouteArgs,
@@ -53,7 +57,18 @@ import { voucherStatus } from '../vouchers/vouchers.service';
 import { type PlayEnv, PlaysRepository, type PublishedCampaign } from './plays.repository';
 
 export const RESTORE_PRIZES_FAIL_LIMIT_PER_HOUR = 5;
+export const MAX_DRAFT_TESTERS = 20;
 const HOUR_S = 3600;
+const SHARE_TOKEN_ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
+const SHARE_TOKEN_LENGTH = 24;
+
+export function shareToken(): string {
+  let token = '';
+  for (let i = 0; i < SHARE_TOKEN_LENGTH; i++) {
+    token += SHARE_TOKEN_ALPHABET[randomInt(SHARE_TOKEN_ALPHABET.length)];
+  }
+  return token;
+}
 
 type StartPlayBody = RouteArgs<typeof playsApi.play>['body'];
 type RehearsalBody = RouteArgs<typeof campaignsApi.rehearsalPlay>['body'];
@@ -126,6 +141,7 @@ interface PlayContext {
   /** Rules with the authoritative schedule (`events.startsAt/endsAt` for live plays). */
   doc: CampaignDocument;
   voucherExpiresAt: Date | null;
+  enforceSchedule?: boolean;
 }
 
 /** Thrown inside the play transaction to roll back the turn claim when the engine says closed. */
@@ -230,6 +246,19 @@ export class PlaysService {
     const campaign = await this.loadPublished(slug);
     const { event, game, version } = campaign;
     const doc = this.liveDocument(campaign);
+    const showRemaining = Object.values(doc.screens).some((screen) =>
+      screen.elements.some(
+        (el) =>
+          el.type === 'prizeList' && (el as { showRemaining?: boolean }).showRemaining === true,
+      ),
+    );
+    const rowByKey = showRemaining
+      ? new Map(
+          (await this.repo.listPrizes(event.organizationId, game.id))
+            .filter((p) => p.key)
+            .map((p) => [p.key as string, p]),
+        )
+      : null;
     return {
       id: event.id,
       organizationId: event.organizationId,
@@ -240,8 +269,16 @@ export class PlaysService {
       skinKey: (game.skinKey ?? 'everyday') as PublicCampaign['skinKey'],
       brand: doc.brand,
       screens: doc.screens,
-      // Odds, quantities and values stay on the server.
-      prizes: doc.prizes.map((p) => prizeView(p) as NonNullable<PrizeView>),
+      // Odds and values stay on the server; remaining stock is exposed only when Transparent Cover (BLD-25) is enabled.
+      prizes: doc.prizes.map((p) => ({
+        ...(prizeView(p) as NonNullable<PrizeView>),
+        ...(rowByKey
+          ? {
+              quantity: p.quantity,
+              remaining: rowByKey.get(p.id)?.remaining ?? p.quantity,
+            }
+          : {}),
+      })),
       phase: this.phaseOf(campaign),
       startsAt: doc.rules.startsAt,
       endsAt: doc.rules.endsAt,
@@ -458,12 +495,13 @@ export class PlaysService {
     };
   }
 
-  // ── Rehearsal (Studio) ───────────────────────────────────────────────────────
+  // ── Rehearsal (Studio & Public Draft Link) ───────────────────────────────────
 
   /**
    * Plays the current draft as a tester (docs/product/specs/builder.md §4.1). Rehearsal ignores the
-   * schedule, pause and pacing, counts its own stock (draft quantity − rehearsal awards) and
-   * budget, and writes only `rehearsal` rows: live stock, issued counts and stats never move.
+   * schedule, pause and pacing (unless `enforceSchedule` is true), counts its own stock (draft
+   * quantity − rehearsal awards) and budget, and writes only `rehearsal` rows: live stock, issued
+   * counts and stats never move.
    */
   async rehearsalPlay(orgId: string, campaignId: string, body: RehearsalBody): Promise<PlayResult> {
     const row = await this.repo.findCampaign(orgId, campaignId);
@@ -473,7 +511,10 @@ export class PlaysService {
     const { event, game } = row;
     const doc = readCampaignDocument(game.draftConfig);
     const parsed = PrizeRules.safeParse(
-      toPrizeRules(doc.rules, doc.prizes, { rehearsal: true, timezone: event.timezone }),
+      toPrizeRules(doc.rules, doc.prizes, {
+        rehearsal: !body.enforceSchedule,
+        timezone: event.timezone,
+      }),
     );
     if (!parsed.success) {
       throw new BadRequestException({
@@ -483,7 +524,9 @@ export class PlaysService {
     }
     const playerId = await this.repo.transaction(async (tx) => {
       await this.repo.lockRehearsal(orgId, game.id, tx);
-      return (await this.repo.findOrCreateTester(orgId, event.id, body.testerKey, tx)).id;
+      return (
+        await this.repo.findOrCreateTester(orgId, event.id, body.testerKey, tx, body.playerName)
+      ).id;
     });
     return this.run({
       orgId,
@@ -497,7 +540,167 @@ export class PlaysService {
       timezone: event.timezone,
       doc,
       voucherExpiresAt: new Date(new Date(doc.rules.endsAt).getTime() + VOUCHER_GRACE_MS),
+      enforceSchedule: Boolean(body.enforceSchedule),
     });
+  }
+
+  /**
+   * Gets or rotates the public draft rehearsal link token for a campaign (`BLD-23`, `BLD-26`).
+   * Stored in `games.hotConfig.rehearsalShareToken` so it never dirties `hasUnpublishedChanges`.
+   */
+  async rehearsalLink(
+    orgId: string,
+    campaignId: string,
+    body?: RehearsalLinkBody,
+  ): Promise<RehearsalLinkResponse> {
+    const row = await this.repo.findCampaign(orgId, campaignId);
+    if (!row) {
+      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Campaign not found' });
+    }
+    const existing = (row.game.hotConfig as { rehearsalShareToken?: string } | null)
+      ?.rehearsalShareToken;
+    const token = existing && !body?.rotate ? existing : shareToken();
+    if (!existing || body?.rotate) {
+      await this.repo.setRehearsalShareToken(orgId, row.game.id, token);
+    }
+    const testerCount = await this.repo.countDraftTesters(orgId, row.event.id, token.slice(0, 16));
+    return {
+      token,
+      testerCount,
+      maxTesters: MAX_DRAFT_TESTERS,
+    };
+  }
+
+  private async loadDraftByToken(token: string) {
+    const row = await this.repo.findCampaignByShareToken(token);
+    if (!row) {
+      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Draft link not found' });
+    }
+    return row;
+  }
+
+  async getDraftCampaign(token: string): Promise<PublicDraftCampaign> {
+    const row = await this.loadDraftByToken(token);
+    const { event, game, organizationName } = row;
+    const doc = readCampaignDocument(game.draftConfig);
+    const day = localDayKey(new Date(), event.timezone);
+    const issued = await this.repo.awardCountsByPrizeKey(event.organizationId, {
+      eventId: event.id,
+      env: 'rehearsal',
+      timezone: event.timezone,
+      day,
+    });
+    const issuedByKey = new Map(issued.map((r) => [r.key, r.total]));
+    const testerCount = await this.repo.countDraftTesters(
+      event.organizationId,
+      event.id,
+      token.slice(0, 16),
+    );
+    return {
+      id: event.id,
+      organizationId: event.organizationId,
+      slug: event.slug,
+      name: event.name,
+      templateKey: game.templateKey as PublicDraftCampaign['templateKey'],
+      skinKey: (game.skinKey ?? 'everyday') as PublicDraftCampaign['skinKey'],
+      brand: doc.brand,
+      screens: doc.screens,
+      prizes: doc.prizes.map((p) => ({
+        ...(prizeView(p) as NonNullable<PrizeView>),
+        quantity: p.quantity,
+        remaining: Math.max(0, p.quantity - (issuedByKey.get(p.id) ?? 0)),
+      })),
+      startsAt: doc.rules.startsAt,
+      endsAt: doc.rules.endsAt,
+      timezone: event.timezone,
+      openingHours: doc.rules.openingHours,
+      playsPerDay: doc.rules.playsPerDay,
+      openDays: doc.rules.openDays,
+      requireRedeemBeforeReplay: doc.rules.requireRedeemBeforeReplay,
+      collectForm: doc.rules.collectForm,
+      registrationForm: parseRegistrationForm(event.registrationForm),
+      terms:
+        doc.compliance.termsText ??
+        generateTerms({
+          campaignName: event.name,
+          organizerName: organizationName,
+          rules: doc.rules,
+          prizes: doc.prizes,
+          timezone: event.timezone,
+          redeemGraceDays: VOUCHER_GRACE_MS / 86_400_000,
+        }),
+      testerCount,
+      maxTesters: MAX_DRAFT_TESTERS,
+    };
+  }
+
+  async draftPlay(token: string, body: RehearsalBody): Promise<PlayResult> {
+    const row = await this.loadDraftByToken(token);
+    const { event, game } = row;
+    const orgId = event.organizationId;
+    const doc = readCampaignDocument(game.draftConfig);
+    const parsed = PrizeRules.safeParse(
+      toPrizeRules(doc.rules, doc.prizes, {
+        rehearsal: !body.enforceSchedule,
+        timezone: event.timezone,
+      }),
+    );
+    if (!parsed.success) {
+      throw new BadRequestException({
+        code: ErrorCode.INVALID_PRIZE_RULES,
+        message: parsed.error.issues[0]?.message ?? 'Invalid prize rules',
+      });
+    }
+    const tokenPrefix = token.slice(0, 16);
+    const deviceId = `draft:${tokenPrefix}:${body.testerKey.slice(0, 40)}`;
+    const playerId = await this.repo.transaction(async (tx) => {
+      await this.repo.lockRehearsal(orgId, game.id, tx);
+      const existing = await this.repo.findTesterByDeviceId(orgId, event.id, deviceId, tx);
+      if (!existing) {
+        const count = await this.repo.countDraftTesters(orgId, event.id, tokenPrefix, tx);
+        if (count >= MAX_DRAFT_TESTERS) {
+          throw new ForbiddenException({
+            code: ErrorCode.DRAFT_TESTER_LIMIT_REACHED,
+            message: 'Draft link has reached the 20-tester limit',
+          });
+        }
+      }
+      return (await this.repo.findOrCreateTester(orgId, event.id, deviceId, tx, body.playerName))
+        .id;
+    });
+    return this.run({
+      orgId,
+      eventId: event.id,
+      gameId: game.id,
+      gameVersionId: null,
+      env: 'rehearsal',
+      playerId,
+      requestId: body.requestId,
+      channelKey: null,
+      timezone: event.timezone,
+      doc,
+      voucherExpiresAt: new Date(new Date(doc.rules.endsAt).getTime() + VOUCHER_GRACE_MS),
+      enforceSchedule: Boolean(body.enforceSchedule),
+    });
+  }
+
+  async draftReset(
+    token: string,
+    body?: DraftResetBody,
+  ): Promise<{ ok: true; testerCount: number }> {
+    const row = await this.loadDraftByToken(token);
+    const { event } = row;
+    const tokenPrefix = token.slice(0, 16);
+    const deviceId = body?.testerKey
+      ? `draft:${tokenPrefix}:${body.testerKey.slice(0, 40)}`
+      : undefined;
+    await this.repo.resetDraftTesters(event.organizationId, event.id, tokenPrefix, deviceId);
+    const testerCount = await this.repo.countDraftTesters(
+      event.organizationId,
+      event.id,
+      tokenPrefix,
+    );
+    return { ok: true, testerCount };
   }
 
   // ── Engine ───────────────────────────────────────────────────────────────────
@@ -677,7 +880,7 @@ export class PlaysService {
       return u;
     };
     const rules = toPrizeRules(doc.rules, doc.prizes, {
-      rehearsal: env === 'rehearsal',
+      rehearsal: env === 'rehearsal' && !ctx.enforceSchedule,
       timezone: ctx.timezone,
       now,
       remainingByPrize,

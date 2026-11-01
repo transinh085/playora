@@ -39,9 +39,24 @@ export class PlaysController {
   ) {
     return this.plays.restorePrizes(params.slug, body, ip);
   }
+
+  @Route(playsApi.draftCampaign)
+  draftCampaign(@Args() { params }: RouteArgs<typeof playsApi.draftCampaign>) {
+    return this.plays.getDraftCampaign(params.token);
+  }
+
+  @Route(playsApi.draftPlay)
+  draftPlay(@Args() { params, body }: RouteArgs<typeof playsApi.draftPlay>) {
+    return this.plays.draftPlay(params.token, body);
+  }
+
+  @Route(playsApi.draftReset)
+  draftReset(@Args() { params, body }: RouteArgs<typeof playsApi.draftReset>) {
+    return this.plays.draftReset(params.token, body);
+  }
 }
 
-/** Studio rehearsal plays on the draft (`campaignsApi.rehearsalPlay`, org session + permission). */
+/** Studio rehearsal plays and share link on the draft (`campaignsApi.rehearsalPlay`, `campaignsApi.rehearsalLink`). */
 @Controller()
 export class RehearsalPlaysController {
   constructor(private readonly plays: PlaysService) {}
@@ -49,5 +64,10 @@ export class RehearsalPlaysController {
   @Route(campaignsApi.rehearsalPlay)
   rehearsalPlay(@Args() { params, body }: RouteArgs<typeof campaignsApi.rehearsalPlay>) {
     return this.plays.rehearsalPlay(params.orgId, params.campaignId, body);
+  }
+
+  @Route(campaignsApi.rehearsalLink)
+  rehearsalLink(@Args() { params, body }: RouteArgs<typeof campaignsApi.rehearsalLink>) {
+    return this.plays.rehearsalLink(params.orgId, params.campaignId, body);
   }
 }

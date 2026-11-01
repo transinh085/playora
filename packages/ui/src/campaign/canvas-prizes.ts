@@ -7,13 +7,17 @@ import type { CanvasPrize } from './canvas-screen';
  */
 export function toCanvasPrizes(
   campaign: {
-    prizes: readonly (Pick<CampaignPrize, 'id' | 'name' | 'image'> & { quantity?: number })[];
+    prizes: readonly (Pick<CampaignPrize, 'id' | 'name' | 'image'> & {
+      quantity?: number;
+      remaining?: number;
+    })[];
   },
   remaining?: Record<string, number>,
 ): CanvasPrize[] {
   return campaign.prizes.map((p) => ({
     name: p.name,
     image: p.image,
-    remaining: remaining?.[p.id] ?? p.quantity,
+    quantity: p.quantity,
+    remaining: remaining?.[p.id] ?? p.remaining ?? p.quantity,
   }));
 }

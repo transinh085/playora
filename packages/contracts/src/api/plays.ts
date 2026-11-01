@@ -7,6 +7,7 @@ import {
   CampaignSkinKey,
   CampaignTemplateKey,
   PlayResult,
+  RehearsalPlayBody,
   VoucherStatus,
 } from './campaigns';
 import { AuthId, Id, IsoDateTime, Slug } from './common';
@@ -18,7 +19,13 @@ import { defineRoute } from './route';
  * reads the published version, joins with `publicApi.join`, then plays with the player token.
  */
 
-/** What the player shell needs to render a published campaign. Odds and stock are never exposed. */
+export const PublicPrize = CampaignPrize.pick({ id: true, name: true, image: true }).extend({
+  quantity: z.number().int().min(0).optional(),
+  remaining: z.number().int().min(0).optional(),
+});
+export type PublicPrize = z.infer<typeof PublicPrize>;
+
+/** What the player shell needs to render a published campaign. Odds are never exposed. */
 export const PublicCampaign = z.object({
   id: Id,
   organizationId: AuthId.optional(),
@@ -29,7 +36,7 @@ export const PublicCampaign = z.object({
   skinKey: CampaignSkinKey,
   brand: CampaignBrand,
   screens: CampaignScreens,
-  prizes: z.array(CampaignPrize.pick({ id: true, name: true, image: true })),
+  prizes: z.array(PublicPrize),
   phase: CampaignPhase,
   startsAt: IsoDateTime,
   endsAt: IsoDateTime,
@@ -104,6 +111,46 @@ export const RestorePrizesResponse = z.object({
 export type RestorePrizesResponse = z.infer<typeof RestorePrizesResponse>;
 
 const SlugParams = z.object({ slug: Slug });
+const DraftTokenParams = z.object({
+  token: z
+    .string()
+    .trim()
+    .min(16)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
+});
+
+export const PublicDraftCampaign = z.object({
+  id: Id,
+  organizationId: AuthId.optional(),
+  slug: Slug,
+  name: z.string(),
+  templateKey: CampaignTemplateKey,
+  skinKey: CampaignSkinKey,
+  brand: CampaignBrand,
+  screens: CampaignScreens,
+  prizes: z.array(PublicPrize),
+  startsAt: IsoDateTime,
+  endsAt: IsoDateTime,
+  timezone: z.string(),
+  openingHours: z.object({ start: z.string(), end: z.string() }).nullable(),
+  playsPerDay: z.number().int(),
+  openDays: z.array(z.number().int()).nullable(),
+  requireRedeemBeforeReplay: z.boolean(),
+  collectForm: z.boolean(),
+  registrationForm: PublicRegistrationForm,
+  terms: z.string(),
+  testerCount: z.number().int().min(0),
+  maxTesters: z.number().int().positive(),
+});
+export type PublicDraftCampaign = z.infer<typeof PublicDraftCampaign>;
+
+export const DraftResetBody = z
+  .object({
+    testerKey: z.string().trim().min(1).max(64).optional(),
+  })
+  .default({});
+export type DraftResetBody = z.input<typeof DraftResetBody>;
 
 export const playsApi = {
   campaign: defineRoute({
@@ -146,5 +193,37 @@ export const playsApi = {
     params: SlugParams,
     body: RestorePrizesBody,
     response: RestorePrizesResponse,
+  }),
+  draftCampaign: defineRoute({
+    method: 'GET',
+    path: '/public/drafts/:token',
+    summary: 'Load a draft campaign via its public rehearsal share token (BLD-23)',
+    tags: ['player'],
+    auth: 'public',
+    rateLimit: 'public',
+    params: DraftTokenParams,
+    response: PublicDraftCampaign,
+  }),
+  draftPlay: defineRoute({
+    method: 'POST',
+    path: '/public/drafts/:token/play',
+    summary: 'Play a rehearsal turn via a public draft share token (capped at 20 distinct testers)',
+    tags: ['player'],
+    auth: 'public',
+    rateLimit: 'campaign',
+    params: DraftTokenParams,
+    body: RehearsalPlayBody,
+    response: PlayResult,
+  }),
+  draftReset: defineRoute({
+    method: 'POST',
+    path: '/public/drafts/:token/reset',
+    summary: 'Generate a fresh tester key / reset rehearsal state for a public draft tester',
+    tags: ['player'],
+    auth: 'public',
+    rateLimit: 'public',
+    params: DraftTokenParams,
+    body: DraftResetBody,
+    response: z.object({ ok: z.literal(true), testerCount: z.number().int().min(0) }),
   }),
 };

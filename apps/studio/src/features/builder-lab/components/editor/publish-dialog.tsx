@@ -74,7 +74,7 @@ export function PublishDialog({
   orgId: string;
   campaign: Campaign;
   onFix: (patch: DraftPatch) => void;
-  onGoTo: (mode: EditorMode) => void;
+  onGoTo: (issue: PreflightIssue) => void;
   flush: () => Promise<boolean>;
 }) {
   const t = useTranslations('builderLab.publish');
@@ -185,6 +185,17 @@ export function PublishDialog({
                     )
                   )}
 
+                  {(campaign.version > 0 || campaign.publishedAt !== null) && (
+                    <Alert status="accent" data-testid="republish-legal-notice">
+                      <Alert.Indicator />
+                      <Alert.Content>
+                        <Alert.Title className="text-xs font-medium">
+                          {t('republishNotice')}
+                        </Alert.Title>
+                      </Alert.Content>
+                    </Alert>
+                  )}
+
                   <Alert status={blocking ? 'danger' : issues.length ? 'warning' : 'success'}>
                     <Alert.Indicator />
                     <Alert.Content className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -223,9 +234,7 @@ export function PublishDialog({
                           key={issue.id}
                           issue={issue}
                           onFix={() => applyFix(issue)}
-                          onGoTo={() =>
-                            onGoTo(issue.where.area === 'screens' ? 'customize' : 'rules')
-                          }
+                          onGoTo={() => onGoTo(issue)}
                         />
                       ))}
                     </Card>

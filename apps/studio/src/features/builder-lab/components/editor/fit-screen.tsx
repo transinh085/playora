@@ -1,6 +1,11 @@
 'use client';
 
-import { type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
+import {
+  type ButtonElement,
+  type CanvasPrize,
+  CanvasScreen,
+  type CanvasVariable,
+} from '@playora/ui/campaign';
 import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import { useCanvasLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import {
@@ -18,6 +23,9 @@ export function FitScreen({
   brand,
   stage,
   prizes,
+  endsAt,
+  variables,
+  onButton,
   fit = 'width',
   scroll = false,
   animate,
@@ -27,6 +35,9 @@ export function FitScreen({
   /** Drawn inside the game stage, usually the idle mechanism. */
   stage?: ReactNode;
   prizes?: CanvasPrize[];
+  endsAt?: string;
+  variables?: Partial<Record<CanvasVariable, string>>;
+  onButton?: (element: ButtonElement) => void;
   fit?: 'width' | 'contain';
   /** Let a screen taller than the container scroll (width fit only). */
   scroll?: boolean;
@@ -64,7 +75,13 @@ export function FitScreen({
             scale={scale}
             labels={labels}
             animate={animate}
-            runtime={{ renderStage: stage ? () => stage : undefined, prizes }}
+            runtime={{
+              renderStage: stage ? () => stage : undefined,
+              prizes,
+              endsAt,
+              variables,
+              onButton,
+            }}
           />
         </div>
       )}

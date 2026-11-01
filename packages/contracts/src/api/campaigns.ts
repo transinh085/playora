@@ -339,8 +339,27 @@ export const RehearsalPlayBody = z.object({
   /** Stable id of the tester (one per browser), so turn limits behave like a real player's. */
   testerKey: z.string().trim().min(1).max(64),
   requestId: z.uuid(),
+  /** Optional display name submitted on the Form screen during rehearsal. */
+  playerName: z.string().trim().min(1).max(120).optional(),
+  /** When true, rehearsal enforces campaign schedule (`startsAt`/`endsAt`/`openingHours`/`openDays`). */
+  enforceSchedule: z.boolean().optional(),
 });
 export type RehearsalPlayBody = z.input<typeof RehearsalPlayBody>;
+
+export const RehearsalLinkBody = z
+  .object({
+    /** Rotate the share token, invalidating old links and resetting the 20-tester cap. */
+    rotate: z.boolean().optional(),
+  })
+  .default({});
+export type RehearsalLinkBody = z.input<typeof RehearsalLinkBody>;
+
+export const RehearsalLinkResponse = z.object({
+  token: z.string().min(16).max(128),
+  testerCount: z.number().int().min(0),
+  maxTesters: z.number().int().positive(),
+});
+export type RehearsalLinkResponse = z.infer<typeof RehearsalLinkResponse>;
 
 const CampaignParams = OrgParams.extend({ campaignId: Id });
 
@@ -492,5 +511,16 @@ export const campaignsApi = {
     params: CampaignParams,
     body: RehearsalPlayBody,
     response: PlayResult,
+  }),
+  rehearsalLink: defineRoute({
+    method: 'POST',
+    path: '/orgs/:orgId/campaigns/:campaignId/rehearsal-link',
+    summary: 'Get or rotate the public draft rehearsal share token (capped at 20 distinct testers)',
+    tags: ['campaigns'],
+    auth: 'session',
+    permission: { campaign: ['read'] },
+    params: CampaignParams,
+    body: RehearsalLinkBody,
+    response: RehearsalLinkResponse,
   }),
 };

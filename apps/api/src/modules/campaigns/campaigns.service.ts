@@ -347,6 +347,14 @@ export class CampaignsService {
       // Published configs always carry every rule field (older drafts get their defaults here).
       const doc = readCampaignDocument(game.draftConfig);
 
+      if (!doc.compliance.promotionType || !doc.compliance.checklistAcknowledgedAt) {
+        throw new BadRequestException({
+          code: ErrorCode.VALIDATION_FAILED,
+          message: 'Compliance checklist must be acknowledged before publishing',
+          details: { field: 'compliance' },
+        });
+      }
+
       const parsed = PrizeRules.safeParse(
         toPrizeRules(doc.rules, doc.prizes, { rehearsal: false, timezone: event.timezone }),
       );

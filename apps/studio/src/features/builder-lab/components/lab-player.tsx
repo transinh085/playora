@@ -3,6 +3,7 @@
 import { ApiError, createApiClient } from '@playora/api-client';
 import { routePrefix } from '@playora/api-client/react';
 import { campaignsApi, type PlayResult, playsApi, publicApi } from '@playora/contracts';
+import { generateTerms } from '@playora/core/compliance';
 import {
   type ButtonElement,
   CampaignPlayer,
@@ -11,12 +12,12 @@ import {
   type PlayerFormValues,
   type PlayerVoucher,
 } from '@playora/ui/campaign';
-import { Button, Card, Chip, PhoneMockup, Tooltip, toast } from '@playora/ui/components';
+import { Button, Card, Chip, PhoneMockup, Switch, Tooltip, toast } from '@playora/ui/components';
 import { ArrowLeft, ExternalLink, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { useCampaignPlayerLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { api } from '@/lib/api';
 import { API_URL } from '@/lib/env';
@@ -138,10 +139,27 @@ function PlayerSession({
   const [playerId, resetPlayer] = usePlayerId(campaign.id);
   const [vouchers, setVouchers] = useState<PlayerVoucher[]>([]);
   const [vouchersLoading, setVouchersLoading] = useState(false);
+  const [enforceSchedule, setEnforceSchedule] = useState(false);
   const formRef = useRef<PlayerFormValues | null>(null);
   const tokenRef = useRef<string | null>(null);
   const player = useRef<CampaignPlayerHandle>(null);
   const routes = campaignRoutes(orgId);
+
+  const campaignWithTerms = useMemo(
+    () => ({
+      ...campaign,
+      terms:
+        campaign.compliance.termsText ??
+        generateTerms({
+          campaignName: campaign.name,
+          organizerName: campaign.name,
+          rules: campaign.rules,
+          prizes: campaign.prizes,
+          redeemGraceDays: 7,
+        }),
+    }),
+    [campaign],
+  );
 
   const joinLive = useCallback(
     async (form: PlayerFormValues | null): Promise<string> => {
@@ -239,6 +257,7 @@ function PlayerSession({
           testerKey: playerId,
           requestId: crypto.randomUUID(),
           ...(name ? { playerName: name } : {}),
+          ...(enforceSchedule ? { enforceSchedule: true } : {}),
         });
         appendVoucherFromResult(result);
         return result;
@@ -315,6 +334,25 @@ function PlayerSession({
 
         <div className="flex-1" />
 
+        {rehearsal && (
+          <Switch
+            size="sm"
+            isSelected={enforceSchedule}
+            onChange={setEnforceSchedule}
+            aria-label={t('testSchedule')}
+            data-testid="rehearsal-enforce-schedule"
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+            <Switch.Content>
+              <span className="text-xs text-muted-foreground max-md:hidden">
+                {t('testSchedule')}
+              </span>
+            </Switch.Content>
+          </Switch>
+        )}
+
         {playerId && (
           <span className="font-mono text-xs text-muted-foreground max-md:hidden">
             {t('playerId', { id: playerId.slice(0, 6) })}
@@ -357,7 +395,7 @@ function PlayerSession({
         <PhoneMockup size="lg" responsiveFrame className="h-full min-[480px]:h-[min(856px,100%)]">
           <CampaignPlayer
             ref={player}
-            campaign={campaign}
+            campaign={campaignWithTerms}
             labels={labels}
             onSubmitForm={onSubmitForm}
             onPlay={onPlay}

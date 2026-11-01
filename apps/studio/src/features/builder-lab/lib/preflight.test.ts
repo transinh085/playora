@@ -124,12 +124,17 @@ describe('preflight', () => {
     }
   });
 
-  test('no prizes is an error, fixed by restoring starter prizes', () => {
+  test('no prizes is an error without an unsafe auto-fix (navigates to prizes instead)', () => {
     const c = campaign({ prizes: [] });
     const issues = preflight(c, NOW);
     expect(hasBlockingIssues(issues)).toBe(true);
-    const fixed = applyFix(c, byCode(issues, 'noPrizes')[0]);
-    expect(byCode(preflight(fixed, NOW), 'noPrizes')).toEqual([]);
+    const issue = byCode(issues, 'noPrizes')[0];
+    expect(issue).toMatchObject({
+      level: 'error',
+      code: 'noPrizes',
+      where: { area: 'prizes' },
+    });
+    expect(issue?.fix).toBeUndefined();
   });
 
   test('a prize with zero quantity blocks publishing', () => {
@@ -139,15 +144,14 @@ describe('preflight', () => {
     expect(issues[0]).toMatchObject({ level: 'error', params: { name: 'Voucher 50K' } });
   });
 
-  test('per-prize chances above 100% are scaled down by the fix', () => {
+  test('per-prize chances above 100% are scaled down by the fix to exact 100%', () => {
     const prizes = defaultPrizes().map((p) => ({ ...p, probability: 0.5 }));
     const c = campaign({ prizes, rules: { ...defaultRules(NOW), mode: 'per_prize_probability' } });
     const issue = byCode(preflight(c, NOW), 'probabilitySum')[0];
     expect(issue).toMatchObject({ level: 'error', params: { sum: 150 } });
     const fixed = applyFix(c, issue);
     const sum = fixed.prizes.reduce((t, p) => t + (p.probability ?? 0), 0);
-    expect(sum).toBeLessThanOrEqual(1);
-    expect(sum).toBeGreaterThan(0.99);
+    expect(Math.round(sum * 10_000)).toBe(10_000);
     expect(byCode(preflight(fixed, NOW), 'probabilitySum')).toEqual([]);
   });
 
@@ -275,5 +279,50 @@ describe('preflight', () => {
     const c = campaign({ prizes: [...prizes, { ...prizes[0], id: 'p9', quantity: 0 } as never] });
     const levels = preflight(c, NOW).map((i) => i.level);
     expect(levels.indexOf('warning')).toBeGreaterThan(levels.lastIndexOf('error'));
+  });
+
+  test('warns on empty button labels, unedited demo copy, >60 elements, and early stock exhaustion', () => {
+    const { campaign: c1 } = withElement(
+      campaign({ name: 'Trà Sữa Hương Sen' }),
+      'cover',
+      (e) => e.slot === 'cta',
+      { label: '   ' } as Partial<CanvasElement>,
+    );
+    const { campaign: c2 } = withElement(c1, 'cover', (e) => e.slot === 'promoText', {
+      content: 'Quà tặng từ Cà phê Mộc',
+    } as Partial<CanvasElement>);
+    const issues = preflight(c2, NOW);
+    expect(byCode(issues, 'emptyButton')).toHaveLength(1);
+    expect(byCode(issues, 'demoCopy')).toHaveLength(1);
+
+    const fixedDemo = applyFix(c2, byCode(issues, 'demoCopy')[0]);
+    expect(byCode(preflight(fixedDemo, NOW), 'demoCopy')).toEqual([]);
+
+    const sampleEl = c2.screens.cover.elements[0];
+    if (!sampleEl) throw new Error('expected at least one cover element');
+    const crowdedCover = {
+      ...c2.screens.cover,
+      elements: Array.from({ length: 62 }, (_, idx) => ({
+        ...sampleEl,
+        id: `el_${idx}`,
+      })),
+    };
+    const crowdedIssues = preflight(
+      { ...c2, screens: { ...c2.screens, cover: crowdedCover } },
+      NOW,
+    );
+    expect(byCode(crowdedIssues, 'tooManyElements')[0]).toMatchObject({
+      level: 'warning',
+      params: { count: 62 },
+    });
+
+    const unpaced = campaign({
+      prizes: [{ id: 'p1', name: 'Quà', quantity: 15, valueVnd: 10_000 }],
+      rules: { ...defaultRules(NOW), mode: 'guaranteed', pacing: false },
+    });
+    const stockIssue = byCode(preflight(unpaced, NOW), 'stockExhaustion')[0];
+    expect(stockIssue?.level).toBe('warning');
+    const paced = applyFix(unpaced, stockIssue);
+    expect(paced.rules.pacing).toBe(true);
   });
 });

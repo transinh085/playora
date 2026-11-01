@@ -2,7 +2,7 @@
 
 import { Alert, Card } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Caption } from '@/components/caption';
 import type { Campaign, CampaignPrize, CampaignRules } from '../api';
 import { prizeTotals, ruleIssues } from '../lib/rules-summary';
@@ -20,15 +20,23 @@ export function RulesPrizesPanel({
   campaign,
   organizerName,
   onChange,
+  focusStep,
 }: {
   campaign: Campaign;
   organizerName?: string;
   onChange: (patch: Partial<Pick<Campaign, 'prizes' | 'rules' | 'compliance'>>) => void;
+  focusStep?: { step: 1 | 2 | 3 | 4; nonce: number } | null;
 }) {
   const t = useTranslations('builderLab.rules');
   const { rules, prizes } = campaign;
   const totals = useMemo(() => prizeTotals(prizes), [prizes]);
   const issues = useMemo(() => ruleIssues(rules, prizes), [rules, prizes]);
+
+  useEffect(() => {
+    if (!focusStep) return;
+    const el = document.querySelector<HTMLElement>(`[data-testid="rules-step-${focusStep.step}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusStep]);
 
   const setRules = (patch: Partial<CampaignRules>) => onChange({ rules: { ...rules, ...patch } });
   const setPrizes = (next: CampaignPrize[]) => onChange({ prizes: next });
@@ -106,7 +114,12 @@ export function RulesPrizesPanel({
           <Caption>{t('sim.extra')}</Caption>
         </Card.Header>
         <Card.Content className="p-5">
-          <SimulatorCard campaign={campaign} blocked={issues.length > 0} onRulesChange={setRules} />
+          <SimulatorCard
+            campaign={campaign}
+            blocked={issues.length > 0}
+            onRulesChange={setRules}
+            onPrizesChange={setPrizes}
+          />
         </Card.Content>
       </Card>
     </div>

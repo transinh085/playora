@@ -72,13 +72,25 @@ export function writeSlot(doc: CanvasDoc, slot: SlotKey, value: string): CanvasD
   return next;
 }
 
+function isSameBrand(a: Campaign['brand'], b: Campaign['brand']): boolean {
+  return (
+    a.primary.toLowerCase() === b.primary.toLowerCase() &&
+    a.accent.toLowerCase() === b.accent.toLowerCase() &&
+    a.background.toLowerCase() === b.background.toLowerCase() &&
+    a.text.toLowerCase() === b.text.toLowerCase() &&
+    a.surface.toLowerCase() === b.surface.toLowerCase()
+  );
+}
+
 /**
  * Switching skin rebuilds the screens from the template but keeps what the owner changed: any slot
- * whose value differs from the old skin's default is carried over. Prizes and rules are untouched.
+ * whose value differs from the old skin's default is carried over, and custom brand colours are
+ * preserved unless `preserveBrand: false` is explicitly requested (BLD-06). Prizes and rules are untouched.
  */
 export function switchSkin(
   campaign: Campaign,
   skinKey: SkinKey,
+  options?: { preserveBrand?: boolean },
 ): Pick<Campaign, 'skinKey' | 'screens' | 'brand'> {
   const oldDefaults = buildScreens(campaign.templateKey, campaign.skinKey);
   let screens = buildScreens(campaign.templateKey, skinKey);
@@ -88,5 +100,11 @@ export function switchSkin(
       screens = writeSlot(screens, slot, value);
     }
   }
-  return { skinKey, screens, brand: skinBrand(skinKey) };
+  const hasCustomBrand = !isSameBrand(campaign.brand, skinBrand(campaign.skinKey));
+  const shouldKeepBrand = options?.preserveBrand ?? hasCustomBrand;
+  return {
+    skinKey,
+    screens,
+    brand: shouldKeepBrand ? { ...campaign.brand } : skinBrand(skinKey),
+  };
 }

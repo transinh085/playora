@@ -1,12 +1,35 @@
 'use client';
 
 import { generateTerms } from '@playora/core/compliance';
-import { Button, Card, Chip, TextArea } from '@playora/ui/components';
+import { Alert, Button, Card, Chip, TextArea } from '@playora/ui/components';
 import { FileText, RotateCcw, ShoppingBag, Sparkles } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { IconTile } from '@/components/icon-tile';
 import type { Campaign, CampaignCompliance } from '../../api';
+
+export function isCustomTermsStale(
+  termsText: string | null,
+  campaign: Pick<Campaign, 'prizes' | 'rules'>,
+  generatedTerms: string,
+): boolean {
+  if (!termsText) return false;
+  const trimmed = termsText.trim();
+  if (!trimmed || trimmed === generatedTerms.trim()) return false;
+  for (const prize of campaign.prizes) {
+    if (
+      prize.quantity > 0 &&
+      (!trimmed.includes(prize.name) || !trimmed.includes(String(prize.quantity)))
+    ) {
+      return true;
+    }
+  }
+  const dateMatches = generatedTerms.match(/\d{2}\/\d{2}\/\d{4}/g) ?? [];
+  for (const d of dateMatches) {
+    if (!trimmed.includes(d)) return true;
+  }
+  return false;
+}
 
 /**
  * Step 4: Promotion type & editable terms (CMP-03, CMP-04, docs/business/compliance.md §4).
@@ -36,6 +59,10 @@ export function ComplianceStep({
   }, [campaign.name, organizerName, campaign.rules, campaign.prizes]);
 
   const isCustom = compliance.termsText !== null;
+  const isStale = useMemo(
+    () => isCustomTermsStale(compliance.termsText, campaign, generatedTerms),
+    [compliance.termsText, campaign, generatedTerms],
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -158,6 +185,28 @@ export function ComplianceStep({
         </div>
 
         <span className="text-neutral-500 text-xs dark:text-neutral-400">{t('termsHint')}</span>
+
+        {isCustom && isStale && (
+          <Alert status="warning" data-testid="stale-terms-warning">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title className="text-xs font-medium">{t('staleWarning')}</Alert.Title>
+              <div className="mt-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  data-testid="stale-terms-reset"
+                  className="h-7 rounded-md text-xs"
+                  onPress={() => onChange({ termsText: generatedTerms })}
+                >
+                  <RotateCcw className="mr-1.5 size-3" />
+                  {t('staleResetAction')}
+                </Button>
+              </div>
+            </Alert.Content>
+          </Alert>
+        )}
 
         {isCustom ? (
           <TextArea

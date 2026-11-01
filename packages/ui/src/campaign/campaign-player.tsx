@@ -5,7 +5,7 @@ import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/co
 import { RiGiftLine } from '@remixicon/react';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
-import { type CanvasRuntime, CanvasScreen } from './canvas-screen';
+import { type CanvasRuntime, CanvasScreen, playWebAudioChime } from './canvas-screen';
 import {
   EMPTY_FORM,
   type PlayerFormErrors,
@@ -165,6 +165,7 @@ export function CampaignPlayer({
   const [sheet, setSheet] = useState<Sheet>(null);
   const [openRestoreOnSheet, setOpenRestoreOnSheet] = useState(false);
   const [voucherExpanded, setVoucherExpanded] = useState(true);
+  const [muted, setMuted] = useState(false);
 
   const vouchersOpen = sheet === 'vouchers';
   const vouchersOpenChange = useRef(onVouchersOpenChange);
@@ -249,6 +250,7 @@ export function CampaignPlayer({
   const onDone = (played: PlayResult) => {
     switch (played.outcome) {
       case 'win':
+        if (!muted) playWebAudioChime('win');
         setInternalBlockedReason(null);
         setResult(played);
         setVoucherExpanded(true);
@@ -281,6 +283,9 @@ export function CampaignPlayer({
   const turns = result?.turnsLeftToday ?? turnsLeft;
   const runtime: CanvasRuntime = {
     prizes: toCanvasPrizes(campaign, remainingByPrize),
+    endsAt: campaign.rules.endsAt,
+    muted,
+    onToggleAudio: () => setMuted((m) => !m),
     variables: {
       'player.name': form.name.trim() || labels.defaultName,
       'event.name': campaign.name,

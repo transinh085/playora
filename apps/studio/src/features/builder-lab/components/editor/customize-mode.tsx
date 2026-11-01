@@ -5,6 +5,7 @@ import { Alert } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 import { CanvasWorkspace } from '@/features/canvas-editor/components/canvas-workspace';
+import type { ScreenKey } from '@/features/canvas-editor/lib/model';
 import type { Campaign } from '../../api';
 import { uploadCampaignImage } from '../../lib/upload-image';
 import { CampaignStage } from './phone-preview';
@@ -14,9 +15,11 @@ import type { DraftPatch } from './use-campaign-draft';
 export function CustomizeMode({
   campaign,
   onChange,
+  focusTarget,
 }: {
   campaign: Campaign;
   onChange: (patch: DraftPatch) => void;
+  focusTarget?: { screen: ScreenKey; elementId?: string; nonce: number } | null;
 }) {
   const t = useTranslations('builderLab.editor');
   // Stable between autosaves that only touch the screens, so the canvas does not redraw the stage.
@@ -52,6 +55,7 @@ export function CustomizeMode({
             prizes={canvasPrizes}
             onUploadImage={uploadImage}
             hideHeader={true}
+            focusTarget={focusTarget}
           />
         </div>
       </div>

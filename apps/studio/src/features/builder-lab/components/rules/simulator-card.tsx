@@ -1,14 +1,16 @@
 'use client';
 
-import { Alert, Button, Input, ProgressBar, Tooltip } from '@playora/ui/components';
+import { Alert, Button, Input, ProgressBar, Tooltip, toast } from '@playora/ui/components';
 import { CalendarClock, Coins, Gift, Percent, Users } from '@playora/ui/icons';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { MetricCard } from '@/components/metric-card';
-import type { Campaign, CampaignRules } from '../../api';
+import type { Campaign, CampaignPrize, CampaignRules } from '../../api';
 import { campaignDays, formatVnd } from '../../lib/rules-format';
 import {
+  applySimSuggestion,
+  isActionableSimSuggestion,
   type SimSummary,
   type SimWarning,
   simulateCampaign,
@@ -32,11 +34,13 @@ export function SimulatorCard({
   campaign,
   blocked,
   onRulesChange,
+  onPrizesChange,
 }: {
   campaign: Campaign;
   /** Rules have blocking errors: the engine would reject them, so don't run. */
   blocked: boolean;
   onRulesChange: (patch: Partial<CampaignRules>) => void;
+  onPrizesChange?: (next: CampaignPrize[]) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const [playersPerDay, setPlayersPerDay] = useState(200);
@@ -113,7 +117,13 @@ export function SimulatorCard({
           </Alert.Content>
         </Alert>
       ) : (
-        <SimResult summary={outcome.summary} rules={campaign.rules} onRulesChange={onRulesChange} />
+        <SimResult
+          summary={outcome.summary}
+          rules={campaign.rules}
+          prizes={campaign.prizes}
+          onRulesChange={onRulesChange}
+          onPrizesChange={onPrizesChange}
+        />
       )}
     </div>
   );
@@ -122,11 +132,15 @@ export function SimulatorCard({
 function SimResult({
   summary,
   rules,
+  prizes,
   onRulesChange,
+  onPrizesChange,
 }: {
   summary: SimSummary;
   rules: CampaignRules;
+  prizes: readonly CampaignPrize[];
   onRulesChange: (patch: Partial<CampaignRules>) => void;
+  onPrizesChange?: (next: CampaignPrize[]) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const format = useFormatter();
@@ -186,7 +200,14 @@ function SimResult({
       </div>
 
       {summary.warnings.map((w) => (
-        <WarningAlert key={w.key} warning={w} rules={rules} onRulesChange={onRulesChange} />
+        <WarningAlert
+          key={w.key}
+          warning={w}
+          rules={rules}
+          prizes={prizes}
+          onRulesChange={onRulesChange}
+          onPrizesChange={onPrizesChange}
+        />
       ))}
 
       <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
@@ -224,11 +245,15 @@ function SimResult({
 function WarningAlert({
   warning,
   rules,
+  prizes,
   onRulesChange,
+  onPrizesChange,
 }: {
   warning: SimWarning;
   rules: CampaignRules;
+  prizes: readonly CampaignPrize[];
   onRulesChange: (patch: Partial<CampaignRules>) => void;
+  onPrizesChange?: (next: CampaignPrize[]) => void;
 }) {
   const t = useTranslations('builderLab.rules.sim');
   const canPace = warning.suggestions.includes('turnOnPacing') && !rules.pacing;
@@ -240,10 +265,32 @@ function WarningAlert({
         <Alert.Title>{t(`warnings.${warning.key}`, warning.values)}</Alert.Title>
         {warning.suggestions.length > 0 && (
           <Alert.Description>
-            <ul className="m-0 mt-1 flex list-disc flex-col gap-0.5 pl-5 text-xs">
-              {warning.suggestions.map((s) => (
-                <li key={s}>{t(`suggestions.${s}`)}</li>
-              ))}
+            <ul className="m-0 mt-1 flex list-disc flex-col gap-1.5 pl-5 text-xs">
+              {warning.suggestions.map((s) => {
+                const actionable = isActionableSimSuggestion(s);
+                return (
+                  <li key={s} className="flex flex-wrap items-center justify-between gap-2">
+                    <span>{t(`suggestions.${s}`)}</span>
+                    {actionable && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        data-testid={`sim-apply-${s}`}
+                        className="h-6 rounded-md px-2 text-[11px]"
+                        onPress={() => {
+                          const patch = applySimSuggestion(s, rules, prizes);
+                          if (patch.rules) onRulesChange(patch.rules);
+                          if (patch.prizes && onPrizesChange) onPrizesChange(patch.prizes);
+                          toast.success(t('appliedToast'));
+                        }}
+                      >
+                        {s === 'turnOnPacing' ? t('applyPacing') : t('applySuggestion')}
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </Alert.Description>
         )}

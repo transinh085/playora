@@ -40,7 +40,9 @@ export type { CanvasLabels };
 export interface CanvasPrize {
   name: string;
   image?: string;
-  /** Unknown on the public player (stock is never exposed); the count is then hidden. */
+  /** Total initial stock when known, used for the Transparent Cover progress bar (BLD-25). */
+  quantity?: number;
+  /** Remaining stock when known; the count is hidden when undefined. */
   remaining?: number;
 }
 
@@ -55,6 +57,12 @@ export interface CanvasRuntime {
   onButton?: (element: ButtonElement) => void;
   /** The campaign's prizes for `prizeList` elements; demo prizes otherwise. */
   prizes?: CanvasPrize[];
+  /** Campaign end ISO timestamp for live `countdown` elements. */
+  endsAt?: string;
+  /** Whether game audio / sound effects are currently muted. */
+  muted?: boolean;
+  /** Toggles game audio mute state. */
+  onToggleAudio?: () => void;
   /**
    * Real values for `{prize.name}`, `{player.name}`, `{event.name}`; samples from labels otherwise.
    * `{turns.left}` is only replaced when the player knows it.
@@ -530,50 +538,55 @@ function ElementView({
     }
     case 'audio': {
       return (
-        <div
-          style={{
-            ...fill,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            background: c(element.background),
-            color: c(element.color),
-            borderRadius: element.radius,
-            boxShadow: '0 3px 8px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-          }}
-        >
-          <Volume2 className="size-4 shrink-0" />
-          {element.label ? (
-            <span style={{ fontSize: 12, fontWeight: 700 }}>{element.label}</span>
-          ) : null}
-        </div>
+        <AudioElementButton
+          label={element.label ?? ''}
+          background={c(element.background)}
+          color={c(element.color)}
+          radius={element.radius}
+          muted={runtime?.muted}
+          onToggle={runtime?.onToggleAudio}
+        />
       );
     }
     case 'social': {
       const isPhone = element.channel === 'phone';
       const isFb = element.channel === 'facebook';
       const IconComp = isPhone ? PhoneCall : isFb ? Globe : MessageCircle;
+      const href = resolveSocialHref(element.channel, element.url);
+      const sharedStyle = {
+        ...fill,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '0 12px',
+        background: c(element.background),
+        color: c(element.color),
+        borderRadius: element.radius,
+        fontWeight: 700,
+        fontSize: 13,
+        boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+        cursor: 'pointer',
+        textDecoration: 'none',
+      } as const;
+
+      if (href) {
+        const isTel = href.startsWith('tel:');
+        return (
+          <a
+            href={href}
+            target={isTel ? undefined : '_blank'}
+            rel={isTel ? undefined : 'noopener noreferrer'}
+            style={sharedStyle}
+          >
+            <IconComp className="size-4 shrink-0" />
+            <span>{element.label}</span>
+          </a>
+        );
+      }
 
       return (
-        <div
-          style={{
-            ...fill,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            padding: '0 12px',
-            background: c(element.background),
-            color: c(element.color),
-            borderRadius: element.radius,
-            fontWeight: 700,
-            fontSize: 13,
-            boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
-            cursor: 'pointer',
-          }}
-        >
+        <div style={sharedStyle}>
           <IconComp className="size-4 shrink-0" />
           <span>{element.label}</span>
         </div>
@@ -589,9 +602,27 @@ function ElementView({
           color={c(element.color)}
           background={c(element.background)}
           labels={labels}
+          endsAt={runtime?.endsAt}
         />
       );
-    case 'prizeList':
+    case 'prizeList': {
+      const prizes: CanvasPrize[] = (runtime?.prizes ?? DEMO_PRIZES).slice(0, 6);
+      const hasStockBar =
+        element.showRemaining &&
+        prizes.length > 0 &&
+        prizes.every((p) => p.remaining !== undefined && (p.quantity ?? p.remaining) !== undefined);
+      const totalRemaining = hasStockBar
+        ? prizes.reduce((sum, p) => sum + Math.max(0, p.remaining ?? 0), 0)
+        : 0;
+      const totalQuantity = hasStockBar
+        ? prizes.reduce(
+            (sum, p) => sum + Math.max(p.remaining ?? 0, p.quantity ?? p.remaining ?? 0),
+            0,
+          )
+        : 0;
+      const stockRatio =
+        totalQuantity > 0 ? Math.min(1, Math.max(0, totalRemaining / totalQuantity)) : 0;
+
       return (
         <div
           style={{
@@ -614,6 +645,52 @@ function ElementView({
               {element.title}
             </div>
           ) : null}
+          {hasStockBar && totalQuantity > 0 ? (
+            <div
+              data-testid="transparent-cover-stock"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                padding: '4px 8px',
+                borderRadius: 10,
+                background: 'rgba(0,0,0,0.22)',
+                color: c(element.color),
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                <span>
+                  {labels.remaining(totalRemaining)} / {totalQuantity}
+                </span>
+                <span>{Math.round(stockRatio * 100)}%</span>
+              </div>
+              <div
+                style={{
+                  height: 5,
+                  borderRadius: 9999,
+                  background: 'rgba(255,255,255,0.2)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.round(stockRatio * 100)}%`,
+                    height: '100%',
+                    borderRadius: 9999,
+                    background: c('brand.accent'),
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
           <div
             style={{
               flex: 1,
@@ -623,7 +700,7 @@ function ElementView({
               color: c(element.color),
             }}
           >
-            {(runtime?.prizes ?? DEMO_PRIZES).slice(0, 6).map((prize: CanvasPrize, i) => (
+            {prizes.map((prize: CanvasPrize, i) => (
               <div
                 key={prize.name}
                 style={{
@@ -651,6 +728,7 @@ function ElementView({
                 {element.showRemaining && prize.remaining !== undefined && (
                   <div style={{ fontSize: 11, opacity: 0.75 }}>
                     {labels.remaining(prize.remaining)}
+                    {prize.quantity !== undefined ? ` / ${prize.quantity}` : ''}
                   </div>
                 )}
               </div>
@@ -658,6 +736,7 @@ function ElementView({
           </div>
         </div>
       );
+    }
     case 'gameStage':
       return runtime?.renderStage ? runtime.renderStage(element) : <DemoWheel brand={brand} />;
     case 'form':
@@ -701,6 +780,119 @@ function ElementView({
   }
 }
 
+export function resolveSocialHref(
+  channel: 'zalo' | 'phone' | 'facebook' | 'website',
+  url?: string,
+): string | null {
+  const raw = url?.trim();
+  if (!raw) return null;
+  if (/^(javascript|data|vbscript):/i.test(raw)) return null;
+  if (channel === 'phone' || /^tel:/i.test(raw)) {
+    const digits = raw.replace(/^tel:/i, '').replace(/[^\d+]/g, '');
+    return digits ? `tel:${digits}` : null;
+  }
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (channel === 'zalo' && !raw.includes('/')) {
+    return `https://zalo.me/${raw.replace(/^@/, '')}`;
+  }
+  return `https://${raw}`;
+}
+
+export function playWebAudioChime(kind: 'toggle' | 'win' = 'toggle'): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioCtx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const notes = kind === 'win' ? [523.25, 659.25, 783.99, 1046.5] : [587.33, 880];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + idx * 0.08;
+      gain.gain.setValueAtTime(0.08, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.19);
+    });
+  } catch {
+    // Ignore Web Audio autoplay / sandbox restrictions in headless environments.
+  }
+}
+
+function AudioElementButton({
+  label,
+  background,
+  color,
+  radius,
+  muted: controlledMuted,
+  onToggle,
+}: {
+  label: string;
+  background: string;
+  color: string;
+  radius: number;
+  muted?: boolean;
+  onToggle?: () => void;
+}) {
+  const [localMuted, setLocalMuted] = useState(false);
+  const isMuted = controlledMuted ?? localMuted;
+
+  const handleClick = () => {
+    const nextMuted = !isMuted;
+    if (onToggle) {
+      onToggle();
+    } else {
+      setLocalMuted(nextMuted);
+    }
+    if (!nextMuted) {
+      playWebAudioChime('toggle');
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={!isMuted}
+      data-muted={isMuted ? 'true' : 'false'}
+      onClick={handleClick}
+      style={{
+        width: '100%',
+        height: '100%',
+        border: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        background,
+        color,
+        borderRadius: radius,
+        boxShadow: '0 3px 8px rgba(0,0,0,0.3)',
+        cursor: 'pointer',
+        opacity: isMuted ? 0.65 : 1,
+      }}
+    >
+      <Volume2 className="size-4 shrink-0" />
+      {label ? (
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            textDecoration: isMuted ? 'line-through' : 'none',
+          }}
+        >
+          {label}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
 function Countdown({
   variant = 'cards',
   title,
@@ -709,6 +901,7 @@ function Countdown({
   color,
   background,
   labels,
+  endsAt,
 }: {
   variant?: 'cards' | 'pill' | 'minimal';
   title?: string;
@@ -717,9 +910,12 @@ function Countdown({
   color: string;
   background: string;
   labels: CanvasLabels;
+  endsAt?: string;
 }) {
-  // Demo target: three days from first render.
-  const [target] = useState(() => Date.now() + 3 * 86_400_000 + 4 * 3_600_000);
+  // Fallback target when no campaign endsAt is provided: three days from first render.
+  const [fallbackTarget] = useState(() => Date.now() + 3 * 86_400_000 + 4 * 3_600_000);
+  const parsedEndsAt = endsAt ? Date.parse(endsAt) : Number.NaN;
+  const target = Number.isFinite(parsedEndsAt) ? parsedEndsAt : fallbackTarget;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);

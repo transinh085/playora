@@ -7,6 +7,7 @@ import {
   campaignsApi,
   type PlayResult,
 } from '@playora/contracts';
+import { generateTerms } from '@playora/core/compliance';
 import {
   type ButtonElement,
   CampaignPlayer,
@@ -63,6 +64,15 @@ function toRehearsalDocument(campaign: Campaign): CampaignPlayerDocument {
     screens: toCanvasDoc(campaign.screens),
     prizes: campaign.prizes,
     rules: campaign.rules,
+    terms:
+      campaign.compliance.termsText ??
+      generateTerms({
+        campaignName: campaign.name,
+        organizerName: campaign.name,
+        rules: campaign.rules,
+        prizes: campaign.prizes,
+        redeemGraceDays: 7,
+      }),
   };
 }
 

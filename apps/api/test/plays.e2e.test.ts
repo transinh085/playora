@@ -188,11 +188,7 @@ describe('campaign terms (CMP-04)', () => {
     expect(generated.terms).toContain('THỂ LỆ CHƯƠNG TRÌNH');
     expect(generated.terms).toContain('Cơ cấu giải thưởng');
     expect(generated.terms).toContain(P1.name);
-    expect(c.compliance).toEqual({
-      promotionType: null,
-      termsText: null,
-      checklistAcknowledgedAt: null,
-    });
+    expect(c.compliance.termsText).toBeNull();
 
     const api = t.client(alice);
     const updated = await api.call(campaignsApi.update, {
@@ -756,11 +752,12 @@ describe('rehearsal plays', () => {
     expect(await play(live.api, c.slug)).toMatchObject({ outcome: 'win', prize: { id: 'new' } });
   });
 
-  test('works on a never-published draft and ignores pause and schedule', async () => {
+  test('works on a never-published draft and ignores pause and schedule unless enforceSchedule is true', async () => {
     const c = await createCampaign(
       {
         rules: {
           mode: 'guaranteed',
+          playsPerDay: 3,
           startsAt: new Date(Date.now() + 10 * DAY).toISOString(),
           endsAt: new Date(Date.now() + 20 * DAY).toISOString(),
         },
@@ -769,9 +766,91 @@ describe('rehearsal plays', () => {
     );
     const result = await t.client(alice).call(campaignsApi.rehearsalPlay, {
       params: ids(c),
-      body: { testerKey: 'studio', requestId: crypto.randomUUID() },
+      body: {
+        testerKey: 'studio',
+        requestId: crypto.randomUUID(),
+        playerName: 'Chị Thảo',
+      },
     });
     expect(result.outcome).toBe('win');
+    const lookup = await t.client(alice).call(vouchersApi.lookup, {
+      params: { orgId: aliceOrg, code: result.voucher?.code as string },
+    });
+    expect(lookup.playerName).toBe('Chị Thảo');
+
+    const enforced = await t.client(alice).call(campaignsApi.rehearsalPlay, {
+      params: ids(c),
+      body: {
+        testerKey: 'studio',
+        requestId: crypto.randomUUID(),
+        enforceSchedule: true,
+      },
+    });
+    expect(enforced).toMatchObject({ outcome: 'closed', reason: 'closed' });
+  });
+
+  test('public draft rehearsal link caps at 20 testers and rotates cleanly without dirtying published state (BLD-23)', async () => {
+    const c = await createCampaign({
+      rules: { mode: 'guaranteed', playsPerDay: 3, maxWinsPerPlayer: 3 },
+    });
+    const api = t.client(alice);
+    const link1 = await api.call(campaignsApi.rehearsalLink, { params: ids(c) });
+    expect(link1.token).toHaveLength(24);
+    expect(link1.testerCount).toBe(0);
+    expect(link1.maxTesters).toBe(20);
+
+    // Generating a share link does not dirty hasUnpublishedChanges.
+    const fetched = await api.call(campaignsApi.get, { params: ids(c) });
+    expect(fetched.hasUnpublishedChanges).toBe(false);
+
+    const draft = await playerClient().call(playsApi.draftCampaign, {
+      params: { token: link1.token },
+    });
+    expect(draft.id).toBe(c.id);
+    expect(draft.testerCount).toBe(0);
+
+    for (let i = 1; i <= 20; i++) {
+      const res = await playerClient().call(playsApi.draftPlay, {
+        params: { token: link1.token },
+        body: {
+          testerKey: `tester-${i}`,
+          requestId: crypto.randomUUID(),
+          playerName: `Tester ${i}`,
+        },
+      });
+      expect(res.outcome).toBe('win');
+    }
+
+    // Existing tester #1 can still play their remaining turns.
+    const existingAgain = await playerClient().call(playsApi.draftPlay, {
+      params: { token: link1.token },
+      body: { testerKey: 'tester-1', requestId: crypto.randomUUID() },
+    });
+    expect(existingAgain.outcome).toBe('win');
+
+    // A 21st distinct tester is rejected with 403 DRAFT_TESTER_LIMIT_REACHED.
+    await expectApiError(
+      playerClient().call(playsApi.draftPlay, {
+        params: { token: link1.token },
+        body: { testerKey: 'tester-21', requestId: crypto.randomUUID() },
+      }),
+      403,
+      ErrorCode.DRAFT_TESTER_LIMIT_REACHED,
+    );
+
+    // Rotating the link produces a new token with testerCount = 0.
+    const rotated = await api.call(campaignsApi.rehearsalLink, {
+      params: ids(c),
+      body: { rotate: true },
+    });
+    expect(rotated.token).not.toBe(link1.token);
+    expect(rotated.testerCount).toBe(0);
+
+    await expectApiError(
+      playerClient().call(playsApi.draftCampaign, { params: { token: link1.token } }),
+      404,
+      ErrorCode.NOT_FOUND,
+    );
   });
 
   test('permission, cross-tenant 403/404, 400 and 401', async () => {

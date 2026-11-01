@@ -3,7 +3,13 @@ import { describe, expect, test } from 'bun:test';
 import type { CampaignPrize, CampaignRules } from '@playora/contracts';
 import type { SimulationResult } from '@playora/core/prize';
 import { simulate } from '@playora/core/prize';
-import { issuedByDay, stockOutAt, summarizeSimulation } from './rules-sim';
+import {
+  applySimSuggestion,
+  issuedByDay,
+  simulateCampaign,
+  stockOutAt,
+  summarizeSimulation,
+} from './rules-sim';
 
 const rules: CampaignRules = {
   mode: 'overall_win_rate',
@@ -163,5 +169,47 @@ describe('summarizeSimulation', () => {
     expect(s.perDay.reduce((a, b) => a + b, 0)).toBe(40);
     expect(s.stockOut?.day).toBe(1);
     expect(s.warnings[0]?.key).toBe('stockOutEarly');
+  });
+
+  test('simulateCampaign scales unique players for campaigns longer than 7 days (BLD-21)', () => {
+    const bigStock: CampaignPrize[] = [{ id: 'a', name: 'A', quantity: 5_000, valueVnd: 10_000 }];
+    const sevenDays = simulateCampaign(
+      {
+        id: 'sim-scale',
+        rules: {
+          ...rules,
+          mode: 'guaranteed',
+          maxWinsPerPlayer: 1,
+          startsAt: '2027-01-01T00:00:00.000Z',
+          endsAt: '2027-01-08T00:00:00.000Z',
+        },
+        prizes: bigStock,
+      },
+      { playersPerDay: 100, days: 7 },
+    );
+    const thirtyDays = simulateCampaign(
+      {
+        id: 'sim-scale',
+        rules: {
+          ...rules,
+          mode: 'guaranteed',
+          maxWinsPerPlayer: 1,
+          startsAt: '2027-01-01T00:00:00.000Z',
+          endsAt: '2027-01-31T00:00:00.000Z',
+        },
+        prizes: bigStock,
+      },
+      { playersPerDay: 100, days: 30 },
+    );
+    expect(thirtyDays.totalWins).toBeGreaterThan(sevenDays.totalWins * 2);
+  });
+
+  test('applySimSuggestion returns actionable rule/prize adjustments', () => {
+    expect(applySimSuggestion('turnOnPacing', rules, prizes)).toEqual({
+      rules: { pacing: true },
+    });
+    expect(applySimSuggestion('raiseMaxWins', rules, prizes)).toEqual({
+      rules: { maxWinsPerPlayer: 2 },
+    });
   });
 });

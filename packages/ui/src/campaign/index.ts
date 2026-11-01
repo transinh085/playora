@@ -15,6 +15,8 @@ export {
   type CanvasRuntime,
   CanvasScreen,
   type CanvasVariable,
+  playWebAudioChime,
+  resolveSocialHref,
 } from './canvas-screen';
 export {
   EMPTY_FORM,

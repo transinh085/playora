@@ -28,7 +28,7 @@ export function simulateCampaign(
       window: { startsAt: campaign.rules.startsAt, endsAt: campaign.rules.endsAt },
     },
     traffic: CAFE_TRAFFIC_SHAPE.map((share) => share * playsPerDay),
-    players: Math.max(1, input.playersPerDay * Math.min(days, 7)),
+    players: Math.max(1, Math.round(input.playersPerDay * (1 + (days - 1) * 0.65))),
     days,
     seed: campaign.id,
   });
@@ -87,6 +87,83 @@ export type SimSuggestion =
   | 'longerHours'
   | 'raiseBudget'
   | 'raiseMaxWins';
+
+export type ActionableSimSuggestion =
+  | 'turnOnPacing'
+  | 'lowerRate'
+  | 'raiseRate'
+  | 'lowerProbability'
+  | 'raiseProbability'
+  | 'longerHours'
+  | 'raiseBudget'
+  | 'raiseMaxWins';
+
+export function isActionableSimSuggestion(s: SimSuggestion): s is ActionableSimSuggestion {
+  return s !== 'addStock' && s !== 'fewerPrizes';
+}
+
+export function applySimSuggestion(
+  suggestion: ActionableSimSuggestion,
+  rules: CampaignRules,
+  prizes: readonly CampaignPrize[],
+): { rules?: Partial<CampaignRules>; prizes?: CampaignPrize[] } {
+  switch (suggestion) {
+    case 'turnOnPacing':
+      return { rules: { pacing: true } };
+    case 'lowerRate':
+      return {
+        rules: {
+          overallWinRate: Math.max(0.05, Math.round(rules.overallWinRate * 0.7 * 100) / 100),
+        },
+      };
+    case 'raiseRate':
+      return {
+        rules: {
+          overallWinRate: Math.min(
+            1,
+            Math.round(Math.max(0.1, rules.overallWinRate * 1.4) * 100) / 100,
+          ),
+        },
+      };
+    case 'lowerProbability':
+      return {
+        prizes: prizes.map((p) => ({
+          ...p,
+          probability: Math.max(0.01, Math.round((p.probability ?? 0) * 0.75 * 1000) / 1000),
+        })),
+      };
+    case 'raiseProbability': {
+      const currentSum = prizes.reduce((s, p) => s + (p.probability ?? 0), 0);
+      if (currentSum <= 0) {
+        const share = prizes.length > 0 ? Math.round((0.5 / prizes.length) * 1000) / 1000 : 0;
+        return { prizes: prizes.map((p) => ({ ...p, probability: share })) };
+      }
+      const scale = Math.min(1.35, 0.95 / currentSum);
+      return {
+        prizes: prizes.map((p) => ({
+          ...p,
+          probability: Math.min(1, Math.round((p.probability ?? 0) * scale * 1000) / 1000),
+        })),
+      };
+    }
+    case 'longerHours':
+      return { rules: { openingHours: null } };
+    case 'raiseBudget': {
+      const totalStockValue = prizes.reduce(
+        (sum, p) => sum + Math.max(0, p.quantity) * Math.max(0, p.valueVnd),
+        0,
+      );
+      return {
+        rules: {
+          budgetVnd:
+            rules.budgetVnd !== null && totalStockValue > rules.budgetVnd ? totalStockValue : null,
+        },
+      };
+    }
+    case 'raiseMaxWins':
+      return { rules: { maxWinsPerPlayer: Math.min(100, rules.maxWinsPerPlayer + 1) } };
+  }
+}
 
 export interface SimWarning {
   key: 'stockOutEarly' | 'leftover' | 'budgetReached' | 'limitBlocks' | 'noWins' | 'healthy';

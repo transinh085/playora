@@ -110,6 +110,109 @@ export class PlaysRepository {
     return row;
   }
 
+  /** Finds a draft campaign by its rehearsal share token stored in `games.hotConfig`. */
+  async findCampaignByShareToken(token: string) {
+    const [row] = await this.db
+      .select({
+        event: events,
+        game: games,
+        organizationName: organization.name,
+      })
+      .from(events)
+      .innerJoin(organization, eq(organization.id, events.organizationId))
+      .innerJoin(
+        games,
+        and(
+          eq(games.organizationId, events.organizationId),
+          eq(games.eventId, events.id),
+          isNull(games.deletedAt),
+        ),
+      )
+      .where(
+        and(
+          isNull(events.deletedAt),
+          sql`${games.hotConfig}->>'rehearsalShareToken' = ${token}`,
+          sql`jsonb_exists(${games.draftConfig}, 'rules')`,
+        ),
+      )
+      .limit(1);
+    return row;
+  }
+
+  /** Writes the rehearsal share token into `games.hotConfig` without touching `draftConfig` or `updatedAt`. */
+  async setRehearsalShareToken(organizationId: string, gameId: string, token: string) {
+    await this.db
+      .update(games)
+      .set({
+        hotConfig: sql`coalesce(${games.hotConfig}, '{}'::jsonb) || ${JSON.stringify({ rehearsalShareToken: token })}::jsonb`,
+      })
+      .where(and(eq(games.organizationId, organizationId), eq(games.id, gameId)));
+  }
+
+  /** Counts distinct public draft testers (`deviceId LIKE 'draft:<tokenPrefix>:%'`) for a campaign. */
+  async countDraftTesters(
+    organizationId: string,
+    eventId: string,
+    tokenPrefix: string,
+    tx: DbOrTx = this.db,
+  ): Promise<number> {
+    const [row] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(players)
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'rehearsal'),
+          sql`${players.deviceId} like ${`draft:${tokenPrefix}:%`}`,
+        ),
+      );
+    return row?.count ?? 0;
+  }
+
+  /** Checks whether a rehearsal player already exists for `deviceId`. */
+  async findTesterByDeviceId(
+    organizationId: string,
+    eventId: string,
+    deviceId: string,
+    tx: DbOrTx = this.db,
+  ) {
+    const [row] = await tx
+      .select({ id: players.id })
+      .from(players)
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'rehearsal'),
+          eq(players.deviceId, deviceId),
+        ),
+      )
+      .limit(1);
+    return row;
+  }
+
+  /** Resets rehearsal turns/plays/awards for one public draft tester or all testers of a share token. */
+  async resetDraftTesters(
+    organizationId: string,
+    eventId: string,
+    tokenPrefix: string,
+    deviceId?: string,
+  ) {
+    await this.db
+      .delete(players)
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'rehearsal'),
+          deviceId
+            ? eq(players.deviceId, deviceId)
+            : sql`${players.deviceId} like ${`draft:${tokenPrefix}:%`}`,
+        ),
+      );
+  }
+
   // ── Players ──────────────────────────────────────────────────────────────────
 
   /**
@@ -180,15 +283,34 @@ export class PlaysRepository {
   }
 
   /** The rehearsal player behind a Studio tester key (stored in `deviceId`). */
-  async findOrCreateTester(organizationId: string, eventId: string, testerKey: string, tx: Tx) {
+  async findOrCreateTester(
+    organizationId: string,
+    eventId: string,
+    testerKey: string,
+    tx: Tx,
+    displayName?: string,
+  ) {
+    const trimmedName = displayName?.trim() || undefined;
     const where = and(
       eq(players.organizationId, organizationId),
       eq(players.eventId, eventId),
       eq(players.env, 'rehearsal'),
       eq(players.deviceId, testerKey),
     );
-    const [found] = await tx.select({ id: players.id }).from(players).where(where).limit(1);
-    if (found) return found;
+    const [found] = await tx
+      .select({ id: players.id, displayName: players.displayName })
+      .from(players)
+      .where(where)
+      .limit(1);
+    if (found) {
+      if (trimmedName && found.displayName !== trimmedName) {
+        await tx
+          .update(players)
+          .set({ displayName: trimmedName, updatedAt: new Date() })
+          .where(eq(players.id, found.id));
+      }
+      return { id: found.id };
+    }
     const [created] = await tx
       .insert(players)
       .values({
@@ -196,7 +318,7 @@ export class PlaysRepository {
         eventId,
         env: 'rehearsal',
         deviceId: testerKey,
-        displayName: 'Chạy thử',
+        displayName: trimmedName ?? 'Chạy thử',
       })
       .returning({ id: players.id });
     return created as { id: string };

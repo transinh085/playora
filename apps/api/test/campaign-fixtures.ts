@@ -33,6 +33,11 @@ export function campaignBody(overrides: Partial<CreateCampaignBody> = {}): Creat
     name: 'Khai trương Quán Đức',
     templateKey: 'spin-wheel',
     skinKey: 'grand-opening',
+    compliance: {
+      promotionType: 'not_linked',
+      termsText: null,
+      checklistAcknowledgedAt: new Date(now).toISOString(),
+    },
     brand: {
       primary: '#D7263D',
       accent: '#F4B400',

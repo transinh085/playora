@@ -70,4 +70,23 @@ describe('quick edit slots', () => {
     expect(readSlot(switched.screens, 'productPhoto')).toBe(presetSrc('coffee'));
     expect(c.prizes[0]?.name).toBe('Bánh mì');
   });
+
+  test('switching skin preserves customized brand colors unless preserveBrand is false (BLD-06)', () => {
+    const c = campaign();
+    const customBrand = {
+      primary: '#112233',
+      accent: '#445566',
+      background: '#0a0b0c',
+      text: '#f5f6f7',
+      surface: '#1a2b3c',
+    };
+    c.brand = customBrand;
+
+    const preserved = switchSkin(c, 'everyday');
+    expect(preserved.skinKey).toBe('everyday');
+    expect(preserved.brand).toEqual(customBrand);
+
+    const resetToSkin = switchSkin(c, 'everyday', { preserveBrand: false });
+    expect(resetToSkin.brand).toEqual(skinBrand('everyday'));
+  });
 });

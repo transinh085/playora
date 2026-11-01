@@ -67,6 +67,7 @@ import {
   type BrandPalette,
   type CanvasDoc,
   type GameStageElement,
+  type ScreenKey,
   SINGLETON_TYPES,
 } from '../lib/model';
 import { EditorCanvas } from './editor-canvas';
@@ -177,6 +178,7 @@ export function CanvasWorkspace({
   toolbarEnd,
   toolbarHeight = 56,
   hideHeader = false,
+  focusTarget,
 }: {
   value: CanvasDoc;
   onChange: (doc: CanvasDoc) => void;
@@ -192,6 +194,8 @@ export function CanvasWorkspace({
   toolbarEnd?: ReactNode;
   toolbarHeight?: number;
   hideHeader?: boolean;
+  /** Deep-link target from pre-flight dialog: switches screen and selects the element. */
+  focusTarget?: { screen: ScreenKey; elementId?: string; nonce: number } | null;
 }) {
   const t = useTranslations('canvasLab');
   const [state, dispatch] = useReducer(editorReducer, value, createEditorState);
@@ -201,6 +205,15 @@ export function CanvasWorkspace({
   const [autoFit, setAutoFit] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
   const screen = currentScreen(state);
+
+  useEffect(() => {
+    if (!focusTarget) return;
+    setPreview(false);
+    dispatch({ type: 'selectScreen', screen: focusTarget.screen });
+    if (focusTarget.elementId) {
+      dispatch({ type: 'select', id: focusTarget.elementId });
+    }
+  }, [focusTarget]);
 
   // Two-way sync without loops: remember the last document exchanged with the parent.
   const synced = useRef(value);

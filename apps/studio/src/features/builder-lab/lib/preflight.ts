@@ -10,7 +10,9 @@ import {
   type ScreenKey,
 } from '@/features/canvas-editor/lib/model';
 import type { Campaign } from '../api';
-import { buildScreens, defaultPrizes } from './starter';
+import { campaignDays } from './rules-format';
+import { simulateCampaign, stockOutAt } from './rules-sim';
+import { buildScreens } from './starter';
 
 /**
  * Pre-flight before publish (docs/product/specs/builder.md §4.5): checks a campaign the way a careful reviewer
@@ -26,8 +28,12 @@ export type IssueCode =
   | 'endInPast'
   | 'endBeforeStart'
   | 'lowStock'
+  | 'stockExhaustion'
   | 'smallText'
   | 'smallButton'
+  | 'emptyButton'
+  | 'tooManyElements'
+  | 'demoCopy'
   | 'offCanvas'
   | 'lowContrast'
   | 'emptyTitle'
@@ -146,7 +152,6 @@ function prizeIssues(c: Campaign): PreflightIssue[] {
       level: 'error',
       code: 'noPrizes',
       where: { area: 'prizes' },
-      fix: () => ({ prizes: defaultPrizes() }),
     });
     return issues;
   }
@@ -170,14 +175,29 @@ function prizeIssues(c: Campaign): PreflightIssue[] {
         code: 'probabilitySum',
         params: { sum: round1(sum * 100) },
         where: { area: 'prizes' },
-        // Keep the owner's proportions, scaled down so the chances add up to exactly 100%.
+        // Keep the owner's proportions, scaled down so the chances add up to exact 1.0 (100%).
         fix: (current) => {
           const total = current.prizes.reduce((t, p) => t + (p.probability ?? 0), 0);
           if (total <= 1) return {};
+          const scaled = current.prizes.map(
+            (p) => Math.floor(((p.probability ?? 0) / total) * 10_000) / 10_000,
+          );
+          let lastIdx = scaled.length - 1;
+          for (let i = scaled.length - 1; i >= 0; i -= 1) {
+            if ((current.prizes[i]?.probability ?? 0) > 0) {
+              lastIdx = i;
+              break;
+            }
+          }
+          const sumOthers = scaled.reduce(
+            (acc, val, idx) => (idx === lastIdx ? acc : acc + val),
+            0,
+          );
+          const remainder = Math.max(0, Math.round((1 - sumOthers) * 10_000) / 10_000);
           return {
-            prizes: current.prizes.map((p) => ({
+            prizes: current.prizes.map((p, idx) => ({
               ...p,
-              probability: Math.floor(((p.probability ?? 0) / total) * 10_000) / 10_000,
+              probability: idx === lastIdx ? remainder : (scaled[idx] ?? 0),
             })),
           };
         },
@@ -193,6 +213,32 @@ function prizeIssues(c: Campaign): PreflightIssue[] {
       params: { total: stock },
       where: { area: 'prizes' },
     });
+  } else if (
+    stock >= LOW_STOCK_THRESHOLD &&
+    !c.rules.pacing &&
+    c.prizes.every((p) => p.quantity > 0)
+  ) {
+    try {
+      const days = campaignDays(c.rules.startsAt, c.rules.endsAt);
+      if (days >= 3) {
+        const sim = simulateCampaign(c, { playersPerDay: 100, days });
+        const out = stockOutAt(sim);
+        if (out && out.day <= Math.floor(days * 0.7)) {
+          issues.push({
+            id: 'stockExhaustion',
+            level: 'warning',
+            code: 'stockExhaustion',
+            params: { day: out.day, days },
+            where: { area: 'rules' },
+            fix: (current) => ({
+              rules: { ...current.rules, pacing: true },
+            }),
+          });
+        }
+      }
+    } catch {
+      // Simulation skipped when rules are invalid (already reported by rule/schedule checks).
+    }
   }
   return issues;
 }
@@ -251,6 +297,19 @@ function elementIssues(c: Campaign, key: ScreenKey): PreflightIssue[] {
     elementName: e.name,
   });
 
+  const visibleElements = screen.elements.filter((e) => !e.hidden);
+  if (visibleElements.length > 60) {
+    issues.push({
+      id: `tooManyElements:${key}`,
+      level: 'warning',
+      code: 'tooManyElements',
+      params: { count: visibleElements.length },
+      where: { area: 'screens', screen: key },
+    });
+  }
+
+  const isDemoCampaignName = /cà phê mộc/i.test(c.name);
+
   for (const e of screen.elements) {
     if (e.hidden) continue;
 
@@ -289,6 +348,20 @@ function elementIssues(c: Campaign, key: ScreenKey): PreflightIssue[] {
           },
         });
       }
+      if (!isDemoCampaignName && /cà phê mộc/i.test(e.content)) {
+        issues.push({
+          id: `demoCopy:${key}:${e.id}`,
+          level: 'warning',
+          code: 'demoCopy',
+          where: at(e),
+          fix: (current) =>
+            patchElement(current, key, e.id, (el) =>
+              el.type === 'text'
+                ? { content: el.content.replace(/Cà phê Mộc/gi, current.name) }
+                : {},
+            ),
+        });
+      }
       if (e.fontSize < MIN_FONT_PX) {
         issues.push({
           id: `smallText:${key}:${e.id}`,
@@ -318,6 +391,16 @@ function elementIssues(c: Campaign, key: ScreenKey): PreflightIssue[] {
     }
 
     if (e.type === 'button') {
+      if (!e.label.trim()) {
+        issues.push({
+          id: `emptyButton:${key}:${e.id}`,
+          level: 'warning',
+          code: 'emptyButton',
+          params: { name: e.name },
+          where: at(e),
+          fix: (current) => patchElement(current, key, e.id, () => ({ label: 'CHƠI NGAY' })),
+        });
+      }
       if (e.h < MIN_TAP_PX) {
         issues.push({
           id: `smallButton:${key}:${e.id}`,

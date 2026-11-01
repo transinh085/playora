@@ -162,7 +162,7 @@ export function createElement(
       return {
         ...at(340, 32),
         type,
-        text: '🎉 098****123 vừa trúng iPhone 16  •  🎁 Minh Anh vừa nhận Voucher 100K  •  ⭐ 091****890 vừa trúng Ly sứ',
+        text: '🎁 Quét mã chơi ngay — 100% quà đổi tại quầy • Chúc bạn may mắn!',
         speed: 'normal',
         icon: 'megaphone',
         color: 'brand.text',

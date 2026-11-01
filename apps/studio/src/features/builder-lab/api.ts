@@ -22,6 +22,7 @@ import {
   campaignsApi,
   type PlaybookKey,
   type PlayResult,
+  type RehearsalLinkResponse,
   type RouteArgs,
   type VoucherLookup,
   type VoucherStatus,
@@ -49,6 +50,8 @@ export type CampaignPrizeRuleMode = CampaignPrizeMode;
 export type CampaignRuleOpeningHours = NonNullable<CampaignRules['openingHours']>;
 export type CampaignPlay = CampaignPlayRecord;
 
+export type Prize = CampaignPrize;
+
 export type {
   CampaignBrand,
   CampaignCompliance,
@@ -69,6 +72,7 @@ export type {
   Occasion,
   PlaybookKey,
   PlayResult,
+  RehearsalLinkResponse,
   SkinInfo,
   SkinKey,
   TemplateInfo,
@@ -269,7 +273,7 @@ export function useCreateCampaign(orgId: string) {
 }
 
 export type CampaignDraftPatch = Partial<
-  Pick<Campaign, 'name' | 'skinKey' | 'brand' | 'screens' | 'prizes' | 'rules'>
+  Pick<Campaign, 'name' | 'skinKey' | 'brand' | 'screens' | 'prizes' | 'rules' | 'compliance'>
 >;
 
 export function useUpdateCampaign(orgId: string, campaignId: string) {
@@ -412,6 +416,20 @@ export function useRehearsalPlay(orgId: string, campaignId: string) {
   return useMutation<PlayResult, ApiError, RouteArgs<typeof campaignsApi.rehearsalPlay>['body']>({
     mutationFn: (body) =>
       api.call(campaignsApi.rehearsalPlay, {
+        params: { orgId, campaignId },
+        body,
+      }),
+  });
+}
+
+export function useRehearsalLink(orgId: string, campaignId: string) {
+  return useMutation<
+    RehearsalLinkResponse,
+    ApiError,
+    RouteArgs<typeof campaignsApi.rehearsalLink>['body'] | undefined
+  >({
+    mutationFn: (body = {}) =>
+      api.call(campaignsApi.rehearsalLink, {
         params: { orgId, campaignId },
         body,
       }),

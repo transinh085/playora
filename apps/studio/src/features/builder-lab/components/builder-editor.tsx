@@ -12,18 +12,21 @@ import {
   LoaderCircle,
   PencilRuler,
   Play,
+  Redo2,
   Rocket,
+  Undo2,
   Zap,
 } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Caption } from '@/components/caption';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
 import { api } from '@/lib/api';
 import { type Campaign, useCampaign } from '../api';
+import type { PreflightIssue } from '../lib/preflight';
 import { campaignRoutes } from '../lib/routes';
 import { CampaignStatusTag } from './editor/campaign-status-tag';
 import { CustomizeMode } from './editor/customize-mode';
@@ -46,7 +49,10 @@ export function BuilderEditor({
   const t = useTranslations('builderLab.editor');
   const router = useRouter();
   const query = useCampaign(orgId, campaignId);
-  const { draft, patchDraft, flush, saveState } = useCampaignDraft(orgId, query.data);
+  const { draft, patchDraft, flush, saveState, undo, redo, canUndo, canRedo } = useCampaignDraft(
+    orgId,
+    query.data,
+  );
   const home = campaignRoutes(orgId).list;
 
   if (query.isError) {
@@ -76,6 +82,10 @@ export function BuilderEditor({
       update={patchDraft}
       flush={flush}
       saveState={saveState}
+      undo={undo}
+      redo={redo}
+      canUndo={canUndo}
+      canRedo={canRedo}
     />
   );
 }
@@ -88,6 +98,10 @@ function EditorShell({
   update,
   flush,
   saveState,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 }: {
   orgId: string;
   initialMode: EditorMode;
@@ -96,14 +110,69 @@ function EditorShell({
   update: (patch: DraftPatch) => void;
   flush: () => Promise<boolean>;
   saveState: SaveState;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }) {
   const t = useTranslations('builderLab.editor');
   const [mode, setMode] = useState<EditorMode>(initialMode);
   const [screen, setScreen] = useState<ScreenKey>('cover');
   const [publishing, setPublishing] = useState(false);
+  const [focusTarget, setFocusTarget] = useState<{
+    screen: ScreenKey;
+    elementId?: string;
+    nonce: number;
+  } | null>(null);
+  const [focusRulesStep, setFocusRulesStep] = useState<{
+    step: 1 | 2 | 3 | 4;
+    nonce: number;
+  } | null>(null);
   const links = labLinks(orgId, draft.id, draft.slug);
   const myOrgs = useRouteQuery(api, meApi.orgs, {});
   const organizerName = myOrgs.data?.items.find((o) => o.id === orgId)?.name;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return;
+      }
+      const key = e.key.toLowerCase();
+      if (key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [undo, redo]);
+
+  const handleGoTo = (issue: PreflightIssue) => {
+    setPublishing(false);
+    if (issue.where.area === 'screens') {
+      const targetScreen = issue.where.screen ?? 'cover';
+      setScreen(targetScreen);
+      setMode('customize');
+      setFocusTarget({
+        screen: targetScreen,
+        elementId: issue.where.elementId,
+        nonce: Date.now(),
+      });
+      return;
+    }
+    setMode('rules');
+    const step: 1 | 2 | 3 | 4 =
+      issue.code === 'unselectedPromotionType' ? 4 : issue.where.area === 'prizes' ? 2 : 3;
+    setFocusRulesStep({ step, nonce: Date.now() });
+  };
 
   const modeSwitch = (
     <Tabs selectedKey={mode} onSelectionChange={(key) => setMode(key as EditorMode)}>
@@ -165,23 +234,72 @@ function EditorShell({
         <div className="hidden lg:block">{modeSwitch}</div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <div className="flex items-center gap-1">
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  isIconOnly
+                  variant="ghost"
+                  size="sm"
+                  isDisabled={!canUndo}
+                  aria-label={t('undo')}
+                  data-testid="builder-undo"
+                  onPress={undo}
+                  className="size-8"
+                >
+                  <Undo2 className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('undo')}</Tooltip.Content>
+            </Tooltip>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  isIconOnly
+                  variant="ghost"
+                  size="sm"
+                  isDisabled={!canRedo}
+                  aria-label={t('redo')}
+                  data-testid="builder-redo"
+                  onPress={redo}
+                  className="size-8"
+                >
+                  <Redo2 className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('redo')}</Tooltip.Content>
+            </Tooltip>
+            <Separator orientation="vertical" className="mx-1 h-4" />
+          </div>
+
           <div className="hidden lg:flex items-center gap-2">
             <CampaignStatusTag campaign={server} />
             <Separator orientation="vertical" className="h-4" />
           </div>
 
-          <a
-            href={links.rehearsal}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => void flush()}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
             aria-label={t('rehearse')}
+            data-testid="builder-rehearse"
+            onPress={() => {
+              const win = window.open('about:blank', '_blank');
+              void flush().then(() => {
+                if (win) {
+                  win.location.href = links.rehearsal;
+                } else {
+                  window.location.href = links.rehearsal;
+                }
+              });
+            }}
+            className="h-8 gap-1.5 rounded-md text-xs"
           >
-            <Button variant="secondary" size="sm" className="h-8 gap-1.5 rounded-md text-xs">
-              <Play className="size-3.5" />
-              <span className="hidden lg:inline">{t('rehearse')}</span>
-            </Button>
-          </a>
+            <Play className="size-3.5" />
+            <span className="hidden lg:inline">{t('rehearse')}</span>
+          </Button>
 
           <Button
             size="sm"
@@ -206,11 +324,18 @@ function EditorShell({
               <QuickEditPanel campaign={draft} onChange={update} onShowScreen={setScreen} />
             </aside>
             <main className="flex justify-center p-6 lg:min-h-0 lg:overflow-y-auto">
-              <PhonePreview campaign={draft} screen={screen} onScreenChange={setScreen} />
+              <PhonePreview
+                campaign={draft}
+                screen={screen}
+                onScreenChange={setScreen}
+                flush={flush}
+              />
             </main>
           </div>
         )}
-        {mode === 'customize' && <CustomizeMode campaign={draft} onChange={update} />}
+        {mode === 'customize' && (
+          <CustomizeMode campaign={draft} onChange={update} focusTarget={focusTarget} />
+        )}
         {mode === 'rules' && (
           <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_390px] lg:overflow-hidden">
             <div className="p-4 lg:p-6 lg:min-h-0 lg:overflow-y-auto">
@@ -218,6 +343,7 @@ function EditorShell({
                 campaign={draft}
                 organizerName={organizerName}
                 onChange={(patch) => update(patch)}
+                focusStep={focusRulesStep}
               />
             </div>
             <aside className="hidden flex-col items-center justify-start border-l bg-card p-6 overflow-y-auto lg:flex">
@@ -227,9 +353,9 @@ function EditorShell({
               </div>
               <PhonePreview
                 campaign={draft}
-                screen="game"
+                screen={screen}
                 onScreenChange={setScreen}
-                hideScreenSwitcher
+                flush={flush}
               />
             </aside>
           </div>
@@ -242,10 +368,7 @@ function EditorShell({
         orgId={orgId}
         campaign={draft}
         onFix={update}
-        onGoTo={(next) => {
-          setPublishing(false);
-          setMode(next);
-        }}
+        onGoTo={handleGoTo}
         flush={flush}
       />
     </div>

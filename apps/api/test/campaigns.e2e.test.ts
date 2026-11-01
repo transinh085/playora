@@ -255,6 +255,42 @@ describe('campaigns API', () => {
     });
   });
 
+  test('publish rejects incomplete compliance with 400 VALIDATION_FAILED (CMP-03)', async () => {
+    const api = t.client(alice);
+    const created = await api.call(campaignsApi.create, {
+      params: { orgId: aliceOrg },
+      body: campaignBody({
+        compliance: {
+          promotionType: null,
+          termsText: null,
+          checklistAcknowledgedAt: null,
+        },
+      }),
+    });
+    const id = { orgId: aliceOrg, campaignId: created.id };
+    await expectApiError(
+      api.call(campaignsApi.publish, { params: id }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    await api.call(campaignsApi.update, {
+      params: id,
+      body: {
+        compliance: {
+          promotionType: 'purchase_linked',
+          termsText: null,
+          checklistAcknowledgedAt: null,
+        },
+      },
+    });
+    await expectApiError(
+      api.call(campaignsApi.publish, { params: id }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+  });
+
   test('republishing below the issued quantity is a 409; removed prizes stop issuing', async () => {
     const api = t.client(alice);
     const created = await api.call(campaignsApi.create, {

@@ -1,21 +1,23 @@
 'use client';
 
 import { AlertDialog, Button, Card, Input, toast } from '@playora/ui/components';
-import { Check } from '@playora/ui/icons';
+import { Check, Plus, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { extractPaletteFromImage } from '@/features/brand-kits/lib/extract-palette';
 import {
   type BrandColorKey,
+  presetSrc,
   SCREEN_KEYS,
   type ScreenKey,
   type SlotKey,
 } from '@/features/canvas-editor/lib/model';
-import type { Campaign, SkinKey } from '../../api';
-import { buildScreens, getTemplate } from '../../lib/starter';
+import type { Campaign, Prize, SkinKey } from '../../api';
+import { buildScreens, getTemplate, skinBrand } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 import type { DraftPatch } from '../editor/use-campaign-draft';
+import { PrizeImagePicker } from '../rules/prize-image-picker';
 import { SlotCard } from './slot-card';
 import { presentSlots, readSlot, SLOT_KIND, slotUsage, switchSkin, writeSlot } from './slots';
 
@@ -32,9 +34,41 @@ export function QuickEditPanel({
   onShowScreen: (screen: ScreenKey) => void;
 }) {
   const t = useTranslations('builderLab.quickEdit');
+  const tPrizes = useTranslations('builderLab.rules.prizes');
   const tBrand = useTranslations('canvasLab.brand');
   const tCommon = useTranslations('common');
   const [pendingSkin, setPendingSkin] = useState<SkinKey | null>(null);
+
+  const updatePrize = (id: string, patch: Partial<Prize>) => {
+    onChange({
+      prizes: campaign.prizes.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    });
+  };
+
+  const addPrize = () => {
+    const nextIndex = campaign.prizes.length + 1;
+    const id = `p${Date.now().toString(36)}`;
+    onChange({
+      prizes: [
+        ...campaign.prizes,
+        {
+          id,
+          name: tPrizes('newName', { n: nextIndex }),
+          image: presetSrc('gift'),
+          quantity: 20,
+          valueVnd: 15_000,
+          probability: 0.1,
+        },
+      ],
+    });
+  };
+
+  const removePrize = (id: string) => {
+    if (campaign.prizes.length <= 1) return;
+    onChange({
+      prizes: campaign.prizes.filter((p) => p.id !== id),
+    });
+  };
 
   const slots = presentSlots(campaign.screens);
   const imageSlots = slots.filter((s) => SLOT_KIND[s] === 'image');
@@ -101,6 +135,71 @@ export function QuickEditPanel({
           {textSlots.map(renderSlot)}
         </Section>
       )}
+      <Section title={t('prizes')} hint={t('prizesHint')}>
+        <div data-testid="quick-edit-prizes" className="flex flex-col gap-2.5">
+          {campaign.prizes.map((prize) => (
+            <Card key={prize.id} className="p-2.5">
+              <div className="flex items-center gap-2.5">
+                <PrizeImagePicker
+                  orgId={campaign.organizationId}
+                  value={prize.image}
+                  name={prize.name}
+                  onChange={(image) => updatePrize(prize.id, { image })}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <Input
+                    aria-label={tPrizes('name')}
+                    value={prize.name}
+                    placeholder={tPrizes('namePlaceholder')}
+                    onFocus={() => onShowScreen('game')}
+                    onChange={(e) => updatePrize(prize.id, { name: e.target.value })}
+                    className="h-8 text-xs font-medium"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-text-secondary">{tPrizes('quantity')}</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      aria-label={`${tPrizes('quantity')} ${prize.name}`}
+                      value={String(prize.quantity)}
+                      onFocus={() => onShowScreen('cover')}
+                      onChange={(e) =>
+                        updatePrize(prize.id, {
+                          quantity: Math.max(0, Number.parseInt(e.target.value, 10) || 0),
+                        })
+                      }
+                      className="h-7 w-24 text-xs tabular-nums"
+                    />
+                  </div>
+                </div>
+                {campaign.prizes.length > 1 && (
+                  <Button
+                    isIconOnly
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t('removePrize')}
+                    onPress={() => removePrize(prize.id)}
+                  >
+                    <Trash2 className="size-3.5 text-text-tertiary" />
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+          {campaign.prizes.length < 20 && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onPress={addPrize}
+              className="w-full"
+            >
+              <Plus className="mr-1.5 size-3.5" />
+              {t('addPrize')}
+            </Button>
+          )}
+        </div>
+      </Section>
       <Section title={t('skin')} hint={t('skinHint')}>
         <SkinPicker campaign={campaign} onPick={pickSkin} />
       </Section>
@@ -130,6 +229,18 @@ export function QuickEditPanel({
               </div>
             </div>
           ))}
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onPress={() => {
+              onChange({ brand: skinBrand(campaign.skinKey) });
+              toast.success(t('skinBrandApplied'));
+            }}
+            className="mt-1 w-full text-xs"
+          >
+            {t('applySkinBrand')}
+          </Button>
         </div>
       </Section>
 
