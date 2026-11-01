@@ -90,6 +90,12 @@ export interface CampaignPlayerProps {
   nextTurnAtFormatted?: string | null;
   /** Pre-formatted open weekdays for closed notice and rules sheet. */
   openDaysFormatted?: string | null;
+  /** Whether to show the optional marketing consent checkbox (EVT-05). */
+  showMarketingConsent?: boolean;
+  /** Set when join failed with 409 PHONE_ALREADY_REGISTERED (EVT-02, PRZ-16). */
+  duplicatePhone?: boolean;
+  /** Self-service voucher restoration callback (`POST /p/:slug/prizes/restore`, PRZ-16). */
+  onRestorePrizes?: (phone: string, codeSuffix: string) => Promise<void>;
 }
 
 type Sheet = 'noTurns' | 'closed' | 'vouchers' | 'rules' | null;
@@ -143,6 +149,9 @@ export function CampaignPlayer({
   blockedReason,
   nextTurnAtFormatted,
   openDaysFormatted,
+  showMarketingConsent = false,
+  duplicatePhone = false,
+  onRestorePrizes,
 }: CampaignPlayerProps) {
   const reduced = useReducedMotion();
 
@@ -154,6 +163,7 @@ export function CampaignPlayer({
   const [errors, setErrors] = useState<PlayerFormErrors>({});
   const [formDone, setFormDone] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [openRestoreOnSheet, setOpenRestoreOnSheet] = useState(false);
   const [voucherExpanded, setVoucherExpanded] = useState(true);
 
   const vouchersOpen = sheet === 'vouchers';
@@ -295,6 +305,13 @@ export function CampaignPlayer({
         values={form}
         errors={errors}
         onChange={changeForm}
+        showMarketingConsent={showMarketingConsent}
+        onOpenRules={() => setSheet('rules')}
+        duplicatePhone={duplicatePhone}
+        onRestorePrizes={() => {
+          setOpenRestoreOnSheet(true);
+          setSheet('vouchers');
+        }}
       />
     ),
     onButton: (element) => {
@@ -375,11 +392,17 @@ export function CampaignPlayer({
       />
       <MyPrizesSheet
         open={sheet === 'vouchers'}
-        onClose={() => setSheet(null)}
+        onClose={() => {
+          setSheet(null);
+          setOpenRestoreOnSheet(false);
+        }}
         vouchers={vouchers}
         loading={vouchersLoading}
         labels={labels}
         pageHref={prizesHref}
+        redeemUrl={redeemUrl}
+        onRestorePrizes={onRestorePrizes}
+        defaultOpenRestore={openRestoreOnSheet}
       />
     </div>
   );

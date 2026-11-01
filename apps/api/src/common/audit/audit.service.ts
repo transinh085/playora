@@ -4,7 +4,7 @@ import { DB } from '../../infra/tokens';
 
 export interface AuditEntry {
   organizationId: string | null;
-  actorType: 'user' | 'system' | 'admin' | 'api_key';
+  actorType: 'user' | 'system' | 'admin' | 'api_key' | 'counter_device';
   actorId: string | null;
   /** `<resource>.<verb>`, e.g. `event.delete`, `draw.spin`, `export.players` */
   action: string;

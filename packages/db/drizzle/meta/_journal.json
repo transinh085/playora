@@ -50,6 +50,13 @@
       "when": 1793033936616,
       "tag": "0006_little_sabra",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793545716584,
+      "tag": "0007_purple_bishop",
+      "breakpoints": true
     }
   ]
 }

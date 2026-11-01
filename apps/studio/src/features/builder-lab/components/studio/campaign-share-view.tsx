@@ -30,6 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
 import { IconTile } from '@/components/icon-tile';
 import { PageHeader } from '@/components/page-header';
+import { CreateCounterDeviceDialog } from '@/features/members/components/counter-devices-card';
 import { PLAY_URL } from '@/lib/env';
 import { type Campaign, useCampaign, useCampaignReport } from '../../api';
 import {
@@ -272,12 +273,15 @@ export function CampaignShareView({
               <Caption className="mt-0.5 block max-w-2xl">{t('counterStaff.description')}</Caption>
             </div>
           </div>
-          <Link href={`/orgs/${orgId}/settings` as Route}>
-            <Button variant="secondary" size="sm">
-              <ExternalLink className="size-4" />
-              {t('counterStaff.action')}
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <CreateCounterDeviceDialog orgId={orgId} />
+            <Link href={`/orgs/${orgId}/settings` as Route}>
+              <Button variant="secondary" size="sm">
+                <ExternalLink className="size-4" />
+                {t('counterStaff.action')}
+              </Button>
+            </Link>
+          </div>
         </Card.Content>
       </Card>
 

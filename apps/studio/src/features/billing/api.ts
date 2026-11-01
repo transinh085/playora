@@ -21,7 +21,7 @@ export function useOrgBilling(orgId: string, options?: { enabled?: boolean }) {
  * and get `undefined` without a request.
  */
 export function useOrgBillingIfAllowed(orgId: string) {
-  const myOrgs = useRouteQuery(api, meApi.orgs, {});
+  const myOrgs = useRouteQuery(api, meApi.orgs, {}, { retry: false });
   const role = myOrgs.data?.items.find((o) => o.id === orgId)?.role;
   const allowed = can(role, { billing: ['read'] });
   return { allowed, ...useOrgBilling(orgId, { enabled: allowed }) };

@@ -31,6 +31,17 @@ export const PLANS: Record<BillingPlan, PlanDefinition> = {
   chain: { maxRunningCampaigns: null, redemptionsPerMonth: 10_000, watermark: false },
 };
 
+/** Max active counter devices per plan (docs/adr/017-counter-device-pairing.md, ORG-10). */
+export const COUNTER_DEVICE_LIMITS: Record<BillingPlan, number> = {
+  free: 1,
+  shop: 3,
+  chain: 30,
+};
+
+export function maxCounterDevices(plan: BillingPlan): number {
+  return COUNTER_DEVICE_LIMITS[plan];
+}
+
 export function planLimits(plan: BillingPlan): PlanLimits {
   const def = PLANS[plan];
   return {

@@ -103,7 +103,7 @@ const NAV_GROUPS: { key: NavGroupKey; items: NavItem[] }[] = [
   {
     key: 'organization',
     items: [
-      { key: 'settings', icon: Settings, path: 'settings' },
+      { key: 'settings', icon: Settings, path: 'settings', permission: { campaign: ['read'] } },
       {
         key: 'billing',
         icon: Gem,
@@ -338,30 +338,34 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                   })}
                 </Dropdown.Section>
 
-                <Separator />
+                {!isRedeemerOnly(current.role) && (
+                  <>
+                    <Separator />
 
-                <Dropdown.Section>
-                  {can(current.role, { billing: ['read'] }) && (
-                    <Dropdown.Item id="__billing__" textValue={t('nav.billing')}>
-                      <Sparkles className="h-4 w-4 shrink-0 text-neutral-500" />
-                      <Label className="flex-1 truncate text-left text-sm font-normal">
-                        {t('nav.billing')}
-                      </Label>
-                    </Dropdown.Item>
-                  )}
-                  <Dropdown.Item id="__settings__" textValue={t('nav.settings')}>
-                    <SlidersHorizontal className="h-4 w-4 shrink-0 text-neutral-500" />
-                    <Label className="flex-1 truncate text-left text-sm font-normal">
-                      {t('nav.settings')}
-                    </Label>
-                  </Dropdown.Item>
-                  <Dropdown.Item id="__create_org__" textValue={t('shell.createOrg')}>
-                    <Plus className="h-4 w-4 shrink-0 text-neutral-500" />
-                    <Label className="flex-1 truncate text-left text-sm font-normal">
-                      {t('shell.createOrg')}
-                    </Label>
-                  </Dropdown.Item>
-                </Dropdown.Section>
+                    <Dropdown.Section>
+                      {can(current.role, { billing: ['read'] }) && (
+                        <Dropdown.Item id="__billing__" textValue={t('nav.billing')}>
+                          <Sparkles className="h-4 w-4 shrink-0 text-neutral-500" />
+                          <Label className="flex-1 truncate text-left text-sm font-normal">
+                            {t('nav.billing')}
+                          </Label>
+                        </Dropdown.Item>
+                      )}
+                      <Dropdown.Item id="__settings__" textValue={t('nav.settings')}>
+                        <SlidersHorizontal className="h-4 w-4 shrink-0 text-neutral-500" />
+                        <Label className="flex-1 truncate text-left text-sm font-normal">
+                          {t('nav.settings')}
+                        </Label>
+                      </Dropdown.Item>
+                      <Dropdown.Item id="__create_org__" textValue={t('shell.createOrg')}>
+                        <Plus className="h-4 w-4 shrink-0 text-neutral-500" />
+                        <Label className="flex-1 truncate text-left text-sm font-normal">
+                          {t('shell.createOrg')}
+                        </Label>
+                      </Dropdown.Item>
+                    </Dropdown.Section>
+                  </>
+                )}
               </Dropdown.Menu>
             </Dropdown.Popover>
           </Dropdown>
@@ -786,7 +790,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                 <span className="hidden text-sm font-normal sm:block">{t('campaigns.create')}</span>
               </Link>
             )}
-            {current && (
+            {current && !isRedeemerOnly(current.role) && (
               <Link
                 href={`/orgs/${current.id}/settings` as Route}
                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"

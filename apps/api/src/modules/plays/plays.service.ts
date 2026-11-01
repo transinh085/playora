@@ -2,6 +2,9 @@ import { randomInt } from 'node:crypto';
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -15,6 +18,8 @@ import {
   type PlayResult,
   type PublicCampaign,
   type playsApi,
+  type RestorePrizesBody,
+  type RestorePrizesResponse,
   type RouteArgs,
 } from '@playora/contracts';
 import { generateTerms } from '@playora/core/compliance';
@@ -30,14 +35,25 @@ import {
   VOUCHER_GRACE_MS,
 } from '@playora/core/prize';
 import { parseRegistrationForm } from '@playora/core/registration';
-import type { PlayerSessionClaims } from '@playora/core/session';
+import {
+  PLAYER_SESSION_TTL_S,
+  type PlayerSessionClaims,
+  signPlayerSession,
+} from '@playora/core/session';
 import type { Tx } from '@playora/db';
+import type { ApiEnv } from '@playora/env';
+import type { Redis } from 'ioredis';
 import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
+import { PiiService } from '../../common/pii/pii.service';
+import { ENV, REDIS } from '../../infra/tokens';
 import { BillingService } from '../billing/billing.service';
 import { type CampaignDocument, readCampaignDocument } from '../campaigns/campaign-defaults';
 import { voucherStatus } from '../vouchers/vouchers.service';
 import { type PlayEnv, PlaysRepository, type PublishedCampaign } from './plays.repository';
+
+export const RESTORE_PRIZES_FAIL_LIMIT_PER_HOUR = 5;
+const HOUR_S = 3600;
 
 type StartPlayBody = RouteArgs<typeof playsApi.play>['body'];
 type RehearsalBody = RouteArgs<typeof campaignsApi.rehearsalPlay>['body'];
@@ -131,6 +147,9 @@ export class PlaysService {
     private readonly repo: PlaysRepository,
     private readonly antiFraud: AntiFraudService,
     private readonly billing: BillingService,
+    private readonly pii: PiiService,
+    @Inject(ENV) private readonly env: ApiEnv,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
   // ── Player side ──────────────────────────────────────────────────────────────
@@ -213,6 +232,7 @@ export class PlaysService {
     const doc = this.liveDocument(campaign);
     return {
       id: event.id,
+      organizationId: event.organizationId,
       slug: event.slug,
       name: event.name,
       version: version.version,
@@ -325,6 +345,117 @@ export class PlaysService {
         ? ('redeem_first' as const)
         : null;
     return { turnsLeftToday, nextTurnAt, blockedReason, vouchers };
+  }
+
+  /**
+   * Self-service prize restoration (`POST /p/:slug/prizes/restore`, PRZ-16):
+   * Verifies the player's normalized phone hash + the last 4 characters of any won voucher code
+   * in this campaign, then issues a fresh `playerToken` (keeping `sessionVer` intact so the
+   * original browser stays valid) and returns the player's vouchers. Rate-limited to 5 failed
+   * attempts per hour per (event, IP, deviceId).
+   */
+  async restorePrizes(
+    slug: string,
+    body: RestorePrizesBody,
+    ip?: string,
+  ): Promise<RestorePrizesResponse> {
+    const { event } = await this.loadPublished(slug);
+    const orgId = event.organizationId;
+    const failKey = `af:restore:${event.id}:${ip ?? 'unknown'}:${body.deviceId ?? ''}`;
+
+    const failedBefore = Number((await this.redis.get(failKey)) ?? 0);
+    if (failedBefore >= RESTORE_PRIZES_FAIL_LIMIT_PER_HOUR) {
+      throw new HttpException(
+        {
+          code: ErrorCode.RATE_LIMITED,
+          message: 'Bạn đã thử sai quá nhiều lần. Vui lòng thử lại sau 1 giờ.',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const recordFailure = async (): Promise<never> => {
+      const failed = await this.redis.incr(failKey);
+      if (failed === 1) await this.redis.expire(failKey, HOUR_S);
+      if (failed > RESTORE_PRIZES_FAIL_LIMIT_PER_HOUR) {
+        throw new HttpException(
+          {
+            code: ErrorCode.RATE_LIMITED,
+            message: 'Bạn đã thử sai quá nhiều lần. Vui lòng thử lại sau 1 giờ.',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+      throw new BadRequestException({
+        code: ErrorCode.VOUCHER_NOT_FOUND,
+        message: 'Không tìm thấy mã quà khớp với số điện thoại và 4 ký tự cuối đã nhập.',
+      });
+    };
+
+    const protectedPhone = this.pii.protectPhone(body.phone);
+    if (!protectedPhone) {
+      return recordFailure();
+    }
+
+    const player = await this.repo.findLivePlayerByPhoneHash(
+      orgId,
+      event.id,
+      protectedPhone.phoneHash,
+    );
+    if (!player) {
+      return recordFailure();
+    }
+
+    const suffix = body.codeSuffix.trim().toUpperCase().replace(/[\s-]/g, '').slice(-4);
+    if (suffix.length < 4) {
+      return recordFailure();
+    }
+
+    const rows = await this.repo.listPlayerVouchers(orgId, event.id, player.id);
+    const matched = rows.some((r) => r.code.toUpperCase().endsWith(suffix));
+    if (!matched) {
+      return recordFailure();
+    }
+
+    const nowMs = Date.now();
+    const vouchers = rows.map(
+      (v): MyVoucher => ({
+        code: v.code,
+        prize: prizeView({
+          id: v.prizeKey ?? v.prizeRowId,
+          name: v.prizeName,
+          image: v.prizeImageUrl,
+        }) as MyVoucher['prize'],
+        status: voucherStatus(v, nowMs),
+        issuedAt: v.createdAt.toISOString(),
+        expiresAt: v.expiresAt?.toISOString() ?? null,
+        redeemedAt: v.redeemedAt?.toISOString() ?? null,
+      }),
+    );
+
+    const displayName = player.displayName ?? 'Khách mời';
+    const playerToken = signPlayerSession(
+      {
+        kind: 'player',
+        organizationId: orgId,
+        eventId: event.id,
+        sub: player.id,
+        displayName,
+        ver: player.sessionVer,
+        exp: Math.floor(nowMs / 1000) + PLAYER_SESSION_TTL_S,
+      },
+      this.env.PLAYER_SESSION_SECRET,
+    );
+
+    return {
+      playerToken,
+      player: {
+        id: player.id,
+        displayName,
+        team: player.team ?? null,
+      },
+      vouchers,
+    };
   }
 
   // ── Rehearsal (Studio) ───────────────────────────────────────────────────────
@@ -556,11 +687,15 @@ export class PlaysService {
     if (decision.reason === 'closed') throw new ClosedDuringPlay();
 
     // 5. Issue stock and budget atomically; a lost race is a loss, never a re-pick.
+    //    Plan quota (D-23, BIL-02): when activeIssuedVouchers + redemptionsThisMonth reaches the
+    //    hard limit, pause new prize issuance on live plays without touching stock.
     let reason: string = decision.reason;
     let won: { prize: CampaignPrize; rowId: string } | null = null;
     const prize = decision.prizeId ? doc.prizes.find((p) => p.id === decision.prizeId) : undefined;
     const prizeRow = prize ? rowByKey.get(prize.id) : undefined;
-    if (decision.prizeId) {
+    if (env === 'live' && !(await this.billing.canIssuePrize(orgId, tx, now))) {
+      reason = 'out_of_stock';
+    } else if (decision.prizeId) {
       if (!prize || !prizeRow) {
         reason = 'out_of_stock';
       } else if (env === 'rehearsal') {

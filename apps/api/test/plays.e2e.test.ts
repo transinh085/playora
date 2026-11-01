@@ -576,6 +576,7 @@ describe('open days, redeem first and session version', () => {
     expect((await play(again.api, c.slug)).outcome).toBe('lose');
   });
 
+  // One device is one player, also under concurrent joins
   test('one device is one player, also under concurrent joins', async () => {
     const c = await createCampaign();
     const deviceId = crypto.randomUUID();
@@ -586,6 +587,96 @@ describe('open days, redeem first and session version', () => {
       .from(schema.players)
       .where(and(eq(schema.players.eventId, c.id), eq(schema.players.deviceId, deviceId)));
     expect(rows).toHaveLength(1);
+  });
+
+  test('restorePrizes: restores playerToken and vouchers on another browser via phone + last 4 chars of code, and rate-limits after 5 failures (PRZ-16, EVT-02)', async () => {
+    const c = await createCampaign({
+      prizes: [{ ...P1, quantity: 10 }],
+      rules: { mode: 'guaranteed', collectForm: true, playsPerDay: 2, maxWinsPerPlayer: 2 },
+    });
+    const zaloClient = playerClient();
+    const joined = await zaloClient.call(publicApi.join, {
+      params: { slug: c.slug },
+      body: {
+        deviceId: crypto.randomUUID(),
+        fields: { name: 'Nguyễn Thu Hà', phone: '0908 111 222' },
+        consents: { participation: true, marketing: true },
+      },
+    });
+    const zaloPlayerApi = playerClient(joined.playerToken);
+    const won = await play(zaloPlayerApi, c.slug);
+    expect(won.outcome).toBe('win');
+    const code = won.voucher?.code as string;
+    expect(code).toHaveLength(6);
+
+    // Switching browser (Zalo → Safari) and trying to join with the same phone returns 409 PHONE_ALREADY_REGISTERED.
+    const safariClient = playerClient();
+    await expectApiError(
+      safariClient.call(publicApi.join, {
+        params: { slug: c.slug },
+        body: {
+          deviceId: crypto.randomUUID(),
+          fields: { name: 'Hà Safari', phone: '+84 908-111-222' },
+          consents: { participation: true },
+        },
+      }),
+      409,
+      ErrorCode.PHONE_ALREADY_REGISTERED,
+    );
+
+    // Wrong codeSuffix fails with 400 VOUCHER_NOT_FOUND.
+    const safariDevice = crypto.randomUUID();
+    await expectApiError(
+      safariClient.call(playsApi.restorePrizes, {
+        params: { slug: c.slug },
+        body: { phone: '0908111222', codeSuffix: 'ZZZZ', deviceId: safariDevice },
+      }),
+      400,
+      ErrorCode.VOUCHER_NOT_FOUND,
+    );
+
+    // Correct phone + last 4 chars of voucher code restores playerToken and vouchers without revoking Zalo session.
+    const restored = await safariClient.call(playsApi.restorePrizes, {
+      params: { slug: c.slug },
+      body: {
+        phone: '+84 908 111 222',
+        codeSuffix: code.slice(-4).toLowerCase(),
+        deviceId: safariDevice,
+      },
+    });
+    expect(restored.player).toMatchObject({ id: joined.player.id, displayName: 'Nguyễn Thu Hà' });
+    expect(restored.vouchers).toHaveLength(1);
+    expect(restored.vouchers[0]?.code).toBe(code);
+
+    // Both Safari and Zalo tokens remain valid!
+    const safariPlayerApi = playerClient(restored.playerToken);
+    expect(
+      (await safariPlayerApi.call(playsApi.me, { params: { slug: c.slug } })).vouchers,
+    ).toHaveLength(1);
+    expect(
+      (await zaloPlayerApi.call(playsApi.me, { params: { slug: c.slug } })).vouchers,
+    ).toHaveLength(1);
+
+    // Exceeding 5 failed attempts on a deviceId triggers 429 RATE_LIMITED.
+    const attackerDevice = crypto.randomUUID();
+    for (let i = 0; i < 5; i++) {
+      await expectApiError(
+        safariClient.call(playsApi.restorePrizes, {
+          params: { slug: c.slug },
+          body: { phone: '0908111222', codeSuffix: 'ZZZZ', deviceId: attackerDevice },
+        }),
+        400,
+        ErrorCode.VOUCHER_NOT_FOUND,
+      );
+    }
+    await expectApiError(
+      safariClient.call(playsApi.restorePrizes, {
+        params: { slug: c.slug },
+        body: { phone: '0908111222', codeSuffix: code.slice(-4), deviceId: attackerDevice },
+      }),
+      429,
+      ErrorCode.RATE_LIMITED,
+    );
   });
 });
 

@@ -1,9 +1,28 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { ErrorCode, type VoucherLookup, type VoucherStatus } from '@playora/contracts';
+import {
+  BadRequestException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  ErrorCode,
+  type RedeemVoucherBody,
+  type VoucherLookup,
+  type VoucherStatus,
+} from '@playora/contracts';
+import type { Redis } from 'ioredis';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
-import { BillingService } from '../billing/billing.service';
+import type { CounterDeviceActor } from '../../common/auth/auth.types';
+import { PiiService } from '../../common/pii/pii.service';
+import { REDIS } from '../../infra/tokens';
 import { VouchersRepository } from './vouchers.repository';
+
+export const VOUCHER_PHONE_LOOKUP_LIMIT_PER_HOUR = 20;
+const HOUR_S = 3600;
 
 type VoucherRow = NonNullable<Awaited<ReturnType<VouchersRepository['findByCode']>>>;
 
@@ -33,7 +52,10 @@ function toLookup(row: VoucherRow): VoucherLookup {
     issuedAt: row.createdAt.toISOString(),
     expiresAt: row.expiresAt?.toISOString() ?? null,
     redeemedAt: row.redeemedAt?.toISOString() ?? null,
-    redeemedByName: row.redeemedAt ? (row.redeemedByName ?? null) : null,
+    redeemedByName: row.redeemedAt
+      ? (row.redeemedByDeviceLabel ?? row.redeemedByName ?? null)
+      : null,
+    ...(row.redeemedStoreLabel ? { storeLabel: row.redeemedStoreLabel } : {}),
   };
 }
 
@@ -46,7 +68,8 @@ export class VouchersService {
   constructor(
     private readonly repo: VouchersRepository,
     private readonly audit: AuditService,
-    private readonly billing: BillingService,
+    private readonly pii: PiiService,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
   private async find(orgId: string, code: string) {
@@ -59,17 +82,128 @@ export class VouchersService {
     return toLookup(await this.find(orgId, code));
   }
 
-  /** Final and one time only; the conditional UPDATE decides under concurrency. */
-  async redeem(orgId: string, code: string, actor: Actor): Promise<VoucherLookup> {
-    // Plan quota (BIL-02, D-21): only a live code that would be handed over now counts; a code
-    // that is void, used or expired keeps its own error, and rehearsal is never limited.
-    const current = await this.find(orgId, code);
-    if (current.env === 'live' && voucherStatus(current) === 'issued') {
-      await this.billing.assertCanRedeem(orgId);
+  /**
+   * Counter phone lookup (PRZ-15): rate-limited to 20 requests/hour per actor, normalizes
+   * Vietnamese phone numbers and searches `players.phone_hash` for active `issued` vouchers
+   * in `orgId`. Audits `voucher.lookup_phone` without storing raw phone in audit logs.
+   */
+  async searchByPhone(
+    orgId: string,
+    rawPhone: string,
+    actor: Actor,
+    counterDevice?: CounterDeviceActor | null,
+  ): Promise<{ items: VoucherLookup[] }> {
+    const actorKey = counterDevice?.id || actor.userId || actor.ip || 'anon';
+    const rateKey = `rl:voucher-phone:${orgId}:${actorKey}`;
+    const count = await this.redis.incr(rateKey);
+    if (count === 1) await this.redis.expire(rateKey, HOUR_S);
+    if (count > VOUCHER_PHONE_LOOKUP_LIMIT_PER_HOUR) {
+      throw new HttpException(
+        { code: ErrorCode.RATE_LIMITED, message: 'Too many phone lookups, please try again later' },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
-    const updated = await this.repo.redeem(orgId, code, actor.userId);
+
+    const protectedPhone = this.pii.protectPhone(rawPhone);
+    if (!protectedPhone) {
+      throw new BadRequestException({
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Số điện thoại không hợp lệ',
+        details: { field: 'phone' },
+      });
+    }
+
+    const rows = await this.repo.findActiveByPhoneHash(orgId, protectedPhone.phoneHash);
+    await this.audit.record({
+      organizationId: orgId,
+      actorType: counterDevice ? 'counter_device' : 'user',
+      actorId: counterDevice ? counterDevice.id : actor.userId,
+      action: 'voucher.lookup_phone',
+      targetType: 'organization',
+      targetId: orgId,
+      diff: {
+        matchCount: rows.length,
+        ...(counterDevice ? { deviceId: counterDevice.id, deviceLabel: counterDevice.label } : {}),
+      },
+      ip: actor.ip,
+    });
+    return { items: rows.map(toLookup) };
+  }
+
+  /**
+   * Final and one time only for live vouchers; the conditional UPDATE decides under concurrency.
+   * Rehearsal vouchers run in repeatable Training Mode (PRZ-19): confirming returns a simulated
+   * redeemed response and audits `voucher.training_redeem` while keeping the award reusable in DB.
+   * Counter redemption is never blocked by plan limits (D-23, BIL-02).
+   */
+  async redeem(
+    orgId: string,
+    code: string,
+    actor: Actor,
+    body?: RedeemVoucherBody,
+    counterDevice?: CounterDeviceActor | null,
+  ): Promise<VoucherLookup> {
+    const via = body?.via ?? 'code';
+    const storeLabel = body?.storeLabel ?? counterDevice?.storeLabel ?? null;
+    const actorType = counterDevice ? 'counter_device' : 'user';
+    const actorId = counterDevice ? counterDevice.id : actor.userId;
+    const current = await this.find(orgId, code);
+    if (current.env === 'rehearsal' && voucherStatus(current) === 'issued') {
+      await this.audit.record({
+        organizationId: orgId,
+        actorType,
+        actorId,
+        action: 'voucher.training_redeem',
+        targetType: 'award',
+        targetId: current.id,
+        diff: {
+          code: current.code,
+          campaignId: current.campaignId,
+          via,
+          ...(counterDevice
+            ? { deviceId: counterDevice.id, deviceLabel: counterDevice.label }
+            : {}),
+          ...(storeLabel ? { storeLabel } : {}),
+        },
+        ip: actor.ip,
+      });
+      return {
+        ...toLookup(current),
+        status: 'redeemed',
+        rehearsal: true,
+        redeemedAt: new Date().toISOString(),
+        redeemedByName: counterDevice?.label ?? current.redeemedByName ?? null,
+        ...(storeLabel ? { storeLabel } : {}),
+      };
+    }
+
+    const updated = await this.repo.redeem(orgId, code, {
+      userId: counterDevice ? null : actor.userId,
+      deviceId: counterDevice?.id ?? null,
+      storeLabel,
+    });
     const row = await this.find(orgId, code);
-    if (updated) return toLookup(row);
+    if (updated) {
+      await this.audit.record({
+        organizationId: orgId,
+        actorType,
+        actorId,
+        action: 'voucher.redeem',
+        targetType: 'award',
+        targetId: row.id,
+        diff: {
+          code: row.code,
+          campaignId: row.campaignId,
+          via,
+          ...(counterDevice
+            ? { deviceId: counterDevice.id, deviceLabel: counterDevice.label }
+            : {}),
+          ...(storeLabel ? { storeLabel } : {}),
+        },
+        ip: actor.ip,
+      });
+      return toLookup(row);
+    }
 
     const status = voucherStatus(row);
     const details = { status, redeemedAt: row.redeemedAt?.toISOString() ?? null };

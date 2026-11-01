@@ -31,6 +31,14 @@ export class PlaysController {
   ) {
     return this.plays.me(params.slug, player);
   }
+
+  @Route(playsApi.restorePrizes)
+  restorePrizes(
+    @Args() { params, body }: RouteArgs<typeof playsApi.restorePrizes>,
+    @Ip() ip: string,
+  ) {
+    return this.plays.restorePrizes(params.slug, body, ip);
+  }
 }
 
 /** Studio rehearsal plays on the draft (`campaignsApi.rehearsalPlay`, org session + permission). */

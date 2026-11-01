@@ -200,9 +200,9 @@ export class PublicService {
           const owner = await this.repo.findPlayerByPhoneHash(orgId, eventId, phone.phoneHash, tx);
           if (owner && owner.id !== existing?.id) {
             throw new ConflictException({
-              code: ErrorCode.CONFLICT,
+              code: ErrorCode.PHONE_ALREADY_REGISTERED,
               message:
-                'Số điện thoại này đã được dùng để tham gia trên thiết bị khác. Vui lòng liên hệ ban tổ chức nếu cần hỗ trợ.',
+                'Số điện thoại này đã được dùng để tham gia trên thiết bị khác. Bạn có thể khôi phục mã quà đã trúng.',
               details: { field: `fields.${phoneFieldKey}` },
             });
           }

@@ -123,6 +123,25 @@ export class BillingRepository {
     return row?.n ?? 0;
   }
 
+  /**
+   * Live, unredeemed, non-expired awards currently outstanding across the organization (D-23).
+   */
+  async countActiveIssuedVouchers(organizationId: string, now: Date, tx: DbOrTx = this.db) {
+    const [row] = await tx
+      .select({ n: count() })
+      .from(awards)
+      .where(
+        and(
+          eq(awards.organizationId, organizationId),
+          eq(awards.env, 'live'),
+          eq(awards.status, 'issued'),
+          isNull(awards.redeemedAt),
+          or(isNull(awards.expiresAt), gt(awards.expiresAt, now)),
+        ),
+      );
+    return row?.n ?? 0;
+  }
+
   async listInvoices(organizationId: string, limit = 24) {
     return this.db
       .select()

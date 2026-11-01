@@ -20,8 +20,8 @@ export const PlanLimits = z.object({
   /** Live counter redemptions per calendar month (Asia/Ho_Chi_Minh), D-20. */
   redemptionsPerMonth: z.number().int(),
   /**
-   * Redemptions are refused only from this number on (limit + grace, D-21), so a customer who
-   * already won is not turned away the moment the shop crosses its limit.
+   * New prize issuance is paused once `redemptionsThisMonth + activeIssuedVouchers` reaches this
+   * number (limit + 10% grace, D-23), so an issued voucher is never refused at the counter.
    */
   redemptionsHardLimit: z.number().int(),
   watermark: z.boolean(),
@@ -31,6 +31,8 @@ export type PlanLimits = z.infer<typeof PlanLimits>;
 export const BillingUsage = z.object({
   runningCampaigns: z.number().int(),
   redemptionsThisMonth: z.number().int(),
+  /** Live, unredeemed, non-expired awards currently outstanding across the organization (D-23). */
+  activeIssuedVouchers: z.number().int(),
   /** Start of the current calendar month in Asia/Ho_Chi_Minh. */
   monthStart: IsoDateTime,
 });

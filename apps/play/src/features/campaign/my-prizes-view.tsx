@@ -1,13 +1,15 @@
 'use client';
 
-import type { PublicCampaign } from '@playora/contracts';
-import { LiveClock, VoucherList } from '@playora/ui/campaign';
+import { ApiError } from '@playora/api-client';
+import { type PublicCampaign, playsApi } from '@playora/contracts';
+import { LiveClock, VoucherList, VoucherRestoreBox } from '@playora/ui/campaign';
 import { buttonVariants } from '@playora/ui/components';
 import { Gift } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import { api } from '@/lib/api';
 import { CampaignFrame } from './campaign-frame';
-import { usePlayerSession } from './session';
+import { getOrCreateDeviceId, usePlayerSession } from './session';
 import { useCampaignPlayerLabels } from './use-labels';
 import { usePlayerState, usePolling } from './use-player-state';
 import { toPlayerVouchers, VOUCHER_POLL_MS } from './vouchers';
@@ -19,7 +21,7 @@ import { toPlayerVouchers, VOUCHER_POLL_MS } from './vouchers';
 export function MyPrizesView({
   campaign,
 }: {
-  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'brand' | 'skinKey'>;
+  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'brand' | 'skinKey' | 'organizationId'>;
 }) {
   return (
     <CampaignFrame brand={campaign.brand} skinKey={campaign.skinKey}>
@@ -28,14 +30,48 @@ export function MyPrizesView({
   );
 }
 
-function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'> }) {
+function MyPrizes({
+  campaign,
+}: {
+  campaign: Pick<PublicCampaign, 'slug' | 'name' | 'organizationId'>;
+}) {
   const t = useTranslations('play');
+  const tErrors = useTranslations('errors');
   const labels = useCampaignPlayerLabels();
-  const { session, hydrated, clearSession } = usePlayerSession(campaign.slug);
+  const { session, hydrated, setSession, clearSession } = usePlayerSession(campaign.slug);
   const me = usePlayerState(campaign.slug, session?.playerToken ?? null, clearSession);
   usePolling(Boolean(session), me.refresh, VOUCHER_POLL_MS);
   const vouchers = useMemo(() => toPlayerVouchers(me.state?.vouchers ?? []), [me.state]);
   const gameHref = `/${campaign.slug}`;
+
+  const studioBaseUrl = (process.env.NEXT_PUBLIC_STUDIO_URL ?? 'http://localhost:3000').replace(
+    /\/$/,
+    '',
+  );
+  const redeemUrl = (code: string) =>
+    campaign.organizationId
+      ? `${studioBaseUrl}/orgs/${campaign.organizationId}/redeem?code=${encodeURIComponent(code)}`
+      : code;
+
+  const onRestorePrizes = async (phone: string, codeSuffix: string) => {
+    try {
+      const res = await api.call(playsApi.restorePrizes, {
+        params: { slug: campaign.slug },
+        body: {
+          phone,
+          codeSuffix,
+          deviceId: getOrCreateDeviceId(campaign.slug),
+        },
+      });
+      setSession({ playerToken: res.playerToken, player: res.player });
+      await me.refresh(res.playerToken);
+    } catch (err) {
+      if (err instanceof ApiError && tErrors.has(err.code)) {
+        throw new Error(tErrors(err.code));
+      }
+      throw err;
+    }
+  };
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
@@ -47,15 +83,21 @@ function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'
       </div>
 
       {!hydrated ? null : !session ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
-          <Gift className="size-10 opacity-30" />
-          <p className="text-sm">{t('noSession')}</p>
-          <a
-            href={gameHref}
-            className={buttonVariants({ variant: 'primary', className: 'mt-2 rounded-full px-6' })}
-          >
-            {t('playNow')}
-          </a>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-muted-foreground">
+            <Gift className="size-10 opacity-30" />
+            <p className="text-sm">{t('noSession')}</p>
+            <a
+              href={gameHref}
+              className={buttonVariants({
+                variant: 'primary',
+                className: 'mt-2 rounded-full px-6',
+              })}
+            >
+              {t('playNow')}
+            </a>
+          </div>
+          <VoucherRestoreBox labels={labels} onRestorePrizes={onRestorePrizes} defaultOpen />
         </div>
       ) : (
         <>
@@ -66,7 +108,9 @@ function MyPrizes({ campaign }: { campaign: Pick<PublicCampaign, 'slug' | 'name'
             vouchers={vouchers}
             loading={me.loading || me.state === null}
             labels={labels}
+            redeemUrl={redeemUrl}
           />
+          <VoucherRestoreBox labels={labels} onRestorePrizes={onRestorePrizes} />
           <a
             href={gameHref}
             className={buttonVariants({

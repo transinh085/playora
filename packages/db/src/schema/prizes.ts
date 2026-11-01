@@ -79,6 +79,30 @@ export const drawSpins = pgTable(
   (t) => [uniqueIndex().on(t.eventId, t.env, t.spinNo)],
 );
 
+export const counterDevices = pgTable(
+  'counter_devices',
+  {
+    id: id(),
+    organizationId: orgId(),
+    label: text().notNull(),
+    storeLabel: text(),
+    pairingCodeHash: text(),
+    pairingExpiresAt: timestamp({ withTimezone: true }),
+    tokenHash: text(),
+    lastUsedAt: timestamp({ withTimezone: true }),
+    revokedAt: timestamp({ withTimezone: true }),
+    createdBy: text()
+      .notNull()
+      .references(() => user.id),
+    ...timestamps,
+  },
+  (t) => [
+    index().on(t.organizationId),
+    uniqueIndex().on(t.pairingCodeHash),
+    uniqueIndex().on(t.tokenHash),
+  ],
+);
+
 export const awards = pgTable(
   'awards',
   {
@@ -102,6 +126,8 @@ export const awards = pgTable(
     expiresAt: timestamp({ withTimezone: true }),
     redeemedAt: timestamp({ withTimezone: true }),
     redeemedBy: text().references(() => user.id),
+    redeemedByDeviceId: uuid().references(() => counterDevices.id, { onDelete: 'set null' }),
+    redeemedStoreLabel: text(),
     ...timestamps,
   },
   (t) => [

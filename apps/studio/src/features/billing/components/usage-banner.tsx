@@ -9,9 +9,9 @@ import { billingPath } from '../lib/plans';
 import { redemptionsLeft, usageLevel, usagePercent } from '../lib/usage';
 
 /**
- * Redemption quota warning (BIL-02, D-21) for the org Home and the redeem desk: nothing under 80%,
- * a warning from 80%, the grace explanation from 100%, and "paused" past the grace. Hidden for
- * members without `billing:read` (counter-only staff).
+ * Redemption quota warning (BIL-02, D-23) for the org Home and the redeem desk: nothing under 80%,
+ * a warning from 80%, the grace explanation from 100%, and "prize issuance paused" past the grace.
+ * Counter redemption itself is never blocked. Hidden for members without `billing:read`.
  */
 export function RedemptionUsageBanner({ orgId }: { orgId: string }) {
   const { data } = useOrgBillingIfAllowed(orgId);
@@ -30,7 +30,7 @@ export function RedemptionUsageAlert({
 }) {
   const t = useTranslations('billing');
   const { redemptionsPerMonth: limit, redemptionsHardLimit: hardLimit } = billing.limits;
-  const used = billing.usage.redemptionsThisMonth;
+  const used = billing.usage.redemptionsThisMonth + (billing.usage.activeIssuedVouchers ?? 0);
   const level = usageLevel(used, limit, hardLimit);
   if (level === 'ok') return null;
 

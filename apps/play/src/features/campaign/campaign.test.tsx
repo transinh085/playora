@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { ApiError } from '@playora/api-client';
 import { ErrorCode, type MyVoucher, type PublicRegistrationForm } from '@playora/contracts';
 import { getMessages } from '@playora/i18n';
-import { VoucherList, voucherStatusOf } from '@playora/ui/campaign';
+import { VoucherList, VoucherRestoreBox, voucherStatusOf } from '@playora/ui/campaign';
 import { NextIntlClientProvider } from 'next-intl';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { buttonActionHref } from './button-action';
@@ -175,6 +175,24 @@ describe('toJoinBody', () => {
       fields: { name: 'Minh Anh', phone: '0901234567' },
       consents: { participation: true, marketing: false },
     });
+
+    expect(
+      toJoinBody({
+        deviceId: 'dev-1',
+        registrationForm: CAMPAIGN_FORM,
+        form: {
+          name: '  Minh Anh ',
+          phone: '+84 901.234.567',
+          consent: true,
+          marketingConsent: true,
+        },
+      }),
+    ).toEqual({
+      deviceId: 'dev-1',
+      displayName: 'Minh Anh',
+      fields: { name: 'Minh Anh', phone: '0901234567' },
+      consents: { participation: true, marketing: true },
+    });
   });
 
   test('falls back to the first text and phone fields by type', () => {
@@ -239,6 +257,11 @@ function Vouchers({ items }: { items: MyVoucher[] }) {
   return <VoucherList vouchers={toPlayerVouchers(items)} loading={false} labels={labels} />;
 }
 
+function RestoreDemo() {
+  const labels = useCampaignPlayerLabels(CAMPAIGN_FORM);
+  return <VoucherRestoreBox labels={labels} onRestorePrizes={async () => {}} defaultOpen />;
+}
+
 describe('voucher status display', () => {
   test('shows the server status of every voucher', () => {
     const html = renderToStaticMarkup(
@@ -261,8 +284,21 @@ describe('voucher status display', () => {
     expect(html).toContain('Hết hạn');
     expect(html).toContain('Đã huỷ');
     expect(html).toContain('AAAA11');
-    // Only a live voucher shows its redeem-by date.
+    // Only a live voucher shows its redeem-by date, QR code and Save button.
     expect(html.match(/Đổi trước/g)).toHaveLength(1);
+    expect(html).toContain('Lưu mã');
+    expect(html).toContain('<svg');
+  });
+
+  test('VoucherRestoreBox renders self-service prize restore form (PRZ-16)', () => {
+    const html = renderToStaticMarkup(
+      <NextIntlClientProvider locale="vi" messages={getMessages('vi')} timeZone="Asia/Ho_Chi_Minh">
+        <RestoreDemo />
+      </NextIntlClientProvider>,
+    );
+    expect(html).toContain('Không thấy quà? Khôi phục');
+    expect(html).toContain('4 ký tự cuối mã quà');
+    expect(html).toContain('Khôi phục mã quà');
   });
 
   test('without a server status, redeemedAt decides', () => {

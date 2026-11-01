@@ -1,7 +1,13 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
-import { type PlayResult, type PublicCampaign, playsApi, publicApi } from '@playora/contracts';
+import {
+  ErrorCode,
+  type PlayResult,
+  type PublicCampaign,
+  playsApi,
+  publicApi,
+} from '@playora/contracts';
 import {
   type ButtonElement,
   CampaignPlayer,
@@ -86,6 +92,7 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
 
   const me = usePlayerState(slug, session?.playerToken ?? null, clearSession);
   const [vouchersOpen, setVouchersOpen] = useState(false);
+  const [duplicatePhone, setDuplicatePhone] = useState(false);
   usePolling(vouchersOpen, me.refresh, VOUCHER_POLL_MS);
 
   // Turnstile state & ref
@@ -188,13 +195,42 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
 
   const onSubmitForm = async (values: PlayerFormValues) => {
     formRef.current = values;
+    setDuplicatePhone(false);
     try {
       await join(values);
     } catch (error) {
+      if (error instanceof ApiError && error.code === ErrorCode.PHONE_ALREADY_REGISTERED) {
+        setDuplicatePhone(true);
+      }
       toast.error(errorText(error, t('joinFailed')));
       throw error;
     }
   };
+
+  const onRestorePrizes = async (phone: string, codeSuffix: string) => {
+    const res = await api.call(playsApi.restorePrizes, {
+      params: { slug },
+      body: {
+        phone,
+        codeSuffix,
+        deviceId: getOrCreateDeviceId(slug),
+      },
+    });
+    const nextSession: PlayerSession = { playerToken: res.playerToken, player: res.player };
+    sessionRef.current = nextSession;
+    setSession(nextSession);
+    setDuplicatePhone(false);
+    await me.refresh(res.playerToken);
+  };
+
+  const studioBaseUrl = (process.env.NEXT_PUBLIC_STUDIO_URL ?? 'http://localhost:3000').replace(
+    /\/$/,
+    '',
+  );
+  const redeemUrl = (code: string) =>
+    campaign.organizationId
+      ? `${studioBaseUrl}/orgs/${campaign.organizationId}/redeem?code=${encodeURIComponent(code)}`
+      : code;
 
   const onPlay = async (): Promise<PlayResult> => {
     try {
@@ -256,9 +292,13 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         skipForm={Boolean(session)}
         onVouchersOpenChange={setVouchersOpen}
         prizesHref={`/${slug}/prizes`}
+        redeemUrl={redeemUrl}
         blockedReason={me.state?.blockedReason ?? null}
         nextTurnAtFormatted={nextTurnFormatted}
         openDaysFormatted={openDaysFormatted}
+        showMarketingConsent={campaign.registrationForm.consents.some((c) => !c.required)}
+        duplicatePhone={duplicatePhone}
+        onRestorePrizes={onRestorePrizes}
       />
       <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
         {turnsLeft !== undefined && (

@@ -45,8 +45,10 @@ export {
   type PlayerPrize,
   type PlayerVoucher,
   RulesSheet,
+  saveVoucherCardPng,
   VoucherCard,
   VoucherList,
+  VoucherRestoreBox,
   VoucherStatusTag,
   voucherStatusOf,
 } from './player-sheets';

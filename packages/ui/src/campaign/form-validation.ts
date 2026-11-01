@@ -3,6 +3,7 @@ export interface PlayerFormValues {
   name: string;
   phone: string;
   consent: boolean;
+  marketingConsent?: boolean;
 }
 
 export type PlayerFormError = 'nameRequired' | 'phoneInvalid' | 'consentRequired';

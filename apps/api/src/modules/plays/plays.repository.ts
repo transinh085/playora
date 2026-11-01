@@ -154,6 +154,31 @@ export class PlaysRepository {
     return row;
   }
 
+  async findLivePlayerByPhoneHash(
+    organizationId: string,
+    eventId: string,
+    phoneHash: string,
+    tx: DbOrTx = this.db,
+  ) {
+    const [row] = await tx
+      .select({
+        id: players.id,
+        displayName: players.displayName,
+        team: players.team,
+        sessionVer: players.sessionVer,
+      })
+      .from(players)
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'live'),
+          eq(players.phoneHash, phoneHash),
+        ),
+      );
+    return row;
+  }
+
   /** The rehearsal player behind a Studio tester key (stored in `deviceId`). */
   async findOrCreateTester(organizationId: string, eventId: string, testerKey: string, tx: Tx) {
     const where = and(

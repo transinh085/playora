@@ -429,13 +429,31 @@ export function useVoucherLookup(orgId: string, code: string) {
 
 export const useLookupVoucher = useVoucherLookup;
 
+export type RedeemVoucherInput =
+  | string
+  | {
+      code: string;
+      via?: 'code' | 'phone' | 'qr';
+      storeLabel?: string;
+    };
+
 export function useRedeemVoucher(orgId: string) {
   const qc = useQueryClient();
-  return useMutation<VoucherLookup, ApiError, string>({
-    mutationFn: (code) =>
-      api.call(vouchersApi.redeem, {
-        params: { orgId, code: code.trim().toUpperCase() },
-      }),
+  return useMutation<VoucherLookup, ApiError, RedeemVoucherInput>({
+    mutationFn: (input) => {
+      const normalized = typeof input === 'string' ? { code: input } : input;
+      const body =
+        normalized.via || normalized.storeLabel
+          ? {
+              ...(normalized.via ? { via: normalized.via } : {}),
+              ...(normalized.storeLabel ? { storeLabel: normalized.storeLabel } : {}),
+            }
+          : undefined;
+      return api.call(vouchersApi.redeem, {
+        params: { orgId, code: normalized.code.trim().toUpperCase() },
+        ...(body ? { body } : {}),
+      });
+    },
     onSuccess: (updated) => {
       qc.setQueryData(
         routeKey(vouchersApi.lookup, { params: { orgId, code: updated.code } }),
@@ -445,6 +463,16 @@ export function useRedeemVoucher(orgId: string) {
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.report) });
       void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.vouchers) });
     },
+  });
+}
+
+export function useSearchVouchersByPhone(orgId: string) {
+  return useMutation<{ items: VoucherLookup[] }, ApiError, string>({
+    mutationFn: (phone) =>
+      api.call(vouchersApi.searchByPhone, {
+        params: { orgId },
+        query: { phone: phone.trim() },
+      }),
   });
 }
 

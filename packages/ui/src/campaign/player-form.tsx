@@ -16,6 +16,10 @@ export function PlayerForm({
   values,
   errors,
   onChange,
+  showMarketingConsent = false,
+  onOpenRules,
+  duplicatePhone = false,
+  onRestorePrizes,
 }: {
   element: FormElement;
   brand: BrandPalette;
@@ -23,6 +27,10 @@ export function PlayerForm({
   values: PlayerFormValues;
   errors: PlayerFormErrors;
   onChange: (patch: Partial<PlayerFormValues>) => void;
+  showMarketingConsent?: boolean;
+  onOpenRules?: () => void;
+  duplicatePhone?: boolean;
+  onRestorePrizes?: () => void;
 }) {
   const id = useId();
   const color = resolveColor(element.color, brand);
@@ -39,7 +47,7 @@ export function PlayerForm({
     boxShadow: 'inset 0 1px 2px rgba(0,0,0,.15)',
     outlineColor: brand.accent,
   } as const;
-  const error = (key: keyof PlayerFormValues) => {
+  const error = (key: 'name' | 'phone' | 'consent') => {
     const code = errors[key];
     return code ? (
       <span
@@ -58,7 +66,7 @@ export function PlayerForm({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: 12,
+        gap: 10,
         color,
       }}
     >
@@ -84,12 +92,53 @@ export function PlayerForm({
           type="tel"
           inputMode="tel"
           autoComplete="tel"
-          aria-invalid={Boolean(errors.phone)}
+          aria-invalid={Boolean(errors.phone) || duplicatePhone}
           aria-describedby={errors.phone ? `${id}-phone-error` : undefined}
           style={input}
         />
         {error('phone')}
       </label>
+      {duplicatePhone && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            padding: '10px 12px',
+            borderRadius: 12,
+            background: 'rgba(255, 251, 235, 0.96)',
+            color: '#78350f',
+            fontSize: 12,
+            lineHeight: 1.4,
+            boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>
+            {labels.form.duplicatePhoneHint ??
+              'Số điện thoại này đã tham gia trên trình duyệt hoặc thiết bị khác.'}
+          </span>
+          {onRestorePrizes && (
+            <button
+              type="button"
+              onClick={onRestorePrizes}
+              style={{
+                alignSelf: 'flex-start',
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: 0,
+                background: '#d97706',
+                color: '#ffffff',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {labels.form.restorePrizesCta ?? 'Khôi phục mã quà đã trúng'}
+            </button>
+          )}
+        </div>
+      )}
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}>
         <input
           type="checkbox"
@@ -103,6 +152,37 @@ export function PlayerForm({
           {error('consent')}
         </span>
       </label>
+      {showMarketingConsent && labels.canvas.marketingConsent && (
+        <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13 }}>
+          <input
+            type="checkbox"
+            checked={Boolean(values.marketingConsent)}
+            onChange={(e) => onChange({ marketingConsent: e.target.checked })}
+            style={{ width: 20, height: 20, margin: 0, flex: 'none', accentColor: brand.accent }}
+          />
+          <span style={{ lineHeight: 1.35, opacity: 0.9 }}>{labels.canvas.marketingConsent}</span>
+        </label>
+      )}
+      {onOpenRules && (
+        <button
+          type="button"
+          onClick={onOpenRules}
+          style={{
+            alignSelf: 'flex-start',
+            padding: 0,
+            border: 0,
+            background: 'transparent',
+            color,
+            fontSize: 12,
+            fontWeight: 600,
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            opacity: 0.9,
+          }}
+        >
+          {labels.canvas.viewFullRules ?? labels.rules.fullTerms}
+        </button>
+      )}
     </div>
   );
 }

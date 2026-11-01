@@ -7,6 +7,7 @@ import {
   campaignsApi,
   ErrorCode,
   playsApi,
+  publicApi,
   vouchersApi,
 } from '@playora/contracts';
 import { billingMonth } from '@playora/core/billing';
@@ -157,9 +158,19 @@ describe('plan quotas (BIL-02)', () => {
     expect((await publicCampaign(c.slug)).watermark).toBe(false);
   });
 
-  test('redemptions are counted per Vietnam calendar month with a 10% grace', async () => {
+  test('D-23: quota pauses new prize issuance at 110% while counter redemption is never blocked', async () => {
     const { cookie, orgId, api } = await newOrg();
-    const c = await createPublished(cookie, orgId);
+    const c = await createCampaign(cookie, orgId, {
+      rules: {
+        ...campaignBody().rules,
+        mode: 'guaranteed',
+        playsPerDay: 5,
+        maxWinsPerPlayer: 5,
+        collectForm: false,
+        antiFraud: 'low',
+      },
+    });
+    await api.call(campaignsApi.publish, { params: { orgId, campaignId: c.id } });
     const month = billingMonth();
 
     // Last month's redemptions and rehearsal codes never count.
@@ -189,44 +200,81 @@ describe('plan quotas (BIL-02)', () => {
     expect(billing.usage).toEqual({
       runningCampaigns: 1,
       redemptionsThisMonth: 108,
+      activeIssuedVouchers: 0,
       monthStart: month.start.toISOString(),
     });
 
-    // Over the limit but within the grace: the customer still gets the prize.
-    const issued = await insertAwards(db, { orgId, campaignId: c.id, count: 3, redeemedAt: null });
-    const [first, second, third] = issued as [string, string, string];
-    await api.call(vouchersApi.redeem, { params: { orgId, code: first } });
-    await api.call(vouchersApi.redeem, { params: { orgId, code: second } });
-    await expectApiError(
-      api.call(vouchersApi.redeem, { params: { orgId, code: third } }),
-      409,
-      ErrorCode.PLAN_REDEMPTION_LIMIT,
+    // At 108 (< 110 hard limit): a live play still wins a prize and increments activeIssuedVouchers.
+    const pub = createApiClient({ baseUrl: t.baseUrl });
+    const joined = await pub.call(publicApi.join, {
+      params: { slug: c.slug },
+      body: { deviceId: crypto.randomUUID() },
+    });
+    const playerApi = createApiClient({
+      baseUrl: t.baseUrl,
+      headers: { authorization: `Bearer ${joined.playerToken}` },
+    });
+    const firstWin = await playerApi.call(playsApi.play, {
+      params: { slug: c.slug },
+      body: { requestId: crypto.randomUUID() },
+    });
+    expect(firstWin.outcome).toBe('win');
+    expect(firstWin.voucher?.code).toBeDefined();
+
+    // Issue 2 more active vouchers so redemptionsThisMonth (108) + activeIssuedVouchers (3) = 111 >= 110.
+    const issued = await insertAwards(db, { orgId, campaignId: c.id, count: 2, redeemedAt: null });
+    const [second, third] = issued as [string, string];
+
+    const billingAtCap = await api.call(billingApi.get, { params: { orgId } });
+    expect(billingAtCap.usage.redemptionsThisMonth).toBe(108);
+    expect(billingAtCap.usage.activeIssuedVouchers).toBe(3);
+
+    // At >= 110 hard limit: a new live play loses gracefully without deducting prize stock.
+    const statsBefore = await api.call(campaignsApi.stats, {
+      params: { orgId, campaignId: c.id },
+    });
+    const cappedPlay = await playerApi.call(playsApi.play, {
+      params: { slug: c.slug },
+      body: { requestId: crypto.randomUUID() },
+    });
+    expect(cappedPlay).toMatchObject({
+      outcome: 'lose',
+      reason: 'out_of_stock',
+      prize: null,
+      voucher: null,
+    });
+    const statsAfter = await api.call(campaignsApi.stats, {
+      params: { orgId, campaignId: c.id },
+    });
+    expect(statsAfter.remainingByPrize).toEqual(statsBefore.remainingByPrize);
+
+    // Counter redemption is NEVER blocked: all issued vouchers redeem even above 110%.
+    expect(
+      (
+        await api.call(vouchersApi.redeem, {
+          params: { orgId, code: firstWin.voucher?.code as string },
+        })
+      ).status,
+    ).toBe('redeemed');
+    expect((await api.call(vouchersApi.redeem, { params: { orgId, code: second } })).status).toBe(
+      'redeemed',
     );
-    // The blocked code is untouched, and a used code keeps its own error.
-    expect((await api.call(vouchersApi.lookup, { params: { orgId, code: third } })).status).toBe(
-      'issued',
+    expect((await api.call(vouchersApi.redeem, { params: { orgId, code: third } })).status).toBe(
+      'redeemed',
     );
     await expectApiError(
-      api.call(vouchersApi.redeem, { params: { orgId, code: first } }),
+      api.call(vouchersApi.redeem, { params: { orgId, code: second } }),
       409,
       ErrorCode.VOUCHER_ALREADY_REDEEMED,
     );
 
-    // Rehearsal codes are never limited.
-    const [rehearsal] = (await insertAwards(db, {
-      orgId,
-      campaignId: c.id,
-      count: 1,
-      redeemedAt: null,
-      env: 'rehearsal',
-    })) as [string];
-    await api.call(vouchersApi.redeem, { params: { orgId, code: rehearsal } });
-
-    // Upgrading unblocks the counter right away.
+    // Upgrading unblocks new prize issuance right away.
     await setPlan(db, orgId, 'shop');
-    expect((await api.call(vouchersApi.redeem, { params: { orgId, code: third } })).status).toBe(
-      'redeemed',
-    );
+    const afterUpgrade = await playerApi.call(playsApi.play, {
+      params: { slug: c.slug },
+      body: { requestId: crypto.randomUUID() },
+    });
+    expect(afterUpgrade.outcome).toBe('win');
     expect((await api.call(billingApi.get, { params: { orgId } })).usage.redemptionsThisMonth).toBe(
       111,
     );

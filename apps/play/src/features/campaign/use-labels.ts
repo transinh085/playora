@@ -20,8 +20,19 @@ export function useCampaignPlayerLabels(
       format.dateTime(value, options),
     );
     const required = registrationForm?.consents.filter((c) => c.required) ?? [];
-    if (required.length === 0) return labels;
-    const consent = required.map((c) => localize(c.text, locale)).join(' ');
-    return { ...labels, canvas: { ...labels.canvas, consent } };
+    const optional = registrationForm?.consents.filter((c) => !c.required) ?? [];
+    if (required.length === 0 && optional.length === 0) return labels;
+    const consent =
+      required.length > 0
+        ? required.map((c) => localize(c.text, locale)).join(' ')
+        : labels.canvas.consent;
+    const marketingConsent =
+      optional.length > 0
+        ? optional.map((c) => localize(c.text, locale)).join(' ')
+        : labels.canvas.marketingConsent;
+    return {
+      ...labels,
+      canvas: { ...labels.canvas, consent, marketingConsent },
+    };
   }, [t, format, locale, registrationForm]);
 }

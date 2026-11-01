@@ -3,8 +3,16 @@ import { ApiError } from '@playora/api-client';
 import { campaignsApi, ErrorCode, vouchersApi } from '@playora/contracts';
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
+import { PiiService } from '../src/common/pii/pii.service';
 import { DB } from '../src/infra/tokens';
-import { addMember, campaignBody, issueVoucher, sessionUserId, setPlan } from './campaign-fixtures';
+import {
+  addMember,
+  campaignBody,
+  insertAwards,
+  issueVoucher,
+  sessionUserId,
+  setPlan,
+} from './campaign-fixtures';
 import { createOrg, createTestApp, signUp, type TestApp } from './create-test-app';
 
 let t: TestApp;
@@ -74,11 +82,77 @@ describe('vouchers API', () => {
     expect(redeemed).toMatchObject({ status: 'redeemed', redeemedByName: 'Thu ngân' });
     expect(redeemed.redeemedAt).not.toBeNull();
 
+    const [auditEntry] = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, orgId),
+          eq(schema.auditLogs.action, 'voucher.redeem'),
+        ),
+      );
+    expect(auditEntry?.diff).toMatchObject({ code, campaignId, via: 'code' });
+
     await expectApiError(
       asStaff.call(vouchersApi.redeem, { params: { orgId, code } }),
       409,
       ErrorCode.VOUCHER_ALREADY_REDEEMED,
     );
+  });
+
+  test('rehearsal vouchers run in repeatable training mode without locking in DB (PRZ-19)', async () => {
+    const [rehearsalCode] = (await insertAwards(db, {
+      orgId,
+      campaignId,
+      count: 1,
+      redeemedAt: null,
+      env: 'rehearsal',
+    })) as [string];
+    const asStaff = t.client(staff);
+
+    // First training redeem returns simulated redeemed status.
+    const first = await asStaff.call(vouchersApi.redeem, {
+      params: { orgId, code: rehearsalCode },
+    });
+    expect(first).toMatchObject({
+      code: rehearsalCode,
+      status: 'redeemed',
+      rehearsal: true,
+    });
+    expect(first.redeemedAt).not.toBeNull();
+
+    // Lookup shows the rehearsal code is still issued in DB so other staff can practice.
+    const lookedUp = await asStaff.call(vouchersApi.lookup, {
+      params: { orgId, code: rehearsalCode },
+    });
+    expect(lookedUp).toMatchObject({
+      code: rehearsalCode,
+      status: 'issued',
+      rehearsal: true,
+      redeemedAt: null,
+    });
+
+    // Second training redeem also succeeds.
+    const second = await asStaff.call(vouchersApi.redeem, {
+      params: { orgId, code: rehearsalCode },
+    });
+    expect(second).toMatchObject({
+      code: rehearsalCode,
+      status: 'redeemed',
+      rehearsal: true,
+    });
+
+    const trainingAudits = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, orgId),
+          eq(schema.auditLogs.action, 'voucher.training_redeem'),
+        ),
+      );
+    expect(trainingAudits.length).toBeGreaterThanOrEqual(2);
+    expect(trainingAudits[0]?.diff).toMatchObject({ code: rehearsalCode, campaignId });
   });
 
   test('20 concurrent redeems of one code: exactly one succeeds', async () => {
@@ -266,5 +340,127 @@ describe('vouchers API', () => {
     await expect(
       t.client(owner).call(vouchersApi.lookup, { params: { orgId, code } }),
     ).resolves.toMatchObject({ status: 'issued' });
+  });
+
+  test('searchByPhone returns only active issued live vouchers for orgId, audits lookup_phone and rate-limits at 20/h (PRZ-15)', async () => {
+    const pii = t.app.get(PiiService);
+    const phoneProtected = pii.protectPhone('0901234567');
+    expect(phoneProtected).not.toBeNull();
+
+    const active = await issue({ playerName: 'Lan Hương' });
+    const redeemed = await issue({ playerName: 'Lan Hương' });
+    const expired = await issue({
+      playerName: 'Lan Hương',
+      expiresAt: new Date(Date.now() - 60_000),
+    });
+    await db
+      .update(schema.players)
+      .set({
+        phoneEnc: phoneProtected?.phoneEnc ?? null,
+        phoneHash: phoneProtected?.phoneHash ?? null,
+      })
+      .where(eq(schema.players.id, active.playerId));
+    // Attach the redeemed and expired awards to the same player (one phone = one player per event).
+    await db
+      .update(schema.awards)
+      .set({ playerId: active.playerId })
+      .where(
+        and(eq(schema.awards.organizationId, orgId), eq(schema.awards.redeemCode, redeemed.code)),
+      );
+    await db
+      .update(schema.awards)
+      .set({ playerId: active.playerId })
+      .where(
+        and(eq(schema.awards.organizationId, orgId), eq(schema.awards.redeemCode, expired.code)),
+      );
+
+    // Redeem one of the three vouchers.
+    await t.client(staff).call(vouchersApi.redeem, {
+      params: { orgId, code: redeemed.code },
+      body: { via: 'phone' },
+    });
+
+    // Another org's voucher with the same phoneHash must never leak.
+    const otherCreated = await t.client(stranger).call(campaignsApi.create, {
+      params: { orgId: otherOrg },
+      body: campaignBody({ name: 'Quán khác' }),
+    });
+    await t.client(stranger).call(campaignsApi.publish, {
+      params: { orgId: otherOrg, campaignId: otherCreated.id },
+    });
+    const otherVoucher = await issueVoucher(db, {
+      orgId: otherOrg,
+      campaignId: otherCreated.id,
+      prizeKey: 'p1',
+      playerName: 'Lan Hương',
+    });
+    await db
+      .update(schema.players)
+      .set({
+        phoneEnc: phoneProtected?.phoneEnc ?? null,
+        phoneHash: phoneProtected?.phoneHash ?? null,
+      })
+      .where(eq(schema.players.id, otherVoucher.playerId));
+
+    const asStaff = t.client(staff);
+    const res = await asStaff.call(vouchersApi.searchByPhone, {
+      params: { orgId },
+      query: { phone: '+84 901-234-567' },
+    });
+    expect(res.items.map((v) => v.code)).toEqual([active.code]);
+    expect(res.items[0]).toMatchObject({
+      code: active.code,
+      status: 'issued',
+      playerName: 'Lan Hương',
+    });
+
+    // Cross-tenant 403 when stranger queries orgId.
+    await expectApiError(
+      t.client(stranger).call(vouchersApi.searchByPhone, {
+        params: { orgId },
+        query: { phone: '0901234567' },
+      }),
+      403,
+      ErrorCode.FORBIDDEN,
+    );
+
+    // Invalid phone number returns 400 VALIDATION_FAILED.
+    await expectApiError(
+      asStaff.call(vouchersApi.searchByPhone, {
+        params: { orgId },
+        query: { phone: 'not-a-phone' },
+      }),
+      400,
+      ErrorCode.VALIDATION_FAILED,
+    );
+
+    // Audit log recorded for voucher.lookup_phone and voucher.redeem via phone.
+    const lookupAudits = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, orgId),
+          eq(schema.auditLogs.action, 'voucher.lookup_phone'),
+        ),
+      );
+    expect(lookupAudits.length).toBeGreaterThanOrEqual(1);
+    expect(lookupAudits[0]?.diff).toMatchObject({ matchCount: 1 });
+
+    // Rate-limit: 20 lookups/hour per actor; 2 already used above (valid + invalid), so 18 more succeed and the 21st gets 429.
+    for (let i = 0; i < 18; i++) {
+      await asStaff.call(vouchersApi.searchByPhone, {
+        params: { orgId },
+        query: { phone: '0901234567' },
+      });
+    }
+    await expectApiError(
+      asStaff.call(vouchersApi.searchByPhone, {
+        params: { orgId },
+        query: { phone: '0901234567' },
+      }),
+      429,
+      ErrorCode.RATE_LIMITED,
+    );
   });
 });

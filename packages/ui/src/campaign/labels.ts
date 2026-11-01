@@ -16,6 +16,8 @@ export interface CanvasLabels {
   fullName: string;
   phone: string;
   consent: string;
+  marketingConsent?: string;
+  viewFullRules?: string;
   sampleName: string;
   samplePrize: string;
   sampleEvent: string;
@@ -51,8 +53,17 @@ export interface CampaignPlayerLabels {
     namePlaceholder: string;
     phonePlaceholder: string;
     errors: Record<PlayerFormError, string>;
+    duplicatePhoneHint?: string;
+    restorePrizesCta?: string;
   };
-  voucher: { title: string; hint: string; collapse: string; show: string };
+  voucher: {
+    title: string;
+    hint: string;
+    collapse: string;
+    show: string;
+    saveImage?: string;
+    savedImage?: string;
+  };
   notice: { noTurns: NoticeLabels; closed: NoticeLabels };
   vouchers: {
     title: string;
@@ -67,6 +78,14 @@ export interface CampaignPlayerLabels {
     /** Running clock on voucher screens, so a screenshot is easy to tell apart (anti-screenshot). */
     liveClock: (now: Date) => string;
     openPage: string;
+    restoreTitle?: string;
+    restoreHint?: string;
+    restorePhoneLabel?: string;
+    restoreSuffixLabel?: string;
+    restoreSuffixPlaceholder?: string;
+    restoreSubmit?: string;
+    restoreSuccess?: string;
+    restoreNotFound?: string;
   };
   rules: {
     title: string;
@@ -98,6 +117,8 @@ export type CampaignMessageKey =
   | 'render.fullName'
   | 'render.phone'
   | 'render.consent'
+  | 'render.marketingConsent'
+  | 'render.viewFullRules'
   | 'render.sampleName'
   | 'render.samplePrize'
   | 'render.sampleEvent'
@@ -117,10 +138,14 @@ export type CampaignMessageKey =
   | 'form.nameRequired'
   | 'form.phoneInvalid'
   | 'form.consentRequired'
+  | 'form.duplicatePhoneHint'
+  | 'form.restorePrizesCta'
   | 'voucher.title'
   | 'voucher.hint'
   | 'voucher.collapse'
   | 'voucher.show'
+  | 'voucher.saveImage'
+  | 'voucher.savedImage'
   | 'noTurns.title'
   | 'noTurns.body'
   | 'noTurns.nextTurn'
@@ -140,6 +165,14 @@ export type CampaignMessageKey =
   | 'vouchers.expiresAt'
   | 'vouchers.liveClock'
   | 'vouchers.openPage'
+  | 'vouchers.restoreTitle'
+  | 'vouchers.restoreHint'
+  | 'vouchers.restorePhoneLabel'
+  | 'vouchers.restoreSuffixLabel'
+  | 'vouchers.restoreSuffixPlaceholder'
+  | 'vouchers.restoreSubmit'
+  | 'vouchers.restoreSuccess'
+  | 'vouchers.restoreNotFound'
   | 'rules.title'
   | 'rules.window'
   | 'rules.hours'
@@ -191,6 +224,8 @@ export function createCampaignPlayerLabels(
       fullName: t('render.fullName'),
       phone: t('render.phone'),
       consent: t('render.consent'),
+      marketingConsent: t('render.marketingConsent'),
+      viewFullRules: t('render.viewFullRules'),
       sampleName: t('render.sampleName'),
       samplePrize: t('render.samplePrize'),
       sampleEvent: t('render.sampleEvent'),
@@ -216,12 +251,16 @@ export function createCampaignPlayerLabels(
         phoneInvalid: t('form.phoneInvalid'),
         consentRequired: t('form.consentRequired'),
       },
+      duplicatePhoneHint: t('form.duplicatePhoneHint'),
+      restorePrizesCta: t('form.restorePrizesCta'),
     },
     voucher: {
       title: t('voucher.title'),
       hint: t('voucher.hint'),
       collapse: t('voucher.collapse'),
       show: t('voucher.show'),
+      saveImage: t('voucher.saveImage'),
+      savedImage: t('voucher.savedImage'),
     },
     notice: { noTurns: notice('noTurns'), closed: notice('closed') },
     vouchers: {
@@ -243,6 +282,14 @@ export function createCampaignPlayerLabels(
       liveClock: (now) =>
         t('vouchers.liveClock', { time: formatDateTime(now, { timeStyle: 'medium' }) }),
       openPage: t('vouchers.openPage'),
+      restoreTitle: t('vouchers.restoreTitle'),
+      restoreHint: t('vouchers.restoreHint'),
+      restorePhoneLabel: t('vouchers.restorePhoneLabel'),
+      restoreSuffixLabel: t('vouchers.restoreSuffixLabel'),
+      restoreSuffixPlaceholder: t('vouchers.restoreSuffixPlaceholder'),
+      restoreSubmit: t('vouchers.restoreSubmit'),
+      restoreSuccess: t('vouchers.restoreSuccess'),
+      restoreNotFound: t('vouchers.restoreNotFound'),
     },
     rules: {
       title: t('rules.title'),

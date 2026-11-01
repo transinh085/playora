@@ -9,8 +9,8 @@ import {
   PlayResult,
   VoucherStatus,
 } from './campaigns';
-import { Id, IsoDateTime, Slug } from './common';
-import { PublicRegistrationForm } from './public';
+import { AuthId, Id, IsoDateTime, Slug } from './common';
+import { JoinedPlayer, PublicRegistrationForm } from './public';
 import { defineRoute } from './route';
 
 /**
@@ -21,6 +21,7 @@ import { defineRoute } from './route';
 /** What the player shell needs to render a published campaign. Odds and stock are never exposed. */
 export const PublicCampaign = z.object({
   id: Id,
+  organizationId: AuthId.optional(),
   slug: Slug,
   name: z.string(),
   version: z.number().int().positive(),
@@ -83,6 +84,25 @@ export const PlayerState = z.object({
 });
 export type PlayerState = z.infer<typeof PlayerState>;
 
+export const RestorePrizesBody = z.object({
+  phone: z.string().trim().min(8).max(20),
+  codeSuffix: z
+    .string()
+    .trim()
+    .min(4)
+    .max(6)
+    .transform((v) => v.toUpperCase().replace(/[\s-]/g, '')),
+  deviceId: z.string().trim().min(1).max(128).optional(),
+});
+export type RestorePrizesBody = z.input<typeof RestorePrizesBody>;
+
+export const RestorePrizesResponse = z.object({
+  playerToken: z.string(),
+  player: JoinedPlayer,
+  vouchers: z.array(MyVoucher),
+});
+export type RestorePrizesResponse = z.infer<typeof RestorePrizesResponse>;
+
 const SlugParams = z.object({ slug: Slug });
 
 export const playsApi = {
@@ -115,5 +135,16 @@ export const playsApi = {
     auth: 'player',
     params: SlugParams,
     response: PlayerState,
+  }),
+  restorePrizes: defineRoute({
+    method: 'POST',
+    path: '/p/:slug/prizes/restore',
+    summary: 'Restore player session and vouchers using phone + last 4 chars of a won voucher code',
+    tags: ['player'],
+    auth: 'public',
+    rateLimit: 'public',
+    params: SlugParams,
+    body: RestorePrizesBody,
+    response: RestorePrizesResponse,
   }),
 };

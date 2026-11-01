@@ -27,8 +27,22 @@ export const VoucherLookup = z.object({
   expiresAt: IsoDateTime.nullable(),
   redeemedAt: IsoDateTime.nullable(),
   redeemedByName: z.string().nullable(),
+  storeLabel: z.string().nullable().optional(),
 });
 export type VoucherLookup = z.infer<typeof VoucherLookup>;
+
+export const SearchVouchersByPhoneQuery = z.object({
+  phone: z.string().trim().min(8).max(20),
+});
+export type SearchVouchersByPhoneQuery = z.input<typeof SearchVouchersByPhoneQuery>;
+
+export const RedeemVoucherBody = z
+  .object({
+    via: z.enum(['code', 'phone', 'qr']).optional(),
+    storeLabel: z.string().trim().max(120).optional(),
+  })
+  .optional();
+export type RedeemVoucherBody = z.input<typeof RedeemVoucherBody>;
 
 export const ReopenVoucherBody = z.object({
   reason: z.string().trim().min(3).max(500),
@@ -38,6 +52,17 @@ export type ReopenVoucherBody = z.input<typeof ReopenVoucherBody>;
 const VoucherParams = OrgParams.extend({ code: VoucherCode });
 
 export const vouchersApi = {
+  searchByPhone: defineRoute({
+    method: 'GET',
+    path: '/orgs/:orgId/vouchers/by-phone',
+    summary: 'Look up active (issued, unredeemed, non-expired) vouchers by player phone number',
+    tags: ['vouchers'],
+    auth: 'session',
+    permission: { voucher: ['redeem'] },
+    params: OrgParams,
+    query: SearchVouchersByPhoneQuery,
+    response: z.object({ items: z.array(VoucherLookup) }),
+  }),
   lookup: defineRoute({
     method: 'GET',
     path: '/orgs/:orgId/vouchers/:code',
@@ -56,6 +81,7 @@ export const vouchersApi = {
     auth: 'session',
     permission: { voucher: ['redeem'] },
     params: VoucherParams,
+    body: RedeemVoucherBody,
     response: VoucherLookup,
   }),
   reopen: defineRoute({

@@ -2,6 +2,7 @@ import { assetsApi } from './assets';
 import { adminApi, billingApi } from './billing';
 import { brandKitsApi } from './brand-kits';
 import { campaignsApi } from './campaigns';
+import { counterDevicesApi } from './counter-devices';
 import { eventsApi } from './events';
 import { gamesApi } from './games';
 import { guestsApi } from './guests';
@@ -17,6 +18,7 @@ export * from './billing';
 export * from './brand-kits';
 export * from './campaigns';
 export * from './common';
+export * from './counter-devices';
 export * from './events';
 export * from './games';
 export * from './guests';
@@ -41,6 +43,7 @@ export const allRoutes: RouteDef[] = [
   ...Object.values(campaignsApi),
   ...Object.values(playsApi),
   ...Object.values(vouchersApi),
+  ...Object.values(counterDevicesApi),
   ...Object.values(billingApi),
   ...Object.values(adminApi),
 ];

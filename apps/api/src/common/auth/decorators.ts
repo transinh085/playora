@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import type { PlayerSessionClaims } from '@playora/core/session';
 import type { Request } from 'express';
-import type { AuthSession, OrgMembership } from './auth.types';
+import type { AuthSession, CounterDeviceActor, OrgMembership } from './auth.types';
 
 export const IS_PUBLIC = Symbol('IS_PUBLIC');
 
@@ -35,5 +35,12 @@ export const CurrentPlayer = createParamDecorator(
     const player = ctx.switchToHttp().getRequest<Request>().player;
     if (!player) throw new UnauthorizedException();
     return player;
+  },
+);
+
+/** Active counter device when the request is authenticated via `x-counter-device-token`, or null. */
+export const CurrentCounterDevice = createParamDecorator(
+  (_: unknown, ctx: ExecutionContext): CounterDeviceActor | null => {
+    return ctx.switchToHttp().getRequest<Request>().counterDevice ?? null;
   },
 );

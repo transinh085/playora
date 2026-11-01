@@ -32,7 +32,9 @@ export function toJoinBody(input: {
   }
 
   const granted: Record<string, boolean> = {};
-  for (const consent of consents) granted[consent.purpose] = consent.required && form.consent;
+  for (const consent of consents) {
+    granted[consent.purpose] = consent.required ? form.consent : Boolean(form.marketingConsent);
+  }
 
   return {
     deviceId,

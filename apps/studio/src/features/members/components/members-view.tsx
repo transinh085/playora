@@ -9,6 +9,7 @@ import { QueryError } from '@/components/query-error';
 import { authClient } from '@/lib/auth-client';
 import { assignableRolesFor, can, isOwnerRole, type OrgRole } from '@/lib/permissions';
 import { useInvalidateOrgMembers, useOrgMembers } from '../api';
+import { CounterDevicesCard } from './counter-devices-card';
 import { InviteMemberDialog } from './invite-member-dialog';
 import { MembersTable } from './members-table';
 import { PendingInvitationsTable } from './pending-invitations-table';
@@ -198,6 +199,8 @@ export function MembersView({ orgId }: { orgId: string }) {
           onCancelInvitation={onCancelInvitation}
         />
       )}
+
+      <CounterDevicesCard orgId={orgId} canManage={canManage} />
     </div>
   );
 }

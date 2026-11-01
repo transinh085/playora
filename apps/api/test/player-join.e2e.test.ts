@@ -908,7 +908,7 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
       (e: unknown) => e,
     );
     expect(err).toBeInstanceOf(ApiError);
-    expect(err).toMatchObject({ status: 409, code: ErrorCode.CONFLICT });
+    expect(err).toMatchObject({ status: 409, code: ErrorCode.PHONE_ALREADY_REGISTERED });
     expect((err as ApiError).details).toMatchObject({ field: 'fields.mobile' });
     const inEvent = await db
       .select({ id: schema.players.id })
@@ -931,7 +931,7 @@ describe('player join & participation config (EVT-02, EVT-05)', () => {
     ]);
     expect(race.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
     const lost = race.find((r) => r.status === 'rejected') as PromiseRejectedResult;
-    expect(lost.reason).toMatchObject({ status: 409, code: ErrorCode.CONFLICT });
+    expect(lost.reason).toMatchObject({ status: 409, code: ErrorCode.PHONE_ALREADY_REGISTERED });
 
     // The same number in another event is another player.
     const other = await createPhoneEvent('pii-other');

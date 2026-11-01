@@ -12,6 +12,7 @@ import { and, eq } from 'drizzle-orm';
 import type { Request } from 'express';
 import { DB } from '../../infra/tokens';
 import { getRouteContract } from '../contract/route.decorator';
+import { isAllowedCounterDevicePermission } from './session.guard';
 
 /**
  * Enforces the contract's `permission` for the `:orgId` in the path and exposes the membership.
@@ -27,6 +28,23 @@ export class OrgAccessGuard implements CanActivate {
 
     const req = ctx.switchToHttp().getRequest<Request>();
     const orgId = req.params.orgId;
+    if (req.counterDevice) {
+      if (
+        typeof orgId !== 'string' ||
+        orgId !== req.counterDevice.organizationId ||
+        !isAllowedCounterDevicePermission(route.permission)
+      ) {
+        throw this.forbidden();
+      }
+      const { counterDevices } = schema;
+      await this.db
+        .update(counterDevices)
+        .set({ lastUsedAt: new Date() })
+        .where(eq(counterDevices.id, req.counterDevice.id));
+      req.membership = { organizationId: orgId, role: 'redeemer' };
+      return true;
+    }
+
     const userId = req.session?.user.id;
     if (typeof orgId !== 'string' || !userId) throw this.forbidden();
 

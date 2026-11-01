@@ -10,7 +10,7 @@ import {
   type PlanLimits,
   type RouteArgs,
 } from '@playora/contracts';
-import { billingMonth, effectivePlan, planLimits } from '@playora/core/billing';
+import { billingMonth, effectivePlan, maxCounterDevices, planLimits } from '@playora/core/billing';
 import type { DbOrTx, Tx } from '@playora/db';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
@@ -73,16 +73,44 @@ export class BillingService {
 
   async usage(orgId: string, now = new Date()): Promise<BillingUsage> {
     const month = billingMonth(now);
-    const [runningCampaigns, redemptionsThisMonth] = await Promise.all([
+    const [runningCampaigns, redemptionsThisMonth, activeIssuedVouchers] = await Promise.all([
       this.repo.countRunningCampaigns(orgId, now),
       this.repo.countRedemptions(orgId, month.start, month.end),
+      this.repo.countActiveIssuedVouchers(orgId, now),
     ]);
-    return { runningCampaigns, redemptionsThisMonth, monthStart: month.start.toISOString() };
+    return {
+      runningCampaigns,
+      redemptionsThisMonth,
+      activeIssuedVouchers,
+      monthStart: month.start.toISOString(),
+    };
+  }
+
+  /**
+   * True when the organization can still issue a new live prize voucher under its monthly quota +
+   * 10% grace (D-23, BIL-02). Once `redemptionsThisMonth + activeIssuedVouchers` reaches
+   * `redemptionsHardLimit`, new plays lose gracefully while already-issued vouchers remain
+   * redeemable at the counter.
+   */
+  async canIssuePrize(orgId: string, tx?: DbOrTx, now = new Date()): Promise<boolean> {
+    const { limits } = await this.planOf(orgId, tx, now);
+    const month = billingMonth(now);
+    const [redemptionsThisMonth, activeIssuedVouchers] = await Promise.all([
+      this.repo.countRedemptions(orgId, month.start, month.end, tx),
+      this.repo.countActiveIssuedVouchers(orgId, now, tx),
+    ]);
+    return redemptionsThisMonth + activeIssuedVouchers < limits.redemptionsHardLimit;
   }
 
   /** Free shows the "Tạo bằng Playora" badge in the player shell. */
   async watermark(orgId: string): Promise<boolean> {
     return (await this.planOf(orgId)).limits.watermark;
+  }
+
+  /** Max active counter devices allowed for `orgId`'s current plan (ORG-10). */
+  async maxCounterDevices(orgId: string, now = new Date()): Promise<number> {
+    const { plan } = await this.planOf(orgId, undefined, now);
+    return maxCounterDevices(plan);
   }
 
   /**

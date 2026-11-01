@@ -18,6 +18,7 @@ import { AssetsModule } from './modules/assets/assets.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { BrandKitsModule } from './modules/brand-kits/brand-kits.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
+import { CounterDevicesModule } from './modules/counter-devices/counter-devices.module';
 import { EventsModule } from './modules/events/events.module';
 import { GamesModule } from './modules/games/games.module';
 import { GuestsModule } from './modules/guests/guests.module';
@@ -105,6 +106,7 @@ export class AppModule {
         TemplatesModule,
         GamesModule,
         CampaignsModule,
+        CounterDevicesModule,
         VouchersModule,
         PlaysModule,
         BillingModule,
