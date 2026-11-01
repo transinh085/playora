@@ -12,9 +12,9 @@ import {
   TextField,
   toast,
 } from '@playora/ui/components';
-import { UserPlus } from '@playora/ui/icons';
+import { Copy, UserPlus } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { authClient, ORG_ROLES, type OrgRole } from '@/lib/auth-client';
@@ -38,6 +38,7 @@ export function InviteMemberDialog({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const copyLinkAfterSendRef = useRef(false);
   const { invalidateMembers } = useInvalidateOrgMembers(orgId);
 
   const defaultRole: OrgRole = assignableRoles.includes('editor')
@@ -53,7 +54,7 @@ export function InviteMemberDialog({
     setIsSubmitting(true);
     try {
       const values = inviteSchema.parse(rawValues);
-      const { error } = await authClient.organization.inviteMember({
+      const { data, error } = await authClient.organization.inviteMember({
         organizationId: orgId,
         email: values.email,
         role: values.role as never,
@@ -65,10 +66,17 @@ export function InviteMemberDialog({
         return;
       }
       await invalidateMembers();
-      toast.success(t('members.invited', { email: values.email }));
+      if (copyLinkAfterSendRef.current && data?.id && typeof window !== 'undefined') {
+        const inviteUrl = `${window.location.origin}/invite/${data.id}`;
+        await navigator.clipboard?.writeText(inviteUrl).catch(() => null);
+        toast.success(t('members.inviteLinkCopied'));
+      } else {
+        toast.success(t('members.invited', { email: values.email }));
+      }
       setOpen(false);
       form.reset();
     } finally {
+      copyLinkAfterSendRef.current = false;
       setIsSubmitting(false);
     }
   }
@@ -159,7 +167,7 @@ export function InviteMemberDialog({
                   />
                 </Modal.Body>
 
-                <Modal.Footer>
+                <Modal.Footer className="flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="secondary"
@@ -168,7 +176,26 @@ export function InviteMemberDialog({
                   >
                     {t('common.cancel')}
                   </Button>
-                  <Button type="submit" size="sm" isDisabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="sm"
+                    isDisabled={isSubmitting}
+                    onPress={() => {
+                      copyLinkAfterSendRef.current = true;
+                    }}
+                  >
+                    <Copy className="size-3.5" />
+                    {t('members.sendAndCopyLink')}
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    isDisabled={isSubmitting}
+                    onPress={() => {
+                      copyLinkAfterSendRef.current = false;
+                    }}
+                  >
                     {t('members.sendInvite')}
                   </Button>
                 </Modal.Footer>

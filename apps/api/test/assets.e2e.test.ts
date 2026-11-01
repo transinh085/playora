@@ -138,7 +138,19 @@ describe('assets API', () => {
       body: { crop },
     });
     expect(completed.status).toBe('pending');
+    expect(completed.filename).toBe('banner.png');
+    expect(completed.url).toContain(`/v1/public/assets/${ticket.assetId}`);
     expect('storageKey' in completed).toBe(false);
+
+    // Public image asset endpoint redirects (302) to a fresh presigned S3 GET URL
+    const publicRedirectRes = await fetch(`${t.baseUrl}/v1/public/assets/${ticket.assetId}`, {
+      redirect: 'manual',
+    });
+    expect(publicRedirectRes.status).toBe(302);
+    expect(publicRedirectRes.headers.get('cache-control')).toBe('public, max-age=300');
+    const redirectLocation = publicRedirectRes.headers.get('location');
+    expect(redirectLocation).toBeString();
+    expect(redirectLocation).toContain(ticket.assetId);
 
     // Repeated completeUpload while pending dedupes jobId and succeeds
     const repeatedPending = await api.call(assetsApi.completeUpload, {
@@ -168,10 +180,12 @@ describe('assets API', () => {
       organizationId: aliceOrg,
       kind: 'image',
       mime: 'image/png',
+      filename: 'banner.png',
       width: 1600,
       height: 900,
       status: 'ready',
     });
+    expect(ready.url).toContain(`/v1/public/assets/${ticket.assetId}`);
     expect('storageKey' in ready).toBe(false);
 
     // Upload an audio asset to test kind filtering
@@ -188,6 +202,12 @@ describe('assets API', () => {
       params: { ...params, assetId: audioTicket.assetId },
       body: {},
     });
+
+    // Public asset endpoint returns 404 for non-image (audio) assets
+    const audioPublicRes = await fetch(`${t.baseUrl}/v1/public/assets/${audioTicket.assetId}`, {
+      redirect: 'manual',
+    });
+    expect(audioPublicRes.status).toBe(404);
 
     const imagesOnly = await api.call(assetsApi.list, {
       params,

@@ -1,10 +1,11 @@
 'use client';
 
 import { Button, Popover, toast } from '@playora/ui/components';
-import { ImagePlus, Upload as UploadIcon } from '@playora/ui/icons';
+import { ImageIcon, ImagePlus, Upload as UploadIcon } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { AssetPickerModal } from '@/features/assets/components/asset-picker-modal';
 import { IMAGE_PRESETS } from '@/features/canvas-editor/lib/model';
 import { uploadCampaignImage } from '../../lib/upload-image';
 
@@ -24,6 +25,7 @@ export function PrizeImagePicker({
 }) {
   const t = useTranslations('builderLab.rules.prizes');
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,7 +91,7 @@ export function PrizeImagePicker({
               </button>
             ))}
           </div>
-          <div>
+          <div className="space-y-1.5">
             <input
               ref={fileInputRef}
               type="file"
@@ -108,9 +110,29 @@ export function PrizeImagePicker({
               <UploadIcon className="mr-1.5 size-3.5" />
               {t('upload')}
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setOpen(false);
+                setPickerOpen(true);
+              }}
+              className="w-full h-8 rounded-md text-xs"
+            >
+              <ImageIcon className="mr-1.5 size-3.5" />
+              {t('chooseFromLibrary')}
+            </Button>
           </div>
         </Popover.Dialog>
       </Popover.Content>
+      <AssetPickerModal
+        orgId={orgId}
+        isOpen={pickerOpen}
+        onOpenChange={setPickerOpen}
+        selectedUrl={value}
+        onSelect={(_asset, publicUrl) => onChange(publicUrl)}
+      />
     </Popover>
   );
 }

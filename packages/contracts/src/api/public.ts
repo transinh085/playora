@@ -125,4 +125,15 @@ export const publicApi = {
     auth: 'public',
     response: HealthReadyResponse,
   }),
+  assetFile: defineRoute({
+    method: 'GET',
+    path: '/public/assets/:assetId',
+    summary: 'Redirect to a fresh presigned GET URL for an image asset',
+    tags: ['assets'],
+    auth: 'public',
+    rateLimit: 'public',
+    params: z.object({ assetId: Id }),
+    response: z.unknown(),
+    status: 302,
+  }),
 };

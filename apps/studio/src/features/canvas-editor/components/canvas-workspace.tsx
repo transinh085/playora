@@ -169,6 +169,7 @@ export function CanvasWorkspace({
   value,
   onChange,
   brand,
+  orgId,
   renderStage,
   prizes,
   onUploadImage,
@@ -180,6 +181,7 @@ export function CanvasWorkspace({
   value: CanvasDoc;
   onChange: (doc: CanvasDoc) => void;
   brand: BrandPalette;
+  orgId?: string;
   renderStage?: (element: GameStageElement) => ReactNode;
   /** Real prizes for prize-list elements. */
   prizes?: CanvasPrize[];
@@ -936,6 +938,7 @@ export function CanvasWorkspace({
             state={state}
             dispatch={dispatch}
             brand={brand}
+            orgId={orgId}
             onUploadImage={onUploadImage}
           />
         </aside>

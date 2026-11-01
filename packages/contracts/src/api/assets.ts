@@ -42,6 +42,7 @@ export const AssetSummary = z.object({
   organizationId: AuthId,
   kind: AssetKind,
   mime: z.string(),
+  filename: z.string().nullable(),
   bytes: z.number().int().nonnegative(),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
@@ -53,6 +54,10 @@ export const AssetSummary = z.object({
   updatedAt: IsoDateTime,
 });
 export type AssetSummary = z.infer<typeof AssetSummary>;
+
+export function publicAssetPath(assetId: string): string {
+  return `/v1/public/assets/${encodeURIComponent(assetId)}`;
+}
 
 export const CreateAssetUploadBody = z
   .object({

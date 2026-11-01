@@ -2,6 +2,7 @@
 
 import { AlertDialog, Avatar, Button, Chip, ListBox, Select } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { TableCard } from '@/components/table-card';
 import { isOwnerRole, type OrgRole, parseMemberRoles } from '@/lib/permissions';
@@ -42,6 +43,11 @@ export function MembersTable({
   onRemoveMember,
 }: MembersTableProps) {
   const t = useTranslations();
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    memberId: string;
+    memberName: string;
+    nextRole: OrgRole;
+  } | null>(null);
 
   return (
     <TableCard>
@@ -104,7 +110,13 @@ export function MembersTable({
                         isDisabled={busyId === member.id}
                         aria-label={`${t('members.role')} ${member.user.email}`}
                         onSelectionChange={(key) => {
-                          if (key !== null) onRoleChange(member.id, String(key) as OrgRole);
+                          if (key !== null && String(key) !== primaryRole) {
+                            setPendingRoleChange({
+                              memberId: member.id,
+                              memberName: member.user.name || member.user.email,
+                              nextRole: String(key) as OrgRole,
+                            });
+                          }
                         }}
                       >
                         <Select.Trigger>
@@ -181,6 +193,57 @@ export function MembersTable({
           </tbody>
         </table>
       </div>
+
+      <AlertDialog
+        isOpen={pendingRoleChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRoleChange(null);
+        }}
+      >
+        <AlertDialog.Backdrop isDismissable>
+          <AlertDialog.Container size="sm">
+            <AlertDialog.Dialog>
+              <AlertDialog.CloseTrigger />
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{t('members.changeRoleConfirmTitle')}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                <p className="text-body-2-regular text-text-secondary">
+                  {pendingRoleChange
+                    ? t('members.changeRoleConfirmDescription', {
+                        name: pendingRoleChange.memberName,
+                        role: t(`members.roles.${pendingRoleChange.nextRole}`),
+                      })
+                    : ''}
+                </p>
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <Button
+                  slot="close"
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => setPendingRoleChange(null)}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  slot="close"
+                  variant="primary"
+                  size="sm"
+                  onPress={() => {
+                    if (pendingRoleChange) {
+                      onRoleChange(pendingRoleChange.memberId, pendingRoleChange.nextRole);
+                      setPendingRoleChange(null);
+                    }
+                  }}
+                >
+                  {t('common.save')}
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
+      </AlertDialog>
     </TableCard>
   );
 }

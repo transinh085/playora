@@ -93,6 +93,11 @@ export function AcceptInvitationCard() {
   const invitation = invitationQuery.data;
   const roleKey = invitation?.role && isOrgRole(invitation.role) ? invitation.role : 'viewer';
   const redeemerRole = invitation ? isRedeemerOnly(invitation.role) : false;
+  const emailMismatch = Boolean(
+    session?.user.email &&
+      invitation?.email &&
+      session.user.email.toLowerCase() !== invitation.email.toLowerCase(),
+  );
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background-full p-4 sm:p-6">
@@ -177,6 +182,21 @@ export function AcceptInvitationCard() {
             </Card>
           )}
 
+          {emailMismatch && invitation && session?.user.email && (
+            <Alert status="warning">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>{t('auth.inviteEmailMismatchTitle')}</Alert.Title>
+                <Alert.Description>
+                  {t('auth.inviteEmailMismatch', {
+                    invitedEmail: invitation.email,
+                    currentEmail: session.user.email,
+                  })}
+                </Alert.Description>
+              </Alert.Content>
+            </Alert>
+          )}
+
           {invitationQuery.isError && (
             <Alert status="danger">
               <Alert.Indicator />
@@ -209,8 +229,12 @@ export function AcceptInvitationCard() {
                 </Button>
               </>
             )}
-            {invitationQuery.isError && (
-              <Button className="w-full" onPress={onSwitchAccount}>
+            {(invitationQuery.isError || emailMismatch) && (
+              <Button
+                variant={emailMismatch ? 'secondary' : 'primary'}
+                className={invitationQuery.isError ? 'w-full' : undefined}
+                onPress={onSwitchAccount}
+              >
                 <RiSwitchLine className="size-4" />
                 {t('auth.switchAccount')}
               </Button>

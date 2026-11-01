@@ -1,8 +1,9 @@
-import { Controller, Headers, Inject, Ip } from '@nestjs/common';
+import { Controller, Headers, Inject, Ip, Res } from '@nestjs/common';
 import { normalizeIp } from '@nestjs/throttler';
 import { publicApi, type RouteArgs } from '@playora/contracts';
 import type { Database } from '@playora/db';
 import type { ApiEnv } from '@playora/env';
+import type { Response } from 'express';
 import { AntiFraudService } from '../../common/anti-fraud/anti-fraud.service';
 import { Args, Route } from '../../common/contract/route.decorator';
 import { PiiService } from '../../common/pii/pii.service';
@@ -40,7 +41,7 @@ export class PublicController {
   constructor(
     @Inject(DB) db: Database,
     @Inject(ENV) env: ApiEnv,
-    assets: AssetsService,
+    private readonly assets: AssetsService,
     antiFraud: AntiFraudService,
     pii: PiiService,
   ) {
@@ -59,5 +60,17 @@ export class PublicController {
     @Headers('user-agent') userAgent?: string,
   ) {
     return this.publicService.join(params.slug, body, { ip, userAgent });
+  }
+
+  @Route(publicApi.assetFile)
+  async assetFile(
+    @Args() { params }: RouteArgs<typeof publicApi.assetFile>,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const location = await this.assets.getPublicImageRedirectUrl(params.assetId);
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Location', location);
+    return undefined;
   }
 }

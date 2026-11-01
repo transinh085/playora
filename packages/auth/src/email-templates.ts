@@ -21,6 +21,7 @@ const roleLabels: Record<EmailLocale, Record<string, string>> = {
     admin: 'Quản trị viên',
     editor: 'Biên tập viên',
     operator: 'Vận hành',
+    redeemer: 'Chỉ đổi quà',
     viewer: 'Người xem',
   },
   en: {
@@ -28,6 +29,7 @@ const roleLabels: Record<EmailLocale, Record<string, string>> = {
     admin: 'Admin',
     editor: 'Editor',
     operator: 'Operator',
+    redeemer: 'Counter staff (redeem only)',
     viewer: 'Viewer',
   },
 };

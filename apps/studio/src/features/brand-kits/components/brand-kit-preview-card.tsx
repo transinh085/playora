@@ -37,8 +37,9 @@ export function BrandKitPreviewCard({
           <GameRoot
             brand={{
               primary: watchedTokens?.colors?.primary,
-              accent: watchedTokens?.colors?.secondary,
+              accent: watchedTokens?.colors?.accent ?? watchedTokens?.colors?.secondary,
               background: watchedTokens?.colors?.background,
+              surface: watchedTokens?.colors?.surface ?? watchedTokens?.colors?.background,
               text: watchedTokens?.colors?.text,
               fontDisplay: watchedTokens?.fontHeading,
             }}

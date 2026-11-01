@@ -6,12 +6,13 @@ import {
   MAX_ASSET_BYTES,
   type RouteArgs,
 } from '@playora/contracts';
+import type { ApiEnv } from '@playora/env';
 import type { Producer } from '@playora/jobs';
 import type { S3Client } from 'bun';
 import { uuidv7 } from 'uuidv7';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
-import { JOBS, S3 } from '../../infra/tokens';
+import { ENV, JOBS, S3 } from '../../infra/tokens';
 import { type AssetRow, AssetsRepository } from './assets.repository';
 
 type CreateUploadBody = RouteArgs<typeof assetsApi.createUpload>['body'];
@@ -40,6 +41,7 @@ export class AssetsService {
   constructor(
     private readonly repo: AssetsRepository,
     private readonly audit: AuditService,
+    @Inject(ENV) private readonly env: ApiEnv,
     @Inject(S3) private readonly s3: S3Client,
     @Inject(JOBS) private readonly jobs: Producer,
   ) {}
@@ -56,11 +58,26 @@ export class AssetsService {
       }
     }
     const { storageKey, ...rest } = row;
+    const publicBaseUrl = this.env.API_PUBLIC_URL.replace(/\/+$/, '');
     return {
       ...rest,
+      filename: row.filename ?? null,
       variants,
-      url: this.s3.presign(storageKey, { method: 'GET', expiresIn: 3600 }),
+      url:
+        row.kind === 'image'
+          ? `${publicBaseUrl}/v1/public/assets/${row.id}`
+          : this.s3.presign(storageKey, { method: 'GET', expiresIn: 3600 }),
     };
+  }
+
+  async getPublicImageRedirectUrl(assetId: string): Promise<string> {
+    const asset = await this.repo.findPublicImageById(assetId);
+    if (!asset) {
+      throw new NotFoundException({ code: ErrorCode.NOT_FOUND, message: 'Asset not found' });
+    }
+    const rawVariants = (asset.variants ?? {}) as AssetVariants;
+    const key = rawVariants.cropped?.key ?? asset.storageKey;
+    return this.s3.presign(key, { method: 'GET', expiresIn: 3600 });
   }
 
   async createUpload(orgId: string, body: CreateUploadBody, actor: Actor) {
@@ -72,6 +89,7 @@ export class AssetsService {
       id: assetId,
       kind: body.kind,
       mime: body.mime,
+      filename: body.filename ?? null,
       bytes: body.bytes,
       storageKey,
       variants: {},

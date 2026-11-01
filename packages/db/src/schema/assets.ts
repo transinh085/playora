@@ -1,4 +1,4 @@
-import { index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, varchar } from 'drizzle-orm/pg-core';
 import { id, orgId, timestamps } from './_shared';
 import { user } from './auth';
 import { assetKind, assetStatus } from './enums';
@@ -10,6 +10,7 @@ export const assets = pgTable(
     organizationId: orgId(),
     kind: assetKind().notNull(),
     mime: text().notNull(),
+    filename: varchar({ length: 255 }),
     bytes: integer().notNull(),
     width: integer(),
     height: integer(),

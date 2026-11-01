@@ -105,6 +105,7 @@ export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () 
         templateKey: picked.templateKey,
         skinKey: picked.skinKey,
         brand: brandFromKit(chosenKit),
+        brandKit: chosenKit,
       });
       toast.success(t('created'));
       setPicked(null);

@@ -24,6 +24,8 @@ export interface BrandKitTheme {
   accent?: string;
   /** Page ground behind the game. Hex. */
   background?: string;
+  /** Card / panel surface colour inside the game. Hex. */
+  surface?: string;
   /** Body text colour. Derived from `background` when omitted. Hex. */
   text?: string;
   /** Corner style for buttons and panels. */
@@ -170,10 +172,16 @@ export function brandKitVars(kit: BrandKitTheme): GameThemeVars {
     vars['--game-bg'] = bg;
     vars['--game-fg'] = fg;
     vars['--game-muted'] = `color-mix(in oklch, ${fg} ${dark ? 66 : 62}%, ${bg})`;
-    vars['--game-surface'] = dark ? 'oklch(1 0 0 / 8%)' : 'oklch(0 0 0 / 4%)';
+    vars['--game-surface'] = isValidHex(kit.surface)
+      ? kit.surface
+      : dark
+        ? 'oklch(1 0 0 / 8%)'
+        : 'oklch(0 0 0 / 4%)';
     vars['--game-border'] = dark ? 'oklch(1 0 0 / 14%)' : 'oklch(0 0 0 / 10%)';
     vars['--game-glow'] =
       `color-mix(in oklch, ${vars['--game-primary'] ?? 'white'} 28%, transparent)`;
+  } else if (isValidHex(kit.surface)) {
+    vars['--game-surface'] = kit.surface;
   }
   if (kit.radius) vars['--game-radius'] = RADIUS[kit.radius];
   if (kit.fontDisplay) vars['--game-font'] = kit.fontDisplay;

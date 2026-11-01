@@ -12,6 +12,7 @@ import { useInvalidateOrgMembers, useOrgMembers } from '../api';
 import { CounterDevicesCard } from './counter-devices-card';
 import { InviteMemberDialog } from './invite-member-dialog';
 import { MembersTable } from './members-table';
+import { OrgGeneralSettingsCard } from './org-general-settings-card';
 import { PendingInvitationsTable } from './pending-invitations-table';
 
 export function MembersView({ orgId }: { orgId: string }) {
@@ -176,6 +177,13 @@ export function MembersView({ orgId }: { orgId: string }) {
             {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
           </>
         }
+      />
+
+      <OrgGeneralSettingsCard
+        orgId={orgId}
+        initialName={org.name}
+        initialSlug={org.slug}
+        canManage={canManage}
       />
 
       <MembersTable

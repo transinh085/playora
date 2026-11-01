@@ -1,10 +1,11 @@
 'use client';
 
-import { AlertDialog, Button, Card, Input } from '@playora/ui/components';
+import { AlertDialog, Button, Card, Input, toast } from '@playora/ui/components';
 import { Check } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { extractPaletteFromImage } from '@/features/brand-kits/lib/extract-palette';
 import {
   type BrandColorKey,
   SCREEN_KEYS,
@@ -42,6 +43,25 @@ export function QuickEditPanel({
   const firstScreenWith = (slot: SlotKey) =>
     SCREEN_KEYS.find((key) => campaign.screens[key].elements.some((e) => e.slot === slot));
 
+  const handleSuggestPalette = async (imageUrl: string) => {
+    try {
+      const palette = await extractPaletteFromImage(imageUrl);
+      onChange({
+        brand: {
+          ...campaign.brand,
+          primary: palette.primary,
+          accent: palette.accent,
+          background: palette.background,
+          surface: palette.surface,
+          text: palette.text,
+        },
+      });
+      toast.success(t('paletteApplied'));
+    } catch {
+      toast.error(t('uploadFailed'));
+    }
+  };
+
   const renderSlot = (slot: SlotKey) => (
     <SlotCard
       key={slot}
@@ -50,6 +70,7 @@ export function QuickEditPanel({
       value={readSlot(campaign.screens, slot) ?? ''}
       usage={slotUsage(campaign.screens, slot)}
       onChange={(value) => onChange({ screens: writeSlot(campaign.screens, slot, value) })}
+      onSuggestPalette={slot === 'logo' ? handleSuggestPalette : undefined}
       onFocus={() => {
         const screen = firstScreenWith(slot);
         if (screen) onShowScreen(screen);

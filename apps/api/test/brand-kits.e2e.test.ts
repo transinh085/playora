@@ -86,7 +86,10 @@ describe('brand-kits API', () => {
         tokens: {
           colors: {
             primary: '#e11d48',
+            secondary: '#fbbf24',
+            accent: '#f59e0b',
             background: '#fff1f2',
+            surface: '#ffe4e6',
             text: '#1f2937',
           },
           fontHeading: 'Montserrat',
@@ -96,6 +99,8 @@ describe('brand-kits API', () => {
     });
     expect(updated.name).toBe('Tết Đinh Mùi Kit');
     expect(updated.tokens.colors.primary).toBe('#e11d48');
+    expect(updated.tokens.colors.accent).toBe('#f59e0b');
+    expect(updated.tokens.colors.surface).toBe('#ffe4e6');
 
     // Attach brand kit to an event via eventsApi.update
     const ev = await api.call(eventsApi.create, {

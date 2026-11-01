@@ -47,6 +47,15 @@ export class AssetsRepository {
     return row;
   }
 
+  /** Public image redirect lookup (`/v1/public/assets/:assetId`); scoped strictly to image assets. */
+  async findPublicImageById(id: string) {
+    const [row] = await this.db
+      .select()
+      .from(assets)
+      .where(and(eq(assets.id, id), eq(assets.kind, 'image')));
+    return row;
+  }
+
   async insert(organizationId: string, data: NewAsset) {
     const [row] = await this.db
       .insert(assets)

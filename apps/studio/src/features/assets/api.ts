@@ -8,10 +8,19 @@ import { api } from '@/lib/api';
 type RouteMutationOptions<R extends RouteDef> = Parameters<typeof useRouteMutation<R>>[2];
 
 export function useAssets(orgId: string, filters?: { limit?: number; kind?: AssetKind }) {
-  return useRouteQuery(api, assetsApi.list, {
-    params: { orgId },
-    query: { limit: filters?.limit ?? 50, ...(filters?.kind && { kind: filters.kind }) },
-  });
+  return useRouteQuery(
+    api,
+    assetsApi.list,
+    {
+      params: { orgId },
+      query: { limit: filters?.limit ?? 50, ...(filters?.kind && { kind: filters.kind }) },
+    },
+    {
+      enabled: Boolean(orgId),
+      refetchInterval: (query) =>
+        query.state.data?.items.some((asset) => asset.status === 'pending') ? 2000 : false,
+    },
+  );
 }
 
 export function useRemoveAsset(options?: RouteMutationOptions<typeof assetsApi.remove>) {

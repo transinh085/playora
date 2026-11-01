@@ -47,6 +47,7 @@ export function CustomizeMode({
             value={campaign.screens}
             onChange={(screens) => onChange({ screens })}
             brand={brand}
+            orgId={organizationId}
             renderStage={renderStage}
             prizes={canvasPrizes}
             onUploadImage={uploadImage}

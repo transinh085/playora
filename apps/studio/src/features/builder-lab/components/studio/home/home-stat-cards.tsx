@@ -39,33 +39,54 @@ export function HomeStatCards({
   totalWins,
   totalPrizeCostVnd,
   attentionCount,
+  returningPlayers = 0,
+  redeemedDelta,
+  playsDelta,
 }: {
   totalRedeemed: number;
   totalPlays: number;
   totalWins: number;
   totalPrizeCostVnd: number;
   attentionCount: number;
+  returningPlayers?: number;
+  redeemedDelta?: { label: string; color: 'success' | 'danger' | 'default' };
+  playsDelta?: { label: string; color: 'success' | 'danger' | 'default' };
 }) {
   const t = useTranslations('campaigns.home');
   const format = useFormatter();
+
+  const resolvedRedeemedDelta = redeemedDelta ?? {
+    label: '0%',
+    color: 'default' as const,
+  };
+  const resolvedPlaysDelta = playsDelta ?? {
+    label:
+      returningPlayers > 0
+        ? t('statCards.returningBadge', { count: format.number(returningPlayers) })
+        : `${format.number(totalPlays)}`,
+    color: returningPlayers > 0 || totalPlays > 0 ? ('success' as const) : ('default' as const),
+  };
 
   const stats: HomeStatItem[] = [
     {
       icon: RiTicketLine,
       label: t('trends.redeemed'),
       value: format.number(totalRedeemed),
-      delta: totalRedeemed > 0 ? '+100%' : '0%',
-      deltaColor: totalRedeemed > 0 ? 'success' : 'default',
+      delta: resolvedRedeemedDelta.label,
+      deltaColor: resolvedRedeemedDelta.color,
       tone: 'emerald',
-      caption: t('statCards.redeemedCaption'),
+      caption:
+        returningPlayers > 0
+          ? t('statCards.returningCaption', { count: format.number(returningPlayers) })
+          : t('statCards.redeemedCaption'),
       hint: t('statCards.redeemedHint'),
     },
     {
       icon: RiGamepadLine,
       label: t('metrics.totalPlays'),
       value: format.number(totalPlays),
-      delta: totalPlays > 0 ? `${format.number(totalPlays)}` : '0',
-      deltaColor: totalPlays > 0 ? 'success' : 'default',
+      delta: resolvedPlaysDelta.label,
+      deltaColor: resolvedPlaysDelta.color,
       tone: 'blue',
       caption: t('statCards.playsCaption'),
       hint: t('statCards.playsHint'),

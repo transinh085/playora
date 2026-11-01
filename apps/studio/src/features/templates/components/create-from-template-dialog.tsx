@@ -78,6 +78,7 @@ export function CreateFromTemplateDialog({
         skinKey: effectiveSkinKey,
         name: name.trim(),
         brand: brandFromKit(chosenKit),
+        brandKit: chosenKit,
       });
 
       if (!displayTemplate.isReal) {

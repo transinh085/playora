@@ -51,6 +51,8 @@
     "declineInvite": "Từ chối",
     "inviteAccepted": "Đã tham gia {organization}",
     "inviteError": "Lời mời không tồn tại, đã hết hạn hoặc không dành cho tài khoản hiện tại.",
+    "inviteEmailMismatchTitle": "Đang đăng nhập bằng email khác",
+    "inviteEmailMismatch": "Lời mời này được gửi tới {invitedEmail}, nhưng bạn đang đăng nhập với {currentEmail}.",
     "switchAccount": "Đăng nhập bằng tài khoản khác",
     "showcase": {
       "badge": "Minigame kéo khách về quán",
@@ -139,10 +141,24 @@
     "cropSquare": "Vuông 1:1",
     "cropWide": "Màn ngang 16:9",
     "deleteConfirm": "Bạn có chắc muốn xoá tài nguyên này?",
+    "deleteConfirmDescription": "Nếu tài nguyên này đang dùng trong Brand kit hoặc chương trình, hình ảnh có thể ngừng hiển thị.",
     "statusPending": "Đang xử lý",
     "statusReady": "Sẵn sàng",
     "statusFailed": "Lỗi",
-    "subtitle": "Hình nền, logo và ảnh giải thưởng dùng chung cho các trò chơi."
+    "subtitle": "Hình nền, logo và ảnh giải thưởng dùng chung cho các trò chơi.",
+    "variantLabels": {
+      "w320": "Ảnh thu nhỏ (320px)",
+      "w640": "Cỡ vừa (640px)",
+      "w1280": "Độ nét cao (1280px)",
+      "cropped": "Ảnh đã cắt"
+    },
+    "picker": {
+      "title": "Chọn hình từ thư viện",
+      "subtitle": "Chọn ảnh có sẵn của quán hoặc tải ảnh mới lên.",
+      "searchPlaceholder": "Tìm theo tên tệp hoặc định dạng…",
+      "emptySearch": "Không tìm thấy hình ảnh phù hợp.",
+      "select": "Chọn ảnh này"
+    }
   },
   "brandKits": {
     "title": "Bộ nhận diện thương hiệu",
@@ -152,7 +168,9 @@
     "name": "Tên brand kit",
     "primaryColor": "Màu chính (Primary)",
     "secondaryColor": "Màu phụ (Secondary)",
+    "accentColor": "Màu nhấn (Accent)",
     "backgroundColor": "Màu nền (Background)",
+    "surfaceColor": "Màu bề mặt thẻ (Surface)",
     "textColor": "Màu chữ (Text)",
     "fontHeading": "Font tiêu đề",
     "fontBody": "Font nội dung",
@@ -160,6 +178,10 @@
     "backgroundAsset": "Ảnh nền",
     "musicAsset": "Nhạc nền",
     "noAsset": "Không chọn",
+    "suggestPaletteFromLogo": "Gợi ý bảng 5 màu từ logo",
+    "paletteApplied": "Đã áp dụng bảng 5 màu gợi ý từ logo",
+    "deleteConfirm": "Xoá brand kit này?",
+    "deleteConfirmDescription": "Bạn có chắc muốn xoá brand kit “{name}”? Các chương trình đã tạo trước đó vẫn giữ nguyên màu hiện tại.",
     "previewTitle": "Xem trước trực tiếp",
     "previewHeading": "Vòng Quay Mùa Lễ Hội",
     "previewSubtitle": "Quét mã QR để tham gia vòng chơi nhận quà tại quầy!",
@@ -223,8 +245,22 @@
     "pendingEmpty": "Không có lời mời nào đang chờ.",
     "expiresAt": "Hết hạn",
     "resend": "Gửi lại",
+    "copyInviteLink": "Sao chép link mời",
+    "inviteLinkCopied": "Đã sao chép liên kết mời",
+    "sendAndCopyLink": "Gửi & sao chép link",
+    "changeRoleConfirmTitle": "Đổi vai trò thành viên?",
+    "changeRoleConfirmDescription": "Chuyển quyền của {name} sang vai trò “{role}”?",
     "cancelInvite": "Huỷ lời mời",
     "cancelInviteConfirm": "Bạn có chắc muốn huỷ lời mời này?",
+    "orgSettings": {
+      "title": "Thông tin tổ chức",
+      "description": "Tên quán và đường dẫn định danh hiển thị cho khách hàng.",
+      "name": "Tên tổ chức",
+      "nameHint": "Hiển thị trên màn hình minigame và phiếu đổi quà.",
+      "slug": "Đường dẫn (Slug)",
+      "slugHint": "Định danh đường dẫn công khai của quán.",
+      "saved": "Đã lưu thông tin tổ chức"
+    },
     "roles": {
       "owner": "Chủ sở hữu",
       "admin": "Quản trị viên",
@@ -324,7 +360,10 @@
     "helpShortcuts": "Phím tắt",
     "helpSupport": "Hỗ trợ & Góp ý",
     "notifications": "Thông báo",
-    "notificationsEmpty": "Bạn đã nắm bắt hết thông tin mới."
+    "notificationsEmpty": "Bạn đã nắm bắt hết thông tin mới.",
+    "orgNotFoundTitle": "Không tìm thấy tổ chức hoặc không có quyền truy cập",
+    "orgNotFoundDescription": "Bạn không thuộc tổ chức này hoặc đường dẫn không hợp lệ.",
+    "backToYourOrg": "Quay về không gian của bạn"
   },
   "canvasLab": {
     "title": "Canvas editor",
@@ -774,6 +813,7 @@
       "prizes": {
         "presets": "Hình có sẵn",
         "upload": "Tải ảnh lên",
+        "chooseFromLibrary": "Chọn từ thư viện",
         "uploadTooLarge": "Ảnh quá lớn. Hãy chọn ảnh dưới 500 KB.",
         "uploadFailed": "Không đọc được ảnh. Thử ảnh khác nhé.",
         "changeImage": "Đổi hình cho {name}",
@@ -1009,6 +1049,9 @@
       "tooLarge": "Ảnh quá lớn (tối đa 5 MB).",
       "uploadFailed": "Không đọc được ảnh này.",
       "upload": "Tải ảnh lên",
+      "chooseFromLibrary": "Chọn từ thư viện",
+      "suggestPaletteFromLogo": "Gợi ý bảng 5 màu từ logo",
+      "paletteApplied": "Đã áp dụng bảng 5 màu gợi ý từ logo",
       "uploadHint": "PNG, JPG, WEBP hoặc SVG, tối đa 5 MB",
       "stickers": "Hoặc chọn hình có sẵn",
       "presets": {
@@ -1554,6 +1597,7 @@
         "title": "Hiệu quả đổi quà & Lượt chơi",
         "plays": "Lượt chơi",
         "wins": "Lượt trúng quà",
+        "returning": "Khách quay lại",
         "redeemed": "Khách tới quầy đổi quà",
         "range7d": "7 ngày qua",
         "range30d": "30 ngày qua",
@@ -1594,6 +1638,8 @@
       },
       "statCards": {
         "redeemedCaption": "Lượt khách tới quầy",
+        "returningCaption": "{count} khách quay lại lần 2+",
+        "returningBadge": "{count} quay lại",
         "redeemedHint": "Tổng số voucher quà tặng đã được nhân viên đối soát thành công tại quầy.",
         "playsCaption": "Toàn bộ chiến dịch",
         "playsHint": "Tổng số lượt khách đã tương tác và chơi minigame.",

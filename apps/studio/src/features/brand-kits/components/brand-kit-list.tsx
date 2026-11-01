@@ -1,13 +1,13 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Button, Card } from '@playora/ui/components';
+import { AlertDialog, Button, Card } from '@playora/ui/components';
 import { Palette, Pencil, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/empty-state';
 import { IconTile } from '@/components/icon-tile';
 
-const COLOR_SLOTS = ['primary', 'secondary', 'background', 'text'] as const;
+const COLOR_SLOTS = ['primary', 'accent', 'background', 'surface', 'text'] as const;
 
 export function BrandKitList({
   items,
@@ -44,7 +44,12 @@ export function BrandKitList({
                 <span className="truncate text-body-medium text-text-primary">{kit.name}</span>
                 <div className="flex items-center gap-1">
                   {COLOR_SLOTS.map((slot) => {
-                    const color = kit.tokens.colors[slot];
+                    const color =
+                      slot === 'accent'
+                        ? (kit.tokens.colors.accent ?? kit.tokens.colors.secondary)
+                        : slot === 'surface'
+                          ? (kit.tokens.colors.surface ?? kit.tokens.colors.background)
+                          : kit.tokens.colors[slot];
                     if (!color) return null;
                     return (
                       <span
@@ -82,18 +87,51 @@ export function BrandKitList({
               <Pencil className="size-4" />
               {t('brandKits.edit')}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              isIconOnly
-              className="text-text-error-primary hover:bg-notification-error-background"
-              aria-label={t('common.delete')}
-              isDisabled={isRemoving}
-              onPress={() => onRemove(kit.id)}
-            >
-              <Trash2 className="size-4" />
-            </Button>
+
+            <AlertDialog>
+              <AlertDialog.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  className="text-text-error-primary hover:bg-notification-error-background"
+                  aria-label={t('common.delete')}
+                  isDisabled={isRemoving}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </AlertDialog.Trigger>
+              <AlertDialog.Backdrop isDismissable>
+                <AlertDialog.Container size="sm">
+                  <AlertDialog.Dialog>
+                    <AlertDialog.CloseTrigger />
+                    <AlertDialog.Header>
+                      <AlertDialog.Icon status="danger" />
+                      <AlertDialog.Heading>{t('brandKits.deleteConfirm')}</AlertDialog.Heading>
+                    </AlertDialog.Header>
+                    <AlertDialog.Body>
+                      <p className="text-body-2-regular text-text-secondary">
+                        {t('brandKits.deleteConfirmDescription', { name: kit.name })}
+                      </p>
+                    </AlertDialog.Body>
+                    <AlertDialog.Footer>
+                      <Button slot="close" variant="secondary" size="sm">
+                        {t('common.cancel')}
+                      </Button>
+                      <Button
+                        slot="close"
+                        variant="danger"
+                        size="sm"
+                        onPress={() => onRemove(kit.id)}
+                      >
+                        {t('common.delete')}
+                      </Button>
+                    </AlertDialog.Footer>
+                  </AlertDialog.Dialog>
+                </AlertDialog.Container>
+              </AlertDialog.Backdrop>
+            </AlertDialog>
           </div>
         </div>
       ))}

@@ -31,7 +31,11 @@ import { AttentionHub, type AttentionItem } from './home/attention-hub';
 import { CampaignsDataTable } from './home/campaigns-data-table';
 import { HomeStatCards } from './home/home-stat-cards';
 import { LiveCounterFeed } from './home/live-counter-feed';
-import { OutcomeTrendCard } from './home/outcome-trend-card';
+import {
+  computePeriodComparison,
+  formatPeriodDelta,
+  OutcomeTrendCard,
+} from './home/outcome-trend-card';
 
 const ORDER: Record<CampaignPhase, number> = {
   live: 0,
@@ -160,6 +164,15 @@ export function CampaignHome({ orgId }: { orgId: string }) {
     (sum, s) => sum + (s.redeemedValueVnd ?? s.budgetUsedVnd ?? 0),
     0,
   );
+  const periodComparison = computePeriodComparison(reportsById, new Date(now));
+  const redeemedDelta = formatPeriodDelta(
+    periodComparison.current7dVisits,
+    periodComparison.prior7dVisits,
+  );
+  const playsDelta = formatPeriodDelta(
+    periodComparison.current7dPlays,
+    periodComparison.prior7dPlays,
+  );
 
   const quickPlaybooks: {
     key: string;
@@ -215,6 +228,9 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         totalWins={totalWins}
         totalPrizeCostVnd={totalPrizeCostVnd}
         attentionCount={attention.length}
+        returningPlayers={periodComparison.returningVisitors}
+        redeemedDelta={redeemedDelta}
+        playsDelta={playsDelta}
       />
 
       {/* Row 2: Outcome Playbook Quick-Launcher (PLB-01) */}

@@ -158,11 +158,13 @@ export function PlaybookSetupForm({
   const onSubmit = async (setup: PlaybookSetup) => {
     const s = suggestPlaybook(playbook, setup);
     try {
+      const primaryKit = brandKits.data?.items[0];
       const campaign = await create.mutateAsync({
         name: setup.name.trim(),
         templateKey: pb.templateKey,
         skinKey: pb.skinKey,
-        brand: brandFromKit(brandKits.data?.items[0]),
+        brand: brandFromKit(primaryKit),
+        brandKit: primaryKit,
         playbook,
         prizes: s.prizes.filter((p) => p.quantity > 0),
         rules: s.rules,

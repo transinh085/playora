@@ -34,6 +34,31 @@ describe('email templates', () => {
     expect(en.subject).toContain('Invitation to join Agency ABC');
     expect(en.text).toContain('Admin');
     expect(en.html).toContain('Accept invitation');
+
+    const redeemerVi = renderInvitationEmail(
+      {
+        organizationName: 'Trà Sữa Mộc',
+        inviterName: 'Chủ quán',
+        inviterEmail: 'owner@moc.vn',
+        role: 'redeemer',
+        inviteUrl: 'http://localhost:3001/invite/inv_456',
+      },
+      'vi',
+    );
+    expect(redeemerVi.text).toContain('Chỉ đổi quà');
+    expect(redeemerVi.html).toContain('Chỉ đổi quà');
+
+    const redeemerEn = renderInvitationEmail(
+      {
+        organizationName: 'Trà Sữa Mộc',
+        inviterName: 'Owner',
+        inviterEmail: 'owner@moc.vn',
+        role: 'redeemer',
+        inviteUrl: 'http://localhost:3001/invite/inv_456',
+      },
+      'en',
+    );
+    expect(redeemerEn.text).toContain('Counter staff (redeem only)');
   });
 
   test('renders magic link email in Vietnamese and English (plain + HTML)', () => {

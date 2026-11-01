@@ -13,6 +13,8 @@ interface AssetCardProps {
   onRemove: (assetId: string) => void;
 }
 
+const KNOWN_VARIANT_KEYS = new Set(['w320', 'w1280', 'cropped']);
+
 export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
   const t = useTranslations();
 
@@ -41,6 +43,14 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
     );
   }
 
+  function renderVariantLabel(key: string) {
+    if (KNOWN_VARIANT_KEYS.has(key)) {
+      return t(`assets.variantLabels.${key as 'w320' | 'w1280' | 'cropped'}`);
+    }
+    return key;
+  }
+
+  const displayName = asset.filename || asset.mime;
   const thumbUrl = asset.variants.cropped?.url ?? asset.variants.w320?.url ?? asset.url;
   const placeholderTile = (icon: React.ReactNode) => (
     <div className="flex size-12 items-center justify-center rounded-xl bg-background-secondary-default text-text-secondary">
@@ -53,7 +63,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
       <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b border-border-button-default bg-background-secondary-default">
         {asset.kind === 'image' ? (
           // biome-ignore lint/performance/noImgElement: presigned S3 URLs are dynamic
-          <img src={thumbUrl} alt={asset.id} className="size-full object-cover" />
+          <img src={thumbUrl} alt={displayName} className="size-full object-cover" />
         ) : asset.kind === 'audio' ? (
           placeholderTile(<Music className="size-5" />)
         ) : (
@@ -63,16 +73,20 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
 
       <Card.Content className="flex flex-1 flex-col p-3.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-caption-1-semibold text-text-primary">{asset.mime}</span>
+          <span className="truncate text-caption-1-semibold text-text-primary" title={displayName}>
+            {displayName}
+          </span>
           {renderStatusTag(asset.status)}
         </div>
 
         <div className="mt-1 flex items-center justify-between">
           <Caption>{formatBytes(asset.bytes)}</Caption>
-          {asset.width && asset.height && (
+          {asset.width && asset.height ? (
             <Caption>
               {asset.width}×{asset.height}
             </Caption>
+          ) : (
+            <Caption>{asset.mime}</Caption>
           )}
         </div>
 
@@ -82,7 +96,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
             <div className="flex flex-wrap gap-1">
               {Object.keys(asset.variants).map((key) => (
                 <Chip key={key} variant="soft" color="default" size="sm">
-                  {key}
+                  {renderVariantLabel(key)}
                 </Chip>
               ))}
             </div>
@@ -108,7 +122,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
                     </AlertDialog.Header>
                     <AlertDialog.Body>
                       <p className="text-body-2-regular text-text-secondary">
-                        {t('common.delete')}
+                        {t('assets.deleteConfirmDescription', { name: displayName })}
                       </p>
                     </AlertDialog.Body>
                     <AlertDialog.Footer>

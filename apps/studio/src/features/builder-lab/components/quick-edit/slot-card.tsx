@@ -1,10 +1,11 @@
 'use client';
 
 import { Button, Card, Input, TextArea, Tooltip, toast } from '@playora/ui/components';
-import { ImageUp } from '@playora/ui/icons';
+import { ImageIcon, ImageUp, WandSparkles } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { AssetPickerModal } from '@/features/assets/components/asset-picker-modal';
 import { IMAGE_PRESETS, type SlotKey } from '@/features/canvas-editor/lib/model';
 import { uploadCampaignImage } from '../../lib/upload-image';
 import { SLOT_KIND } from './slots';
@@ -35,6 +36,7 @@ export function SlotCard({
   usage,
   onChange,
   onFocus,
+  onSuggestPalette,
 }: {
   orgId: string;
   slot: SlotKey;
@@ -43,9 +45,12 @@ export function SlotCard({
   onChange: (value: string) => void;
   /** Lets the preview jump to a screen that shows this slot. */
   onFocus?: () => void;
+  /** Optional callback to suggest a 5-color brand palette from the logo image (BLD-27). */
+  onSuggestPalette?: (imageUrl: string) => void;
 }) {
   const t = useTranslations('builderLab.quickEdit');
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const kind = SLOT_KIND[slot];
 
@@ -93,18 +98,49 @@ export function SlotCard({
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                isDisabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-                className="h-8 rounded-md text-xs"
-              >
-                <ImageUp className="mr-1.5 size-3.5" />
-                {t('upload')}
-              </Button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  isDisabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8 rounded-md text-xs"
+                >
+                  <ImageUp className="mr-1.5 size-3.5" />
+                  {t('upload')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPickerOpen(true)}
+                  className="h-8 rounded-md text-xs"
+                >
+                  <ImageIcon className="mr-1.5 size-3.5" />
+                  {t('chooseFromLibrary')}
+                </Button>
+              </div>
+              {slot === 'logo' && value && onSuggestPalette && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSuggestPalette(value)}
+                  className="h-7 rounded-md px-2 text-xs text-accent"
+                >
+                  <WandSparkles className="mr-1.5 size-3.5" />
+                  {t('suggestPaletteFromLogo')}
+                </Button>
+              )}
               <Caption>{t('uploadHint')}</Caption>
+              <AssetPickerModal
+                orgId={orgId}
+                isOpen={pickerOpen}
+                onOpenChange={setPickerOpen}
+                selectedUrl={value}
+                onSelect={(_asset, publicUrl) => onChange(publicUrl)}
+              />
             </div>
           </div>
         ) : kind === 'text' ? (

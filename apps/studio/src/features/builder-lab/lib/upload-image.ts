@@ -1,15 +1,26 @@
 'use client';
 
-import { ALLOWED_ASSET_MIMES, assetsApi, MAX_ASSET_BYTES } from '@playora/contracts';
+import {
+  ALLOWED_ASSET_MIMES,
+  assetsApi,
+  MAX_ASSET_BYTES,
+  publicAssetPath,
+} from '@playora/contracts';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api';
+import { API_URL } from '@/lib/env';
 
 export { MAX_ASSET_BYTES };
 
+export function getPublicAssetUrl(assetId: string): string {
+  return `${API_URL.replace(/\/+$/, '')}${publicAssetPath(assetId)}`;
+}
+
 /**
  * Uploads an image file through `assetsApi` (createUpload → PUT → completeUpload) and returns the
- * stored asset URL so campaign documents never persist `data:` URLs.
+ * permanent public asset URL (`/v1/public/assets/:assetId`) so campaign documents never persist
+ * `data:` URLs or expiring presigned URLs.
  */
 export async function uploadCampaignImage(orgId: string, file: File): Promise<string> {
   const mime = ALLOWED_ASSET_MIMES.image.includes(file.type) ? file.type : 'image/png';
@@ -34,7 +45,7 @@ export async function uploadCampaignImage(orgId: string, file: File): Promise<st
     params: { orgId, assetId: ticket.assetId },
     body: {},
   });
-  return asset.url;
+  return getPublicAssetUrl(asset.id);
 }
 
 export function useUploadCampaignImage(orgId?: string) {

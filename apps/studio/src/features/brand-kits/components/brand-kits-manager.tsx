@@ -120,12 +120,30 @@ export function BrandKitsManagerInner({
     try {
       const raw = window.localStorage.getItem(getOnboardingBrandStorageKey(orgId));
       if (!raw) return;
-      const parsed = JSON.parse(raw) as { primaryColor?: string; secondaryColor?: string };
+      const parsed = JSON.parse(raw) as {
+        primaryColor?: string;
+        secondaryColor?: string;
+        accentColor?: string;
+        backgroundColor?: string;
+        surfaceColor?: string;
+        textColor?: string;
+      };
       if (parsed.primaryColor) {
         form.setValue('tokens.colors.primary', parsed.primaryColor);
       }
-      if (parsed.secondaryColor) {
-        form.setValue('tokens.colors.secondary', parsed.secondaryColor);
+      if (parsed.secondaryColor || parsed.accentColor) {
+        const accent = parsed.accentColor ?? parsed.secondaryColor ?? '#facf4e';
+        form.setValue('tokens.colors.secondary', accent);
+        form.setValue('tokens.colors.accent', accent);
+      }
+      if (parsed.backgroundColor) {
+        form.setValue('tokens.colors.background', parsed.backgroundColor);
+      }
+      if (parsed.surfaceColor) {
+        form.setValue('tokens.colors.surface', parsed.surfaceColor);
+      }
+      if (parsed.textColor) {
+        form.setValue('tokens.colors.text', parsed.textColor);
       }
     } catch {
       // Ignore malformed storage values
@@ -159,7 +177,19 @@ export function BrandKitsManagerInner({
   });
 
   function handleSubmit(values: BrandKitFormValues) {
-    const body = CreateBrandKitBody.parse(values);
+    const accent = values.tokens.colors.accent ?? values.tokens.colors.secondary;
+    const normalized: BrandKitFormValues = {
+      ...values,
+      tokens: {
+        ...values.tokens,
+        colors: {
+          ...values.tokens.colors,
+          secondary: accent,
+          accent,
+        },
+      },
+    };
+    const body = CreateBrandKitBody.parse(normalized);
     if (kit) {
       update.mutate({ params: { orgId, brandKitId: kit.id }, body });
     } else {
@@ -172,6 +202,7 @@ export function BrandKitsManagerInner({
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-6">
           <BrandKitEditorCard
+            orgId={orgId}
             form={form}
             editingId={kit?.id ?? null}
             imageAssets={imageAssets}

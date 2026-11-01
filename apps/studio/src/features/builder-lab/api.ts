@@ -3,6 +3,7 @@
 import { type ApiError, routeKey } from '@playora/api-client';
 import { routePrefix, useRouteMutation, useRouteQuery } from '@playora/api-client/react';
 import {
+  type BrandKitSummary,
   type CampaignBrand,
   type CampaignCompliance,
   type CampaignListItem,
@@ -29,6 +30,7 @@ import {
 import { type CanvasDoc, toCanvasDoc } from '@playora/ui/campaign';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { applyBrandKitToScreens, brandFromKit } from './lib/brand';
 import {
   buildScreens,
   defaultPrizes,
@@ -225,6 +227,7 @@ export interface CreateCampaignStarterInput {
   templateKey: CampaignTemplateKey;
   skinKey: CampaignSkinKey;
   brand?: Partial<CampaignBrand>;
+  brandKit?: BrandKitSummary;
   /** Goal-led start (docs/product/specs/playbooks.md): prizes and rules come from the suggestion. */
   playbook?: PlaybookKey | null;
   prizes?: CampaignPrize[];
@@ -235,17 +238,20 @@ export function useCreateCampaign(orgId: string) {
   const qc = useQueryClient();
   return useMutation<Campaign, ApiError, CreateCampaignStarterInput>({
     mutationFn: async (input) => {
+      const baseScreens = buildScreens(input.templateKey, input.skinKey);
+      const screens = applyBrandKitToScreens(baseScreens, input.brandKit);
       const created = await api.call(campaignsApi.create, {
         params: { orgId },
         body: {
           name: input.name,
           templateKey: input.templateKey,
           skinKey: input.skinKey,
-          brand: { ...skinBrand(input.skinKey), ...input.brand },
-          screens: buildScreens(
-            input.templateKey,
-            input.skinKey,
-          ) as unknown as ContractCampaign['screens'],
+          brand: {
+            ...skinBrand(input.skinKey),
+            ...brandFromKit(input.brandKit),
+            ...input.brand,
+          },
+          screens: screens as unknown as ContractCampaign['screens'],
           playbook: input.playbook ?? null,
           prizes: input.prizes ?? defaultPrizes(),
           rules: input.rules ?? defaultRules(),

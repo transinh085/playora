@@ -1,7 +1,16 @@
 'use client';
 
 import type { MyOrg } from '@playora/contracts';
-import { Drawer, Dropdown, Input, Label, Modal, Separator, Tooltip } from '@playora/ui/components';
+import {
+  Card,
+  Drawer,
+  Dropdown,
+  Input,
+  Label,
+  Modal,
+  Separator,
+  Tooltip,
+} from '@playora/ui/components';
 import {
   CalendarDays,
   Check,
@@ -22,7 +31,6 @@ import {
   Search,
   Settings,
   Shapes,
-  Share,
   SlidersHorizontal,
   Sparkles,
   Sun,
@@ -158,7 +166,8 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   const { data: session } = authClient.useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const now = useNow({ updateInterval: 60_000 }).getTime();
-  const current = orgs.find((o) => o.id === orgId) ?? orgs[0];
+  const current = orgId ? orgs.find((o) => o.id === orgId) : orgs[0];
+  const orgNotFound = Boolean(orgId && !current);
   const currentIndex = current
     ? Math.max(
         0,
@@ -782,30 +791,19 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
 
           <div className="flex shrink-0 items-center gap-2">
             {routes && canReadCampaigns && (
-              <Link
-                href={routes.create}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden text-sm font-normal sm:block">{t('campaigns.create')}</span>
-              </Link>
+              <>
+                <Link
+                  href={routes.create}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden text-sm font-normal sm:block">
+                    {t('campaigns.create')}
+                  </span>
+                </Link>
+                <div className="mx-1 h-[18px] w-[0.5px] bg-neutral-200 dark:bg-white/10" />
+              </>
             )}
-            {current && !isRedeemerOnly(current.role) && (
-              <Link
-                href={`/orgs/${current.id}/settings` as Route}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:bg-white/5 dark:hover:text-[#FAFAFA]"
-              >
-                <Share className="h-4 w-4" />
-                <span className="hidden text-sm font-normal sm:block">Share</span>
-              </Link>
-            )}
-            <div className="mx-1 h-[18px] w-[0.5px] bg-neutral-200 dark:bg-white/10" />
-            <div aria-hidden="true" className="mr-2 flex items-center">
-              <div className="z-30 -mr-1.5 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-blue-400 to-blue-600 transition-colors dark:border-[#0A0A0A]" />
-              <div className="z-20 -mr-1.5 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-yellow-400 to-orange-500 transition-colors dark:border-[#0A0A0A]" />
-              <div className="z-10 h-4 w-4 rounded-full border border-white bg-gradient-to-r from-green-400 to-teal-500 transition-colors dark:border-[#0A0A0A]" />
-            </div>
-            <div className="mx-1 h-[18px] w-[0.5px] bg-neutral-200 dark:bg-white/10" />
             <button
               type="button"
               title="Switch theme"
@@ -830,7 +828,33 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">
+          {orgNotFound ? (
+            <div className="mx-auto my-12 max-w-md">
+              <Card
+                className="flex flex-col items-center gap-4 border border-border-button-default bg-background-primary-default p-6 text-center shadow-card"
+                data-testid="org-not-found-card"
+              >
+                <div className="space-y-1.5">
+                  <h2 className="m-0 text-title-3-semibold text-text-primary">
+                    {t('shell.orgNotFoundTitle')}
+                  </h2>
+                  <p className="m-0 text-body-2-regular text-text-secondary">
+                    {t('shell.orgNotFoundDescription')}
+                  </p>
+                </div>
+                <Link
+                  href={(orgs[0] ? `/orgs/${orgs[0].id}` : '/onboarding') as Route}
+                  className="inline-flex h-9 items-center justify-center rounded-xl bg-neutral-900 px-4 text-caption-1-semibold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-neutral-900"
+                >
+                  {t('shell.backToYourOrg')}
+                </Link>
+              </Card>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

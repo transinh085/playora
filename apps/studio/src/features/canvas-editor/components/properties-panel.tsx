@@ -24,6 +24,7 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   Copy,
+  ImageIcon,
   ImageUp,
   Maximize2,
   Trash2,
@@ -31,6 +32,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { type Dispatch, memo, type ReactNode, useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { AssetPickerModal } from '@/features/assets/components/asset-picker-modal';
 import {
   currentScreen,
   type EditorAction,
@@ -277,16 +279,19 @@ function PropertiesPanelView({
   state,
   dispatch,
   brand,
+  orgId,
   onUploadImage,
 }: {
   state: EditorState;
   dispatch: Dispatch<EditorAction>;
   brand: BrandPalette;
+  orgId?: string;
   onUploadImage?: (file: File) => Promise<string>;
 }) {
   const t = useTranslations('canvasLab');
   const tQuickEdit = useTranslations('builderLab.quickEdit');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coalescer = useCoalescer();
   const element = selectedElement(state);
@@ -749,42 +754,66 @@ function PropertiesPanelView({
 
       {element.type === 'image' && (
         <Section title={t('props.image')}>
-          {onUploadImage && (
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 5 * 1024 * 1024) {
-                    toast.error(tQuickEdit('tooLarge'));
-                    return;
-                  }
-                  setUploadingImage(true);
-                  try {
-                    const url = await onUploadImage(file);
-                    update({ src: url }, 'src');
-                  } catch {
-                    toast.error(tQuickEdit('uploadFailed'));
-                  } finally {
-                    setUploadingImage(false);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                isDisabled={uploadingImage}
-                onPress={() => fileInputRef.current?.click()}
-                className="w-full rounded-full"
-              >
-                <ImageUp className="mr-1.5 size-4" />
-                {tQuickEdit('upload')}
-              </Button>
+          {(onUploadImage || orgId) && (
+            <div className="space-y-1.5">
+              {onUploadImage && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast.error(tQuickEdit('tooLarge'));
+                        return;
+                      }
+                      setUploadingImage(true);
+                      try {
+                        const url = await onUploadImage(file);
+                        update({ src: url }, 'src');
+                      } catch {
+                        toast.error(tQuickEdit('uploadFailed'));
+                      } finally {
+                        setUploadingImage(false);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    isDisabled={uploadingImage}
+                    onPress={() => fileInputRef.current?.click()}
+                    className="w-full rounded-full"
+                  >
+                    <ImageUp className="mr-1.5 size-4" />
+                    {tQuickEdit('upload')}
+                  </Button>
+                </>
+              )}
+              {orgId && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onPress={() => setPickerOpen(true)}
+                    className="w-full rounded-full"
+                  >
+                    <ImageIcon className="mr-1.5 size-4" />
+                    {tQuickEdit('chooseFromLibrary')}
+                  </Button>
+                  <AssetPickerModal
+                    orgId={orgId}
+                    isOpen={pickerOpen}
+                    onOpenChange={setPickerOpen}
+                    selectedUrl={element.src}
+                    onSelect={(_asset, publicUrl) => update({ src: publicUrl }, 'src')}
+                  />
+                </>
+              )}
             </div>
           )}
           <Field bind label={t('props.imageUrl')}>

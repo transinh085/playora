@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertDialog, Avatar, Button, Chip } from '@playora/ui/components';
+import { AlertDialog, Avatar, Button, Chip, toast } from '@playora/ui/components';
+import { Copy } from '@playora/ui/icons';
 import { useFormatter, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { TableCard } from '@/components/table-card';
@@ -84,6 +85,18 @@ export function PendingInvitationsTable({
                   {canManage && (
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onPress={async () => {
+                            const url = `${window.location.origin}/invite/${inv.id}`;
+                            await navigator.clipboard?.writeText(url);
+                            toast.success(t('members.inviteLinkCopied'));
+                          }}
+                        >
+                          <Copy className="size-3.5" />
+                          {t('members.copyInviteLink')}
+                        </Button>
                         <Button
                           variant="secondary"
                           size="sm"

@@ -51,6 +51,8 @@
     "declineInvite": "Decline",
     "inviteAccepted": "Joined {organization}",
     "inviteError": "This invitation was not found, has expired, or belongs to a different account.",
+    "inviteEmailMismatchTitle": "Signed in with a different email",
+    "inviteEmailMismatch": "This invitation was sent to {invitedEmail}, while you are signed in as {currentEmail}.",
     "switchAccount": "Sign in with another account",
     "showcase": {
       "badge": "Minigames that bring guests in",
@@ -139,10 +141,24 @@
     "cropSquare": "Square 1:1",
     "cropWide": "Widescreen 16:9",
     "deleteConfirm": "Are you sure you want to delete this asset?",
+    "deleteConfirmDescription": "If this asset is used in a Brand Kit or campaign, those images may stop displaying.",
     "statusPending": "Processing",
     "statusReady": "Ready",
     "statusFailed": "Failed",
-    "subtitle": "Backgrounds, logos and prize images shared across your games."
+    "subtitle": "Backgrounds, logos and prize images shared across your games.",
+    "variantLabels": {
+      "w320": "Thumbnail (320px)",
+      "w640": "Medium (640px)",
+      "w1280": "HD (1280px)",
+      "cropped": "Cropped"
+    },
+    "picker": {
+      "title": "Choose image from library",
+      "subtitle": "Pick an existing store image or upload a new one.",
+      "searchPlaceholder": "Search by filename or format…",
+      "emptySearch": "No matching images found.",
+      "select": "Select image"
+    }
   },
   "brandKits": {
     "title": "Brand kits",
@@ -152,7 +168,9 @@
     "name": "Brand kit name",
     "primaryColor": "Primary color",
     "secondaryColor": "Secondary color",
+    "accentColor": "Accent color",
     "backgroundColor": "Background color",
+    "surfaceColor": "Surface color",
     "textColor": "Text color",
     "fontHeading": "Heading font",
     "fontBody": "Body font",
@@ -160,6 +178,10 @@
     "backgroundAsset": "Background image",
     "musicAsset": "Background music",
     "noAsset": "None",
+    "suggestPaletteFromLogo": "Suggest 5-color palette from logo",
+    "paletteApplied": "Applied 5-color palette suggested from logo",
+    "deleteConfirm": "Delete this brand kit?",
+    "deleteConfirmDescription": "Are you sure you want to delete brand kit “{name}”? Existing campaigns will keep their current colors.",
     "previewTitle": "Live preview",
     "previewHeading": "Festive Lucky Wheel",
     "previewSubtitle": "Scan the QR code to play and redeem your prize at the counter!",
@@ -223,8 +245,22 @@
     "pendingEmpty": "No pending invitations.",
     "expiresAt": "Expires",
     "resend": "Resend",
+    "copyInviteLink": "Copy invite link",
+    "inviteLinkCopied": "Invitation link copied",
+    "sendAndCopyLink": "Send & copy link",
+    "changeRoleConfirmTitle": "Change member role?",
+    "changeRoleConfirmDescription": "Change {name}'s role to “{role}”?",
     "cancelInvite": "Cancel invitation",
     "cancelInviteConfirm": "Are you sure you want to cancel this invitation?",
+    "orgSettings": {
+      "title": "Organization profile",
+      "description": "Store name and URL slug displayed to customers.",
+      "name": "Organization name",
+      "nameHint": "Displayed on minigame screens and reward vouchers.",
+      "slug": "URL Slug",
+      "slugHint": "Your store's public URL identifier.",
+      "saved": "Organization settings saved"
+    },
     "roles": {
       "owner": "Owner",
       "admin": "Admin",
@@ -324,7 +360,10 @@
     "helpShortcuts": "Keyboard shortcuts",
     "helpSupport": "Support & Feedback",
     "notifications": "Notifications",
-    "notificationsEmpty": "You’re all caught up."
+    "notificationsEmpty": "You’re all caught up.",
+    "orgNotFoundTitle": "Organization not found or access denied",
+    "orgNotFoundDescription": "You do not have access to this organization or the link is invalid.",
+    "backToYourOrg": "Back to your workspace"
   },
   "canvasLab": {
     "title": "Canvas editor",
@@ -774,6 +813,7 @@
       "prizes": {
         "presets": "Ready-made images",
         "upload": "Upload a photo",
+        "chooseFromLibrary": "Choose from library",
         "uploadTooLarge": "That image is too large. Choose one under 500 KB.",
         "uploadFailed": "Could not read that image. Try another one.",
         "changeImage": "Change the image for {name}",
@@ -1009,6 +1049,9 @@
       "tooLarge": "Image too large (5 MB max).",
       "uploadFailed": "Couldn't read this image.",
       "upload": "Upload image",
+      "chooseFromLibrary": "Choose from library",
+      "suggestPaletteFromLogo": "Suggest 5-color palette from logo",
+      "paletteApplied": "Applied 5-color palette suggested from logo",
       "uploadHint": "PNG, JPG, WEBP or SVG, up to 5 MB",
       "stickers": "Or pick a built-in image",
       "presets": {
@@ -1554,6 +1597,7 @@
         "title": "Redemptions & Plays Trend",
         "plays": "Plays",
         "wins": "Wins",
+        "returning": "Returning guests",
         "redeemed": "Counter visits",
         "range7d": "Last 7 days",
         "range30d": "Last 30 days",
@@ -1594,6 +1638,8 @@
       },
       "statCards": {
         "redeemedCaption": "Guests visiting counter",
+        "returningCaption": "{count} returning guests (2+ days)",
+        "returningBadge": "{count} returning",
         "redeemedHint": "Total vouchers successfully redeemed by staff at the counter.",
         "playsCaption": "Across all campaigns",
         "playsHint": "Total guest interactions and minigame spins.",

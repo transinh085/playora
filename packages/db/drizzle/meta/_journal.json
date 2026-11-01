@@ -57,6 +57,13 @@
       "when": 1793545716584,
       "tag": "0007_purple_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793548157634,
+      "tag": "0008_cold_shen",
+      "breakpoints": true
     }
   ]
 }

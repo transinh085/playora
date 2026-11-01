@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type MyOrg, Slug } from '@playora/contracts';
+import { brandKitsApi, type MyOrg, Slug } from '@playora/contracts';
 import {
   Avatar,
   Button,
@@ -36,6 +36,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Logo } from '@/components/logo';
+import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { useInvalidateMyOrgs } from '../api';
 
@@ -43,12 +44,54 @@ const schema = z.object({ name: z.string().trim().min(2).max(80), slug: Slug });
 type Values = z.infer<typeof schema>;
 
 export const ONBOARDING_BRAND_PRESETS = [
-  { key: 'teal', hex: '#0f7c79', secondaryHex: '#facf4e' },
-  { key: 'festive', hex: '#c81e1e', secondaryHex: '#f59e0b' },
-  { key: 'milkTea', hex: '#d97706', secondaryHex: '#fde68a' },
-  { key: 'matcha', hex: '#15803d', secondaryHex: '#bef264' },
-  { key: 'coffee', hex: '#78350f', secondaryHex: '#fcd34d' },
-  { key: 'berry', hex: '#be185d', secondaryHex: '#fbcfe8' },
+  {
+    key: 'teal',
+    hex: '#0f7c79',
+    secondaryHex: '#facf4e',
+    backgroundHex: '#fffdf9',
+    surfaceHex: '#f5efe6',
+    textHex: '#1c1917',
+  },
+  {
+    key: 'festive',
+    hex: '#c81e1e',
+    secondaryHex: '#f59e0b',
+    backgroundHex: '#fffbeb',
+    surfaceHex: '#fef3c7',
+    textHex: '#450a0a',
+  },
+  {
+    key: 'milkTea',
+    hex: '#d97706',
+    secondaryHex: '#fde68a',
+    backgroundHex: '#fffbeb',
+    surfaceHex: '#fef3c7',
+    textHex: '#451a03',
+  },
+  {
+    key: 'matcha',
+    hex: '#15803d',
+    secondaryHex: '#bef264',
+    backgroundHex: '#f7fee7',
+    surfaceHex: '#ecfccb',
+    textHex: '#14532d',
+  },
+  {
+    key: 'coffee',
+    hex: '#78350f',
+    secondaryHex: '#fcd34d',
+    backgroundHex: '#fffdf9',
+    surfaceHex: '#f5efe6',
+    textHex: '#292524',
+  },
+  {
+    key: 'berry',
+    hex: '#be185d',
+    secondaryHex: '#fbcfe8',
+    backgroundHex: '#fdf2f8',
+    surfaceHex: '#fce7f3',
+    textHex: '#500724',
+  },
 ] as const;
 
 export type OnboardingBrandPresetKey = (typeof ONBOARDING_BRAND_PRESETS)[number]['key'];
@@ -108,12 +151,39 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
               name: values.name,
               primaryColor: selectedPreset.hex,
               secondaryColor: selectedPreset.secondaryHex,
+              accentColor: selectedPreset.secondaryHex,
+              backgroundColor: selectedPreset.backgroundHex,
+              surfaceColor: selectedPreset.surfaceHex,
+              textColor: selectedPreset.textHex,
             }),
           );
         } catch {
           // Ignore storage quota errors
         }
       }
+      await api
+        .call(brandKitsApi.create, {
+          params: { orgId: data.id },
+          body: {
+            name: values.name,
+            tokens: {
+              colors: {
+                primary: selectedPreset.hex,
+                secondary: selectedPreset.secondaryHex,
+                accent: selectedPreset.secondaryHex,
+                background: selectedPreset.backgroundHex,
+                surface: selectedPreset.surfaceHex,
+                text: selectedPreset.textHex,
+              },
+              fontHeading: 'Be Vietnam Pro',
+              fontBody: 'Be Vietnam Pro',
+              logoAssetId: null,
+              backgroundAssetId: null,
+              musicAssetId: null,
+            },
+          },
+        })
+        .catch(() => null);
       await invalidateMyOrgs();
       toast.success(values.name);
       router.replace(`/orgs/${data.id}` as Route);

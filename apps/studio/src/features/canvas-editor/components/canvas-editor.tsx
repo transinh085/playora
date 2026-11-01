@@ -50,6 +50,7 @@ export function CanvasEditor({ orgId }: { orgId: string }) {
         value={doc}
         onChange={setDoc}
         brand={DEMO_BRAND}
+        orgId={orgId}
         toolbarStart={
           <div className="flex items-center gap-2">
             <Tooltip delay={150}>

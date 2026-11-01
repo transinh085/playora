@@ -18,6 +18,97 @@ export interface OutcomeDayPoint {
   visits: number;
 }
 
+export const DEFAULT_STUDIO_TIMEZONE = 'Asia/Ho_Chi_Minh';
+
+/** Formats a `Date` into `YYYY-MM-DD` in the given IANA timezone (defaults to `Asia/Ho_Chi_Minh`). */
+export function formatLocalDayKey(date: Date, timeZone = DEFAULT_STUDIO_TIMEZONE): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const year = parts.find((p) => p.type === 'year')?.value ?? '1970';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '01';
+  const day = parts.find((p) => p.type === 'day')?.value ?? '01';
+  return `${year}-${month}-${day}`;
+}
+
+/** Builds the rolling last `daysCount` calendar day keys (`YYYY-MM-DD`) in `timeZone`. */
+export function buildRollingDayKeys(
+  daysCount: number,
+  now: Date = new Date(),
+  timeZone = DEFAULT_STUDIO_TIMEZONE,
+): string[] {
+  const todayKey = formatLocalDayKey(now, timeZone);
+  const [y, m, d] = todayKey.split('-').map((n) => Number.parseInt(n, 10));
+  const anchorUtc = Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1, 12, 0, 0);
+  const keys: string[] = [];
+  for (let i = daysCount - 1; i >= 0; i--) {
+    const dt = new Date(anchorUtc - i * 86_400_000);
+    keys.push(dt.toISOString().slice(0, 10));
+  }
+  return keys;
+}
+
+export function formatPeriodDelta(
+  current: number,
+  prior: number,
+): { label: string; color: 'success' | 'danger' | 'default' } {
+  if (prior <= 0) {
+    if (current <= 0) return { label: '0%', color: 'default' };
+    return { label: `+${current} (7d)`, color: 'success' };
+  }
+  const pct = Math.round(((current - prior) / prior) * 100);
+  if (pct > 0) return { label: `+${pct}%`, color: 'success' };
+  if (pct < 0) return { label: `${pct}%`, color: 'danger' };
+  return { label: '0%', color: 'default' };
+}
+
+export function computePeriodComparison(
+  reportsById: ReadonlyMap<string, CampaignReport>,
+  now: Date = new Date(),
+  timeZone = DEFAULT_STUDIO_TIMEZONE,
+): {
+  current7dVisits: number;
+  prior7dVisits: number;
+  current7dPlays: number;
+  prior7dPlays: number;
+  returningVisitors: number;
+} {
+  const keys14 = buildRollingDayKeys(14, now, timeZone);
+  const priorSet = new Set(keys14.slice(0, 7));
+  const currentSet = new Set(keys14.slice(7));
+
+  let current7dVisits = 0;
+  let prior7dVisits = 0;
+  let current7dPlays = 0;
+  let prior7dPlays = 0;
+  let returningVisitors = 0;
+
+  for (const report of reportsById.values()) {
+    returningVisitors += report.returningVisitors ?? 0;
+    if (!report.byDay) continue;
+    for (const item of report.byDay) {
+      if (currentSet.has(item.day)) {
+        current7dVisits += item.visits;
+        current7dPlays += item.plays;
+      } else if (priorSet.has(item.day)) {
+        prior7dVisits += item.visits;
+        prior7dPlays += item.plays;
+      }
+    }
+  }
+
+  return {
+    current7dVisits,
+    prior7dVisits,
+    current7dPlays,
+    prior7dPlays,
+    returningVisitors,
+  };
+}
+
 export function OutcomeTrendCard({
   orgId,
   reportsById,
@@ -41,11 +132,8 @@ export function OutcomeTrendCard({
     const daysCount = range === '7d' ? 7 : 30;
     const dayMap = new Map<string, { plays: number; wins: number; visits: number }>();
 
-    // Generate rolling last N days in ISO YYYY-MM-DD
-    const now = new Date();
-    for (let i = daysCount - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      const iso = d.toISOString().slice(0, 10);
+    // Generate rolling last N days in Asia/Ho_Chi_Minh local YYYY-MM-DD
+    for (const iso of buildRollingDayKeys(daysCount)) {
       dayMap.set(iso, { plays: 0, wins: 0, visits: 0 });
     }
 
@@ -79,6 +167,13 @@ export function OutcomeTrendCard({
   const totalPlays = chartData.reduce((s, d) => s + d.plays, 0);
   const totalWins = chartData.reduce((s, d) => s + d.wins, 0);
   const totalVisits = chartData.reduce((s, d) => s + d.visits, 0);
+  const totalReturningVisitors = useMemo(() => {
+    let sum = 0;
+    for (const r of reportsById.values()) {
+      sum += r.returningVisitors ?? 0;
+    }
+    return sum;
+  }, [reportsById]);
 
   const activePoint = activeIndex !== null ? chartData[activeIndex] : null;
   const headlineVisits = activePoint ? activePoint.visits : totalVisits;
@@ -198,6 +293,13 @@ export function OutcomeTrendCard({
               <span>{t('wins')}:</span>
               <strong className="font-semibold tabular-nums text-text-primary">
                 {format.number(headlineWins)}
+              </strong>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block size-2 rounded-full bg-violet-500" />
+              <span>{t('returning')}:</span>
+              <strong className="font-semibold tabular-nums text-text-primary">
+                {format.number(totalReturningVisitors)}
               </strong>
             </div>
           </div>

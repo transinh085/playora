@@ -21,7 +21,9 @@ export type BrandFont = z.infer<typeof BrandFont>;
 export const BrandKitColors = z.object({
   primary: HexColor,
   secondary: HexColor.optional(),
+  accent: HexColor.optional(),
   background: HexColor,
+  surface: HexColor.optional(),
   text: HexColor,
 });
 export type BrandKitColors = z.infer<typeof BrandKitColors>;
