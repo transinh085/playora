@@ -173,26 +173,27 @@ export function PlaybookSetupForm({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div>
-        <Button variant="secondary" className="gap-2" onClick={onBack}>
-          <ArrowLeft className="size-4" />
+        <Button variant="secondary" size="small" leadingIcon={ArrowLeft} onClick={onBack}>
           {t('backToGoals')}
         </Button>
       </div>
 
-      <div className="grid items-start gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-          <div className="flex flex-row items-center justify-between border-b border-border-button-default px-5 py-4">
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+          <div className="flex flex-row items-center justify-between border-b border-separator-border px-6 py-4">
             <div>
-              <Caption>{t('setup.title')}</Caption>
-              <h3 className="text-base font-semibold">{t(`items.${playbook}.title`)}</h3>
+              <Caption className="block">{t('setup.title')}</Caption>
+              <h3 className="m-0 text-headline-semibold text-text-primary">
+                {t(`items.${playbook}.title`)}
+              </h3>
             </div>
-            <Chip variant="caption" color="neutral">
+            <Chip variant="subtle" color="neutral">
               {t(`items.${playbook}.goal`)}
             </Chip>
           </div>
-          <div className="p-5">
+          <div className="p-6">
             <form id="playbook-setup" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <Controller
                 control={form.control}
@@ -232,20 +233,20 @@ export function PlaybookSetupForm({
 
               <div className="space-y-3">
                 <div>
-                  <span className="text-sm font-semibold">{t('setup.prizes')}</span>
+                  <span className="text-body-medium text-text-primary">{t('setup.prizes')}</span>
                   <Caption className="block">{t('setup.prizesHint')}</Caption>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {fields.map((fieldItem, index) => {
                     const quantity = suggestion?.prizes[index]?.quantity;
                     return (
                       <div
                         key={fieldItem.id}
-                        className="flex items-center gap-2 rounded-xl border bg-muted/30 p-3"
+                        className="flex items-center gap-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default/40 p-3"
                         data-testid="playbook-prize"
                       >
-                        <div className="grid min-w-0 flex-1 gap-2 grid-cols-[minmax(0,1fr)_160px]">
+                        <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_160px] gap-2">
                           <Controller
                             control={form.control}
                             name={`prizes.${index}.name`}
@@ -301,7 +302,7 @@ export function PlaybookSetupForm({
                             type="button"
                             variant="ghost"
                             size="small"
-                            className="size-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            className="size-8 p-0 text-text-error-primary hover:bg-notification-error-background"
                             disabled={fields.length <= 1}
                             onClick={() => remove(index)}
                             aria-label={t('setup.removePrize')}
@@ -317,7 +318,9 @@ export function PlaybookSetupForm({
                   <Button
                     type="button"
                     variant="secondary"
-                    className="w-full gap-2 border-dashed"
+                    size="small"
+                    leadingIcon={Plus}
+                    className="w-full justify-center border-dashed"
                     disabled={fields.length >= 20}
                     onClick={() => {
                       const current = form.getValues('prizes') ?? [];
@@ -333,7 +336,6 @@ export function PlaybookSetupForm({
                       });
                     }}
                   >
-                    <Plus className="size-4" />
                     {t('setup.addPrize')}
                   </Button>
                 </div>
@@ -498,21 +500,21 @@ export function SuggestionCard({
   const zero = suggestion?.prizes.filter((p) => p.quantity === 0) ?? [];
 
   return (
-    <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <div className="border-b border-border-button-default px-5 py-4">
-        <h3 className="text-base font-semibold">{t('title')}</h3>
+    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+      <div className="border-b border-separator-border px-6 py-4">
+        <h3 className="m-0 text-headline-semibold text-text-primary">{t('title')}</h3>
       </div>
-      <div className="space-y-4 p-5">
+      <div className="space-y-4 p-6">
         {suggestion === null ? (
           <div
             role="alert"
-            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-sm font-medium"
+            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-body-2-medium text-text-secondary"
           >
             {t('invalid')}
           </div>
         ) : (
           <div className="space-y-4" data-testid="playbook-suggestion">
-            <p className="text-sm font-semibold">
+            <p className="m-0 rounded-2xl border border-accent-500/20 bg-accent-500/5 p-3.5 text-body-medium text-text-primary">
               {t('sentence', {
                 budget: formatVnd(budgetVnd, locale),
                 count: suggestion.totalPrizes,
@@ -546,18 +548,20 @@ export function SuggestionCard({
             {suggestion.tooFewPrizes ? (
               <div
                 role="alert"
-                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-900 dark:text-amber-200"
+                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-body-2-medium text-amber-900 dark:text-amber-200"
               >
                 {t('tooFew')}
               </div>
             ) : (
-              <Caption>{t('risk', { percent: Math.round(suggestion.risk * 100) })}</Caption>
+              <Caption className="block">
+                {t('risk', { percent: Math.round(suggestion.risk * 100) })}
+              </Caption>
             )}
             {zero.map((p) => (
               <div
                 key={p.id}
                 role="alert"
-                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-900 dark:text-amber-200"
+                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-body-2-medium text-amber-900 dark:text-amber-200"
               >
                 {t('zeroPrize', { name: p.name })}
               </div>
@@ -570,7 +574,7 @@ export function SuggestionCard({
           <Button
             type="submit"
             form="playbook-setup"
-            className="w-full h-9 rounded-md text-xs font-medium shadow-xs"
+            className="w-full justify-center"
             disabled={pending || suggestion === null || suggestion.totalPrizes === 0}
           >
             {t('create')}

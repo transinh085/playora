@@ -50,4 +50,5 @@ export * from './base/toast/toast';
 export * from './base/tooltip/tooltip';
 export * from './base/tree-view/tree-view';
 export * from './foundations/direction/direction';
+export * from './foundations/phone-mockup/phone-mockup';
 export * from './foundations/qr-code/qr-code';

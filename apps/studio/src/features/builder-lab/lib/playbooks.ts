@@ -134,6 +134,7 @@ export const PLAYBOOKS: Record<PlaybookKey, PlaybookDef> = {
 };
 
 export const PLAYBOOK_KEYS = Object.keys(PLAYBOOKS) as PlaybookKey[];
+export const PLAYBOOK_LIST: PlaybookDef[] = Object.values(PLAYBOOKS);
 
 export function getPlaybook(key: PlaybookKey): PlaybookDef {
   return PLAYBOOKS[key];

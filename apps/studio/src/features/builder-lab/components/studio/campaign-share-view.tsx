@@ -9,6 +9,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@playora/ui/components/base/modal/modal';
+import { ProgressBar } from '@playora/ui/components/base/progress/progress';
 import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
 import { toast } from '@playora/ui/components/base/toast/toast';
 import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
@@ -25,9 +26,10 @@ import {
 } from '@playora/ui/icons';
 import type { Route } from 'next';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Caption } from '@/components/caption';
+import { IconTile } from '@/components/icon-tile';
 import { PageHeader } from '@/components/page-header';
 import { PLAY_URL } from '@/lib/env';
 import { type Campaign, useCampaign, useCampaignReport } from '../../api';
@@ -61,6 +63,7 @@ export function CampaignShareView({
   const t = useTranslations('campaigns.share');
   const tc = useTranslations('campaigns');
   const tCommon = useTranslations('common');
+  const format = useFormatter();
   const routes = campaignRoutes(orgId);
 
   const campaignQuery = useCampaign(orgId, campaignId);
@@ -80,14 +83,14 @@ export function CampaignShareView({
   if (campaignQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full rounded-lg" />
-        <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-16 w-full rounded-3xl" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
       </div>
     );
   }
 
   if (campaignQuery.isError || !campaignQuery.data) {
-    return <div className="py-12 text-center text-muted-foreground">{tc('notFound')}</div>;
+    return <div className="py-12 text-center text-text-secondary">{tc('notFound')}</div>;
   }
 
   const campaign = campaignQuery.data;
@@ -168,6 +171,8 @@ export function CampaignShareView({
     }
   });
 
+  const maxPlays = Math.max(1, ...reportTableData.map((r) => r.plays));
+
   return (
     <div className="flex flex-col gap-6" data-testid="campaign-share-page">
       {!embedded && (
@@ -179,15 +184,13 @@ export function CampaignShareView({
           extra={
             isDraft ? (
               <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-                <Button variant="secondary" className="gap-2">
-                  <Play className="size-4" />
+                <Button variant="secondary" size="small" leadingIcon={Play}>
                   {tc('rehearse')}
                 </Button>
               </a>
             ) : (
               <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
-                <Button className="gap-2">
-                  <ExternalLink className="size-4" />
+                <Button size="small" leadingIcon={ExternalLink}>
                   {tc('openPlay')}
                 </Button>
               </a>
@@ -204,8 +207,8 @@ export function CampaignShareView({
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="font-medium leading-none tracking-tight">{t('draftNotice')}</div>
-              <div className="mt-1 text-sm text-amber-800/90 dark:text-amber-300/80">
+              <div className="text-body-2-semibold">{t('draftNotice')}</div>
+              <div className="mt-0.5 text-caption-1-regular text-amber-800/90 dark:text-amber-300/80">
                 {t('draft')}
               </div>
             </div>
@@ -219,24 +222,17 @@ export function CampaignShareView({
       )}
 
       {/* Preset and Custom Channels */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-        <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+        <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-4">
           <div>
-            <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-              {t('channels.title')}
-            </h3>
-            <Caption className="text-[11px]">{t('channels.hint')}</Caption>
+            <h3 className="m-0 text-body-medium text-text-primary">{t('channels.title')}</h3>
+            <Caption className="block">{t('channels.hint')}</Caption>
           </div>
-          <Button
-            className="gap-1.5 rounded-md h-8 text-xs shadow-xs"
-            size="small"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <Plus className="size-3.5" />
+          <Button size="small" leadingIcon={Plus} onClick={() => setIsAddModalOpen(true)}>
             {t('channels.add')}
           </Button>
         </div>
-        <div className="p-4">
+        <div className="p-5">
           <div className="grid gap-4 md:grid-cols-2">
             {allChannels.map((channel) => (
               <ChannelCard
@@ -254,70 +250,75 @@ export function CampaignShareView({
       </div>
 
       {/* Counter Staff Card */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-        <div className="flex flex-row items-center justify-between p-4">
-          <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-              <Users className="size-4 text-teal-600 dark:text-teal-400" />
-              {t('counterStaff.title')}
-            </h3>
-            <Caption className="text-[11px]">{t('counterStaff.description')}</Caption>
+      <div
+        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+        data-testid="invite-counter-staff"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+          <div className="flex items-start gap-3.5">
+            <IconTile tone="success" size={40}>
+              <Users className="size-4" />
+            </IconTile>
+            <div>
+              <h3 className="m-0 text-body-medium text-text-primary">{t('counterStaff.title')}</h3>
+              <Caption className="mt-0.5 block max-w-2xl">{t('counterStaff.description')}</Caption>
+            </div>
           </div>
-          <Link href={`/orgs/${orgId}/members` as Route}>
-            <Button
-              variant="secondary"
-              size="small"
-              className="gap-2 h-8 rounded-md text-xs shadow-xs"
-            >
-              <ExternalLink className="size-3.5" />
+          <Link href={`/orgs/${orgId}/settings` as Route}>
+            <Button variant="secondary" size="small" leadingIcon={ExternalLink}>
               {t('counterStaff.action')}
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Traffic by Channel Table */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-        <div className="border-b border-border-button-default px-4 py-3">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-            {t('report.title')}
-          </h3>
-          <Caption className="text-[11px]">{t('report.description')}</Caption>
+      {/* Traffic by Channel Visual List (replaces table) */}
+      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+        <div className="border-b border-separator-border px-5 py-4">
+          <h3 className="m-0 text-body-medium text-text-primary">{t('report.title')}</h3>
+          <Caption className="block">{t('report.description')}</Caption>
         </div>
-        <div className="p-0">
-          <div className="w-full overflow-x-auto">
-            <table className="bui-table w-full">
-              <thead>
-                <tr>
-                  <th>{t('report.channel')}</th>
-                  <th className="text-right">{t('report.plays')}</th>
-                  <th className="text-right">{t('report.wins')}</th>
-                  <th className="text-right">{t('report.visits')}</th>
-                  <th className="text-right">{t('report.redemptionRate')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportTableData.map((row) => (
-                  <tr key={row.key}>
-                    <td className="text-xs font-medium">{row.name}</td>
-                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                      {row.plays}
-                    </td>
-                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                      {row.wins}
-                    </td>
-                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                      {row.visits}
-                    </td>
-                    <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
-                      {row.rate}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+          {reportTableData.map((row) => {
+            const sharePercent = row.plays > 0 ? Math.round((row.plays / maxPlays) * 100) : 0;
+            return (
+              <li key={row.key} className="flex flex-col gap-2.5 px-5 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-body-2-semibold text-text-primary">{row.name}</span>
+                    <Chip variant="caption" color="neutral" className="font-mono">
+                      ?ch={row.key}
+                    </Chip>
+                  </div>
+                  <div className="flex items-center gap-4 text-caption-1-regular text-text-secondary">
+                    <span>
+                      {t('report.plays')}:{' '}
+                      <strong className="font-medium tabular-nums text-text-primary">
+                        {format.number(row.plays)}
+                      </strong>
+                    </span>
+                    <span>
+                      {t('report.wins')}:{' '}
+                      <strong className="font-medium tabular-nums text-text-primary">
+                        {format.number(row.wins)}
+                      </strong>
+                    </span>
+                    <span>
+                      {t('report.visits')}:{' '}
+                      <strong className="font-semibold tabular-nums text-teal-600 dark:text-teal-400">
+                        {format.number(row.visits)}
+                      </strong>
+                    </span>
+                    <Chip variant="subtle" color={row.visits > 0 ? 'lime' : 'neutral'}>
+                      {t('report.redemptionRate')}: {row.rate}
+                    </Chip>
+                  </div>
+                </div>
+                <ProgressBar value={sharePercent} size="sm" aria-label={row.name} />
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
       {/* Add Custom Channel Modal */}
@@ -325,7 +326,7 @@ export function CampaignShareView({
         <ModalHeader title={t('channels.addTitle')} />
         <ModalBody className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
+            <span className="text-body-2-medium text-text-primary">
               {t('channels.channelName')}
             </span>
             <InputBase
@@ -335,38 +336,29 @@ export function CampaignShareView({
                 setNewChannelName(e.target.value);
                 setNewChannelKey(slugifyChannelKey(e.target.value));
               }}
-              fieldClassName="h-8 text-xs"
             />
           </div>
           <div className="space-y-1.5">
-            <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
-              {t('channels.channelKey')}
-            </span>
+            <span className="text-body-2-medium text-text-primary">{t('channels.channelKey')}</span>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-mono text-muted-foreground">?ch=</span>
+              <span className="font-mono text-caption-1-regular text-text-secondary">?ch=</span>
               <InputBase
                 value={newChannelKey}
                 onChange={(e) =>
                   setNewChannelKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
                 }
-                fieldClassName="h-8 text-xs font-mono"
+                fieldClassName="font-mono"
               />
             </div>
-            <Caption className="text-[11px]">{t('channels.channelKeyHint')}</Caption>
+            <Caption>{t('channels.channelKeyHint')}</Caption>
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button
-            variant="secondary"
-            size="small"
-            className="h-8 rounded-md text-xs"
-            onClick={() => setIsAddModalOpen(false)}
-          >
-            {tc('settings.pause')}
+          <Button variant="secondary" size="small" onClick={() => setIsAddModalOpen(false)}>
+            {tCommon('cancel')}
           </Button>
           <Button
             size="small"
-            className="h-8 rounded-md text-xs shadow-xs"
             disabled={!newChannelName.trim() || !newChannelKey.trim()}
             onClick={handleAddChannel}
           >
@@ -391,7 +383,7 @@ function ChannelCard({
 }) {
   const t = useTranslations('campaigns.share');
   const tc = useTranslations('campaigns');
-  const _tCommon = useTranslations('common');
+  const tCommon = useTranslations('common');
   const routes = campaignRoutes(orgId);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -409,17 +401,15 @@ function ChannelCard({
 
   return (
     <div
-      className="rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+      className="rounded-3xl border border-border-button-default bg-background-secondary-default/40 p-4 transition-colors hover:bg-background-secondary-default/70"
       data-testid={`share-channel-${channel.key}`}
     >
-      <div className="space-y-3 p-4">
+      <div className="space-y-3">
         {/* Channel Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-              {channel.name}
-            </span>
-            <Chip variant="caption" color="neutral" className="font-mono text-[10px]">
+            <span className="text-body-2-semibold text-text-primary">{channel.name}</span>
+            <Chip variant="caption" color="neutral" className="font-mono">
               ch={channel.key}
             </Chip>
           </div>
@@ -429,7 +419,7 @@ function ChannelCard({
                 variant="ghost"
                 size="small"
                 aria-label={tc('settings.delete')}
-                className="size-7 rounded-md p-0 text-destructive hover:bg-destructive/10"
+                className="size-7 p-0 text-text-error-primary hover:bg-notification-error-background"
                 onClick={() => setIsDeleteOpen(true)}
               >
                 <Trash2 className="size-3.5" />
@@ -437,13 +427,8 @@ function ChannelCard({
               <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen} size="sm">
                 <ModalHeader title={t('channels.deleteConfirm')} />
                 <ModalFooter>
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    className="h-8 rounded-md text-xs"
-                    onClick={() => setIsDeleteOpen(false)}
-                  >
-                    {t('links.copy')}
+                  <Button variant="secondary" size="small" onClick={() => setIsDeleteOpen(false)}>
+                    {tCommon('cancel')}
                   </Button>
                   <Button
                     variant="danger"
@@ -452,7 +437,6 @@ function ChannelCard({
                       onDelete();
                       setIsDeleteOpen(false);
                     }}
-                    className="h-8 rounded-md text-xs"
                   >
                     {tc('settings.delete')}
                   </Button>
@@ -463,20 +447,21 @@ function ChannelCard({
         </div>
 
         {/* Link and Copy */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <InputBase
             value={playerLink}
             readOnly
-            fieldClassName="min-w-0 flex-1 h-8 font-mono text-xs"
+            size="small"
+            fieldClassName="min-w-0 flex-1 font-mono"
             data-testid={`channel-link-${channel.key}`}
           />
           <Button
             variant="secondary"
             size="small"
-            className="h-8 rounded-md gap-1.5 shrink-0 text-xs shadow-xs"
+            leadingIcon={Copy}
+            className="shrink-0"
             onClick={copyLink}
           >
-            <Copy className="size-3.5" />
             {t('links.copy')}
           </Button>
         </div>
@@ -485,7 +470,7 @@ function ChannelCard({
         <div className="flex items-center gap-4 pt-1">
           <div
             ref={qrContainerRef}
-            className="flex size-24 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white p-2 shadow-xs dark:border-white/10 dark:bg-white"
+            className="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-border-button-default bg-white p-2 shadow-2xs"
           >
             <QRCodeSvg value={playerLink} size={80} />
           </div>
@@ -494,8 +479,8 @@ function ChannelCard({
             <div className="flex flex-wrap gap-1.5">
               <Button
                 variant="secondary"
-                size="small"
-                className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
+                size="xs"
+                leadingIcon={Download}
                 onClick={() =>
                   downloadCanvasQRCode(
                     qrContainerRef.current,
@@ -503,13 +488,12 @@ function ChannelCard({
                   )
                 }
               >
-                <Download className="size-3" />
                 {t('links.downloadPng')}
               </Button>
               <Button
                 variant="secondary"
-                size="small"
-                className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
+                size="xs"
+                leadingIcon={Download}
                 onClick={() =>
                   downloadSvgQRCode(
                     qrContainerRef.current,
@@ -517,7 +501,6 @@ function ChannelCard({
                   )
                 }
               >
-                <Download className="size-3" />
                 {t('links.downloadSvg')}
               </Button>
             </div>
@@ -533,11 +516,10 @@ function ChannelCard({
               >
                 <Button
                   variant="secondary"
-                  size="small"
-                  className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
+                  size="xs"
+                  leadingIcon={Printer}
                   data-testid={`print-standee-${channel.key}`}
                 >
-                  <Printer className="size-3" />
                   {t('links.printStandee')}
                 </Button>
               </a>
@@ -551,11 +533,10 @@ function ChannelCard({
               >
                 <Button
                   variant="secondary"
-                  size="small"
-                  className="h-7 rounded-md gap-1 text-[11px] shadow-xs"
+                  size="xs"
+                  leadingIcon={Printer}
                   data-testid={`print-tent-${channel.key}`}
                 >
-                  <Printer className="size-3" />
                   {t('links.printTent')}
                 </Button>
               </a>

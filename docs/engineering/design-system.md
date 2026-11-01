@@ -174,6 +174,7 @@ Sử dụng trực tiếp các component nguyên bản của **BoardUI** (dựng
 | `Tabs`, `PillTabs`, `SegmentedControl` | `@playora/ui/components/base/{tabs,segmented-control}/*` — Roving-tabindex tự động qua React Aria |
 | `Table`, `DataTable` | `@playora/ui/components/base/table/table` & `application/tables/data-table` — Class `.bui-table` định dạng đồng nhất header, cell, hover surface |
 | Toast / Notification | `Toaster` & `toast` từ `@playora/ui/components/base/toast/toast` (`toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`) dựng trên `Notification` + `NotificationViewport` |
+| `PhoneMockup` | `@playora/ui/components/foundations/phone-mockup/phone-mockup` — Khung giả lập iPhone 16 Pro thực tế (vỏ Titanium đa lớp, cụm phím cứng vật lý, khe loa thoại, vạch ăng-ten, Dynamic Island có thấu kính phản quang, thanh trạng thái iOS `9:41` / sóng / Wi-Fi / pin, vạch Home Indicator & lớp phản chiếu kính OLED; hỗ trợ cỡ `xs \| sm \| md \| lg`, màu `titanium-dark \| titanium-natural \| titanium-silver` và `responsiveFrame`) |
 | `Logo`, `LogoMark` | Nút play dưới chấm spotlight; wordmark viết thường bằng font `Unbounded`. Ẩn khi white-label (`ORG-04`) |
 
 **Component dùng chung của Studio** (`apps/studio/src/components`):

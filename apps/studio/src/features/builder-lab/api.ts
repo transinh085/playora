@@ -45,6 +45,7 @@ import {
 
 export type CampaignPrizeRuleMode = CampaignPrizeMode;
 export type CampaignRuleOpeningHours = NonNullable<CampaignRules['openingHours']>;
+export type CampaignPlay = CampaignPlayRecord;
 
 export type {
   CampaignBrand,
@@ -425,6 +426,8 @@ export function useVoucherLookup(orgId: string, code: string) {
     },
   );
 }
+
+export const useLookupVoucher = useVoucherLookup;
 
 export function useRedeemVoucher(orgId: string) {
   const qc = useQueryClient();

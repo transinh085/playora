@@ -1,6 +1,7 @@
 'use client';
 
 import { Mechanism, toCanvasPrizes } from '@playora/ui/campaign';
+import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
 import { cx } from '@playora/ui/utils/cx';
 import { useTranslations } from 'next-intl';
 import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
@@ -45,7 +46,7 @@ export function PhonePreview({
     <div className="flex w-full flex-col items-center gap-4">
       {!hideScreenSwitcher && (
         <div className="max-w-full overflow-x-auto">
-          <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
+          <div className="inline-flex rounded-full border border-border-button-default bg-background-secondary-default p-0.5 text-xs">
             {SCREEN_KEYS.map((key) => (
               <button
                 key={key}
@@ -53,8 +54,8 @@ export function PhonePreview({
                 className={cx(
                   'rounded-full px-3 py-1 font-medium transition-all',
                   screen === key
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-background-primary-default text-text-primary shadow-xs'
+                    : 'text-text-secondary hover:text-text-primary',
                 )}
                 onClick={() => onScreenChange(key)}
               >
@@ -65,38 +66,17 @@ export function PhonePreview({
         </div>
       )}
 
-      {/* Premium iPhone mockup with realistic border, dynamic island, and home bar */}
-      <div
-        className="relative shrink-0 overflow-hidden rounded-[38px] border-[8px] border-zinc-900 bg-background shadow-2xl transition-all duration-300"
-        style={{
-          width: 'min(350px, 100%)',
-          aspectRatio: '9 / 18.5',
-          boxShadow:
-            '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
-        }}
-        data-testid="quick-edit-preview"
-      >
-        {/* Dynamic Island pill */}
-        <div className="pointer-events-none absolute left-1/2 top-2 z-30 flex h-[18px] w-[84px] -translate-x-1/2 items-center justify-end rounded-xl bg-black px-2">
-          <span className="size-2 rounded-full border border-zinc-800 bg-zinc-900" />
-        </div>
-
-        {/* Screen Content */}
-        <div className="size-full overflow-hidden">
-          <FitScreen
-            key={screen}
-            screen={doc}
-            brand={campaign.brand}
-            prizes={toCanvasPrizes(campaign)}
-            scroll
-            animate={0}
-            stage={<CampaignStage campaign={campaign} />}
-          />
-        </div>
-
-        {/* Bottom home indicator line */}
-        <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-30 h-1 w-28 -translate-x-1/2 rounded-full bg-black/30" />
-      </div>
+      <PhoneMockup size="md" data-testid="quick-edit-preview">
+        <FitScreen
+          key={screen}
+          screen={doc}
+          brand={campaign.brand}
+          prizes={toCanvasPrizes(campaign)}
+          scroll
+          animate={0}
+          stage={<CampaignStage campaign={campaign} />}
+        />
+      </PhoneMockup>
     </div>
   );
 }

@@ -14,7 +14,10 @@ const font = Be_Vietnam_Pro({
 // Display face for the wordmark, game titles, scores and timers (docs/engineering/design-system.md).
 const display = Unbounded({ subsets: ['latin', 'vietnamese'], variable: '--font-display' });
 
-export const metadata: Metadata = { title: 'Playora', description: 'Cả hội trường cùng chơi.' };
+export const metadata: Metadata = {
+  title: 'Playora',
+  description: 'Quét mã chơi minigame nhận quà tại quầy.',
+};
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 1 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

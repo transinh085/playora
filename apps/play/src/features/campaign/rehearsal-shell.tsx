@@ -20,10 +20,11 @@ import { Chip } from '@playora/ui/components/base/badges/chip';
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { toast } from '@playora/ui/components/base/toast/toast';
 import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
 import { ArrowLeft, ExternalLink, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { useCampaignPlayerLabels } from './use-labels';
 
@@ -270,14 +271,7 @@ function RehearsalSession({
       </div>
 
       <div className="flex min-h-0 flex-1 items-center justify-center min-[480px]:p-6">
-        <div
-          className="relative h-full w-full overflow-hidden min-[480px]:h-[min(844px,100%)] min-[480px]:w-[390px] min-[480px]:rounded-[44px] min-[480px]:[box-shadow:var(--bezel)]"
-          style={
-            {
-              '--bezel': '0 0 0 10px #18181b, 0 0 0 11px #27272a, 0 30px 80px rgba(0,0,0,.55)',
-            } as CSSProperties
-          }
-        >
+        <PhoneMockup size="lg" responsiveFrame className="h-full min-[480px]:h-[min(856px,100%)]">
           <CampaignPlayer
             ref={player}
             campaign={playerDoc}
@@ -299,7 +293,7 @@ function RehearsalSession({
           >
             {t('rehearsal')}
           </Chip>
-        </div>
+        </PhoneMockup>
       </div>
     </>
   );

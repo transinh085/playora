@@ -3,7 +3,7 @@
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { InputBase } from '@playora/ui/components/base/input/input';
 import { ProgressBar } from '@playora/ui/components/base/progress/progress';
-import { ExternalLink, Pencil, QrCode, Search } from '@playora/ui/icons';
+import { ExternalLink, Pencil, Plus, QrCode, Search, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
@@ -14,15 +14,6 @@ import { campaignRoutes } from '../../../lib/routes';
 import { campaignPeriod } from '../campaign-period';
 import { PhaseTag } from '../phase-tag';
 import { PlaybookTag } from '../playbook-tag';
-
-const ROW_GRADIENTS = [
-  'from-emerald-400 to-cyan-500',
-  'from-rose-400 to-red-500',
-  'from-amber-400 to-orange-500',
-  'from-blue-400 to-indigo-500',
-  'from-fuchsia-400 to-purple-500',
-  'from-cyan-400 to-blue-500',
-] as const;
 
 type TableTab = 'all' | 'live' | 'draft_scheduled' | 'ended';
 
@@ -38,6 +29,7 @@ export function CampaignsDataTable({
   statsById: Map<string, CampaignStats>;
 }) {
   const t = useTranslations('campaigns.home');
+  const tc = useTranslations('campaigns');
   const format = useFormatter();
   const routes = campaignRoutes(orgId);
   const [activeTab, setActiveTab] = useState<TableTab>('all');
@@ -45,7 +37,6 @@ export function CampaignsDataTable({
 
   const filteredRows = useMemo(() => {
     return rows.filter(({ campaign, phase }) => {
-      // Tab filter
       if (activeTab === 'live' && phase !== 'live') return false;
       if (
         activeTab === 'draft_scheduled' &&
@@ -56,7 +47,6 @@ export function CampaignsDataTable({
         return false;
       if (activeTab === 'ended' && phase !== 'ended') return false;
 
-      // Search filter
       if (search.trim()) {
         const query = search.trim().toLowerCase();
         if (!campaign.name.toLowerCase().includes(query)) return false;
@@ -74,7 +64,7 @@ export function CampaignsDataTable({
       {/* Header with Title & All Campaigns Link */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
         <div className="flex items-center gap-2.5">
-          <h3 className="text-body-medium text-text-primary">{t('campaigns')}</h3>
+          <h3 className="m-0 text-body-medium text-text-primary">{t('campaigns')}</h3>
           <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
             {total}
           </span>
@@ -106,9 +96,9 @@ export function CampaignsDataTable({
               type="button"
               onClick={() => setActiveTab(tab.key)}
               className={cx(
-                'rounded-lg px-2.5 py-1 text-caption-1-medium transition-all',
+                'cursor-pointer rounded-lg px-2.5 py-1 text-caption-1-medium transition-all',
                 activeTab === tab.key
-                  ? 'bg-background-secondary-default text-text-primary font-semibold shadow-xs'
+                  ? 'bg-background-secondary-default text-text-primary shadow-xs'
                   : 'text-text-tertiary hover:text-text-secondary',
               )}
             >
@@ -129,182 +119,158 @@ export function CampaignsDataTable({
         </div>
       </div>
 
-      {/* Table view */}
-      <div className="overflow-x-auto">
+      {/* Card-List view (replaces cramped multi-column table on Home) */}
+      <div>
         {filteredRows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-            <p className="text-caption-1-regular text-text-tertiary">
-              {rows.length === 0 ? t('noCampaigns') : t('table.searchPlaceholder')}
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+            <div className="flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary">
+              <Sparkles className="size-5" />
+            </div>
+            <p className="m-0 max-w-sm text-body-2-regular text-text-secondary">
+              {rows.length === 0 ? t('noCampaigns') : tc('noMatch')}
             </p>
+            {rows.length === 0 && (
+              <Link href={routes.create as never}>
+                <Button size="small" leadingIcon={Plus} tabIndex={-1}>
+                  {tc('create')}
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
-          <table className="w-full border-collapse text-left text-caption-1-regular">
-            <thead>
-              <tr className="border-b border-separator-border text-[11px] font-medium text-text-tertiary uppercase tracking-wider">
-                <th className="px-5 py-3">{t('table.columns.campaign')}</th>
-                <th className="px-4 py-3">{t('table.columns.phase')}</th>
-                <th className="px-4 py-3">{t('table.columns.performance')}</th>
-                <th className="px-4 py-3">{t('table.columns.counterConversion')}</th>
-                <th className="px-4 py-3">{t('table.columns.stock')}</th>
-                <th className="px-5 py-3 text-right">{t('table.columns.actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-separator-border">
-              {filteredRows.map(({ campaign, phase }, idx) => {
-                const isDraft = phase === 'draft';
-                const stats = statsById.get(campaign.id);
-                const gradient = ROW_GRADIENTS[idx % ROW_GRADIENTS.length];
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {filteredRows.map(({ campaign, phase }) => {
+              const isDraft = phase === 'draft';
+              const stats = statsById.get(campaign.id);
 
-                // Calculate stock remaining
-                const totalStock = campaign.prizes.reduce((sum, p) => sum + p.quantity, 0);
-                const remainingStock = stats
-                  ? campaign.prizes.reduce(
-                      (sum, p) => sum + (stats.remainingByPrize[p.id] ?? p.quantity),
-                      0,
-                    )
-                  : totalStock;
-                const stockPercent =
-                  totalStock > 0 ? Math.round((remainingStock / totalStock) * 100) : 100;
+              const totalStock = campaign.prizes.reduce((sum, p) => sum + p.quantity, 0);
+              const remainingStock = stats
+                ? campaign.prizes.reduce(
+                    (sum, p) => sum + (stats.remainingByPrize[p.id] ?? p.quantity),
+                    0,
+                  )
+                : totalStock;
+              const stockPercent =
+                totalStock > 0 ? Math.round((remainingStock / totalStock) * 100) : 100;
 
-                const plays = stats?.plays ?? 0;
-                const wins = stats?.wins ?? 0;
-                const redeemed = stats?.redeemed ?? 0;
-                const redemptionRate = wins > 0 ? Math.round((redeemed / wins) * 100) : 0;
+              const plays = stats?.plays ?? 0;
+              const wins = stats?.wins ?? 0;
+              const redeemed = stats?.redeemed ?? 0;
+              const redemptionRate = wins > 0 ? Math.round((redeemed / wins) * 100) : 0;
 
-                return (
-                  <tr
-                    key={campaign.id}
-                    className="transition-colors hover:bg-background-secondary-default/50"
-                  >
-                    {/* Campaign Name + Playbook */}
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cx(
-                            'size-8 shrink-0 rounded-lg bg-gradient-to-br shadow-xs',
-                            gradient,
-                          )}
-                        />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={
-                                isDraft
-                                  ? (routes.edit(campaign.id) as never)
-                                  : (routes.detail(campaign.id) as never)
-                              }
-                              className="truncate text-caption-1-semibold text-text-primary hover:text-accent-600 dark:hover:text-accent-400 hover:underline"
-                            >
-                              {campaign.name}
-                            </Link>
-                            <PlaybookTag playbook={campaign.playbook} />
-                          </div>
-                          <p className="mt-0.5 text-[11px] text-text-tertiary">
-                            {campaignPeriod(format, campaign)}
-                          </p>
-                        </div>
+              return (
+                <li
+                  key={campaign.id}
+                  className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-background-secondary-default/40 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  {/* Left: Brand Swatch + Title + Tags + Period */}
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div
+                      aria-hidden="true"
+                      className="mt-1 size-3.5 shrink-0 rounded-full border border-border-button-default shadow-2xs"
+                      style={{ backgroundColor: campaign.brand.primary }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={
+                            isDraft
+                              ? (routes.edit(campaign.id) as never)
+                              : (routes.detail(campaign.id) as never)
+                          }
+                          className="truncate text-body-medium text-text-primary hover:text-accent-600 hover:underline dark:hover:text-accent-400"
+                        >
+                          {campaign.name}
+                        </Link>
+                        <PhaseTag phase={phase} />
+                        <PlaybookTag playbook={campaign.playbook} />
                       </div>
-                    </td>
+                      <p className="mt-0.5 m-0 text-caption-1-regular text-text-tertiary">
+                        {campaignPeriod(format, campaign)}
+                      </p>
+                    </div>
+                  </div>
 
-                    {/* Status Phase Tag */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <PhaseTag phase={phase} />
-                    </td>
-
-                    {/* Performance: Plays / Wins */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5 tabular-nums text-text-primary">
-                          <span className="font-medium">{format.number(plays)}</span>
-                          <span className="text-text-tertiary">/</span>
-                          <span className="text-text-secondary">{format.number(wins)}</span>
-                        </div>
-                        <p className="text-[10px] text-text-tertiary">
-                          {t('plays', { count: plays })}
-                        </p>
-                      </div>
-                    </td>
-
-                    {/* Counter Conversion: Redeemed + % rate */}
-                    <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="space-y-0.5">
-                        <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                          {format.number(redeemed)}
+                  {/* Middle: Outcome Metrics Strip (Plays, Counter Visits, Stock) */}
+                  {!isDraft && (
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                      <div className="min-w-[84px]">
+                        <span className="block text-caption-2-medium text-text-tertiary">
+                          {t('table.columns.counterConversion')}
                         </span>
-                        {wins > 0 && (
-                          <p className="text-[10px] text-text-tertiary">
-                            {t('table.rate', { percent: redemptionRate })}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Prize Stock Progress */}
-                    <td className="px-4 py-3.5 whitespace-nowrap min-w-[120px]">
-                      {totalStock > 0 ? (
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[11px] tabular-nums text-text-secondary">
-                            <span>
-                              {t('table.stockLeft', {
-                                left: remainingStock,
-                                total: totalStock,
-                              })}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-body-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+                            {format.number(redeemed)}
+                          </span>
+                          {wins > 0 && (
+                            <span className="text-caption-2-medium text-text-tertiary">
+                              ({redemptionRate}%)
                             </span>
-                            <span className="text-[10px] text-text-tertiary">{stockPercent}%</span>
-                          </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="min-w-[76px]">
+                        <span className="block text-caption-2-medium text-text-tertiary">
+                          {t('table.columns.performance')}
+                        </span>
+                        <span className="text-body-2-medium tabular-nums text-text-primary">
+                          {format.number(plays)}{' '}
+                          <span className="text-text-tertiary">/ {format.number(wins)}</span>
+                        </span>
+                      </div>
+
+                      <div className="w-28">
+                        <div className="mb-1 flex items-center justify-between text-caption-2-medium tabular-nums text-text-secondary">
+                          <span>
+                            {totalStock > 0
+                              ? t('table.stockLeft', { left: remainingStock, total: totalStock })
+                              : t('table.unlimited')}
+                          </span>
+                        </div>
+                        {totalStock > 0 && (
                           <ProgressBar
                             value={stockPercent}
                             size="sm"
                             aria-label={t('table.columns.stock')}
                           />
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-text-tertiary">
-                          {t('table.unlimited')}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {isDraft ? (
-                          <Link href={routes.edit(campaign.id) as never}>
-                            <Button
-                              variant="secondary"
-                              size="xs"
-                              leadingIcon={Pencil}
-                              tabIndex={-1}
-                            >
-                              {t('continueEditing')}
-                            </Button>
-                          </Link>
-                        ) : (
-                          <>
-                            <Link href={`${routes.detail(campaign.id)}?tab=share` as never}>
-                              <Button
-                                variant="secondary"
-                                size="xs"
-                                leadingIcon={QrCode}
-                                tabIndex={-1}
-                              >
-                                {t('share')}
-                              </Button>
-                            </Link>
-                            <Link href={routes.detail(campaign.id) as never}>
-                              <Button variant="ghost" size="xs" tabIndex={-1}>
-                                <ExternalLink className="size-3.5" />
-                              </Button>
-                            </Link>
-                          </>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  )}
+
+                  {/* Right: Quick Actions */}
+                  <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-center">
+                    {isDraft ? (
+                      <Link href={routes.edit(campaign.id) as never}>
+                        <Button variant="secondary" size="small" leadingIcon={Pencil} tabIndex={-1}>
+                          {t('continueEditing')}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link href={`${routes.detail(campaign.id)}?tab=share` as never}>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            leadingIcon={QrCode}
+                            tabIndex={-1}
+                          >
+                            {t('share')}
+                          </Button>
+                        </Link>
+                        <Link href={routes.detail(campaign.id) as never}>
+                          <Button variant="ghost" size="small" tabIndex={-1}>
+                            <ExternalLink className="size-4" />
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>

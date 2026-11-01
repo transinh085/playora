@@ -1,6 +1,7 @@
+import { cx } from '@playora/ui/utils/cx';
 import type React from 'react';
 
-/** body-sm (12/20) secondary text: hints, metadata, timestamps. */
+/** BoardUI caption text: hints, metadata, timestamps. */
 export interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> {
   type?: 'secondary' | 'danger';
   italic?: boolean;
@@ -13,11 +14,10 @@ export function Caption({
   italic,
   ...props
 }: CaptionProps) {
-  const colorClass = type === 'danger' ? 'text-destructive' : 'text-muted-foreground';
-  const italicClass = italic ? 'italic' : '';
+  const colorClass = type === 'danger' ? 'text-text-error-primary' : 'text-text-secondary';
   return (
     <span
-      className={`text-[13px] leading-5 ${colorClass} ${italicClass} ${className}`.trim()}
+      className={cx('text-caption-1-regular', colorClass, italic && 'italic', className)}
       {...props}
     >
       {children}

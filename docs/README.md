@@ -20,7 +20,8 @@ docs/
 │       ├── prizes-redemption.md  prize engine, mô phỏng, đổi quà, bốc thăm
 │       ├── participation.md    danh tính, điều kiện, giữ chân, chống gian lận, kênh
 │       ├── game-catalog.md     danh mục mẫu và đặc tả mẫu M1
-│       └── studio-ux.md        điều hướng, luồng, bố cục Studio
+│       ├── studio-ux.md        điều hướng, luồng, bố cục Studio
+│       └── sitemap-ui-structure.md  sơ đồ trang web, cấu trúc UI từng trang chuẩn SaaS
 ├── business/           KINH DOANH & PHÁP LÝ
 │   ├── business-model.md   giá, GTM, unit economics, rủi ro
 │   └── compliance.md       khuyến mại, PDPL, thuế, điều khoản

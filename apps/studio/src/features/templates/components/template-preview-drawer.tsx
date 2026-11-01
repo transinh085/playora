@@ -5,6 +5,7 @@ import { Button } from '@playora/ui/components/base/buttons/button';
 import { CloseButton } from '@playora/ui/components/base/buttons/close-button';
 import { Drawer } from '@playora/ui/components/base/drawer/drawer';
 import { PillTab, PillTabList } from '@playora/ui/components/base/tabs/pill-tab';
+import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiBookmarkFill,
@@ -139,29 +140,17 @@ export function TemplatePreviewDrawer({
             </div>
 
             {/* Smartphone Canvas Frame */}
-            <div
-              className="relative shrink-0 overflow-hidden rounded-[36px] border-[7px] border-neutral-900 bg-background shadow-2xl transition-all"
-              style={{
-                width: 'min(300px, 100%)',
-                aspectRatio: '9 / 18.5',
-              }}
-            >
-              {/* Dynamic Island */}
-              <div className="pointer-events-none absolute left-1/2 top-2 z-30 h-3.5 w-20 -translate-x-1/2 rounded-full bg-neutral-900" />
-
-              {/* Canvas Rendering */}
-              <div className="size-full overflow-hidden">
-                {currentDoc && (
-                  <FitScreen
-                    key={activeScreen}
-                    screen={currentDoc}
-                    brand={displayTemplate.brand}
-                    scroll
-                    animate={0}
-                  />
-                )}
-              </div>
-            </div>
+            <PhoneMockup size="sm">
+              {currentDoc && (
+                <FitScreen
+                  key={activeScreen}
+                  screen={currentDoc}
+                  brand={displayTemplate.brand}
+                  scroll
+                  animate={0}
+                />
+              )}
+            </PhoneMockup>
           </div>
 
           {/* Right Column: Template Info & Settings */}

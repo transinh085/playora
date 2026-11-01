@@ -4,7 +4,16 @@ import { Chip } from '@playora/ui/components/base/badges/chip';
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { ProgressBar } from '@playora/ui/components/base/progress/progress';
 import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { Coins, Lightbulb, Printer, Repeat, Target, TicketCheck, Wallet } from '@playora/ui/icons';
+import {
+  Coins,
+  Lightbulb,
+  Pencil,
+  Printer,
+  Repeat,
+  Target,
+  TicketCheck,
+  Wallet,
+} from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useFormatter, useLocale, useNow, useTranslations } from 'next-intl';
@@ -111,24 +120,24 @@ export function PlaybookGoalBanner({
 
   return (
     <div
-      className="rounded-3xl border border-teal-500/25 bg-teal-50/50 p-4 shadow-card dark:border-teal-500/30 dark:bg-teal-950/20"
+      className="rounded-3xl border border-teal-500/25 bg-teal-50/50 p-5 shadow-card dark:border-teal-500/30 dark:bg-teal-950/20"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <IconTile tone="primary" size={40}>
             <Target className="size-5" />
           </IconTile>
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-0.5">
             <div className="flex items-center gap-2">
               <Caption>{tr('goalLabel')}</Caption>
-              <Chip variant="subtle" color="neutral" className="font-normal">
+              <Chip variant="subtle" color="neutral">
                 {title}
               </Chip>
             </div>
-            <span className="block text-base font-semibold">{goal}</span>
+            <span className="block text-body-semibold text-text-primary">{goal}</span>
             <Caption>
               {tr('periodLabel')}: {campaignPeriod(format, campaign)}
             </Caption>
@@ -138,7 +147,9 @@ export function PlaybookGoalBanner({
         {highlightText && (
           <div data-testid="playbook-key-metric" className="text-right">
             <Caption className="block">{tr('keyMetricLabel')}</Caption>
-            <span className="text-base font-bold tabular-nums text-primary">{highlightText}</span>
+            <span className="text-headline-semibold tabular-nums text-teal-700 dark:text-teal-300">
+              {highlightText}
+            </span>
           </div>
         )}
       </div>
@@ -278,13 +289,11 @@ export function DailyOutcomeCard({
       data-testid="daily-chart-card"
       data-print-card
     >
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-          {tr('title')}
-        </h3>
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
         {extra}
       </div>
-      <div className="p-4">
+      <div className="p-5">
         {loading ? (
           <Skeleton className="h-64 w-full" />
         ) : (
@@ -305,6 +314,10 @@ export function DailyOutcomeCard({
   );
 }
 
+/**
+ * Channel performance breakdown — rendered as a visual BoardUI card-list with progress bars
+ * instead of a dense HTML table.
+ */
 export function ChannelsTableCard({
   report,
   loading,
@@ -315,6 +328,7 @@ export function ChannelsTableCard({
   const tr = useTranslations('campaigns.report.channels');
   const format = useFormatter();
   const rows = report?.byChannel ?? [];
+  const maxPlays = Math.max(1, ...rows.map((r) => r.plays));
 
   return (
     <div
@@ -322,58 +336,82 @@ export function ChannelsTableCard({
       data-testid="channel-table"
       data-print-card
     >
-      <div className="border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-          {tr('title')}
-        </h3>
+      <div className="border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
       </div>
       <div className="p-0">
         {loading ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          <div className="space-y-2 p-5">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
-            {tr('empty')}
+          <div className="px-5 py-10 text-center">
+            <Caption>{tr('empty')}</Caption>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="bui-table w-full">
-              <thead>
-                <tr>
-                  <th>{tr('channel')}</th>
-                  <th className="text-right">{tr('plays')}</th>
-                  <th className="text-right">{tr('wins')}</th>
-                  <th className="text-right">{tr('visits')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.channel ?? '__direct__'}>
-                    <td className="text-xs font-medium">
-                      {resolveChannelLabel(row.channel, (k) => tr(`known.${k}`))}
-                    </td>
-                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                      {format.number(row.plays)}
-                    </td>
-                    <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                      {format.number(row.wins)}
-                    </td>
-                    <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
-                      {format.number(row.visits)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {rows.map((row) => {
+              const label = resolveChannelLabel(row.channel, (k) => tr(`known.${k}`));
+              const sharePercent = Math.round((row.plays / maxPlays) * 100);
+              const conversionRate = row.wins > 0 ? Math.round((row.visits / row.wins) * 100) : 0;
+
+              return (
+                <li key={row.channel ?? '__direct__'} className="flex flex-col gap-2 px-5 py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-body-2-semibold text-text-primary">{label}</span>
+                      {row.channel?.trim() && (
+                        <Chip variant="caption" color="neutral" className="font-mono">
+                          ?ch={row.channel}
+                        </Chip>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-caption-1-regular text-text-secondary">
+                        {tr('visits')}:
+                      </span>
+                      <span className="text-body-2-semibold tabular-nums text-teal-600 dark:text-teal-400">
+                        {format.number(row.visits)}
+                      </span>
+                      {row.wins > 0 && (
+                        <Chip variant="subtle" color="lime">
+                          {conversionRate}%
+                        </Chip>
+                      )}
+                    </div>
+                  </div>
+
+                  <ProgressBar value={sharePercent} size="sm" aria-label={label} />
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-caption-1-regular text-text-secondary">
+                    <span>
+                      {tr('plays')}:{' '}
+                      <strong className="font-medium tabular-nums text-text-primary">
+                        {format.number(row.plays)}
+                      </strong>
+                    </span>
+                    <span>
+                      {tr('wins')}:{' '}
+                      <strong className="font-medium tabular-nums text-text-primary">
+                        {format.number(row.wins)}
+                      </strong>
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
   );
 }
 
+/**
+ * Prize stock & redemption outcome card — rendered as a visual BoardUI card-list with progress bars
+ * instead of a wide multi-column HTML table.
+ */
 export function PrizesOutcomeCard({
   orgId,
   campaign,
@@ -413,93 +451,77 @@ export function PrizesOutcomeCard({
       data-testid="prize-stock"
       data-print-card
     >
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-          {tr('title')}
-        </h3>
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
         {showEditLink && (
-          <Link
-            href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
-            data-print-hide
-          >
-            {t('stock.edit')}
+          <Link href={campaignRoutes(orgId).edit(campaign.id, 'rules')} data-print-hide>
+            <Button variant="secondary" size="small" leadingIcon={Pencil} tabIndex={-1}>
+              {t('stock.edit')}
+            </Button>
           </Link>
         )}
       </div>
       <div className="p-0">
         {loading ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          <div className="space-y-2 p-5">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
-            {tr('empty')}
+          <div className="px-5 py-10 text-center">
+            <Caption>{tr('empty')}</Caption>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="bui-table w-full">
-              <thead>
-                <tr>
-                  <th>{tr('name')}</th>
-                  <th className="text-right">{tr('unitCost')}</th>
-                  <th className="text-right">{tr('issued')}</th>
-                  <th className="text-right">{tr('redeemed')}</th>
-                  <th className="w-40">{tr('remaining')}</th>
-                  {showRedeemedCost && <th className="text-right">{tr('redeemedCost')}</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const percent = row.quantity
-                    ? Math.round((row.remaining / row.quantity) * 100)
-                    : 0;
-                  return (
-                    <tr key={row.prizeId}>
-                      <td>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-medium text-neutral-900 dark:text-[#FAFAFA]">
-                            {row.name}
-                          </span>
-                          <Caption className="text-[11px]">
-                            {t('stock.issued', { issued: row.issued, redeemed: row.redeemed })}
-                          </Caption>
-                        </div>
-                      </td>
-                      <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                        {formatVnd(row.valueVnd, locale)}
-                      </td>
-                      <td className="text-right text-xs tabular-nums text-neutral-600 dark:text-[#A3A3A3]">
-                        {format.number(row.issued)}
-                      </td>
-                      <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
-                        {format.number(row.redeemed)}
-                      </td>
-                      <td>
-                        <div className="space-y-1">
-                          <Caption className="tabular-nums text-[11px]">
-                            {t('stock.left', { left: row.remaining, total: row.quantity })}
-                          </Caption>
-                          <ProgressBar
-                            value={percent}
-                            aria-label={row.name}
-                            size="sm"
-                            className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
-                          />
-                        </div>
-                      </td>
-                      {showRedeemedCost && (
-                        <td className="text-right text-xs font-semibold tabular-nums text-neutral-900 dark:text-[#FAFAFA]">
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {rows.map((row) => {
+              const percent = row.quantity ? Math.round((row.remaining / row.quantity) * 100) : 0;
+              return (
+                <li key={row.prizeId} className="flex flex-col gap-2 px-5 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <span className="text-body-2-semibold text-text-primary">{row.name}</span>
+                      <Caption className="block">
+                        {tr('unitCost')}: {formatVnd(row.valueVnd, locale)}
+                      </Caption>
+                    </div>
+                    {showRedeemedCost ? (
+                      <div className="text-right">
+                        <span className="block text-body-2-semibold tabular-nums text-text-primary">
                           {formatVnd(row.redeemed * row.valueVnd, locale)}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </span>
+                        <Caption className="block">{tr('redeemedCost')}</Caption>
+                      </div>
+                    ) : (
+                      <Caption className="tabular-nums">
+                        {t('stock.left', { left: row.remaining, total: row.quantity })}
+                      </Caption>
+                    )}
+                  </div>
+
+                  <ProgressBar
+                    value={percent}
+                    aria-label={row.name}
+                    size="sm"
+                    className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
+                  />
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-caption-1-regular text-text-secondary">
+                    <span>
+                      {t('stock.issued', {
+                        issued: format.number(row.issued),
+                        redeemed: format.number(row.redeemed),
+                      })}
+                    </span>
+                    {showRedeemedCost && (
+                      <span className="font-medium tabular-nums text-text-primary">
+                        {t('stock.left', { left: row.remaining, total: row.quantity })}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
@@ -527,19 +549,17 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   if (campaignQuery.isPending || reportQuery.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full rounded-md" />
-        <Skeleton className="h-72 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-3xl" />
+        <Skeleton className="h-72 w-full rounded-3xl" />
       </div>
     );
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <div className="py-12 text-center text-neutral-500">
-        <p className="mb-4 text-sm">{t('notFound')}</p>
+      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
+        <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
         <Link href={routes.list}>
-          <Button size="small" className="h-8 rounded-md text-xs">
-            {t('backToList')}
-          </Button>
+          <Button size="small">{t('backToList')}</Button>
         </Link>
       </div>
     );
@@ -566,12 +586,7 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
           backHref={routes.detail(campaign.id)}
           backLabel={tr('backToCampaign')}
           extra={
-            <Button
-              size="small"
-              className="gap-2 rounded-md h-8 text-xs shadow-xs"
-              onClick={() => window.print()}
-            >
-              <Printer className="size-3.5" />
+            <Button size="small" leadingIcon={Printer} onClick={() => window.print()}>
               {tr('printPdf')}
             </Button>
           }
@@ -587,20 +602,18 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
         data-testid="report-insights"
         data-print-card
       >
-        <div className="border-b border-border-button-default px-4 py-3">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-            {tr('insights.title')}
-          </h3>
+        <div className="border-b border-separator-border px-5 py-3.5">
+          <h3 className="m-0 text-body-medium text-text-primary">{tr('insights.title')}</h3>
         </div>
-        <div className="space-y-3 p-4">
+        <div className="space-y-3 p-5">
           {insights.map((insight) => (
             <div
               key={insight.key}
-              className="flex items-start gap-2.5 text-xs text-neutral-700 dark:text-[#D4D4D4]"
+              className="flex items-start gap-2.5 text-body-2-regular text-text-primary"
               data-testid="report-insight-item"
               data-insight-key={insight.key}
             >
-              <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+              <Lightbulb className="mt-0.5 size-4 shrink-0 text-teal-600 dark:text-teal-400" />
               <span>{tr(`insights.${insight.key}`, insight.values)}</span>
             </div>
           ))}

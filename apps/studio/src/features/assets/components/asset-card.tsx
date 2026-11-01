@@ -66,7 +66,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
 
       <div className="flex flex-1 flex-col p-3.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-xs font-semibold text-text-primary">{asset.mime}</span>
+          <span className="truncate text-caption-1-semibold text-text-primary">{asset.mime}</span>
           {renderStatusTag(asset.status)}
         </div>
 

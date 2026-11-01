@@ -291,9 +291,9 @@ export function ModalHeader({
           {title}
         </AriaHeading>
         {hasDescription ? (
-          <p id={context?.descriptionId} className="mt-1 text-body-regular text-text-secondary">
+          <div id={context?.descriptionId} className="mt-1 text-body-regular text-text-secondary">
             {description}
-          </p>
+          </div>
         ) : null}
         {children}
       </div>

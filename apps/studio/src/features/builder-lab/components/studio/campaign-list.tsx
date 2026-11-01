@@ -23,6 +23,7 @@ import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
 import { Tab, TabList, Tabs } from '@playora/ui/components/base/tabs/tabs';
 import { toast } from '@playora/ui/components/base/toast/toast';
 import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
 import { Search, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import {
@@ -372,20 +373,19 @@ export function CampaignList({ orgId }: { orgId: string }) {
 
                       {/* Name + Brand swatch */}
                       <td>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedCampaignId(campaign.id)}
-                          className="flex items-center gap-2.5 text-left cursor-pointer group/name"
-                        >
+                        <div className="flex items-center gap-2.5">
                           <div
                             aria-hidden="true"
                             className="size-3.5 shrink-0 rounded-full border border-border-button-default"
                             style={{ backgroundColor: campaign.brand.primary }}
                           />
-                          <span className="font-medium text-text-primary group-hover/name:text-accent-600 transition-colors">
+                          <Link
+                            href={routes.detail(campaign.id) as Route}
+                            className="text-body-medium text-text-primary transition-colors hover:text-accent-600 hover:underline dark:hover:text-accent-400"
+                          >
                             {campaign.name}
-                          </span>
-                        </button>
+                          </Link>
+                        </div>
                       </td>
 
                       {/* Template & Skin chips */}
@@ -552,7 +552,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
             <DrawerHeader
               title={selectedCampaign.name}
               description={
-                <div className="mt-1 flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <PhaseTag phase={selectedPhase} />
                   <span className="text-caption-1-regular text-text-tertiary">
                     {tl(`templates.${selectedCampaign.templateKey}`)} ·{' '}
@@ -565,7 +565,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
             <DrawerBody className="flex flex-col gap-5 py-4">
               {/* Phone Mockup Canvas Preview */}
               <div className="flex flex-col items-center justify-center rounded-2xl border border-separator-border bg-background-secondary-default/40 p-4">
-                <div className="relative aspect-[9/16] w-full max-w-[210px] overflow-hidden rounded-2xl border border-border-button-default bg-background-primary-default shadow-card">
+                <PhoneMockup size="xs">
                   <FitScreen
                     screen={
                       buildScreens(selectedCampaign.templateKey, selectedCampaign.skinKey).cover
@@ -573,8 +573,8 @@ export function CampaignList({ orgId }: { orgId: string }) {
                     brand={selectedCampaign.brand}
                     prizes={toCanvasPrizes(selectedCampaign)}
                   />
-                </div>
-                <p className="mt-2 text-caption-1-regular text-text-tertiary">
+                </PhoneMockup>
+                <p className="mt-2.5 text-caption-1-regular text-text-tertiary">
                   {campaignPeriod(format, selectedCampaign)}
                 </p>
               </div>

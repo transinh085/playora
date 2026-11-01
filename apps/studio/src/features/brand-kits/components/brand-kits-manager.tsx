@@ -11,10 +11,11 @@ import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
 import { toast } from '@playora/ui/components/base/toast/toast';
 import { applyApiErrorToRHF } from '@playora/ui/form';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { QueryError } from '@/components/query-error';
 import { useAssets } from '@/features/assets/api';
+import { getOnboardingBrandStorageKey } from '@/features/auth/components/onboarding-form';
 import { useBrandKits, useCreateBrandKit, useRemoveBrandKit, useUpdateBrandKit } from '../api';
 import {
   BrandKitEditorCard,
@@ -114,6 +115,23 @@ export function BrandKitsManagerInner({
     resolver: zodResolver(CreateBrandKitBody),
     defaultValues: initialValues,
   });
+
+  useEffect(() => {
+    if (kit || kits.length > 0 || typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(getOnboardingBrandStorageKey(orgId));
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { primaryColor?: string; secondaryColor?: string };
+      if (parsed.primaryColor) {
+        form.setValue('tokens.colors.primary', parsed.primaryColor);
+      }
+      if (parsed.secondaryColor) {
+        form.setValue('tokens.colors.secondary', parsed.secondaryColor);
+      }
+    } catch {
+      // Ignore malformed storage values
+    }
+  }, [kit, kits.length, orgId, form]);
 
   const messageFor = (code: ErrorCode) => t(`errors.${code}`);
 

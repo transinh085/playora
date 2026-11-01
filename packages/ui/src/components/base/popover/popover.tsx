@@ -199,7 +199,7 @@ export function PopoverHeader({ title, description, className }: PopoverHeaderPr
         {title}
       </AriaHeading>
       {description ? (
-        <p className="text-body-2-regular text-text-secondary">{description}</p>
+        <div className="text-body-2-regular text-text-secondary">{description}</div>
       ) : null}
     </div>
   );

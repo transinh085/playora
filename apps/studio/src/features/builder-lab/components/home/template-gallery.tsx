@@ -1,8 +1,10 @@
 'use client';
 
-import { Badge } from '@playora/ui/components/base/badges/badge';
+import type { BrandKitSummary } from '@playora/contracts';
+import { Chip } from '@playora/ui/components/base/badges/chip';
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { InputBase } from '@playora/ui/components/base/input/input';
+import { Label } from '@playora/ui/components/base/input/label';
 import {
   Modal,
   ModalBody,
@@ -11,332 +13,329 @@ import {
 } from '@playora/ui/components/base/modal/modal';
 import { Select, SelectItem } from '@playora/ui/components/base/select/select';
 import { toast } from '@playora/ui/components/base/toast/toast';
-import { Check, Sparkles } from '@playora/ui/icons';
+import { ArrowLeft, Plus, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Caption } from '@/components/caption';
 import { useBrandKits } from '@/features/brand-kits/api';
+import { useCreateCampaign } from '../../api';
+import { brandFromKit } from '../../lib/brand';
+import { campaignRoutes } from '../../lib/routes';
 import {
+  buildScreens,
+  defaultPrizes,
+  defaultRules,
+  getSkin,
   type Occasion,
   type SkinInfo,
   type SkinKey,
+  TEMPLATES,
   type TemplateKey,
-  useCreateCampaign,
-} from '../../api';
-import { brandFromKit } from '../../lib/brand';
-import { campaignRoutes } from '../../lib/routes';
-import { buildScreens, TEMPLATES } from '../../lib/starter';
+} from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 
-const OCCASIONS: Occasion[] = ['tet', 'opening', 'everyday'];
-const MECHANICS: TemplateKey[] = ['spin-wheel', 'scratch-card', 'gift-box'];
+const OCCASIONS: readonly ('all' | Occasion)[] = ['all', 'tet', 'opening', 'everyday'];
+const MECHANICS: readonly ('all' | TemplateKey)[] = [
+  'all',
+  'spin-wheel',
+  'scratch-card',
+  'gift-box',
+];
 
-interface Choice {
-  templateKey: TemplateKey;
-  skin: SkinInfo;
-}
+const DEFAULT_BRAND_KIT_ID = '__default__';
 
-/** "Create campaign": pick template × skin from live cover previews, name it, start editing. */
-export function TemplateGallery({ orgId }: { orgId: string }) {
+export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () => void }) {
   const t = useTranslations('builderLab.home');
+  const tp = useTranslations('builderLab.playbooks');
   const router = useRouter();
   const create = useCreateCampaign(orgId);
-  const brandKits = useBrandKits(orgId);
-  const [occasion, setOccasion] = useState<Occasion | 'all'>('all');
-  const [mechanic, setMechanic] = useState<TemplateKey | 'all'>('all');
+  const brandKitsQuery = useBrandKits(orgId);
+  const brandKits: BrandKitSummary[] = brandKitsQuery.data?.items ?? [];
+
+  const [occasion, setOccasion] = useState<'all' | Occasion>('all');
+  const [mechanic, setMechanic] = useState<'all' | TemplateKey>('all');
+
   const [picked, setPicked] = useState<{ templateKey: TemplateKey; skinKey: SkinKey } | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState('');
-  const [selectedBrandKitId, setSelectedBrandKitId] = useState<string | undefined>(undefined);
+  const [selectedBrandKitId, setSelectedBrandKitId] = useState<string>(DEFAULT_BRAND_KIT_ID);
 
-  const choices = useMemo<Choice[]>(
-    () => TEMPLATES.flatMap((tpl) => tpl.skins.map((skin) => ({ templateKey: tpl.key, skin }))),
-    [],
-  );
-  const covers = useMemo(
-    () =>
-      new Map(
-        choices.map((c) => [
-          `${c.templateKey}:${c.skin.key}`,
-          buildScreens(c.templateKey, c.skin.key).cover,
-        ]),
-      ),
-    [choices],
-  );
+  const allSkins: SkinInfo[] = TEMPLATES[0]?.skins ?? [];
+  const visibleSkins: SkinInfo[] =
+    occasion === 'all' ? allSkins : allSkins.filter((skin) => skin.occasion === occasion);
+  const visibleTemplates =
+    mechanic === 'all' ? TEMPLATES : TEMPLATES.filter((tpl) => tpl.key === mechanic);
 
-  const visible = choices.filter(
-    (c) =>
-      (occasion === 'all' || c.skin.occasion === occasion) &&
-      (mechanic === 'all' || c.templateKey === mechanic),
-  );
-
-  const pick = (c: Choice, openModal = true) => {
-    setPicked({ templateKey: c.templateKey, skinKey: c.skin.key });
+  const pickCard = (templateKey: TemplateKey, skinKey: SkinKey) => {
+    setPicked({ templateKey, skinKey });
     setName(
       t('defaultName', {
-        template: t(`templates.${c.templateKey}`),
-        skin: t(`skins.${c.skin.key}`),
+        template: t(`templates.${templateKey}`),
+        skin: t(`skins.${skinKey}`),
       }),
     );
-    if (brandKits.data?.items[0]?.id && !selectedBrandKitId) {
-      setSelectedBrandKitId(brandKits.data.items[0].id);
-    }
-    if (openModal) {
-      setModalOpen(true);
+    if (brandKits.length > 0 && selectedBrandKitId === DEFAULT_BRAND_KIT_ID && brandKits[0]) {
+      setSelectedBrandKitId(brandKits[0].id);
     }
   };
 
-  const submit = async () => {
-    if (!picked || !name.trim()) return;
+  const closeModal = () => {
+    setPicked(null);
+  };
+
+  const handleCreate = async () => {
+    if (!picked) return;
+    const chosenKit =
+      selectedBrandKitId === DEFAULT_BRAND_KIT_ID
+        ? undefined
+        : brandKits.find((k) => k.id === selectedBrandKitId);
+
     try {
-      const chosenKit =
-        brandKits.data?.items.find((k) => k.id === selectedBrandKitId) ?? brandKits.data?.items[0];
       const campaign = await create.mutateAsync({
-        ...picked,
-        name: name.trim(),
+        name:
+          name.trim() ||
+          t('defaultName', {
+            template: t(`templates.${picked.templateKey}`),
+            skin: t(`skins.${picked.skinKey}`),
+          }),
+        templateKey: picked.templateKey,
+        skinKey: picked.skinKey,
         brand: brandFromKit(chosenKit),
       });
       toast.success(t('created'));
+      setPicked(null);
       router.push(campaignRoutes(orgId).edit(campaign.id));
     } catch {
       toast.error(t('createFailed'));
     }
   };
 
-  const activeChoice = picked
-    ? choices.find((c) => c.templateKey === picked.templateKey && c.skin.key === picked.skinKey)
-    : null;
-  const activeCover = picked ? covers.get(`${picked.templateKey}:${picked.skinKey}`) : null;
+  const previewPrizes = defaultPrizes().map((p) => ({
+    id: p.id,
+    name: p.name,
+    quantity: p.quantity,
+    remaining: p.quantity,
+    image: p.image,
+  }));
+
+  const defaultPlaysPerDay = defaultRules().playsPerDay;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-neutral-900 dark:text-[#FAFAFA]">
-          <Sparkles className="size-5 text-teal-600 dark:text-teal-400" />
-          {t('create.title')}
-        </h2>
-        <p className="text-xs text-neutral-500 dark:text-[#A3A3A3]">{t('create.hint')}</p>
-      </div>
+    <div className="flex flex-col gap-5">
+      {onBack && (
+        <div>
+          <Button variant="secondary" size="small" leadingIcon={ArrowLeft} onClick={onBack}>
+            {tp('backToGoals')}
+          </Button>
+        </div>
+      )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-4 dark:border-white/10">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-neutral-500 dark:text-[#A3A3A3]">
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-caption-1-semibold uppercase tracking-wider text-text-secondary">
+            {t('occasionsLabel')}:
+          </span>
+          <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5">
+            {OCCASIONS.map((item) => {
+              const active = occasion === item;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setOccasion(item)}
+                  className={cx(
+                    'cursor-pointer rounded-lg px-3 py-1 text-caption-1-medium transition-all',
+                    active
+                      ? 'bg-background-primary-default text-text-primary shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary',
+                  )}
+                >
+                  {t(`occasions.${item}`)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-caption-1-semibold uppercase tracking-wider text-text-secondary">
             {t('mechanicsLabel')}:
           </span>
-          <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
-            <button
-              type="button"
-              className={cx(
-                'rounded-md px-3 py-1 font-medium transition-all',
-                mechanic === 'all'
-                  ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
-              )}
-              onClick={() => setMechanic('all')}
-            >
-              {t('occasions.all')}
-            </button>
-            {MECHANICS.map((key) => (
+          <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5">
+            {MECHANICS.map((item) => {
+              const active = mechanic === item;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setMechanic(item)}
+                  className={cx(
+                    'cursor-pointer rounded-lg px-3 py-1 text-caption-1-medium transition-all',
+                    active
+                      ? 'bg-background-primary-default text-text-primary shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary',
+                  )}
+                >
+                  {item === 'all' ? t('occasions.all') : t(`templates.${item}`)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Template Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {visibleTemplates.map((template) =>
+          visibleSkins.map((skin) => {
+            const key = `${template.key}:${skin.key}`;
+            const selected = picked?.templateKey === template.key && picked?.skinKey === skin.key;
+            const screens = buildScreens(template.key, skin.key);
+            const cardLabel = `${t(`templates.${template.key}`)} · ${t(`skins.${skin.key}`)}`;
+            const selectedKit =
+              selectedBrandKitId === DEFAULT_BRAND_KIT_ID
+                ? undefined
+                : brandKits.find((k) => k.id === selectedBrandKitId);
+            const previewBrand = { ...skin.brand, ...brandFromKit(selectedKit) };
+
+            return (
               <button
                 key={key}
                 type="button"
+                onClick={() => pickCard(template.key, skin.key)}
+                aria-label={cardLabel}
+                aria-pressed={selected}
                 className={cx(
-                  'rounded-md px-3 py-1 font-medium transition-all',
-                  mechanic === key
-                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
+                  'group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-background-primary-default text-left shadow-card transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown',
+                  selected
+                    ? 'border-accent-500 ring-2 ring-accent-500/20'
+                    : 'border-border-button-default',
                 )}
-                onClick={() => setMechanic(key)}
               >
-                {t(`templates.${key}`)}
+                {/* Preview Cover */}
+                <div className="relative h-64 w-full overflow-hidden border-b border-separator-border bg-background-secondary-default">
+                  <FitScreen screen={screens.cover} brand={previewBrand} prizes={previewPrizes} />
+                  <div className="pointer-events-none absolute top-3 left-3 flex flex-wrap gap-1.5">
+                    <Chip variant="subtle" color="neutral">
+                      {t(`occasions.${skin.occasion}`)}
+                    </Chip>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="flex w-full flex-1 flex-col justify-between gap-4 p-5">
+                  <div>
+                    <h4 className="m-0 text-body-semibold text-text-primary">
+                      {t(`templates.${template.key}`)}
+                    </h4>
+                    <div className="mt-1 flex items-center justify-between">
+                      <Caption>{t(`skins.${skin.key}`)}</Caption>
+                      <span className="text-caption-2-medium text-text-tertiary">
+                        {defaultPlaysPerDay} lượt/ngày
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border-button-default bg-background-primary-default px-2 py-1.5 text-body-medium text-text-primary shadow-xs transition-colors group-hover:border-border-button-hover group-hover:bg-background-primary-hover">
+                    <Sparkles className="size-[18px] shrink-0" aria-hidden />
+                    <span>{t('useTemplate')}</span>
+                  </span>
+                </div>
               </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-medium text-neutral-500 dark:text-[#A3A3A3]">
-            {t('occasionsLabel')}:
-          </span>
-          {(['all', ...OCCASIONS] as const).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setOccasion(key)}
-              className={cx(
-                'rounded-md px-2.5 py-1 text-xs font-medium transition-all border',
-                occasion === key
-                  ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-[#FAFAFA] dark:text-neutral-900 dark:border-[#FAFAFA] shadow-xs'
-                  : 'border-neutral-200 text-neutral-600 hover:border-neutral-400 dark:border-white/10 dark:text-[#A3A3A3] dark:hover:border-white/20',
-              )}
-            >
-              {key === 'all' ? t('occasions.all') : t(`occasions.${key}`)}
-            </button>
-          ))}
-        </div>
+            );
+          }),
+        )}
       </div>
 
-      <div
-        className="grid gap-4"
-        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))' }}
+      {/* Setup Modal */}
+      <Modal
+        isOpen={picked !== null}
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+        size="md"
       >
-        {visible.map((c) => {
-          const key = `${c.templateKey}:${c.skin.key}`;
-          const active = picked?.templateKey === c.templateKey && picked.skinKey === c.skin.key;
-          const cover = covers.get(key);
-          return (
-            <button
-              type="button"
-              key={key}
-              onClick={() => pick(c, true)}
-              aria-pressed={active}
-              aria-label={`${t(`templates.${c.templateKey}`)} · ${t(`skins.${c.skin.key}`)}`}
-              data-testid={`template-${key}`}
-              className={cx(
-                'group flex cursor-pointer flex-col overflow-hidden rounded-lg border bg-white text-left shadow-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:bg-[#0A0A0A]',
-                active
-                  ? 'border-teal-600 ring-2 ring-teal-600/30 dark:border-teal-400'
-                  : 'border-neutral-200 dark:border-white/10 dark:hover:border-white/25',
-              )}
-            >
-              <div className="relative h-[230px] overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-                {cover && <FitScreen screen={cover} brand={c.skin.brand} />}
-                <div className="absolute left-2.5 top-2.5">
-                  <Badge color="neutral" className="text-[10px] shadow-xs">
-                    {t(`templates.${c.templateKey}`)}
-                  </Badge>
-                </div>
-                {active && (
-                  <span className="absolute right-2.5 top-2.5 flex size-6 items-center justify-center rounded-full bg-teal-600 text-white shadow-sm dark:bg-teal-400 dark:text-neutral-900">
-                    <Check className="size-3.5" />
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5 p-3.5">
-                <span className="truncate text-xs font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                  {t(`skins.${c.skin.key}`)}
-                </span>
-                <p className="text-[11px] text-neutral-500 dark:text-[#A3A3A3] truncate">
-                  {t(`templates.${c.templateKey}`)}
-                </p>
-                <span
-                  className={cx(
-                    'mt-1 inline-flex h-7 w-full items-center justify-center rounded-md px-3 text-xs font-medium transition-colors shadow-xs',
-                    active
-                      ? 'bg-teal-600 text-white dark:bg-teal-500'
-                      : 'border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-white/10 dark:bg-white/5 dark:text-[#D4D4D4] dark:hover:bg-white/10',
-                  )}
-                >
-                  {t('useTemplate')}
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4 dark:border-white/10 dark:bg-white/5">
-        <div className="min-w-0">
-          <span className="block text-xs font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-            {picked
-              ? `${t(`templates.${picked.templateKey}`)} · ${t(`skins.${picked.skinKey}`)}`
-              : t('pickFirst')}
-          </span>
-          <Caption className="text-[11px]">{picked ? name : t('namePlaceholder')}</Caption>
-        </div>
-        <Button
-          size="small"
-          className="h-8 rounded-md text-xs font-medium shadow-xs"
-          disabled={!picked}
-          onClick={() => setModalOpen(true)}
-        >
-          {t('createButton')}
-        </Button>
-      </div>
-
-      <Modal isOpen={modalOpen} onOpenChange={setModalOpen} size="sm">
         <ModalHeader title={t('modalTitle')} description={t('modalSubtitle')} />
-        <ModalBody>
-          <div className="flex flex-col gap-4">
-            {activeChoice && activeCover && (
-              <div className="flex items-center gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-white/10 dark:bg-white/5">
-                <div className="h-[90px] w-[60px] shrink-0 overflow-hidden rounded-md border border-neutral-200 shadow-xs dark:border-white/10">
-                  <FitScreen screen={activeCover} brand={activeChoice.skin.brand} />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                    {t(`templates.${activeChoice.templateKey}`)}
-                  </span>
-                  <Caption className="mb-1 block text-[11px]">
-                    {t(`skins.${activeChoice.skin.key}`)}
-                  </Caption>
-                  <Badge color="neutral" className="text-[10px]">
-                    {t(`occasions.${activeChoice.skin.occasion}`)}
-                  </Badge>
-                </div>
-              </div>
-            )}
 
-            <div className="space-y-1.5">
-              <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
-                {t('nameLabel')}
-              </span>
+        {picked && (
+          <ModalBody className="space-y-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-3.5">
+              <div className="h-14 w-10 shrink-0 overflow-hidden rounded-xl border border-border-button-default">
+                <FitScreen
+                  screen={buildScreens(picked.templateKey, picked.skinKey).cover}
+                  brand={{
+                    ...getSkin(picked.skinKey).brand,
+                    ...brandFromKit(
+                      selectedBrandKitId === DEFAULT_BRAND_KIT_ID
+                        ? undefined
+                        : brandKits.find((k) => k.id === selectedBrandKitId),
+                    ),
+                  }}
+                  prizes={previewPrizes}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="m-0 truncate text-body-medium text-text-primary">
+                  {t(`templates.${picked.templateKey}`)}
+                </p>
+                <Caption>
+                  {t(`skins.${picked.skinKey}`)} ·{' '}
+                  {t(`occasions.${getSkin(picked.skinKey).occasion}`)}
+                </Caption>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="campaign-name-input">{t('nameLabel')}</Label>
               <InputBase
+                id="campaign-name-input"
                 aria-label={t('nameLabel')}
-                placeholder={t('namePlaceholder')}
                 value={name}
-                maxLength={80}
                 onChange={(e) => setName(e.target.value)}
+                placeholder={t('namePlaceholder')}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') submit();
+                  if (e.key === 'Enter' && !create.isPending) {
+                    handleCreate();
+                  }
                 }}
-                className="text-xs"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <span className="text-xs font-medium text-neutral-700 dark:text-[#D4D4D4]">
-                {t('brandKitLabel')}
-              </span>
-              <Select
-                size="sm"
-                aria-label={t('brandKitLabel')}
-                placeholder={t('defaultBrandKit')}
-                selectedKey={selectedBrandKitId ?? null}
-                onSelectionChange={(key) => key !== null && setSelectedBrandKitId(String(key))}
-              >
-                {(brandKits.data?.items ?? []).map((kit) => (
-                  <SelectItem key={kit.id} id={kit.id} textValue={kit.name}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="size-3.5 shrink-0 rounded-full border border-neutral-200 dark:border-white/10"
-                        style={{ background: kit.tokens.colors.primary }}
-                      />
-                      <span>{kit.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </ModalBody>
+            {brandKits.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <Label>{t('brandKitLabel')}</Label>
+                <Select
+                  aria-label={t('brandKitLabel')}
+                  selectedKey={selectedBrandKitId}
+                  onSelectionChange={(key) => {
+                    if (key) setSelectedBrandKitId(String(key));
+                  }}
+                >
+                  <SelectItem id={DEFAULT_BRAND_KIT_ID}>{t('defaultBrandKit')}</SelectItem>
+                  {brandKits.map((kit) => (
+                    <SelectItem key={kit.id} id={kit.id}>
+                      {kit.name}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+            )}
+          </ModalBody>
+        )}
+
         <ModalFooter>
-          <Button
-            variant="secondary"
-            size="small"
-            className="h-8 rounded-md text-xs"
-            onClick={() => setModalOpen(false)}
-          >
-            {t('back')}
+          <Button type="button" variant="secondary" size="small" onClick={closeModal}>
+            Huỷ
           </Button>
           <Button
+            type="button"
+            variant="primary"
             size="small"
-            className="h-8 rounded-md text-xs shadow-xs"
-            disabled={!name.trim() || create.isPending}
-            onClick={submit}
+            leadingIcon={Plus}
+            disabled={!picked || create.isPending}
+            onClick={handleCreate}
           >
             {t('createButton')}
           </Button>

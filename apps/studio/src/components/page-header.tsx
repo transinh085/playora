@@ -45,7 +45,9 @@ export function PageHeader({
             {tags}
           </div>
           {description && (
-            <p className="mt-0.5 block text-body-2-regular text-text-secondary">{description}</p>
+            <div className="mt-0.5 block text-body-2-regular text-text-secondary">
+              {description}
+            </div>
           )}
         </div>
       </div>

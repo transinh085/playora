@@ -39,13 +39,13 @@ export function AssetUploadToolbar({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5 text-xs">
+        <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5 text-caption-1-medium">
           {filterOptions.map((opt) => (
             <button
               key={opt.value}
               type="button"
               className={cx(
-                'rounded-lg px-3 py-1 font-medium transition-all',
+                'rounded-lg px-3 py-1 transition-all',
                 filter === opt.value
                   ? 'bg-background-primary-default text-text-primary shadow-xs'
                   : 'text-text-secondary hover:text-text-primary',

@@ -60,6 +60,7 @@ import { campaignRoutes } from '@/features/builder-lab/lib/routes';
 import { authClient } from '@/lib/auth-client';
 import { can, isRedeemerOnly, type PermissionRequest } from '@/lib/permissions';
 import { Caption } from './caption';
+import { SidebarOnboarding } from './sidebar-onboarding';
 
 type NavKey =
   | 'home'
@@ -370,9 +371,9 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   const isCollapsedDesktop = collapsed && !isMobile;
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between select-none">
-      {/* Scrollable upper area */}
-      <div className="-m-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-2 [scrollbar-width:none]">
+    <div className="flex h-full min-h-0 flex-1 flex-col justify-between select-none">
+      {/* Pinned Top Header: Workspace Switcher & Quick Search */}
+      <div className="flex w-full shrink-0 flex-col gap-2.5 pb-2">
         {/* Workspace Switcher / Collapse Toggle */}
         <div
           className={cx(
@@ -453,6 +454,17 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                     );
                   })}
                 </DropdownGroup>
+                <DropdownDivider />
+                <DropdownGroup>
+                  <DropdownItem onSelect={() => router.push('/onboarding')}>
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary">
+                      <RiAddLine className="size-3.5" />
+                    </div>
+                    <span className="flex-1 truncate text-left text-body-medium text-text-secondary">
+                      {t('shell.createOrg')}
+                    </span>
+                  </DropdownItem>
+                </DropdownGroup>
               </DropdownPopover>
             </Dropdown>
           ) : (
@@ -530,10 +542,12 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
             <Kbd>⌘K</Kbd>
           </Collapsible>
         </button>
+      </div>
 
-        {/* Navigation Groups */}
+      {/* Scrollable Navigation Groups */}
+      <div className="-mx-2 flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-1 [scrollbar-width:none]">
         {current && (
-          <nav className={cx('flex w-full flex-col gap-3', showLabels && 'px-0.5')}>
+          <nav className={cx('flex w-full flex-col gap-2', showLabels && 'px-0.5')}>
             {NAV_GROUPS.map((group) => {
               const visibleItems = group.items.filter(
                 (item) => !item.permission || can(current.role, item.permission),
@@ -542,7 +556,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
 
               if (group.key === 'start') {
                 return (
-                  <div key={group.key} className="flex w-full flex-col gap-1">
+                  <div key={group.key} className="flex w-full flex-col gap-0.5">
                     {visibleItems.map(({ key, icon: Icon, path }) => {
                       const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
                       const isSelected = activeNav?.key === key;
@@ -565,12 +579,12 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
               const isClosed = Boolean(closedGroups[group.key]);
 
               return (
-                <div key={group.key} className="flex w-full flex-col gap-1">
+                <div key={group.key} className="flex w-full flex-col gap-0.5">
                   {showLabels && (
                     <button
                       type="button"
                       onClick={() => toggleGroup(group.key)}
-                      className="group flex w-full cursor-pointer items-center justify-between px-2 pt-2 pb-1 text-left"
+                      className="group flex w-full cursor-pointer items-center justify-between px-2 pt-1.5 pb-0.5 text-left"
                     >
                       <span className="text-caption-1-semibold text-text-tertiary transition-colors group-hover:text-text-secondary">
                         {t(`navGroups.${group.key}`)}
@@ -593,7 +607,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                     )}
                   >
                     <div className="overflow-hidden">
-                      <div className="flex w-full flex-col gap-1">
+                      <div className="flex w-full flex-col gap-0.5">
                         {visibleItems.map(({ key, icon: Icon, path }) => {
                           const href = (path ? `${orgHome}/${path}` : orgHome) as Route;
                           const isSelected = activeNav?.key === key;
@@ -619,8 +633,16 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         )}
       </div>
 
-      {/* Bottom Footer Section: User Profile Card */}
+      {/* Bottom Footer Section: Onboarding + User Profile Card */}
       <div className="flex w-full shrink-0 flex-col gap-2 pt-2">
+        {current && !isRedeemerOnly(current.role) && (
+          <SidebarOnboarding
+            orgId={current.id}
+            isCollapsedDesktop={isCollapsedDesktop}
+            isMobile={isMobile}
+            onNavigate={() => setDrawerOpen(false)}
+          />
+        )}
         <Dropdown>
           <DropdownTrigger
             aria-label={userName || session?.user.email || 'User menu'}
@@ -774,7 +796,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         aria-label="Navigation Menu"
         className="bg-background-full p-2.5"
       >
-        <div className="h-full w-full rounded-2xl bg-background-secondary-default p-3 shadow-sidebar">
+        <div className="flex h-full min-h-0 w-full flex-col rounded-2xl bg-background-secondary-default p-3 shadow-sidebar">
           {sidebarContent}
         </div>
       </Drawer>
@@ -794,7 +816,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
       {/* Main Content Viewport */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Header - Workspace header */}
-        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between gap-3 bg-background-primary-default/80 px-3 backdrop-blur-md transition-colors sm:gap-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between gap-3 px-3 sm:gap-4 sm:px-6 lg:px-8">
           {/* Left: Mobile nav toggle + Breadcrumbs */}
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             {isMobile && (

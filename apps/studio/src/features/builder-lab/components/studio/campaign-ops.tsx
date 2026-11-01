@@ -17,10 +17,12 @@ import {
   Play,
   Share2,
   Square,
+  Store,
   Trash2,
   TriangleAlert,
 } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useFormatter, useNow, useTranslations } from 'next-intl';
@@ -63,7 +65,6 @@ type TabKey = (typeof TABS)[number];
 
 export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: string }) {
   const t = useTranslations('campaigns');
-  const _tCommon = useTranslations('common');
   const tl = useTranslations('builderLab.home');
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 }).getTime();
@@ -76,17 +77,17 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   if (query.isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-96 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-3xl" />
+        <Skeleton className="h-96 w-full rounded-3xl" />
       </div>
     );
   }
   if (query.isError || !query.data) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        <p className="mb-4">{t('notFound')}</p>
+      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
+        <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
         <Link href={routes.list}>
-          <Button>{t('backToList')}</Button>
+          <Button size="small">{t('backToList')}</Button>
         </Link>
       </div>
     );
@@ -142,8 +143,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const reportLink = (
     <Link href={routes.report(campaign.id)}>
-      <Button variant="secondary" size="small" className="gap-2">
-        <FileText className="size-4" />
+      <Button variant="secondary" size="small" leadingIcon={FileText} tabIndex={-1}>
         {t('viewReport')}
       </Button>
     </Link>
@@ -151,8 +151,12 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const edit = (
     <Link href={routes.edit(campaign.id)}>
-      <Button variant={phase === 'draft' ? 'primary' : 'secondary'} size="small" className="gap-2">
-        <Pencil className="size-4" />
+      <Button
+        variant={phase === 'draft' ? 'primary' : 'secondary'}
+        size="small"
+        leadingIcon={Pencil}
+        tabIndex={-1}
+      >
         {phase === 'draft' ? t('continueEditing') : t('editDesign')}
       </Button>
     </Link>
@@ -160,8 +164,7 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
 
   const share = (
     <Link href={routes.share(campaign.id)}>
-      <Button variant="secondary" size="small" className="gap-2">
-        <Share2 className="size-4" />
+      <Button variant="secondary" size="small" leadingIcon={Share2} tabIndex={-1}>
         {t('share.action')}
       </Button>
     </Link>
@@ -184,17 +187,15 @@ function HeaderActions({ orgId, campaign }: { orgId: string; campaign: Campaign 
       {phase === 'paused' ? (
         <Button
           size="small"
-          className="gap-2"
+          leadingIcon={Play}
           disabled={resume.isPending}
           onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
         >
-          <Play className="size-4" />
           {t('resume')}
         </Button>
       ) : (
         <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
-          <Button size="small" className="gap-2">
-            <ExternalLink className="size-4" />
+          <Button size="small" leadingIcon={ExternalLink} tabIndex={-1}>
             {t('openPlay')}
           </Button>
         </a>
@@ -250,29 +251,29 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
       className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="draft-checklist"
     >
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">
           {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
         </h3>
       </div>
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 p-5">
         <Caption>{t('draft.hint')}</Caption>
         {issues.map((issue) => {
           const Icon = issue.level === 'error' ? CircleX : TriangleAlert;
           return (
-            <div key={issue.id} className="flex items-center gap-2.5 text-xs">
+            <div key={issue.id} className="flex items-center gap-2.5 text-body-2-regular">
               <Icon
                 className={cx(
-                  'size-3.5 shrink-0',
+                  'size-4 shrink-0',
                   issue.level === 'error' ? 'text-rose-500' : 'text-amber-500',
                 )}
               />
-              <span className="flex-1 text-neutral-700 dark:text-[#D4D4D4]">
+              <span className="flex-1 text-text-primary">
                 {tp(`issues.${issue.code}`, issue.params)}
               </span>
               <Link
                 href={routes.edit(campaign.id, issue.where.area === 'screens' ? 'quick' : 'rules')}
-                className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
+                className="text-caption-1-semibold text-teal-600 hover:underline dark:text-teal-400"
               >
                 {t('draft.fix')}
               </Link>
@@ -281,11 +282,7 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
         })}
         <div className="pt-1">
           <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-            <Button
-              variant="secondary"
-              size="small"
-              className="h-7 rounded-md px-2.5 text-xs shadow-xs"
-            >
+            <Button variant="secondary" size="small" leadingIcon={Play} tabIndex={-1}>
               {t('rehearse')}
             </Button>
           </a>
@@ -295,33 +292,72 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
   );
 }
 
+/**
+ * Recent plays feed in Overview tab — rendered as a clean BoardUI activity list (`ul/li`)
+ * instead of a table.
+ */
 function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   const t = useTranslations('campaigns');
+  const format = useFormatter();
   const isLive = campaignPhase(campaign) === 'live';
   const plays = useCampaignPlays(orgId, campaign.id, {
     refetchInterval: isLive ? 30_000 : undefined,
   });
   const recent = (plays.data ?? []).slice(0, 8);
+  const prizeName = (id: string | null) => campaign.prizes.find((p) => p.id === id)?.name ?? '—';
+  const routes = campaignRoutes(orgId);
 
   return (
     <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-          {t('recent.title')}
-        </h3>
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{t('recent.title')}</h3>
       </div>
       <div className="p-0">
         {plays.isPending ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          <div className="space-y-2 p-5">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         ) : recent.length === 0 ? (
-          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
-            {t('recent.empty')}
+          <div className="px-5 py-10 text-center">
+            <Caption>{t('recent.empty')}</Caption>
           </div>
         ) : (
-          <PlaysTable campaign={campaign} rows={recent} compact />
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {recent.map((row) => (
+              <li
+                key={row.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-background-secondary-default/40"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <Chip
+                    variant={row.outcome === 'win' ? 'bold' : 'subtle'}
+                    color={row.outcome === 'win' ? 'lime' : 'neutral'}
+                  >
+                    {t(`outcome.${row.outcome}`)}
+                  </Chip>
+                  <div className="min-w-0">
+                    <span className="block truncate text-body-2-medium text-text-primary">
+                      {prizeName(row.prizeId)}
+                    </span>
+                    <Caption className="block">
+                      {format.dateTime(new Date(row.at), {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </Caption>
+                  </div>
+                </div>
+                {row.voucherCode && (
+                  <Link href={`${routes.redeem}?code=${row.voucherCode}` as Route}>
+                    <Chip variant="caption" color="neutral" className="cursor-pointer font-mono">
+                      {row.voucherCode}
+                    </Chip>
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
@@ -356,21 +392,28 @@ function PlaysTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.id}>
-              <td className="text-xs">
+              <td className="text-body-2-regular text-text-secondary">
                 {format.dateTime(new Date(row.at), { dateStyle: 'short', timeStyle: 'short' })}
               </td>
-              {!compact && <td className="font-mono text-xs">{row.playerId.slice(0, 8)}</td>}
+              {!compact && (
+                <td className="font-mono text-caption-1-medium text-text-primary">
+                  {row.playerName || row.playerId.slice(0, 8)}
+                </td>
+              )}
               <td>
                 <Chip
                   variant={row.outcome === 'win' ? 'bold' : 'subtle'}
                   color={row.outcome === 'win' ? 'lime' : 'neutral'}
-                  className="text-[10px]"
                 >
                   {t(`outcome.${row.outcome}`)}
                 </Chip>
               </td>
-              <td className="text-xs">{prizeName(row.prizeId)}</td>
-              {!compact && <td className="font-mono text-xs">{row.voucherCode ?? '—'}</td>}
+              <td className="text-body-2-regular text-text-primary">{prizeName(row.prizeId)}</td>
+              {!compact && (
+                <td className="font-mono text-caption-1-medium text-text-primary">
+                  {row.voucherCode ?? '—'}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -393,18 +436,15 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
       className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="prize-stock"
     >
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-          {t('stock.title')}
-        </h3>
-        <Link
-          href={campaignRoutes(orgId).edit(campaign.id, 'rules')}
-          className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
-        >
-          {t('stock.edit')}
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">{t('stock.title')}</h3>
+        <Link href={campaignRoutes(orgId).edit(campaign.id, 'rules')}>
+          <Button variant="secondary" size="small" leadingIcon={Pencil} tabIndex={-1}>
+            {t('stock.edit')}
+          </Button>
         </Link>
       </div>
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-5">
         {campaign.prizes.map((prize) => {
           const left = stats.data?.remainingByPrize[prize.id] ?? prize.quantity;
           const issued = vouchers.filter((v) => v.prizeId === prize.id);
@@ -412,11 +452,9 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
           const percent = prize.quantity ? Math.round((left / prize.quantity) * 100) : 0;
           return (
             <div key={prize.id} className="space-y-1.5">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium text-neutral-900 dark:text-[#FAFAFA]">
-                  {prize.name}
-                </span>
-                <Caption className="tabular-nums text-[11px]">
+              <div className="flex justify-between">
+                <span className="text-body-2-medium text-text-primary">{prize.name}</span>
+                <Caption className="tabular-nums">
                   {t('stock.left', { left, total: prize.quantity })}
                 </Caption>
               </div>
@@ -426,9 +464,7 @@ function PrizeStock({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
                 size="sm"
                 className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
               />
-              <Caption className="text-[11px]">
-                {t('stock.issued', { issued: issued.length, redeemed })}
-              </Caption>
+              <Caption>{t('stock.issued', { issued: issued.length, redeemed })}</Caption>
             </div>
           );
         })}
@@ -447,26 +483,23 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} />
       <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-        <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-            {t('vouchers.title')}
-          </h3>
-          <Link
-            href={campaignRoutes(orgId).redeem}
-            className="text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
-          >
-            {t('vouchers.desk')}
+        <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+          <h3 className="m-0 text-body-medium text-text-primary">{t('vouchers.title')}</h3>
+          <Link href={campaignRoutes(orgId).redeem}>
+            <Button variant="secondary" size="small" leadingIcon={Store} tabIndex={-1}>
+              {t('vouchers.desk')}
+            </Button>
           </Link>
         </div>
         <div className="p-0">
           {vouchers.isPending ? (
-            <div className="space-y-2 p-4">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
+            <div className="space-y-2 p-5">
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-10 w-full rounded-xl" />
             </div>
           ) : (vouchers.data ?? []).length === 0 ? (
-            <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
-              {t('vouchers.empty')}
+            <div className="px-5 py-10 text-center">
+              <Caption>{t('vouchers.empty')}</Caption>
             </div>
           ) : (
             <div className="w-full overflow-x-auto">
@@ -482,9 +515,13 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
                 <tbody>
                   {(vouchers.data ?? []).map((row) => (
                     <tr key={row.code}>
-                      <td className="font-mono text-xs font-medium">{row.code}</td>
-                      <td className="text-xs">{prizeName(row.prizeId)}</td>
-                      <td className="text-xs text-neutral-500 dark:text-[#A3A3A3]">
+                      <td className="font-mono text-caption-1-semibold text-text-primary">
+                        {row.code}
+                      </td>
+                      <td className="text-body-2-regular text-text-primary">
+                        {prizeName(row.prizeId)}
+                      </td>
+                      <td className="text-body-2-regular text-text-secondary">
                         {format.dateTime(new Date(row.issuedAt), {
                           dateStyle: 'short',
                           timeStyle: 'short',
@@ -494,7 +531,6 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
                         <Chip
                           variant={row.redeemedAt ? 'bold' : 'subtle'}
                           color={row.redeemedAt ? 'lime' : 'neutral'}
-                          className="text-[10px]"
                         >
                           {row.redeemedAt ? t('vouchers.redeemed') : t('vouchers.pending')}
                         </Chip>
@@ -516,20 +552,20 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   const plays = useCampaignPlays(orgId, campaign.id);
   return (
     <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <div className="flex flex-row items-center justify-between border-b border-border-button-default px-4 py-3">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <h3 className="m-0 text-body-medium text-text-primary">
           {t('players.title', { count: plays.data?.length ?? 0 })}
         </h3>
       </div>
       <div className="p-0">
         {plays.isPending ? (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          <div className="space-y-2 p-5">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         ) : (plays.data ?? []).length === 0 ? (
-          <div className="py-8 text-center text-xs text-neutral-400 dark:text-[#737373]">
-            {t('recent.empty')}
+          <div className="px-5 py-10 text-center">
+            <Caption>{t('recent.empty')}</Caption>
           </div>
         ) : (
           <PlaysTable campaign={campaign} rows={plays.data ?? []} />
@@ -564,14 +600,14 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
 
   return (
     <div className="flex max-w-4xl flex-col">
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card divide-y divide-border-button-default">
+      <div className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
         {/* Schedule Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
-          <div className="max-w-md">
-            <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
+        <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="max-w-md space-y-1">
+            <h3 className="m-0 text-body-medium text-text-primary">
               {t('settings.scheduleTitle')}
             </h3>
-            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+            <p className="m-0 text-body-2-regular text-text-secondary">
               {t('settings.scheduleHint')}
             </p>
           </div>
@@ -582,67 +618,54 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
             min={isoToLocalInput(campaign.rules.startsAt)}
             onBlur={(e) => extend(e.target.value)}
             className="w-56"
-            fieldClassName="h-8 text-xs font-mono"
+            fieldClassName="font-mono"
           />
         </div>
 
         {/* Lifecycle Status Section */}
         {campaign.status === 'published' && phase !== 'ended' && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
-            <div className="max-w-md">
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                {t('settings.runTitle')}
-              </h3>
-              <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
-                {t('settings.runHint')}
-              </p>
+          <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+            <div className="max-w-md space-y-1">
+              <h3 className="m-0 text-body-medium text-text-primary">{t('settings.runTitle')}</h3>
+              <p className="m-0 text-body-2-regular text-text-secondary">{t('settings.runHint')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {phase === 'paused' ? (
                 <Button
                   size="small"
-                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
+                  leadingIcon={Play}
                   onClick={() => resume.mutate(campaign.id, { onError: onActionError })}
                 >
-                  <Play className="size-3.5" />
                   {t('resume')}
                 </Button>
               ) : (
                 <Button
                   variant="secondary"
                   size="small"
-                  className="gap-2 rounded-md h-8 text-xs shadow-xs"
+                  leadingIcon={Pause}
                   onClick={() => pause.mutate(campaign.id)}
                 >
-                  <Pause className="size-3.5" />
                   {t('settings.pause')}
                 </Button>
               )}
 
               <Button
-                variant="secondary"
+                variant="danger"
                 size="small"
-                className="gap-2 rounded-md h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/30 dark:hover:bg-rose-950/20 shadow-xs"
+                leadingIcon={Square}
                 onClick={() => setIsEndOpen(true)}
               >
-                <Square className="size-3.5" />
                 {t('settings.end')}
               </Button>
               <Modal isOpen={isEndOpen} onOpenChange={setIsEndOpen} size="sm">
                 <ModalHeader title={t('settings.endConfirm')} />
                 <ModalFooter>
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    className="h-8 rounded-md text-xs"
-                    onClick={() => setIsEndOpen(false)}
-                  >
+                  <Button variant="secondary" size="small" onClick={() => setIsEndOpen(false)}>
                     {tCommon('cancel')}
                   </Button>
                   <Button
                     variant="danger"
                     size="small"
-                    className="h-8 rounded-md text-xs"
                     onClick={() => {
                       end.mutate(campaign.id);
                       setIsEndOpen(false);
@@ -657,40 +680,33 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
         )}
 
         {/* Danger Zone: Delete Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-rose-50/20 dark:bg-rose-950/10">
-          <div className="max-w-md">
-            <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400">
+        <div className="flex flex-col justify-between gap-4 bg-rose-50/20 p-5 sm:flex-row sm:items-center dark:bg-rose-950/10">
+          <div className="max-w-md space-y-1">
+            <h3 className="m-0 text-body-medium text-rose-700 dark:text-rose-400">
               {t('settings.deleteTitle')}
             </h3>
-            <p className="mt-1 text-xs text-neutral-500 dark:text-[#A3A3A3]">
+            <p className="m-0 text-body-2-regular text-text-secondary">
               {isRunning(phase) ? t('settings.deleteBlocked') : t('settings.deleteHint')}
             </p>
           </div>
           <Button
             variant="danger"
             size="small"
-            className="gap-2 rounded-md h-8 text-xs shadow-xs"
+            leadingIcon={Trash2}
             disabled={isRunning(phase)}
             onClick={() => setIsDeleteOpen(true)}
           >
-            <Trash2 className="size-3.5" />
             {t('settings.delete')}
           </Button>
           <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen} size="sm">
             <ModalHeader title={t('settings.deleteConfirm', { name: campaign.name })} />
             <ModalFooter>
-              <Button
-                variant="secondary"
-                size="small"
-                className="h-8 rounded-md text-xs"
-                onClick={() => setIsDeleteOpen(false)}
-              >
+              <Button variant="secondary" size="small" onClick={() => setIsDeleteOpen(false)}>
                 {tCommon('cancel')}
               </Button>
               <Button
                 variant="danger"
                 size="small"
-                className="h-8 rounded-md text-xs"
                 onClick={async () => {
                   await remove.mutateAsync(campaign.id);
                   setIsDeleteOpen(false);

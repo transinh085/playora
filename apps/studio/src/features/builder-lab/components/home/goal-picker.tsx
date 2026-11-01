@@ -2,20 +2,23 @@
 
 import { Chip } from '@playora/ui/components/base/badges/chip';
 import { Button } from '@playora/ui/components/base/buttons/button';
-import { CalendarRange, Repeat, Sparkles, Target, TrendingUp } from '@playora/ui/icons';
+import { ArrowRight, Calendar, Repeat, Sparkles, Wand2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
+import type React from 'react';
+import { Caption } from '@/components/caption';
 import { IconTile, type Tone } from '@/components/icon-tile';
 import { PLAYBOOK_KEYS, PLAYBOOKS, type PlaybookKey } from '../../lib/playbooks';
 
-const LOOK: Record<PlaybookKey, { Icon: typeof Sparkles; tone: Tone }> = {
-  tet_traffic: { Icon: Sparkles, tone: 'error' },
-  second_visit: { Icon: Repeat, tone: 'success' },
-  slow_days: { Icon: CalendarRange, tone: 'info' },
+const ICONS: Record<PlaybookKey, { icon: React.ReactNode; tone: Tone }> = {
+  tet_traffic: { icon: <Sparkles className="size-5" />, tone: 'primary' },
+  second_visit: { icon: <Repeat className="size-5" />, tone: 'success' },
+  slow_days: { icon: <Calendar className="size-5" />, tone: 'warning' },
 };
 
 /**
- * "Bạn muốn gì?" (docs/product/specs/playbooks.md §2.1): the create flow starts from the shop's
- * goal. Each card shows the goal, how the playbook gets there and the number that tells.
+ * Screen 1 of campaign creation (`docs/product/specs/playbooks.md` §2.1):
+ * "Bạn muốn gì?" — three outcome cards (goal, mechanism, metric) and a visible
+ * escape hatch to the raw template gallery.
  */
 export function GoalPicker({
   onPick,
@@ -25,81 +28,70 @@ export function GoalPicker({
   onCustom: () => void;
 }) {
   const t = useTranslations('builderLab.playbooks');
-  const tl = useTranslations('builderLab.home');
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-neutral-900 dark:text-[#FAFAFA]">
-          <Target className="size-5 text-teal-600 dark:text-teal-400" />
-          {t('title')}
-        </h2>
-        <p className="text-xs text-neutral-500 dark:text-[#A3A3A3]">{t('hint')}</p>
+      <div>
+        <h2 className="m-0 text-title-2-semibold text-text-primary">{t('title')}</h2>
+        <Caption className="mt-1 block text-body-2-regular text-text-secondary">
+          {t('hint')}
+        </Caption>
       </div>
 
-      <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         {PLAYBOOK_KEYS.map((key) => {
-          const pb = PLAYBOOKS[key];
-          const { Icon, tone } = LOOK[key];
-          const title = t(`items.${key}.title`);
+          const spec = PLAYBOOKS[key];
+          const { icon, tone } = ICONS[spec.key];
           return (
-            // biome-ignore lint/a11y/useSemanticElements: interactive card
             <div
-              key={key}
-              role="button"
-              tabIndex={0}
-              aria-label={title}
-              data-testid={`playbook-${key}`}
-              onClick={() => onPick(key)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onPick(key);
-                }
-              }}
-              className="group flex cursor-pointer flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-xs transition-all hover:border-neutral-400 hover:shadow-sm dark:border-white/10 dark:bg-[#0A0A0A] dark:hover:border-white/25"
+              key={spec.key}
+              className="flex h-full flex-col justify-between gap-5 rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
             >
-              <div className="space-y-3.5">
-                <div className="flex items-center gap-3">
-                  <IconTile tone={tone}>
-                    <Icon className="size-5" />
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <IconTile tone={tone} size={44}>
+                    {icon}
                   </IconTile>
-                  <div className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-[#FAFAFA]">
-                      {title}
-                    </span>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      <Chip variant="caption" color="neutral">
-                        {tl(`templates.${pb.templateKey}`)}
-                      </Chip>
-                      <Chip variant="caption" color="soft">
-                        {t('daysTag', { days: pb.days })}
-                      </Chip>
-                    </div>
-                  </div>
+                  <Chip variant="subtle" color="neutral">
+                    {t('daysTag', { days: spec.days })}
+                  </Chip>
                 </div>
 
-                <div className="space-y-2.5 pt-1">
-                  <Line label={t('goalLabel')} icon={<Target className="size-3.5" />}>
-                    {t(`items.${key}.goal`)}
-                  </Line>
-                  <Line label={t('mechanismLabel')} icon={<Sparkles className="size-3.5" />}>
-                    {t(`items.${key}.mechanism`)}
-                  </Line>
-                  <Line label={t('metricLabel')} icon={<TrendingUp className="size-3.5" />}>
-                    {t(`items.${key}.metric`)}
-                  </Line>
+                <div>
+                  <h3 className="m-0 text-title-3-semibold text-text-primary">
+                    {t(`items.${spec.key}.title`)}
+                  </h3>
+                  <p className="mt-1 m-0 text-body-2-medium text-accent-600 dark:text-accent-400">
+                    {t(`items.${spec.key}.goal`)}
+                  </p>
                 </div>
+
+                <dl className="m-0 space-y-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-4">
+                  <div>
+                    <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                      {t('mechanismLabel')}
+                    </dt>
+                    <dd className="mt-0.5 m-0 text-body-2-regular text-text-primary">
+                      {t(`items.${spec.key}.mechanism`)}
+                    </dd>
+                  </div>
+                  <div className="border-t border-separator-border pt-2.5">
+                    <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                      {t('metricLabel')}
+                    </dt>
+                    <dd className="mt-0.5 m-0 text-body-2-medium text-text-primary">
+                      {t(`items.${spec.key}.metric`)}
+                    </dd>
+                  </div>
+                </dl>
               </div>
 
               <Button
-                variant="secondary"
-                size="small"
-                className="mt-2 w-full rounded-md h-8 text-xs font-medium shadow-xs group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-[#FAFAFA] dark:group-hover:text-neutral-900 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPick(key);
-                }}
+                variant="primary"
+                className="w-full justify-center"
+                trailingIcon={ArrowRight}
+                data-testid={`playbook-${spec.key}`}
+                onClick={() => onPick(spec.key)}
               >
                 {t('choose')}
               </Button>
@@ -108,37 +100,20 @@ export function GoalPicker({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50/70 p-3.5 dark:border-white/10 dark:bg-white/5">
-        <span className="text-xs text-neutral-600 dark:text-[#A3A3A3]">{t('customTitle')}</span>
-        <Button
-          variant="ghost"
-          size="small"
-          onClick={onCustom}
-          className="h-auto p-0 text-xs font-medium text-teal-600 hover:underline dark:text-teal-400"
-        >
-          {t('custom')} →
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+        <div className="flex items-center gap-3.5">
+          <IconTile tone="info" size={40}>
+            <Wand2 className="size-4" />
+          </IconTile>
+          <div>
+            <span className="block text-body-medium text-text-primary">{t('customTitle')}</span>
+            <Caption className="block">{t('hint')}</Caption>
+          </div>
+        </div>
+        <Button variant="secondary" leadingIcon={Wand2} onClick={onCustom}>
+          {t('custom')}
         </Button>
       </div>
-    </div>
-  );
-}
-
-function Line({
-  label,
-  icon,
-  children,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-0.5 text-xs">
-      <div className="flex items-center gap-1 text-muted-foreground">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <p className="font-medium text-foreground">{children}</p>
     </div>
   );
 }

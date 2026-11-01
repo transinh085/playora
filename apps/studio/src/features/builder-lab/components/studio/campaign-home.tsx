@@ -1,11 +1,23 @@
 'use client';
 
 import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { CircleAlert, Clock, Pause, PencilLine } from '@playora/ui/icons';
+import {
+  ArrowRight,
+  Calendar,
+  CircleAlert,
+  Clock,
+  Pause,
+  PencilLine,
+  Repeat,
+  Sparkles,
+  WandSparkles,
+} from '@playora/ui/icons';
+import type { Route } from 'next';
+import Link from 'next/link';
 import { useNow, useTranslations } from 'next-intl';
+import { IconTile, type Tone } from '@/components/icon-tile';
+import { OnboardingLaunchpad } from '@/components/onboarding-launchpad';
 import { QueryError } from '@/components/query-error';
-import { useBrandKits } from '@/features/brand-kits/api';
-import { useOrgMembers } from '@/features/members/api';
 import {
   useCampaigns,
   useCampaignsReports,
@@ -20,8 +32,6 @@ import { CampaignsDataTable } from './home/campaigns-data-table';
 import { HomeStatCards } from './home/home-stat-cards';
 import { LiveCounterFeed } from './home/live-counter-feed';
 import { OutcomeTrendCard } from './home/outcome-trend-card';
-import { PlaybooksQuickLaunch } from './home/playbooks-quick-launch';
-import { SmartOnboardingBanner } from './home/smart-onboarding-banner';
 
 const ORDER: Record<CampaignPhase, number> = {
   live: 0,
@@ -38,8 +48,6 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   const t = useTranslations('campaigns.home');
   const now = useNow({ updateInterval: 60_000 }).getTime();
   const campaigns = useCampaigns(orgId);
-  const brandKits = useBrandKits(orgId);
-  const members = useOrgMembers(orgId);
   const items = campaigns.data ?? [];
   const campaignIds = items.map((c) => c.id);
 
@@ -52,7 +60,7 @@ export function CampaignHome({ orgId }: { orgId: string }) {
 
   const routes = campaignRoutes(orgId);
 
-  if (campaigns.isPending || brandKits.isPending || members.isPending) {
+  if (campaigns.isPending) {
     return (
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -80,57 +88,6 @@ export function CampaignHome({ orgId }: { orgId: string }) {
   const rows = items
     .map((campaign) => ({ campaign, phase: campaignPhase(campaign, now) }))
     .sort((a, b) => ORDER[a.phase] - ORDER[b.phase]);
-
-  const published = rows.find((row) => row.campaign.status === 'published');
-  const firstDraft = rows.find((row) => row.phase === 'draft');
-  const anyPlays = [...statsById.values()].some((s) => s.plays > 0);
-  const teamSize =
-    (members.data?.members.length ?? 1) +
-    (members.data?.invitations.filter((i) => i.status === 'pending').length ?? 0);
-
-  // Onboarding steps
-  const steps = [
-    {
-      key: 'brand',
-      done: (brandKits.data?.items.length ?? 0) > 0,
-      title: t('steps.brand'),
-      description: t('steps.brandDesc'),
-      href: `/orgs/${orgId}/brand-kits`,
-      action: t('steps.brandAction'),
-    },
-    {
-      key: 'campaign',
-      done: items.length > 0,
-      title: t('steps.campaign'),
-      description: t('steps.campaignDesc'),
-      href: routes.create,
-      action: t('steps.campaignAction'),
-    },
-    {
-      key: 'publish',
-      done: Boolean(published),
-      title: t('steps.publish'),
-      description: t('steps.publishDesc'),
-      href: firstDraft ? routes.edit(firstDraft.campaign.id, 'rules') : routes.create,
-      action: t('steps.publishAction'),
-    },
-    {
-      key: 'share',
-      done: anyPlays,
-      title: t('steps.share'),
-      description: t('steps.shareDesc'),
-      href: published ? `${routes.detail(published.campaign.id)}?tab=share` : routes.list,
-      action: t('steps.shareAction'),
-    },
-    {
-      key: 'team',
-      done: teamSize > 1,
-      title: t('steps.team'),
-      description: t('steps.teamDesc'),
-      href: `/orgs/${orgId}/settings`,
-      action: t('steps.teamAction'),
-    },
-  ];
 
   // Attention Items calculation
   const attention: AttentionItem[] = rows.flatMap(({ campaign, phase }): AttentionItem[] => {
@@ -204,15 +161,52 @@ export function CampaignHome({ orgId }: { orgId: string }) {
     0,
   );
 
-  const hasIncompleteSteps = steps.some((step) => !step.done);
+  const quickPlaybooks: {
+    key: string;
+    title: string;
+    desc: string;
+    href: string;
+    tone: Tone;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      key: 'tet_traffic',
+      title: t('playbooks.grandOpening'),
+      desc: t('playbooks.grandOpeningDesc'),
+      href: `${routes.create}?playbook=tet_traffic`,
+      tone: 'primary',
+      icon: <Sparkles className="size-4" />,
+    },
+    {
+      key: 'second_visit',
+      title: t('playbooks.secondVisit'),
+      desc: t('playbooks.secondVisitDesc'),
+      href: `${routes.create}?playbook=second_visit`,
+      tone: 'success',
+      icon: <Repeat className="size-4" />,
+    },
+    {
+      key: 'slow_days',
+      title: t('playbooks.slowDays'),
+      desc: t('playbooks.slowDaysDesc'),
+      href: `${routes.create}?playbook=slow_days`,
+      tone: 'warning',
+      icon: <Calendar className="size-4" />,
+    },
+    {
+      key: 'custom',
+      title: t('playbooks.custom'),
+      desc: t('playbooks.customDesc'),
+      href: `${routes.create}?start=templates`,
+      tone: 'info',
+      icon: <WandSparkles className="size-4" />,
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Quick Launch by Goal (Playbooks) */}
-      <PlaybooksQuickLaunch orgId={orgId} />
-
-      {/* Onboarding Checklist for new organizations */}
-      {hasIncompleteSteps && <SmartOnboardingBanner items={steps} />}
+      {/* Row 0: Interactive SaaS Onboarding Launchpad */}
+      <OnboardingLaunchpad orgId={orgId} />
 
       {/* Row 1: KPI Stat Cards */}
       <HomeStatCards
@@ -223,7 +217,40 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         attentionCount={attention.length}
       />
 
-      {/* Row 2: Bento Grid 2/3 (Outcome Trend Chart) + 1/3 (Attention Hub) */}
+      {/* Row 2: Outcome Playbook Quick-Launcher (PLB-01) */}
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <h3 className="m-0 text-caption-1-semibold uppercase tracking-wider text-text-secondary">
+            {t('playbooks.title')}
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {quickPlaybooks.map((item) => (
+            <Link
+              key={item.key}
+              href={item.href as Route}
+              className="group flex items-center justify-between gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3.5 shadow-card transition-all hover:border-border-card-hover hover:bg-background-secondary-default/40"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <IconTile tone={item.tone} size={38}>
+                  {item.icon}
+                </IconTile>
+                <div className="min-w-0">
+                  <span className="block truncate text-body-2-semibold text-text-primary group-hover:text-accent-600 dark:group-hover:text-accent-400">
+                    {item.title}
+                  </span>
+                  <span className="block truncate text-caption-1-regular text-text-secondary">
+                    {item.desc}
+                  </span>
+                </div>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-foreground-icon-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Row 3: Bento Grid 2/3 (Outcome Trend Chart) + 1/3 (Attention Hub) */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <OutcomeTrendCard
@@ -238,7 +265,7 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         </div>
       </div>
 
-      {/* Row 3: Bento Grid 2/3 (Campaigns Data-Table) + 1/3 (Live Counter Feed) */}
+      {/* Row 4: Bento Grid 2/3 (Campaigns List) + 1/3 (Live Counter Feed) */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <CampaignsDataTable orgId={orgId} rows={rows} total={rows.length} statsById={statsById} />

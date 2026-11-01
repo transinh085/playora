@@ -385,5 +385,7 @@ export function preflight(campaign: Campaign, now = new Date()): PreflightIssue[
   return issues.sort((a, b) => (a.level === b.level ? 0 : a.level === 'error' ? -1 : 1));
 }
 
+export const preflightCampaign = preflight;
+
 export const hasBlockingIssues = (issues: PreflightIssue[]) =>
   issues.some((i) => i.level === 'error');
