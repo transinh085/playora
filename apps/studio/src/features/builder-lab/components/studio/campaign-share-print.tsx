@@ -29,6 +29,9 @@ import { readSlot } from '../quick-edit/slots';
 
 export type PrintFormat = 'standee' | 'tent';
 
+/** Always use high-contrast dark ink on a pure white pad for printed QR codes (`EVT-10`). */
+const HIGH_CONTRAST_QR_INK = '#111827';
+
 export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campaignId: string }) {
   const t = useTranslations('campaigns.share');
   const tc = useTranslations('campaigns');
@@ -47,9 +50,14 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 
   useEffect(() => {
     if (campaignQuery.data?.id) {
-      setCustomChannels(loadCustomChannels(campaignQuery.data.id));
+      const local = loadCustomChannels(campaignQuery.data.id);
+      const server = campaignQuery.data.rules.customChannels ?? [];
+      const merged = new Map<string, CustomChannel>();
+      for (const ch of local) merged.set(ch.key, ch);
+      for (const ch of server) merged.set(ch.key, ch);
+      setCustomChannels([...merged.values()]);
     }
-  }, [campaignQuery.data?.id]);
+  }, [campaignQuery.data?.id, campaignQuery.data?.rules.customChannels]);
 
   if (campaignQuery.isPending) {
     return (
@@ -72,8 +80,10 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
   const playerLink = buildPlayerLink(PLAY_URL, campaign.slug, currentCh);
 
   const logo = readSlot(campaign.screens, 'logo');
+  const productImage = readSlot(campaign.screens, 'productPhoto');
   const promoText = readSlot(campaign.screens, 'promoText');
   const brand = campaign.brand;
+  const topPrizes = campaign.prizes.slice(0, 3).map((p) => p.name);
 
   const allChannels = [
     ...PRESET_CHANNELS.map((p) => ({
@@ -95,11 +105,11 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 
   return (
     <div className="relative min-h-screen bg-zinc-100 font-sans text-zinc-900 antialiased dark:bg-zinc-900 dark:text-zinc-100">
-      {/* Print CSS */}
+      {/* A4-compatible Print CSS (`EVT-10`) */}
       <style jsx global>{`
         @media print {
           @page {
-            size: 148mm 210mm;
+            size: A4 portrait;
             margin: 0;
           }
           html,
@@ -115,13 +125,14 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
           }
           .print-sheet {
             box-shadow: none !important;
-            margin: 0 !important;
+            margin: 12mm auto !important;
             width: 148mm !important;
             height: 210mm !important;
             max-height: 210mm !important;
             page-break-after: avoid !important;
             page-break-inside: avoid !important;
             border-radius: 0 !important;
+            border: 1px dashed #d4d4d8 !important;
           }
         }
       `}</style>
@@ -186,7 +197,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
             </ToggleButtonGroup>
 
             <Button
-              className="gap-2 rounded-md h-8 text-xs shadow-xs"
+              className="h-8 gap-2 rounded-md text-xs shadow-xs"
               size="sm"
               onClick={() => window.print()}
             >
@@ -219,6 +230,8 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
           <StandeeA5Sheet
             campaignName={campaign.name}
             logo={logo}
+            productImage={productImage}
+            topPrizes={topPrizes}
             promoText={promoText}
             brand={brand}
             playerLink={playerLink}
@@ -226,6 +239,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
             isDraft={isDraft}
             ctaText={t('print.cta')}
             instructionText={t('print.instruction')}
+            topPrizesLabel={t('print.topPrizes')}
             poweredByText={t('print.poweredBy')}
             draftNoticeText={t('print.draftNotice')}
           />
@@ -233,6 +247,8 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
           <FoldedTentCardA6Sheet
             campaignName={campaign.name}
             logo={logo}
+            productImage={productImage}
+            topPrizes={topPrizes}
             promoText={promoText}
             brand={brand}
             playerLink={playerLink}
@@ -241,6 +257,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
             ctaText={t('print.cta')}
             instructionText={t('print.instruction')}
             foldHereText={t('print.foldHere')}
+            glueTabText={t('print.glueTab')}
             poweredByText={t('print.poweredBy')}
             draftNoticeText={t('print.draftNotice')}
           />
@@ -254,6 +271,8 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 function StandeeA5Sheet({
   campaignName,
   logo,
+  productImage,
+  topPrizes,
   promoText,
   brand,
   playerLink,
@@ -261,11 +280,14 @@ function StandeeA5Sheet({
   isDraft,
   ctaText,
   instructionText,
+  topPrizesLabel,
   poweredByText,
   draftNoticeText,
 }: {
   campaignName: string;
   logo?: string;
+  productImage?: string;
+  topPrizes: string[];
   promoText?: string;
   brand: {
     primary: string;
@@ -278,6 +300,7 @@ function StandeeA5Sheet({
   isDraft: boolean;
   ctaText: string;
   instructionText: string;
+  topPrizesLabel: string;
   poweredByText: string;
   draftNoticeText: string;
 }) {
@@ -299,9 +322,9 @@ function StandeeA5Sheet({
       {/* Header section: Logo & Titles */}
       <div className="flex flex-col items-center pt-2 text-center">
         {logo && (
-          <div className="mb-3 flex max-h-14 items-center justify-center">
+          <div className="mb-2.5 flex max-h-12 items-center justify-center">
             {/* biome-ignore lint/performance/noImgElement: dynamic user uploaded logo */}
-            <img src={logo} alt="Shop Logo" className="max-h-14 max-w-[120px] object-contain" />
+            <img src={logo} alt="Shop Logo" className="max-h-12 max-w-[120px] object-contain" />
           </div>
         )}
         <h1
@@ -320,31 +343,69 @@ function StandeeA5Sheet({
         )}
       </div>
 
+      {/* Product Photo & Top Prizes */}
+      {(productImage || topPrizes.length > 0) && (
+        <div className="my-2 flex flex-col items-center gap-2 text-center">
+          {productImage && (
+            <div className="h-20 w-20 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xs">
+              {/* biome-ignore lint/performance/noImgElement: dynamic campaign product photo */}
+              <img
+                src={productImage}
+                alt={campaignName}
+                className="h-full w-full object-cover"
+                data-testid="print-product-image"
+              />
+            </div>
+          )}
+          {topPrizes.length > 0 && (
+            <div
+              className="flex flex-wrap items-center justify-center gap-1.5"
+              data-testid="print-top-prizes"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                {topPrizesLabel}:
+              </span>
+              {topPrizes.map((prize) => (
+                <span
+                  key={prize}
+                  className="rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-900 shadow-2xs"
+                >
+                  🎁 {prize}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* QR Section */}
       <div className="my-auto flex flex-col items-center text-center">
         {/* Call to action badge */}
         <div
-          className="mb-4 inline-block rounded-full px-5 py-1.5 text-sm font-bold uppercase tracking-wide"
+          className="mb-3 inline-block rounded-full px-5 py-1.5 text-sm font-bold uppercase tracking-wide"
           style={{
-            backgroundColor: `${brand.primary}1A`,
-            color: brand.primary,
+            backgroundColor: brand.primary,
+            color: '#FFFFFF',
           }}
         >
           {ctaText}
         </div>
 
-        {/* QR Code Container */}
+        {/* High-Contrast QR Code Container (`EVT-10`) */}
         <div
           className="rounded-2xl border-2 bg-white p-4 shadow-xs"
           style={{
-            borderColor: `${brand.primary}30`,
+            backgroundColor: '#FFFFFF',
+            borderColor: brand.primary,
           }}
           data-testid="print-qr-code"
         >
-          <QRCodeSvg value={playerLink} size={200} color={brand.text} />
+          <div data-testid="print-qr-high-contrast" data-qr-color={HIGH_CONTRAST_QR_INK}>
+            <QRCodeSvg value={playerLink} size={184} color={HIGH_CONTRAST_QR_INK} />
+          </div>
         </div>
 
-        <p className="mt-3 text-xs font-medium text-zinc-500">{instructionText}</p>
+        <p className="mt-2.5 text-xs font-medium opacity-80">{instructionText}</p>
 
         {isDraft && (
           <p className="mt-1 rounded bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
@@ -354,7 +415,7 @@ function StandeeA5Sheet({
       </div>
 
       {/* Footer branding */}
-      <footer className="flex items-center justify-between border-t border-zinc-200/60 pt-3 text-[10px] text-zinc-400">
+      <footer className="flex items-center justify-between border-t border-zinc-200/60 pt-2.5 text-[10px] opacity-70">
         <span className="font-mono">{channelKey}</span>
         <span>{poweredByText}</span>
       </footer>
@@ -362,10 +423,12 @@ function StandeeA5Sheet({
   );
 }
 
-/** Folded Table Tent A6 (A5 sheet landscape: two A6 faces side-by-side or stacked) */
+/** Folded Table Tent A6 (two A6 faces + bottom fold tab for standing on a café table) */
 function FoldedTentCardA6Sheet({
   campaignName,
   logo,
+  productImage,
+  topPrizes,
   promoText,
   brand,
   playerLink,
@@ -374,11 +437,14 @@ function FoldedTentCardA6Sheet({
   ctaText,
   instructionText,
   foldHereText,
+  glueTabText,
   poweredByText,
   draftNoticeText,
 }: {
   campaignName: string;
   logo?: string;
+  productImage?: string;
+  topPrizes: string[];
   promoText?: string;
   brand: {
     primary: string;
@@ -392,13 +458,14 @@ function FoldedTentCardA6Sheet({
   ctaText: string;
   instructionText: string;
   foldHereText: string;
+  glueTabText: string;
   poweredByText: string;
   draftNoticeText: string;
 }) {
   const renderTentFace = (upsideDown = false) => (
     <div
       className={cx(
-        'relative flex h-[105mm] w-[148mm] flex-col justify-between overflow-hidden p-5',
+        'relative flex h-[96mm] w-[148mm] flex-col justify-between overflow-hidden p-4',
         upsideDown && 'rotate-180',
       )}
       style={{
@@ -425,41 +492,65 @@ function FoldedTentCardA6Sheet({
             </p>
           )}
         </div>
-        {logo && (
-          <div className="flex max-h-8 shrink-0 items-center justify-end">
-            {/* biome-ignore lint/performance/noImgElement: dynamic user uploaded logo */}
-            <img src={logo} alt="Shop Logo" className="max-h-8 max-w-[70px] object-contain" />
-          </div>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {productImage && (
+            // biome-ignore lint/performance/noImgElement: dynamic campaign product photo
+            <img
+              src={productImage}
+              alt={campaignName}
+              className="h-8 w-8 rounded-lg object-cover"
+            />
+          )}
+          {logo && (
+            <div className="flex max-h-8 shrink-0 items-center justify-end">
+              {/* biome-ignore lint/performance/noImgElement: dynamic user uploaded logo */}
+              <img src={logo} alt="Shop Logo" className="max-h-8 max-w-[70px] object-contain" />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="my-auto flex items-center justify-center gap-5">
         <div
-          className="rounded-xl border bg-white p-2.5 shadow-xs"
-          style={{ borderColor: `${brand.primary}30` }}
+          className="rounded-xl border-2 bg-white p-2.5 shadow-xs"
+          style={{ backgroundColor: '#FFFFFF', borderColor: brand.primary }}
+          data-testid={upsideDown ? undefined : 'print-qr-high-contrast'}
+          data-qr-color={HIGH_CONTRAST_QR_INK}
         >
-          <QRCodeSvg value={playerLink} size={110} color={brand.text} />
+          <QRCodeSvg value={playerLink} size={104} color={HIGH_CONTRAST_QR_INK} />
         </div>
-        <div className="flex flex-col items-start gap-1">
+        <div className="flex max-w-[72mm] flex-col items-start gap-1.5">
           <span
             className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide"
             style={{
-              backgroundColor: `${brand.primary}1A`,
-              color: brand.primary,
+              backgroundColor: brand.primary,
+              color: '#FFFFFF',
             }}
           >
             {ctaText}
           </span>
-          <span className="text-[11px] font-medium text-zinc-500">{instructionText}</span>
+          <span className="text-[11px] font-medium opacity-80">{instructionText}</span>
+          {topPrizes.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {topPrizes.map((prize) => (
+                <span
+                  key={prize}
+                  className="rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-900"
+                >
+                  🎁 {prize}
+                </span>
+              ))}
+            </div>
+          )}
           {isDraft && (
-            <span className="mt-1 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-800">
+            <span className="mt-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-800">
               ⚠️ {draftNoticeText}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1.5 text-[9px] text-zinc-400">
+      <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1 text-[9px] opacity-70">
         <span className="font-mono">{channelKey}</span>
         <span>{poweredByText}</span>
       </div>
@@ -478,6 +569,13 @@ function FoldedTentCardA6Sheet({
         </span>
       </div>
       {renderTentFace(false)}
+      {/* Bottom 18mm fold/glue tab so the tent card stands on a table */}
+      <div
+        className="flex h-[18mm] w-full items-center justify-center border-t-2 border-dashed border-zinc-300 bg-zinc-50 text-[10px] font-medium text-zinc-500"
+        data-testid="tent-fold-tab"
+      >
+        ⇧ {glueTabText} ⇧
+      </div>
     </article>
   );
 }

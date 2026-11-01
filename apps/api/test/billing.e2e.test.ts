@@ -434,4 +434,73 @@ describe('back-office (BIL-01)', () => {
       ErrorCode.VALIDATION_FAILED,
     );
   });
+
+  test('staff list upcoming 14-day campaigns and inspect org in audited read-only mode (ADM-01, ADM-02)', async () => {
+    await db
+      .update(schema.user)
+      .set({ emailVerified: true })
+      .where(eq(schema.user.id, await sessionUserId(t.baseUrl, admin)));
+    const staffApi = t.client(admin);
+    const aliceApi = t.client(alice);
+
+    // Create a campaign starting in 5 days with baselineGuestsPerDay = 80.
+    const base = campaignBody({ name: 'Chiến dịch Khai Trương 14 Ngày' });
+    const created = await aliceApi.call(campaignsApi.create, {
+      params: { orgId: aliceOrg },
+      body: {
+        ...base,
+        rules: {
+          ...base.rules,
+          startsAt: new Date(Date.now() + 5 * DAY).toISOString(),
+          endsAt: new Date(Date.now() + 12 * DAY).toISOString(),
+          baselineGuestsPerDay: 80,
+        },
+      },
+    });
+    await aliceApi.call(campaignsApi.publish, {
+      params: { orgId: aliceOrg, campaignId: created.id },
+    });
+
+    // Non-staff gets 403 on both routes.
+    await expectApiError(
+      t.client(alice).call(adminApi.upcomingCampaigns, {}),
+      403,
+      ErrorCode.FORBIDDEN,
+    );
+    await expectApiError(
+      t.client(alice).call(adminApi.inspectOrg, { params: { orgId: aliceOrg } }),
+      403,
+      ErrorCode.FORBIDDEN,
+    );
+
+    const upcoming = await staffApi.call(adminApi.upcomingCampaigns, {});
+    const found = upcoming.items.find((c) => c.id === created.id);
+    expect(found).toMatchObject({
+      id: created.id,
+      organizationId: aliceOrg,
+      name: 'Chiến dịch Khai Trương 14 Ngày',
+      phase: 'scheduled',
+      expectedDailyPlays: 80,
+      totalStock: 60,
+      remainingStock: 60,
+      plays: 0,
+    });
+
+    const inspected = await staffApi.call(adminApi.inspectOrg, {
+      params: { orgId: aliceOrg },
+    });
+    expect(inspected.id).toBe(aliceOrg);
+
+    const logs = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, aliceOrg),
+          eq(schema.auditLogs.action, 'admin.org_inspect'),
+        ),
+      );
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.diff).toMatchObject({ mode: 'read_only' });
+  });
 });

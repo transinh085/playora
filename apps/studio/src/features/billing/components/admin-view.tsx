@@ -21,20 +21,29 @@ import {
   Modal,
   SearchField,
   Select,
+  Tabs,
   TextArea,
   TextField,
   toast,
 } from '@playora/ui/components';
 import { applyApiErrorToRHF } from '@playora/ui/form';
+import type { Route } from 'next';
+import { useRouter } from 'next/navigation';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { Caption } from '@/components/caption';
 import { PageHeader } from '@/components/page-header';
 import { QueryError } from '@/components/query-error';
 import { TableCard } from '@/components/table-card';
-import { useAdminOrgs, useRecordInvoice, useSetSubscription } from '../api';
+import {
+  useAdminInspectOrg,
+  useAdminOrgs,
+  useAdminUpcomingCampaigns,
+  useRecordInvoice,
+  useSetSubscription,
+} from '../api';
 import { addMonths, dayToIso, isoToDay } from '../lib/dates';
 import { PLAN_ORDER, PLAN_PRICES } from '../lib/plans';
 
@@ -45,23 +54,131 @@ export function AdminView() {
   const tb = useTranslations('billing');
   const tMembers = useTranslations('members');
   const format = useFormatter();
-  const [search, setSearch] = useState('');
+  const router = useRouter();
+  const [tab, setTab] = useState<'orgs' | 'upcoming'>('orgs');
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [editing, setEditing] = useState<AdminOrg | null>(null);
   const [invoicing, setInvoicing] = useState<AdminOrg | null>(null);
-  const query = useAdminOrgs(search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const query = useAdminOrgs(debouncedSearch);
+  const upcomingQuery = useAdminUpcomingCampaigns();
+  const inspectOrg = useAdminInspectOrg();
+
+  const handleInspectOrg = async (org: AdminOrg) => {
+    await inspectOrg.mutateAsync({ params: { orgId: org.id } });
+    toast.success(t('inspectedToast', { org: org.name }));
+    router.push(`/orgs/${org.id}/campaigns` as Route);
+  };
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title={t('title')} description={t('subtitle')} />
-      {query.isError ? (
+      <Tabs
+        selectedKey={tab}
+        onSelectionChange={(key) => setTab(String(key) as 'orgs' | 'upcoming')}
+        className="w-full"
+      >
+        <Tabs.ListContainer>
+          <Tabs.List aria-label={t('title')} className="w-fit">
+            <Tabs.Tab id="orgs">
+              {t('tabs.orgs', { count: query.data?.items.length ?? 0 })}
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="upcoming">
+              {t('tabs.upcoming', { count: upcomingQuery.data?.items.length ?? 0 })}
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+      </Tabs>
+
+      {tab === 'upcoming' ? (
+        upcomingQuery.isError ? (
+          <QueryError onRetry={() => upcomingQuery.refetch()} />
+        ) : (
+          <TableCard>
+            <div className="w-full overflow-x-auto" data-testid="admin-upcoming-campaigns">
+              <table className="w-full border-collapse text-left text-body-2-regular">
+                <thead>
+                  <tr className="border-b border-separator-border text-caption-1-semibold text-text-secondary">
+                    <th className="px-4 py-3">{t('upcomingCampaign')}</th>
+                    <th className="px-4 py-3">{t('org')}</th>
+                    <th className="px-4 py-3">{t('status')}</th>
+                    <th className="px-4 py-3">{t('upcomingSchedule')}</th>
+                    <th className="px-4 py-3">{t('upcomingTraffic')}</th>
+                    <th className="px-4 py-3">{t('upcomingStock')}</th>
+                    <th className="px-4 py-3">{t('upcomingPlays')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-separator-border">
+                  {(upcomingQuery.data?.items ?? []).length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="h-24 text-center text-text-secondary">
+                        {t('upcomingEmpty')}
+                      </td>
+                    </tr>
+                  ) : (
+                    (upcomingQuery.data?.items ?? []).map((item) => (
+                      <tr key={item.id} className="hover:bg-background-secondary-default/40">
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-text-primary">{item.name}</span>
+                            <Caption className="font-mono">{item.slug}</Caption>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-text-primary">
+                              {item.organizationName}
+                            </span>
+                            <Caption>{item.organizationSlug}</Caption>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Chip
+                            variant={item.phase === 'live' ? 'primary' : 'soft'}
+                            color={item.phase === 'live' ? 'success' : 'default'}
+                            size="sm"
+                          >
+                            {item.phase}
+                          </Chip>
+                        </td>
+                        <td className="px-4 py-3 text-caption-1-regular text-text-secondary">
+                          {item.startsAt ? format.dateTime(new Date(item.startsAt), DAY) : '—'} –{' '}
+                          {item.endsAt ? format.dateTime(new Date(item.endsAt), DAY) : '—'}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums">
+                          {item.expectedDailyPlays ? format.number(item.expectedDailyPlays) : '—'}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums">
+                          {format.number(item.remainingStock)} / {format.number(item.totalStock)}
+                        </td>
+                        <td className="px-4 py-3 tabular-nums">{format.number(item.plays)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </TableCard>
+        )
+      ) : query.isError ? (
         <QueryError onRetry={() => query.refetch()} />
       ) : (
         <TableCard
           toolbar={
             <SearchField
               className="max-w-md flex-1"
-              value={search}
-              onChange={(val) => setSearch(val.trim())}
+              value={searchInput}
+              onChange={(val) => setSearchInput(val)}
               aria-label={t('search')}
             >
               <SearchField.Group>
@@ -160,6 +277,15 @@ export function AdminView() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              isDisabled={inspectOrg.isPending}
+                              onPress={() => handleInspectOrg(org)}
+                              data-testid="admin-inspect-org"
+                            >
+                              {t('inspectOrg')}
+                            </Button>
                             <Button variant="secondary" size="sm" onPress={() => setEditing(org)}>
                               {t('setPlan')}
                             </Button>

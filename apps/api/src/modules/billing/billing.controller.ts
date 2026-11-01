@@ -43,4 +43,18 @@ export class AdminBillingController {
   ) {
     return this.billing.adminRecordInvoice(params.orgId, body, { userId: session.user.id, ip });
   }
+
+  @Route(adminApi.upcomingCampaigns)
+  upcomingCampaigns() {
+    return this.billing.adminUpcomingCampaigns();
+  }
+
+  @Route(adminApi.inspectOrg)
+  inspectOrg(
+    @Args() { params }: RouteArgs<typeof adminApi.inspectOrg>,
+    @CurrentSession() session: AuthSession,
+    @Ip() ip: string,
+  ) {
+    return this.billing.adminInspectOrg(params.orgId, { userId: session.user.id, ip });
+  }
 }

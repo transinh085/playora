@@ -267,8 +267,8 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | ORG-01 | Đăng nhập email + mật khẩu; Google, magic link | M1 | ✅ (Google bật khi có client id) |
 | ORG-02 | Tổ chức, mời thành viên, vai trò `owner/admin/editor/operator/viewer` | M1 | ✅ |
 | ORG-02a | Vai trò **"chỉ đổi quà"**: chỉ thấy Quầy đổi quà | M1 | ✅ |
-| ORG-06 | Audit log cho mọi hành động ảnh hưởng giải, tiền và dữ liệu | M1 | ✅ một phần: phát hành, tạm dừng/tiếp tục/kết thúc, xoá chương trình, mở lại mã, đổi gói/hoá đơn · ⬜ lượt đổi quà (hiện chỉ ghi trên bản ghi award), tồn kho, export, màn xem audit |
-| ORG-10 | **Máy quầy ghép bằng QR**, không cần tài khoản email; quyền chỉ đổi quà; thu hồi một chạm ([D-24](./decisions.md), [ADR-017](../adr/017-counter-device-pairing.md)) | M1 (Must) | ⬜ |
+| ORG-06 | Audit log cho mọi hành động ảnh hưởng giải, tiền và dữ liệu | M1 | ✅ phát hành, tạm dừng/tiếp tục/kết thúc, gia hạn, xoá chương trình, đổi mã quà, mở lại mã, tra mã SĐT, điều chỉnh tồn kho, export, ghép/thu hồi máy quầy, đổi gói/hoá đơn/inspect tổ chức |
+| ORG-10 | **Máy quầy ghép bằng QR**, không cần tài khoản email; quyền chỉ đổi quà; thu hồi một chạm ([D-24](./decisions.md), [ADR-017](../adr/017-counter-device-pairing.md)) | M1 (Must) | ✅ API + Studio (`/settings`, `/share`) + Quầy (`/redeem?pair=`) |
 | ORG-07 | 2FA cho owner/admin | M2 | ⬜ |
 | ORG-12 | Vai trò **quản lý cửa hàng**: xem số liệu, tồn kho, máy quầy và nhân viên của quán mình; không sửa chương trình (persona chị Thảo, §2.1) | M2 | ⬜ |
 | ORG-11 | Luồng **client duyệt**: gửi link xem trước bản nháp cho client (agency) hoặc cấp trên (nhãn hàng), ghi nhận duyệt/góp ý trước khi phát hành (persona §2.2) | M4 | ⬜ |
@@ -338,9 +338,9 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | PLB-05 | Benchmark ẩn danh theo ngành ("quán trà sữa trung bình đạt X% đổi quà"); hiện cả trên thẻ playbook/mẫu khi chọn | M3 | ⬜ |
 | PLB-06 | Playbook cho ngành khác (spa, gym, bán lẻ) | M2–M3 | ⬜ |
 | PLB-07 | Gợi ý "chương trình tiếp theo" dựa trên kết quả chương trình trước | M3 | ⬜ |
-| PLB-08 | **Mốc so sánh (baseline)**: hỏi số khách ngày thường lúc tạo; Tổng quan hiện "so với ngày thường" (ước tính). Nhập số bill cuối ngày trên điện thoại: M2 | M1 / M2 | ⬜ |
+| PLB-08 | **Mốc so sánh (baseline)**: hỏi số khách ngày thường lúc tạo; Tổng quan hiện "so với ngày thường" (ước tính). Nhập số bill cuối ngày trên điện thoại: M2 | M1 / M2 | ✅ M1 (`baselineGuestsPerDay` ở Playbook Setup, Cài đặt, Tổng quan, Báo cáo 1 trang) · ⬜ nhập số bill cuối ngày (M2) |
 | PLB-09 | Định nghĩa lại "khách quay lại" theo **lượt ghé đã xác thực** (đổi quà hoặc quét thẻ thành viên RET-08) | M2 | ⬜ |
-| PLB-10 | Hiệu quả theo quà: tỷ lệ đổi, chi phí/khách từng quà, gợi ý thay quà | M1 (Could) | ⬜ |
+| PLB-10 | Hiệu quả theo quà: tỷ lệ đổi, chi phí/khách từng quà, gợi ý thay quà | M1 (Could) | ✅ (`PrizesOutcomeCard` + cảnh báo tỷ lệ đổi < 50% sau ≥ 30 lượt phát) |
 | PLB-11 | Báo cáo chia sẻ được: ảnh 4 số chính cho fanpage/Zalo; so sánh 2 chương trình | M2 | ⬜ |
 
 #### PLB-01 · Tạo chương trình từ mục tiêu
@@ -401,24 +401,24 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | BLD-02 | Auto-form sinh từ `configSchema` cho phần riêng của mẫu | M2 | ⬜ trong mô hình Campaign (`@playora/ui/auto-form` có sẵn, editor cũ dùng nó đã gỡ 27/10; M1 cơ chế tự suy từ danh sách giải) |
 | BLD-03 | Preview thật: cùng renderer với Play, kết quả giả lập chọn được | M1 | ✅ |
 | BLD-04 | Brand kit (logo, màu, font) áp cho mọi chương trình | M1 | ✅ |
-| BLD-06 | Skin: M1 mỗi mẫu 3 skin (Tết, quanh năm, khai trương) có hình thật; M2 bộ theo dịp | M1/M2 | 🧪 (3 mẫu × 3 skin, chưa có art thật) |
+| BLD-06 | Skin: M1 mỗi mẫu 3 skin (Tết, quanh năm, khai trương) có hình thật; M2 bộ theo dịp | M1/M2 | ✅ (3 mẫu × 3 skin, bao gồm biến thể Lì xì / Trứng vàng / Hộp quà; đổi skin giữ màu brand) |
 | BLD-07 | Flow chuẩn: Bìa → Form → Game → Kết quả (Trúng / Không trúng; hết lượt, ngoài giờ là thông báo) → Quà của tôi | M1 | ✅ |
-| BLD-08 | Phát hành tạo phiên bản bất biến; chỉ chữ/nhãn sửa nóng được, có audit | M1 | ✅ phiên bản bất biến, bản nháp sửa tiếp không ảnh hưởng người chơi · ⬜ sửa nóng (hiện mọi thay đổi phải phát hành lại; M1 Could) |
-| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | ✅ (các luật ở chi tiết) · ⬜ cảnh báo theo mô phỏng, "chưa chơi thử", màn > 60 phần tử |
-| BLD-13 | Thư viện ảnh: upload, tối ưu ảnh, chọn lại ảnh trong Builder, cắt theo ô | M1 | ✅ upload, thư viện, brand kit chọn từ thư viện · ⬜ chọn từ thư viện trong Builder, cắt theo ô (M1 Could) |
-| BLD-14 | Tự lưu, undo/redo | M1 | ✅ |
+| BLD-08 | Phát hành tạo phiên bản bất biến; chỉ chữ/nhãn sửa nóng được, có audit | M1 | ✅ phiên bản bất biến, cảnh báo pháp lý khi phát hành lại, bản nháp sửa tiếp không ảnh hưởng người chơi · ⬜ sửa nóng (M1 Could) |
+| BLD-09 | Kiểm tra trước khi phát hành, **sửa một chạm** | M1 | ✅ (luật chặn/cảnh báo, cảnh báo mô phỏng hết quà, màn > 60 phần tử, điều hướng sâu tới đúng màn & phần tử) |
+| BLD-13 | Thư viện ảnh: upload, tối ưu ảnh, chọn lại ảnh trong Builder, cắt theo ô | M1 | ✅ URL ảnh vĩnh viễn `/v1/public/assets/:id`, thư viện tự làm mới, `AssetPickerModal` chọn ảnh ngay trong Builder & Brand kit |
+| BLD-14 | Tự lưu, undo/redo | M1 | ✅ (undo/redo 50 bước xuyên suốt 3 chế độ + cảnh báo `beforeunload`) |
 | BLD-15 | Nhân bản chương trình; thùng rác 14 ngày | M2 | ⬜ |
-| BLD-19 | **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà) | M1 | ✅ |
-| BLD-20 | **Tuỳ biến**: canvas tự do cho mọi màn ([ADR-014](../adr/014-free-canvas-screen-editor.md)) | M1 (beta) | ✅ |
-| BLD-21 | **Luật & giải**: chọn cách phát giải trước, luật viết bằng câu, mô phỏng | M1 | ✅ |
+| BLD-19 | **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi, ảnh quà) | M1 | ✅ (gồm cả chỉnh tên/ảnh/số lượng từng giải thưởng) |
+| BLD-20 | **Tuỳ biến**: canvas tự do cho mọi màn ([ADR-014](../adr/014-free-canvas-screen-editor.md)) | M1 (beta) | ✅ (countdown theo `endsAt` thật, social mở link thật, audio Web Audio thật) |
+| BLD-21 | **Luật & giải**: chọn cách phát giải trước, luật viết bằng câu, mô phỏng | M1 | ✅ (mô phỏng > 7 ngày + nút Áp dụng 1 chạm cho các đề xuất) |
 | BLD-22 | Chụp ảnh sản phẩm → **tự xoá nền** → cắt theo ô | M2 | ⬜ |
-| BLD-23 | Chơi thử bản nháp không trừ kho; link nháp công khai cho ≤ 20 người ngoài tổ chức | M1 | ✅ chơi thử trong Studio (cần đăng nhập) · ⬜ link nháp công khai (M1 Should) |
+| BLD-23 | Chơi thử bản nháp không trừ kho; link nháp công khai cho ≤ 20 người ngoài tổ chức | M1 | ✅ chơi thử trong Studio + link nháp công khai `/draft/{token}` (giới hạn 20 người thử, xoay lại token được) |
 | BLD-24 | Thêm mẫu mới chỉ bằng một thư mục + lệnh `gen:template` | M1 | ⬜ |
-| BLD-25 | **Bìa minh bạch**: số quà còn lại / tổng, danh sách quà có ảnh, lượt còn hôm nay (phần tử canvas, bật sẵn ở màn mặc định) | M1 (Should) | ⬜ |
-| BLD-26 | QR cạnh preview mở bản nháp trên điện thoại của chủ quán (cần link nháp công khai BLD-23) | M1 (Should) | ⬜ |
-| BLD-27 | Upload logo → tự đề xuất 5 màu brand (phân tích ảnh phía client) | M1 (Could) | ⬜ |
+| BLD-25 | **Bìa minh bạch**: số quà còn lại / tổng, danh sách quà có ảnh, lượt còn hôm nay (phần tử canvas, bật sẵn ở màn mặc định) | M1 (Should) | ✅ (`showRemaining` thanh tiến độ quà còn lại / tổng từ API công khai) |
+| BLD-26 | QR cạnh preview mở bản nháp trên điện thoại của chủ quán (cần link nháp công khai BLD-23) | M1 (Should) | ✅ (`MobileQrPopover` cạnh khung preview) |
+| BLD-27 | Upload logo → tự đề xuất 5 màu brand (phân tích ảnh phía client) | M1 (Could) | ✅ (`extractPaletteFromImage` đảm bảo tương phản WCAG AA ≥ 4,5:1) |
 | BLD-28 | Luồng "60 giây": playbook → logo + 1 ảnh sản phẩm → ngân sách → Phát hành; Builder mở sau nếu muốn | M2 | ⬜ |
-| BLD-29 | Checklist **"Sẵn sàng mở bán"** sau phát hành (QR đã in, có máy quầy, đã đổi thử mã tập huấn, đã chia sẻ) | M1 (Should) | ⬜ |
+| BLD-29 | Checklist **"Sẵn sàng mở bán"** sau phát hành (QR đã in, có máy quầy, đã đổi thử mã tập huấn, đã chia sẻ) | M1 (Should) | ✅ (`launch-checklist` 4 mục trên màn Chia sẻ) |
 | BLD-17 | AI dựng nháp từ một câu tiếng Việt / link fanpage; AI không quyết định kết quả | M2 | ⬜ |
 | BLD-16 | Lưu thành mẫu riêng của tổ chức | M4 | ⬜ |
 | BLD-18 | Game SDK công khai + marketplace | Later | ⬜ |
@@ -552,11 +552,11 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
 | EVT-01 | Vòng đời suy ra: Nháp → Đã lên lịch → Đang chạy ⇄ Tạm dừng → Đã kết thúc; gia hạn; không xoá khi đang chạy | M1 | ✅ |
-| EVT-02 | Danh tính: ẩn danh (thiết bị), form (tên, SĐT), danh sách khách mời | M1 | ✅ ẩn danh, form · ⬜ danh sách khách mời trong mô hình Campaign (có ở module sự kiện cũ, không có UI) · ⬜ danh sách người chơi trong Studio (M1 Should) |
-| EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ |
-| EVT-10 | QR tham gia (PNG/SVG), mẫu standee & tent card | M1 | ✅ |
-| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ✅ |
-| EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ✅ Thấp/Chuẩn (rate limit, Turnstile trên Play, một thiết bị một người chơi, thu hồi token) · ⬜ Cao |
+| EVT-02 | Danh tính: ẩn danh (thiết bị), form (tên, SĐT), danh sách khách mời | M1 | ✅ ẩn danh, form, danh sách người chơi trong Studio (`GET …/campaigns/:id/players`) · ⬜ danh sách khách mời trong mô hình Campaign (có ở module sự kiện cũ) |
+| EVT-05 | Form đăng ký + consent tách mục đích | M1 | ✅ (2 checkbox tách mục đích `participation` bắt buộc + `marketing` tuỳ chọn + link Thể lệ) |
+| EVT-10 | QR tham gia (PNG/SVG), mẫu standee & tent card | M1 | ✅ (QR tương phản cao `#111827` trên nền trắng, ảnh sản phẩm, khổ A4 chuẩn + gập đáy A6) |
+| EVT-11 | Link theo kênh (`?ch=`) và thống kê theo kênh | M1 | ✅ (lưu `customChannels` trong DB chiến dịch) |
+| EVT-13 | Chống gian lận theo mức Thấp/Chuẩn/Cao | M1 (Thấp, Chuẩn), M2 (Cao) | ✅ Thấp/Chuẩn (rate limit, Turnstile chạy nền không chặn màn Bìa, một thiết bị một người chơi, thu hồi token) · ⬜ Cao |
 | EVT-14 | Lượt chơi theo ngày/tổng/khung giờ; thêm lượt khi chia sẻ (giới hạn) | M1/M2 | ✅ M1 (lượt/ngày, giờ và ngày mở cửa) · ⬜ thêm lượt khi chia sẻ (M2) |
 | EVT-09 | Chạy thử bằng bot N lượt, không trừ kho thật | M1 | ⬜ |
 | EVT-15 | Thao tác khẩn trên điện thoại: tạm dừng/tiếp tục, thêm tồn kho, xem 4 số chính (ngoại lệ của D-12 như màn Đổi quà) | M1 (Could) | ⬜ |
@@ -648,7 +648,7 @@ Mỗi nhóm có **bảng tổng hợp** (một dòng một ID) rồi **chi tiế
 | RET-04 | Hub điểm thưởng của quán | M3 | ⬜ |
 | RET-05 | Sưu tầm thẻ (không ép rủ bạn) | M3 | ⬜ |
 | RET-06 | **Quà lần sau (bounce-back)**: đổi quà xong được tặng ngay một voucher cố định cho lần ghé sau, dùng từ ngày mai, hạn 14 ngày | M1 (Could) / M2 | ⬜ |
-| RET-07 | Nút "Quan tâm Zalo OA của quán" trên Kết quả và Quà của tôi (link do quán cấu hình) | M1 (Should) | ⬜ |
+| RET-07 | Nút "Quan tâm Zalo OA của quán" trên Kết quả và Quà của tôi (link do quán cấu hình) | M1 (Should) | ✅ (`zaloOaUrl` trên màn Kết quả và Quà của tôi) |
 | RET-08 | Thẻ thành viên QR cá nhân trong Quà của tôi; nhân viên quét được cả khi khách không có quà → ghi một lượt ghé | M2 | ⬜ |
 
 #### RET-06 · Quà lần sau (Could)
@@ -679,7 +679,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 | GAM-02 | Skill: server xác thực điểm (thời lượng, tốc độ tối đa, plausibility) trước khi xét giải | M2 (dời từ M1, roadmap §1.4) | ⬜ |
 | GAM-03 | Cùng phiên bản chạy trên Player và Kiosk | M1/M3 | ⬜ |
 | GAM-04 | Renderer: vòng quay, cào thẻ, mở hộp (instant, M1); hứng quà (skill, dời M2) | M1 / M2 | ✅ vòng quay, cào thẻ, mở hộp (API thật, e2e `play-mechanisms`) · ⬜ hứng quà (dời M2 theo roadmap §1.4) |
-| GAM-05 | Cảm giác trúng: haptic, âm thanh, confetti; tải trước asset game khi đang ở Bìa | M2 | ⬜ |
+| GAM-05 | Cảm giác trúng: haptic, âm thanh, confetti; tải trước asset game khi đang ở Bìa | M2 | ✅ (confetti, `navigator.vibrate`, hiệu ứng âm thanh Web Audio, đèn viền vòng quay, thẻ cào nhũ kim loại, hộp quà theo skin) |
 
 #### GAM-01 · Instant-win do server quyết định
 
@@ -706,7 +706,7 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| PRZ-01 | Giải: tên, ảnh, loại, số lượng, **giá vốn** | M1 | ✅ · ⬜ thêm/bớt tồn kho khi đang chạy không cần phát hành lại (M1 Should) |
+| PRZ-01 | Giải: tên, ảnh, loại, số lượng, **giá vốn** | M1 | ✅ (bao gồm thêm/bớt tồn kho trực tiếp khi đang chạy có audit log `prize.stock_adjust`) |
 | PRZ-05 | Cách phát: `per_prize_probability`, `overall_win_rate`, `guaranteed`; trừ kho nguyên tử | M1 | ✅ |
 | PRZ-06 | `score_threshold` (skill); `scheduled_moments`, `rank_based` | M2 (`score_threshold` dời từ M1 cùng hứng quà) | ⬜ |
 | PRZ-07 | Rải quà: `time_uniform`, `opening_hours` (M1); `batch_release`, `end_flush` (M2) | M1/M2 | ✅ (`time_uniform`, `opening_hours`) |
@@ -714,12 +714,12 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 | PRZ-09 | Mã đổi quà, **ngân sách tổng**, giới hạn giải/người; kho mã voucher đối tác (import), giải an ủi không giới hạn | M1 / M2 | ✅ sinh mã 6 ký tự, ngân sách, giới hạn giải/người cho cả chương trình · ⬜ import mã đối tác, giải an ủi không giới hạn, giới hạn theo ngày/loại (M2) |
 | PRZ-03 | Thông báo trúng trên Player ("Quà của tôi") | M1 | ✅ |
 | PRZ-10 | **Đổi quà tại quầy**: quét/nhập mã, không hoàn tác, chống đổi hai lần; hạn đổi | M1 | ✅ · hạn đổi cố định = kết thúc + 7 ngày, ⬜ chỉnh theo chương trình (M1 Could) |
-| PRZ-15 | **Tra mã theo SĐT ở quầy** khi khách mất mã ([D-25](./decisions.md)) | M1 (Must) | ⬜ |
-| PRZ-16 | **Lưu và khôi phục mã quà**: nút "Lưu mã" (Zalo, ảnh); khôi phục "Quà của tôi" trên thiết bị mới bằng SĐT + 4 ký tự cuối của mã ([D-25](./decisions.md)) | M1 (Must) | ⬜ |
-| PRZ-17 | Nhãn quán cho mỗi máy quầy/lượt đổi; báo cáo theo quán (bản tối giản của PRZ-14) | M1 (Should) | ⬜ |
-| PRZ-18 | Quầy dạng PWA: cài lên màn hình chính, giữ quyền camera, rung + âm báo, chữ kết quả rất to | M1 (Should) | ⬜ |
-| PRZ-19 | Chế độ tập huấn: mã chơi thử bấm Xác nhận được ở quầy, không ghi số liệu | M1 (Should) | ⬜ |
-| PRZ-22 | **Theo dõi nhịp phát quà** khi đang chạy: lưu lượng thật vs dự kiến, dự báo quà dư/thiếu, đề xuất tỷ lệ trúng + phát hành lại một chạm | M1 (Should, tuần đầu pilot) | ⬜ |
+| PRZ-15 | **Tra mã theo SĐT ở quầy** khi khách mất mã ([D-25](./decisions.md)) | M1 (Must) | ✅ (`GET /orgs/:orgId/vouchers/by-phone`, rate-limit 20/giờ, audit `voucher.lookup_phone`) |
+| PRZ-16 | **Lưu và khôi phục mã quà**: nút "Lưu mã" (Zalo, ảnh); khôi phục "Quà của tôi" trên thiết bị mới bằng SĐT + 4 ký tự cuối của mã ([D-25](./decisions.md)) | M1 (Must) | ✅ (tải PNG + Web Share + `POST /p/:slug/prizes/restore` rate-limit 5 lần sai/giờ) |
+| PRZ-17 | Nhãn quán cho mỗi máy quầy/lượt đổi; báo cáo theo quán (bản tối giản của PRZ-14) | M1 (Should) | ✅ (`storeLabel` trên máy quầy và `redeemedStoreLabel` trên mỗi lượt đổi) |
+| PRZ-18 | Quầy dạng PWA: cài lên màn hình chính, giữ quyền camera, rung + âm báo, chữ kết quả rất to | M1 (Should) | ✅ (PWA manifest, quét QR camera trực tiếp, rung + âm báo Web Audio, thẻ trạng thái chữ lớn) |
+| PRZ-19 | Chế độ tập huấn: mã chơi thử bấm Xác nhận được ở quầy, không ghi số liệu | M1 (Should) | ✅ (mã chơi thử đổi thử lặp lại được, ghi audit `voucher.training_redeem`, không khoá mã) |
+| PRZ-22 | **Theo dõi nhịp phát quà** khi đang chạy: lưu lượng thật vs dự kiến, dự báo quà dư/thiếu, đề xuất tỷ lệ trúng + phát hành lại một chạm | M1 (Should, tuần đầu pilot) | ✅ (`PacingMonitorCard` trên Tổng quan + nút chỉnh tỷ lệ trúng 1 chạm) |
 | PRZ-14 | Điểm đổi quà theo cửa hàng (chuỗi nhiều quán) | M2 | ⬜ |
 | PRZ-20 | Nhật ký quầy theo nhân viên/máy + cờ bất thường (đổi < 2 phút sau khi trúng cùng IP máy quầy; > X mã/giờ) | M2 | ⬜ |
 | PRZ-21 | Quà hết hạn chưa đổi quay về kho (tuỳ chọn, ghi trong thể lệ; **cần ý kiến luật sư**) | M2 | ⬜ |
@@ -828,8 +828,8 @@ Danh mục: [specs/game-catalog.md](./specs/game-catalog.md).
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
 | ANL-01 | Tổng quan chương trình: lượt chơi, khách, quà đã phát/đã đổi/còn lại, theo ngày (xem PLB-03 cho chỉ số kết quả) | M1 | ✅ |
-| ANL-02 | Export CSV/XLSX: người chơi (kèm consent), người trúng, mã đã đổi | M1 | ⬜ |
-| ANL-10 | **Email tóm tắt hằng ngày** cho owner/admin: 4 số hôm qua, % quà còn lại, nhịp phát quà lệch, mục "Sẵn sàng mở bán" còn thiếu (Zalo OA/ZNS: M3) | M1 (Should) | ⬜ |
+| ANL-02 | Export CSV/XLSX: người chơi (kèm consent), người trúng, mã đã đổi | M1 | ✅ (`POST /orgs/:orgId/campaigns/:id/export` CSV UTF-8 BOM, ẩn/hiện SĐT theo `marketingConsent`, có audit `campaign.export`) |
+| ANL-10 | **Email tóm tắt hằng ngày** cho owner/admin: 4 số hôm qua, % quà còn lại, nhịp phát quà lệch, mục "Sẵn sàng mở bán" còn thiếu (Zalo OA/ZNS: M3) | M1 (Should) | ✅ (worker `daily.digest` trong `apps/worker`) |
 | ANL-04 | Phễu: mở link → form → chơi → trúng → đổi; theo kênh | M2 | ⬜ |
 | ANL-08 | **Hồ sơ khách theo tổ chức** (gộp theo `phoneHash` qua mọi chương trình): số lượt ghé, quà đã đổi, chương trình đã chơi, consent — cần ADR mô hình dữ liệu | M2 | ⬜ |
 | ANL-09 | Bản đồ nhiệt giờ × thứ (lượt chơi, lượt đổi) | M2 | ⬜ |
@@ -866,8 +866,8 @@ Giá: [business-model §3](../business/business-model.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| BIL-01 | Kích hoạt gói thủ công, hoá đơn thủ công | M1 | ✅ API (`/admin/orgs…` cho nhân viên Playora trong `PLATFORM_ADMIN_EMAILS`, có audit log) · ✅ UI back-office Studio `/admin`: tìm tổ chức, đổi gói + hạn + ghi chú, ghi hoá đơn; trang Gói & sử dụng có lịch sử hoá đơn và hướng dẫn chuyển khoản (kích hoạt trong 24 giờ) |
-| BIL-02 | Quota theo gói (lượt đổi quà/tháng, số chương trình chạy) + watermark gói Free | M1 | ✅ API + Play (chặn phát hành/tiếp tục `PLAN_CAMPAIGN_LIMIT`, chặn đổi quà quá 110% `PLAN_REDEMPTION_LIMIT` theo D-21 cũ, badge "Tạo bằng Playora"; `GET …/billing` trả usage) · ✅ Studio: trang Gói & sử dụng (thanh usage, cảnh báo 80%/100% + giải thích ân hạn), banner trên Trang chủ và quầy đổi quà, thông báo `PLAN_CAMPAIGN_LIMIT` khi publish/tiếp tục, `PLAN_REDEMPTION_LIMIT` ở quầy · ⬜ **chuyển điểm chặn sang lúc phát giải theo [D-23](./decisions.md)** (M1 Must) |
+| BIL-01 | Kích hoạt gói thủ công, hoá đơn thủ công | M1 | ✅ API (`/admin/orgs…` cho nhân viên Playora trong `PLATFORM_ADMIN_EMAILS`, có audit log) · ✅ UI back-office Studio `/admin`: tìm tổ chức, đổi gói + hạn + ghi chú, ghi hoá đơn; trang Gói & sử dụng có lịch sử hoá đơn, hướng dẫn chuyển khoản kèm mã VietQR theo kỳ `MONTHLY`/`YEARLY` |
+| BIL-02 | Quota theo gói (lượt đổi quà/tháng, số chương trình chạy) + watermark gói Free | M1 | ✅ Đã chuyển điểm chặn hạn mức sang lúc phát giải theo [D-23](./decisions.md) (`awardQuotaReached` ngừng phát giải mới và trả `lose` khi chạm trần 110%, **quầy luôn đổi được mã đã phát**); chặn phát hành/tiếp tục `PLAN_CAMPAIGN_LIMIT`; badge "Tạo bằng Playora"; trang Gói & sử dụng + banner cảnh báo 80%/100% |
 | BIL-03 | Tự thanh toán thuê bao qua PayOS (VietQR) | M2 | ⬜ |
 | BIL-04 | Credit OTP/ZNS | M3 | ⬜ |
 | BIL-05 | Hoá đơn điện tử tự động | M4 | ⬜ |
@@ -898,8 +898,8 @@ Giá: [business-model §3](../business/business-model.md).
 
 | ID | Yêu cầu | GĐ | Hiện trạng |
 |---|---|---|---|
-| ADM-01 | Danh sách tổ chức, gói, usage; impersonate có log | M1 | ✅ API danh sách/tìm tổ chức kèm gói + usage (`GET /admin/orgs`) · ✅ UI Studio `/admin` (404 với người không phải nhân viên) · ⬜ impersonate |
-| ADM-02 | Lịch chương trình sắp chạy (để chuẩn bị tải, hỗ trợ) | M1 | ⬜ |
+| ADM-01 | Danh sách tổ chức, gói, usage; impersonate có log | M1 | ✅ API danh sách/tìm tổ chức tối ưu SQL batch (`GET /admin/orgs`) + inspect tổ chức có audit (`POST /admin/orgs/:orgId/inspect`) · ✅ UI Studio `/admin` |
+| ADM-02 | Lịch chương trình sắp chạy (để chuẩn bị tải, hỗ trợ) | M1 | ✅ (`GET /admin/campaigns/upcoming` 14 ngày tới + tab trên `/admin`) |
 | ADM-03 | Quản lý mẫu/skin (bật/tắt, gán gói) | M2 | ⬜ |
 
 #### ADM-01 · Tổ chức và impersonate

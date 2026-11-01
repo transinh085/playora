@@ -1,6 +1,6 @@
 'use client';
 
-import { toCanvasPrizes } from '@playora/ui/campaign';
+import { type CanvasDoc, toCanvasPrizes } from '@playora/ui/campaign';
 import {
   Button,
   Card,
@@ -47,6 +47,7 @@ import { TableCard } from '@/components/table-card';
 import {
   type CampaignListItem,
   type CampaignStats,
+  useCampaign,
   useCampaigns,
   useCampaignsStats,
 } from '../../api';
@@ -83,6 +84,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const selectedFullCampaign = useCampaign(orgId, selectedCampaignId ?? '');
 
   const toggleSort = (key: Exclude<SortKey, null>) => {
     if (sortKey !== key) {
@@ -158,9 +160,14 @@ export function CampaignList({ orgId }: { orgId: string }) {
     return (aStart - bStart) * mul;
   });
 
-  const selectedCampaign = campaigns.find((c) => c.id === selectedCampaignId) ?? null;
+  const selectedCampaign =
+    selectedFullCampaign.data ?? campaigns.find((c) => c.id === selectedCampaignId) ?? null;
   const selectedPhase = selectedCampaign ? campaignPhase(selectedCampaign, now) : 'draft';
   const selectedStats = selectedCampaign ? statsById?.get(selectedCampaign.id) : undefined;
+  const selectedCoverScreen = selectedCampaign
+    ? ((selectedCampaign as { screens?: CanvasDoc }).screens?.cover ??
+      buildScreens(selectedCampaign.templateKey, selectedCampaign.skinKey).cover)
+    : null;
 
   if (rows.length === 0) {
     return (
@@ -384,7 +391,11 @@ export function CampaignList({ orgId }: { orgId: string }) {
                               style={{ backgroundColor: campaign.brand.primary }}
                             />
                             <Link
-                              href={routes.detail(campaign.id) as Route}
+                              href={
+                                (rowPhase === 'draft'
+                                  ? routes.edit(campaign.id)
+                                  : routes.detail(campaign.id)) as Route
+                              }
                               className="text-body-medium text-text-primary transition-colors hover:text-accent-600 hover:underline dark:hover:text-accent-400"
                             >
                               {campaign.name}
@@ -584,14 +595,13 @@ export function CampaignList({ orgId }: { orgId: string }) {
                     {/* Phone Mockup Canvas Preview */}
                     <div className="flex flex-col items-center justify-center rounded-2xl border border-separator-border bg-background-secondary-default/40 p-4">
                       <PhoneMockup size="xs">
-                        <FitScreen
-                          screen={
-                            buildScreens(selectedCampaign.templateKey, selectedCampaign.skinKey)
-                              .cover
-                          }
-                          brand={selectedCampaign.brand}
-                          prizes={toCanvasPrizes(selectedCampaign)}
-                        />
+                        {selectedCoverScreen && (
+                          <FitScreen
+                            screen={selectedCoverScreen}
+                            brand={selectedCampaign.brand}
+                            prizes={toCanvasPrizes(selectedCampaign)}
+                          />
+                        )}
                       </PhoneMockup>
                       <p className="mt-2.5 text-caption-1-regular text-text-tertiary">
                         {campaignPeriod(format, selectedCampaign)}
@@ -705,18 +715,37 @@ export function CampaignList({ orgId }: { orgId: string }) {
                   </Drawer.Body>
 
                   <Drawer.Footer className="gap-2 border-t border-separator-border pt-3">
-                    <Link href={routes.detail(selectedCampaign.id) as Route}>
-                      <Button variant="primary">
-                        <RiEyeLine className="size-4" />
-                        {t('openOps')}
-                      </Button>
-                    </Link>
-                    <Link href={routes.edit(selectedCampaign.id) as Route}>
-                      <Button variant="secondary">
-                        <RiPencilLine className="size-4" />
-                        {t('edit')}
-                      </Button>
-                    </Link>
+                    {selectedPhase === 'draft' ? (
+                      <>
+                        <Link href={routes.edit(selectedCampaign.id) as Route}>
+                          <Button variant="primary">
+                            <RiPencilLine className="size-4" />
+                            {t('edit')}
+                          </Button>
+                        </Link>
+                        <Link href={routes.detail(selectedCampaign.id) as Route}>
+                          <Button variant="secondary">
+                            <RiEyeLine className="size-4" />
+                            {t('openOps')}
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href={routes.detail(selectedCampaign.id) as Route}>
+                          <Button variant="primary">
+                            <RiEyeLine className="size-4" />
+                            {t('openOps')}
+                          </Button>
+                        </Link>
+                        <Link href={routes.edit(selectedCampaign.id) as Route}>
+                          <Button variant="secondary">
+                            <RiPencilLine className="size-4" />
+                            {t('edit')}
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                     <Button variant="ghost" onClick={() => setSelectedCampaignId(null)}>
                       Đóng
                     </Button>
@@ -759,7 +788,10 @@ function CampaignGridCard({
       {/* Cover Canvas Screen */}
       <div className="relative h-[180px] overflow-hidden bg-background-tertiary-default">
         <FitScreen
-          screen={buildScreens(campaign.templateKey, campaign.skinKey).cover}
+          screen={
+            (campaign as { screens?: CanvasDoc }).screens?.cover ??
+            buildScreens(campaign.templateKey, campaign.skinKey).cover
+          }
           brand={campaign.brand}
           prizes={toCanvasPrizes(campaign)}
         />

@@ -26,7 +26,17 @@ export const jobs = {
       organizationId: z.string(),
       eventId: z.uuid(),
       exportId: z.uuid(),
-      kind: z.enum(['players', 'winners', 'leads']),
+      kind: z.enum(['players', 'winners', 'leads', 'vouchers']),
+    }),
+  },
+  'daily.digest': {
+    queue: 'digest',
+    payload: z.object({
+      date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+      organizationId: z.string().optional(),
     }),
   },
 } as const;

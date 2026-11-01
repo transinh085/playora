@@ -79,6 +79,10 @@ const mockStats: Map<string, CampaignStats> = new Map([
 ]);
 
 mock.module('../../api', () => ({
+  useCampaign: () => ({
+    data: undefined,
+    isPending: false,
+  }),
   useCampaigns: () => ({
     data: mockCampaigns,
     isPending: false,
@@ -124,6 +128,9 @@ describe('CampaignList with HeroUI v3 Tabs & Table', () => {
     // Verify HeroUI v3 Table and rows
     expect(html).toContain('data-testid="campaign-table"');
     expect(html).toContain('data-testid="campaign-row"');
+    // Published campaign links to Operations detail, draft campaign links to Builder edit
+    expect(html).toContain('href="/orgs/org_1/campaigns/cmp_1"');
+    expect(html).toContain('href="/orgs/org_1/campaigns/cmp_2/edit"');
     // Verify no untranslated raw keys
     expect(html).not.toContain('campaigns.');
     expect(html).not.toContain('builderLab.');

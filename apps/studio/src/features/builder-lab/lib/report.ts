@@ -162,6 +162,7 @@ export function computePlaybookKeyMetric(
 export type ReportInsightKey =
   | 'busiestDayVisits'
   | 'busiestDayPlays'
+  | 'lowSampleNotice'
   | 'noActivityYet'
   | 'topChannelVisits'
   | 'topChannelPlays'
@@ -169,6 +170,7 @@ export type ReportInsightKey =
   | 'noChannelYet'
   | 'redemptionAndCostWithBudget'
   | 'redemptionAndCost'
+  | 'lowRedemptionPrize'
   | 'issuedPendingRedemption'
   | 'noPrizesIssuedYet';
 
@@ -205,7 +207,15 @@ export function buildReportInsights(
   const daysWithVisits = report.byDay.filter((d) => d.visits > 0);
   const daysWithPlays = report.byDay.filter((d) => d.plays > 0);
 
-  if (daysWithVisits.length > 0) {
+  if (report.visits > 0 && report.visits < 10) {
+    dayInsight = {
+      key: 'lowSampleNotice',
+      values: {
+        visits: report.visits,
+        plays: report.plays,
+      },
+    };
+  } else if (daysWithVisits.length > 0) {
     const best = daysWithVisits.reduce((acc, cur) =>
       cur.visits > acc.visits || (cur.visits === acc.visits && cur.plays >= acc.plays) ? cur : acc,
     );
@@ -281,7 +291,19 @@ export function buildReportInsights(
 
   // 3. Redemption rate vs issued & cost per visit vs budget insight
   let costInsight: ReportInsight;
-  if (report.issued > 0 && report.visits > 0) {
+  const lowRedemptionPrize = report.byPrize.find(
+    (p) => p.issued >= 30 && p.redeemed / p.issued < 0.5,
+  );
+  if (lowRedemptionPrize) {
+    costInsight = {
+      key: 'lowRedemptionPrize',
+      values: {
+        prize: lowRedemptionPrize.name,
+        issued: lowRedemptionPrize.issued,
+        rate: toPercent(lowRedemptionPrize.redeemed / lowRedemptionPrize.issued),
+      },
+    };
+  } else if (report.issued > 0 && report.visits > 0) {
     const rate = redemptionRatePercent(report);
     const costPerVisit = fmt.vnd(
       report.costPerVisitVnd ?? Math.round(report.prizeCostVnd / report.visits),
@@ -325,4 +347,116 @@ export function buildReportInsights(
   }
 
   return [dayInsight, channelInsight, costInsight];
+}
+
+export type PacingStatus = 'on_track' | 'exhausting_early' | 'surplus_remaining';
+
+export interface PacingMonitorResult {
+  status: PacingStatus;
+  totalDays: number;
+  elapsedDays: number;
+  remainingDays: number;
+  expectedDailyPlays: number;
+  actualDailyPlays: number;
+  totalStock: number;
+  issuedStock: number;
+  remainingStock: number;
+  dailyIssueRate: number;
+  /** Estimated days until prize stock runs out at the current issue pace (`null` when 0 issued). */
+  projectedDaysToExhaust: number | null;
+  /** Estimated unissued prizes left at `endsAt` at the current issue pace. */
+  projectedSurplusStock: number;
+  /** Suggested `overallWinRate` (0..1) to finish close to `endsAt`, when off-track by >20%. */
+  suggestedWinRate: number | null;
+  currentWinRate: number;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Computes the Prize Pacing Monitor (`PRZ-22`) for a campaign:
+ * - Compares actual daily plays vs expected traffic (`baselineGuestsPerDay ?? 50`).
+ * - Projects stock exhaustion or surplus at `endsAt`.
+ * - Recommends a 1-click win-rate adjustment when off-track by >20%.
+ */
+export function computePacingMonitor(
+  campaign: {
+    rules: {
+      mode: string;
+      overallWinRate: number;
+      startsAt: string;
+      endsAt: string;
+      baselineGuestsPerDay?: number | null;
+    };
+    prizes: ReadonlyArray<{ quantity: number }>;
+  },
+  report: Pick<CampaignReport, 'plays' | 'issued' | 'byPrize'>,
+  nowMs = Date.now(),
+): PacingMonitorResult {
+  const startMs = Date.parse(campaign.rules.startsAt);
+  const endMs = Date.parse(campaign.rules.endsAt);
+  const totalDays = Math.max(1, Math.ceil((endMs - startMs) / DAY_MS));
+  const rawElapsed = (Math.min(nowMs, endMs) - startMs) / DAY_MS;
+  const elapsedDays = Math.max(1, Math.min(totalDays, Math.ceil(rawElapsed)));
+  const remainingDays = Math.max(0, totalDays - elapsedDays);
+
+  const expectedDailyPlays =
+    campaign.rules.baselineGuestsPerDay && campaign.rules.baselineGuestsPerDay > 0
+      ? campaign.rules.baselineGuestsPerDay
+      : 50;
+  const actualDailyPlays = Math.round((report.plays / elapsedDays) * 10) / 10;
+
+  const totalStock =
+    report.byPrize.length > 0
+      ? report.byPrize.reduce((s, p) => s + p.quantity, 0)
+      : campaign.prizes.reduce((s, p) => s + p.quantity, 0);
+  const issuedStock =
+    report.byPrize.length > 0 ? report.byPrize.reduce((s, p) => s + p.issued, 0) : report.issued;
+  const remainingStock =
+    report.byPrize.length > 0
+      ? report.byPrize.reduce((s, p) => s + p.remaining, 0)
+      : Math.max(0, totalStock - issuedStock);
+
+  const dailyIssueRate = Math.round((issuedStock / elapsedDays) * 10) / 10;
+  const projectedDaysToExhaust =
+    dailyIssueRate > 0 ? Math.round((remainingStock / dailyIssueRate) * 10) / 10 : null;
+  const projectedAdditionalIssued = dailyIssueRate * remainingDays;
+  const projectedSurplusStock = Math.max(0, Math.round(remainingStock - projectedAdditionalIssued));
+
+  let status: PacingStatus = 'on_track';
+  if (totalStock > 0 && remainingDays > 0) {
+    if (projectedDaysToExhaust !== null && projectedDaysToExhaust < remainingDays * 0.8) {
+      status = 'exhausting_early';
+    } else if (projectedSurplusStock > totalStock * 0.2) {
+      status = 'surplus_remaining';
+    }
+  }
+
+  let suggestedWinRate: number | null = null;
+  if (status !== 'on_track' && remainingDays > 0 && remainingStock > 0) {
+    const ReferenceDailyPlays = actualDailyPlays > 0 ? actualDailyPlays : expectedDailyPlays;
+    const expectedRemainingPlays = Math.max(1, ReferenceDailyPlays * remainingDays);
+    const rawTarget = remainingStock / expectedRemainingPlays;
+    const clamped = Math.min(0.95, Math.max(0.05, Math.round(rawTarget * 100) / 100));
+    if (Math.abs(clamped - campaign.rules.overallWinRate) >= 0.02) {
+      suggestedWinRate = clamped;
+    }
+  }
+
+  return {
+    status,
+    totalDays,
+    elapsedDays,
+    remainingDays,
+    expectedDailyPlays,
+    actualDailyPlays,
+    totalStock,
+    issuedStock,
+    remainingStock,
+    dailyIssueRate,
+    projectedDaysToExhaust,
+    projectedSurplusStock,
+    suggestedWinRate,
+    currentWinRate: campaign.rules.overallWinRate,
+  };
 }

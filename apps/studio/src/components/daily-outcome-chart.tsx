@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart2 } from '@playora/ui/icons';
+import { useState } from 'react';
 
 export interface DailyOutcomePoint {
   day: string;
@@ -43,6 +44,7 @@ export function DailyOutcomeChart({
   data: readonly DailyOutcomePoint[];
   labels: DailyOutcomeChartLabels;
 }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const hasActivity = data.some((d) => d.plays > 0 || d.wins > 0 || d.visits > 0);
 
   if (data.length === 0 || !hasActivity) {
@@ -61,11 +63,15 @@ export function DailyOutcomeChart({
   const midVal = Math.ceil(maxVal / 2);
   const ticks = maxVal === 1 ? [0, 1] : [0, midVal, maxVal];
   const slotWidth = PLOT_W / data.length;
-  const groupWidth = Math.min(36, Math.max(6, slotWidth * 0.72));
-  const barGap = groupWidth >= 15 ? 2 : 0.5;
-  const barWidth = Math.max(1.5, (groupWidth - barGap * 2) / 3);
+  const isDense = data.length > 21;
+  const groupWidth = isDense
+    ? Math.max(4, slotWidth * 0.76)
+    : Math.min(36, Math.max(8, slotWidth * 0.72));
+  const barGap = groupWidth >= 15 ? 2 : 1;
+  const barWidth = isDense ? groupWidth : Math.max(2.5, (groupWidth - barGap * 2) / 3);
   const labelEvery = data.length > 12 ? Math.ceil(data.length / 8) : 1;
   const formatDay = labels.formatDay ?? defaultFormatDay;
+  const activePoint = activeIndex !== null ? (data[activeIndex] ?? null) : null;
 
   const yFor = (val: number) => PAD_TOP + PLOT_H - (val / maxVal) * PLOT_H;
   const hFor = (val: number) => (val > 0 ? Math.max(3, (val / maxVal) * PLOT_H) : 0);
@@ -90,17 +96,38 @@ export function DailyOutcomeChart({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-end gap-4 text-xs">
-        {series.map((s) => (
-          <div key={s.key} className="flex items-center gap-1.5">
-            <span
-              className="inline-block size-2.5 rounded-xs"
-              style={{ backgroundColor: s.color }}
-            />
-            <span className="text-muted-foreground">{s.label}:</span>
-            <span className="font-semibold text-foreground">{s.total}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+        {activePoint ? (
+          <div
+            data-testid="daily-chart-tooltip"
+            className="inline-flex flex-wrap items-center gap-3 rounded-lg border border-border/70 bg-surface-secondary/70 px-2.5 py-1 text-xs font-medium text-foreground"
+          >
+            <span className="font-semibold">{formatDay(activePoint.day)}</span>
+            <span>
+              {labels.plays}: <strong>{activePoint.plays}</strong>
+            </span>
+            <span>
+              {labels.wins}: <strong>{activePoint.wins}</strong>
+            </span>
+            <span>
+              {labels.visits}: <strong>{activePoint.visits}</strong>
+            </span>
           </div>
-        ))}
+        ) : (
+          <span />
+        )}
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {series.map((s) => (
+            <div key={s.key} className="flex items-center gap-1.5">
+              <span
+                className="inline-block size-2.5 rounded-xs"
+                style={{ backgroundColor: s.color }}
+              />
+              <span className="text-muted-foreground">{s.label}:</span>
+              <span className="font-semibold text-foreground">{s.total}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <svg
@@ -108,6 +135,7 @@ export function DailyOutcomeChart({
         className="w-full overflow-visible"
         role="img"
         aria-label={labels.ariaLabel}
+        onMouseLeave={() => setActiveIndex(null)}
       >
         {ticks.map((tick) => {
           const y = yFor(tick);
@@ -151,11 +179,27 @@ export function DailyOutcomeChart({
             : `${formatDay(point.day)} — ${labels.plays}: ${point.plays}, ${labels.wins}: ${point.wins}, ${labels.visits}: ${point.visits}`;
 
           return (
-            <g key={point.day} data-day={point.day}>
+            // biome-ignore lint/a11y/noStaticElementInteractions: SVG bar group supports hover and tap tooltip
+            <g
+              key={point.day}
+              data-day={point.day}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => setActiveIndex((prev) => (prev === index ? null : index))}
+              className="cursor-pointer"
+            >
               <title>{tooltipText}</title>
+              <rect
+                x={slotX}
+                y={PAD_TOP}
+                width={slotWidth}
+                height={PLOT_H}
+                fill={activeIndex === index ? 'currentColor' : 'transparent'}
+                className="text-border/20"
+                rx={3}
+              />
               {bars.map((bar, barIdx) => {
                 const h = hFor(bar.value);
-                const x = startX + barIdx * (barWidth + barGap);
+                const x = isDense ? startX : startX + barIdx * (barWidth + barGap);
                 const y = PAD_TOP + PLOT_H - h;
                 return (
                   <rect

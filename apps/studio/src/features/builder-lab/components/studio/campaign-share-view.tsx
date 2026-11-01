@@ -14,15 +14,18 @@ import {
 } from '@playora/ui/components';
 import {
   AlertTriangle,
+  Check,
   Copy,
   Download,
   ExternalLink,
   Play,
   Plus,
   Printer,
+  Store,
   Trash2,
   Users,
 } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
@@ -31,8 +34,9 @@ import { Caption } from '@/components/caption';
 import { IconTile } from '@/components/icon-tile';
 import { PageHeader } from '@/components/page-header';
 import { CreateCounterDeviceDialog } from '@/features/members/components/counter-devices-card';
+import { InviteMemberDialog } from '@/features/members/components/invite-member-dialog';
 import { PLAY_URL } from '@/lib/env';
-import { type Campaign, useCampaign, useCampaignReport } from '../../api';
+import { type Campaign, useCampaign, useCampaignReport, useUpdateCampaign } from '../../api';
 import {
   buildPlayerLink,
   type CustomChannel,
@@ -49,6 +53,28 @@ interface ChannelItem {
   key: string;
   name: string;
   isPreset: boolean;
+}
+
+type ChecklistKey = 'qrPrinted' | 'staffReady' | 'testPlayDone' | 'redeemReady';
+const CHECKLIST_KEYS: readonly ChecklistKey[] = [
+  'qrPrinted',
+  'staffReady',
+  'testPlayDone',
+  'redeemReady',
+];
+
+function mergeCustomChannels(
+  serverChannels: CustomChannel[] | undefined,
+  localChannels: CustomChannel[],
+): CustomChannel[] {
+  const byKey = new Map<string, CustomChannel>();
+  for (const ch of localChannels) {
+    if (ch.key && ch.label) byKey.set(ch.key, ch);
+  }
+  for (const ch of serverChannels ?? []) {
+    if (ch.key && ch.label) byKey.set(ch.key, ch);
+  }
+  return [...byKey.values()];
 }
 
 export function CampaignShareView({
@@ -68,17 +94,41 @@ export function CampaignShareView({
 
   const campaignQuery = useCampaign(orgId, campaignId);
   const reportQuery = useCampaignReport(orgId, campaignId);
+  const updateCampaign = useUpdateCampaign(orgId, campaignId);
 
   const [customChannels, setCustomChannels] = useState<CustomChannel[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
   const [newChannelKey, setNewChannelKey] = useState('');
+  const [checkedItems, setCheckedItems] = useState<Record<ChecklistKey, boolean>>({
+    qrPrinted: false,
+    staffReady: false,
+    testPlayDone: false,
+    redeemReady: false,
+  });
 
   useEffect(() => {
     if (campaignQuery.data?.id) {
-      setCustomChannels(loadCustomChannels(campaignQuery.data.id));
+      const local = loadCustomChannels(campaignQuery.data.id);
+      const merged = mergeCustomChannels(campaignQuery.data.rules.customChannels, local);
+      setCustomChannels(merged);
+      saveCustomChannels(campaignQuery.data.id, merged);
+
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = window.localStorage.getItem(
+            `playora.launchChecklist.${campaignQuery.data.id}`,
+          );
+          if (raw) {
+            const parsed = JSON.parse(raw) as Partial<Record<ChecklistKey, boolean>>;
+            setCheckedItems((prev) => ({ ...prev, ...parsed }));
+          }
+        } catch {
+          // ignore localStorage read errors
+        }
+      }
     }
-  }, [campaignQuery.data?.id]);
+  }, [campaignQuery.data?.id, campaignQuery.data?.rules.customChannels]);
 
   if (campaignQuery.isPending) {
     return (
@@ -96,6 +146,23 @@ export function CampaignShareView({
   const campaign = campaignQuery.data;
   const isDraft = campaign.status === 'draft';
 
+  const toggleChecklistItem = (key: ChecklistKey) => {
+    setCheckedItems((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(
+            `playora.launchChecklist.${campaign.id}`,
+            JSON.stringify(next),
+          );
+        } catch {
+          // ignore localStorage write errors
+        }
+      }
+      return next;
+    });
+  };
+
   const allChannels: ChannelItem[] = [
     ...PRESET_CHANNELS.map((p) => ({
       key: p.key,
@@ -109,6 +176,17 @@ export function CampaignShareView({
     })),
   ];
 
+  const persistChannels = (updated: CustomChannel[]) => {
+    setCustomChannels(updated);
+    saveCustomChannels(campaign.id, updated);
+    updateCampaign.mutate({
+      rules: {
+        ...campaign.rules,
+        customChannels: updated,
+      },
+    });
+  };
+
   const handleAddChannel = () => {
     const name = newChannelName.trim();
     const key = newChannelKey.trim();
@@ -120,8 +198,7 @@ export function CampaignShareView({
     }
 
     const updated = [...customChannels, { key, label: name }];
-    setCustomChannels(updated);
-    saveCustomChannels(campaign.id, updated);
+    persistChannels(updated);
     toast.success(t('channels.addTitle'));
     setIsAddModalOpen(false);
     setNewChannelName('');
@@ -130,8 +207,7 @@ export function CampaignShareView({
 
   const handleDeleteCustomChannel = (key: string) => {
     const updated = customChannels.filter((c) => c.key !== key);
-    setCustomChannels(updated);
-    saveCustomChannels(campaign.id, updated);
+    persistChannels(updated);
     toast.success(tCommon('delete'));
   };
 
@@ -172,6 +248,7 @@ export function CampaignShareView({
   });
 
   const maxPlays = Math.max(1, ...reportTableData.map((r) => r.plays));
+  const completedCount = CHECKLIST_KEYS.filter((k) => checkedItems[k]).length;
 
   return (
     <div className="flex flex-col gap-6" data-testid="campaign-share-page">
@@ -225,6 +302,85 @@ export function CampaignShareView({
         </Alert>
       )}
 
+      {/* Launch Readiness Checklist (BLD-29) */}
+      <Card
+        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+        data-testid="launch-checklist"
+      >
+        <Card.Header className="flex flex-wrap items-center justify-between gap-2 border-b border-separator-border px-5 py-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Card.Title className="m-0 text-body-medium text-text-primary">
+                {t('checklist.title')}
+              </Card.Title>
+              <Chip
+                variant="soft"
+                color={completedCount === CHECKLIST_KEYS.length ? 'success' : 'default'}
+                size="sm"
+              >
+                {completedCount}/{CHECKLIST_KEYS.length}
+              </Chip>
+            </div>
+            <Card.Description className="text-caption-1-regular text-text-secondary">
+              {t('checklist.subtitle')}
+            </Card.Description>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
+              <Button variant="secondary" size="sm">
+                <Play className="size-3.5" />
+                {tc('rehearse')}
+              </Button>
+            </a>
+            <Link href={routes.redeem}>
+              <Button variant="secondary" size="sm">
+                <Store className="size-3.5" />
+                {t('checklist.openRedeem')}
+              </Button>
+            </Link>
+          </div>
+        </Card.Header>
+        <Card.Content className="p-0">
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {CHECKLIST_KEYS.map((key) => {
+              const checked = checkedItems[key];
+              return (
+                <li
+                  key={key}
+                  className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-background-secondary-default/40"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleChecklistItem(key)}
+                    className="flex flex-1 cursor-pointer items-center gap-3 border-0 bg-transparent p-0 text-left"
+                    data-testid={`launch-checklist-item-${key}`}
+                  >
+                    <span
+                      className={cx(
+                        'flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors',
+                        checked
+                          ? 'border-teal-600 bg-teal-600 text-white'
+                          : 'border-border-button-default bg-background-primary-default',
+                      )}
+                    >
+                      {checked && <Check className="size-3.5" />}
+                    </span>
+                    <span
+                      className={cx(
+                        'text-body-2-regular',
+                        checked ? 'line-through text-text-secondary' : 'text-text-primary',
+                      )}
+                    >
+                      {t(`checklist.${key}`)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Card.Content>
+      </Card>
+
       {/* Preset and Custom Channels */}
       <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
         <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-4">
@@ -236,7 +392,11 @@ export function CampaignShareView({
               {t('channels.hint')}
             </Card.Description>
           </div>
-          <Button size="sm" onClick={() => setIsAddModalOpen(true)}>
+          <Button
+            size="sm"
+            onClick={() => setIsAddModalOpen(true)}
+            data-testid="add-custom-channel-button"
+          >
             <Plus className="size-4" />
             {t('channels.add')}
           </Button>
@@ -275,6 +435,10 @@ export function CampaignShareView({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <CreateCounterDeviceDialog orgId={orgId} />
+            <InviteMemberDialog
+              orgId={orgId}
+              assignableRoles={['redeemer', 'operator', 'editor', 'viewer']}
+            />
             <Link href={`/orgs/${orgId}/settings` as Route}>
               <Button variant="secondary" size="sm">
                 <ExternalLink className="size-4" />
@@ -519,7 +683,7 @@ function ChannelCard({
             ref={qrContainerRef}
             className="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-border-button-default bg-white p-2 shadow-2xs"
           >
-            <QRCodeSvg value={playerLink} size={80} />
+            <QRCodeSvg value={playerLink} size={80} color="#111827" />
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col gap-2">

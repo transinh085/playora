@@ -210,6 +210,7 @@
     "CAMPAIGN_RUNNING": "Chương trình đang chạy hoặc đã lên lịch. Hãy tạm dừng hoặc kết thúc trước khi xoá",
     "INVALID_PRIZE_RULES": "Luật phát quà chưa hợp lệ, vui lòng kiểm tra lại",
     "PRIZE_QUANTITY_BELOW_ISSUED": "Số lượng quà không được ít hơn số đã phát",
+    "PRIZE_UNDER_ISSUED": "Số lượng quà sau điều chỉnh không được ít hơn số đã phát",
     "CAPTCHA_REQUIRED": "Vui lòng xác minh bạn không phải người máy",
     "VOUCHER_NOT_FOUND": "Không tìm thấy mã đổi quà",
     "VOUCHER_ALREADY_REDEEMED": "Mã này đã được đổi quà",
@@ -1459,7 +1460,28 @@
       "title": "Tồn kho quà",
       "edit": "Sửa quà",
       "left": "còn {left}/{total}",
-      "issued": "Đã phát {issued} · đã đổi {redeemed}"
+      "issued": "Đã phát {issued} · đã đổi {redeemed}",
+      "adjust": "+ Điều chỉnh tồn kho",
+      "adjustTitle": "Điều chỉnh tồn kho · {prize}",
+      "adjustDelta": "Số lượng thay đổi (+ thêm, - bớt)",
+      "adjustHint": "Hiện tại: còn {remaining}/{quantity} (đã phát {issued}). Không thể giảm thấp hơn số đã phát.",
+      "adjusted": "Đã cập nhật tồn kho quà",
+      "lowRedemptionWarning": "Ít khách đổi quà ({rate}%)",
+      "exportCsv": "Xuất CSV",
+      "exported": "Đã tải xuống tệp CSV"
+    },
+    "pacing": {
+      "title": "Nhịp phát quà & Dự báo tồn kho",
+      "actualVsExpected": "Thực tế {actual} lượt/ngày · Dự kiến {expected} lượt/ngày ({percent}%)",
+      "actualOnly": "Thực tế trung bình {actual} lượt/ngày",
+      "statusOnTrack": "Đúng tiến độ",
+      "statusExhaustingEarly": "Sắp cạn quà sớm",
+      "statusSurplusRemaining": "Dự báo dư nhiều quà",
+      "projectionExhaust": "Với tốc độ hiện tại, kho quà dự kiến hết sau ~{days} ngày (trước khi kết thúc).",
+      "projectionSurplus": "Dự kiến còn dư ~{surplus} phần quà khi kết thúc chương trình.",
+      "projectionOnTrack": "Tốc độ phát quà khớp tốt với thời gian còn lại ({daysLeft} ngày).",
+      "adjustWinRateCta": "Đặt tỷ lệ trúng thành {rate}%",
+      "winRateAdjusted": "Đã cập nhật tỷ lệ trúng thành {rate}%"
     },
     "recent": {
       "title": "Lượt chơi gần đây",
@@ -1471,7 +1493,21 @@
       "player": "Người chơi",
       "outcome": "Kết quả",
       "prize": "Quà",
-      "code": "Mã đổi quà"
+      "code": "Mã đổi quà",
+      "directoryTab": "Danh sách người chơi",
+      "historyTab": "Lịch sử lượt chơi",
+      "search": "Tìm theo tên hoặc số điện thoại...",
+      "phone": "Số điện thoại",
+      "playsCount": "Lượt chơi",
+      "winsCount": "Trúng quà",
+      "consent": "Nhận tin KM",
+      "consentYes": "Đồng ý",
+      "consentNo": "Không",
+      "joinedAt": "Tham gia lúc",
+      "channel": "Kênh",
+      "emptyPlayers": "Chưa có người chơi nào.",
+      "loadMore": "Tải thêm",
+      "exportCsv": "Xuất CSV"
     },
     "outcome": {
       "win": "Trúng",
@@ -1537,7 +1573,18 @@
         "back": "Quay lại Chia sẻ & QR",
         "foldHere": "Nếp gấp / Fold here",
         "draftNotice": "Chương trình đang ở trạng thái Nháp. Mã QR sẽ chỉ hoạt động cho khách sau khi phát hành.",
-        "poweredBy": "Phát hành qua Playora"
+        "poweredBy": "Phát hành qua Playora",
+        "topPrizes": "Quà tặng hấp dẫn",
+        "glueTab": "Mép dán / Gấp đáy để dựng đứng trên bàn"
+      },
+      "checklist": {
+        "title": "Sẵn sàng mở bán",
+        "subtitle": "4 bước kiểm tra nhanh tại quán trước khi đón khách",
+        "qrPrinted": "Đã tải mã QR hoặc mở mẫu in Standee / Tent card đặt tại quầy",
+        "staffReady": "Đã mời nhân viên quầy hoặc ghép nối máy quầy đổi quà",
+        "testPlayDone": "Đã chơi thử minigame trên điện thoại để kiểm tra quà & thể lệ",
+        "redeemReady": "Đã mở sẵn màn hình Quầy đổi quà cho thu ngân",
+        "openRedeem": "Mở Quầy đổi quà"
       }
     },
     "vouchers": {
@@ -1548,12 +1595,19 @@
       "issued": "Phát lúc",
       "status": "Trạng thái",
       "redeemed": "Đã đổi",
-      "pending": "Chưa đổi"
+      "pending": "Chưa đổi",
+      "expired": "Hết hạn",
+      "void": "Đã huỷ",
+      "expiresAt": "Hạn đổi",
+      "search": "Tìm theo mã quà hoặc tên người chơi...",
+      "filterAll": "Tất cả",
+      "loadMore": "Tải thêm"
     },
     "settings": {
       "scheduleTitle": "Thời gian kết thúc",
       "scheduleHint": "Gia hạn bằng cách dời giờ kết thúc. Dữ liệu người chơi và mã quà được giữ nguyên.",
       "endsAt": "Kết thúc lúc",
+      "saveExtension": "Lưu gia hạn",
       "extended": "Đã đổi giờ kết thúc",
       "baselineTitle": "Khách ngày thường (so sánh hiệu quả)",
       "baselineHint": "Ngày thường quán có khoảng bao nhiêu khách/ngày? Dùng để tính % khách tới quầy so với ngày thường.",
@@ -1806,8 +1860,11 @@
         "redemptionAndCostWithBudget": "Tỷ lệ đổi quà đạt {rate}% ({visits}/{issued} mã đã phát); chi phí {costPerVisit}/khách, đã dùng {budgetPercent}% ngân sách ({prizeCost} / {budget}).",
         "redemptionAndCost": "Tỷ lệ đổi quà đạt {rate}% ({visits}/{issued} mã đã phát); tổng chi phí quà đã đổi {prizeCost} ({costPerVisit}/khách tới quầy).",
         "issuedPendingRedemption": "Đã phát {issued} mã quà (trị giá {outstandingCost}) nhưng chưa có khách đổi tại quầy.",
-        "noPrizesIssuedYet": "Chưa phát mã quà nào. Chi phí quà chỉ tính khi khách mang mã tới quầy đổi quà."
-      }
+        "noPrizesIssuedYet": "Chưa phát mã quà nào. Chi phí quà chỉ tính khi khách mang mã tới quầy đổi quà.",
+        "lowSampleNotice": "Số liệu ban đầu ({visits} lượt tới quầy, {plays} lượt chơi) — nhận xét xu hướng sẽ chính xác hơn từ 10 lượt đổi quà trở lên.",
+        "lowRedemptionPrize": "Quà “{prize}” đã phát {issued} mã nhưng mới đổi {rate}% — cân nhắc đổi sang quà hấp dẫn hơn (topping, upsize, giảm bill)."
+      },
+      "printSubtitle": "Báo cáo kết quả 1 trang A4 · {shop}"
     }
   },
   "billing": {
@@ -1876,7 +1933,10 @@
     "invoiceAmount": "Số tiền",
     "invoicePaidAt": "Ngày thanh toán",
     "invoiceReference": "Mã tham chiếu",
-    "periodRange": "{start} – {end}"
+    "periodRange": "{start} – {end}",
+    "ownerOnlyUpgrade": "Chỉ chủ sở hữu hoặc quản trị viên của tổ chức mới xem được thông tin chuyển khoản nâng cấp gói.",
+    "vietQrAlt": "Mã VietQR thanh toán gói {plan}",
+    "scanVietQrHint": "Mở ứng dụng ngân hàng bất kỳ, quét mã VietQR để tự điền đúng số tiền và nội dung chuyển khoản."
   },
   "admin": {
     "title": "Back-office",
@@ -1910,7 +1970,20 @@
     "save": "Lưu",
     "cancel": "Huỷ",
     "saved": "Đã cập nhật gói của {org}",
-    "invoiceSaved": "Đã ghi hoá đơn và kích hoạt gói cho {org}"
+    "invoiceSaved": "Đã ghi hoá đơn và kích hoạt gói cho {org}",
+    "tabs": {
+      "orgs": "Tổ chức ({count})",
+      "upcoming": "Chiến dịch 14 ngày tới ({count})"
+    },
+    "inspectOrg": "Xem tổ chức",
+    "inspectedToast": "Đã mở chế độ xem hỗ trợ (có ghi audit log) cho {org}",
+    "upcomingTitle": "Chiến dịch đang chạy & sắp mở trong 14 ngày tới",
+    "upcomingEmpty": "Không có chiến dịch nào chạy hoặc bắt đầu trong 14 ngày tới.",
+    "upcomingCampaign": "Chiến dịch",
+    "upcomingSchedule": "Lịch chạy",
+    "upcomingTraffic": "Dự kiến khách/ngày",
+    "upcomingStock": "Tồn kho quà",
+    "upcomingPlays": "Lượt chơi"
   },
   "events": {
     "title": "Chương trình",

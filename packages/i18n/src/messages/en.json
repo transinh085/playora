@@ -210,6 +210,7 @@
     "CAMPAIGN_RUNNING": "This campaign is live or scheduled. Pause or end it before deleting",
     "INVALID_PRIZE_RULES": "The prize rules are invalid, please check them",
     "PRIZE_QUANTITY_BELOW_ISSUED": "Prize quantity cannot be lower than the number already issued",
+    "PRIZE_UNDER_ISSUED": "Adjusted prize stock cannot be lower than the number already issued",
     "CAPTCHA_REQUIRED": "Please confirm you are not a robot",
     "VOUCHER_NOT_FOUND": "Voucher code not found",
     "VOUCHER_ALREADY_REDEEMED": "This code has already been redeemed",
@@ -1459,7 +1460,28 @@
       "title": "Prize stock",
       "edit": "Edit prizes",
       "left": "{left}/{total} left",
-      "issued": "{issued} issued · {redeemed} redeemed"
+      "issued": "{issued} issued · {redeemed} redeemed",
+      "adjust": "+ Adjust stock",
+      "adjustTitle": "Adjust stock · {prize}",
+      "adjustDelta": "Quantity delta (+ add, - reduce)",
+      "adjustHint": "Current: {remaining}/{quantity} left ({issued} issued). Cannot reduce below issued count.",
+      "adjusted": "Updated prize stock",
+      "lowRedemptionWarning": "Low redemption ({rate}%)",
+      "exportCsv": "Export CSV",
+      "exported": "CSV file downloaded"
+    },
+    "pacing": {
+      "title": "Prize Pacing & Stock Forecast",
+      "actualVsExpected": "Actual {actual} plays/day · Expected {expected} plays/day ({percent}%)",
+      "actualOnly": "Actual average {actual} plays/day",
+      "statusOnTrack": "On track",
+      "statusExhaustingEarly": "Running out early",
+      "statusSurplusRemaining": "Surplus remaining",
+      "projectionExhaust": "At current pace, prize stock is projected to run out in ~{days} days (before campaign ends).",
+      "projectionSurplus": "Projected ~{surplus} prizes remaining when the campaign ends.",
+      "projectionOnTrack": "Prize pacing aligns well with remaining schedule ({daysLeft} days left).",
+      "adjustWinRateCta": "Set win rate to {rate}%",
+      "winRateAdjusted": "Updated win rate to {rate}%"
     },
     "recent": {
       "title": "Recent plays",
@@ -1471,7 +1493,21 @@
       "player": "Player",
       "outcome": "Result",
       "prize": "Prize",
-      "code": "Code"
+      "code": "Code",
+      "directoryTab": "Players directory",
+      "historyTab": "Play history",
+      "search": "Search by name or phone number...",
+      "phone": "Phone",
+      "playsCount": "Plays",
+      "winsCount": "Wins",
+      "consent": "Marketing consent",
+      "consentYes": "Opted in",
+      "consentNo": "No",
+      "joinedAt": "Joined",
+      "channel": "Channel",
+      "emptyPlayers": "No players yet.",
+      "loadMore": "Load more",
+      "exportCsv": "Export CSV"
     },
     "outcome": {
       "win": "Won",
@@ -1537,7 +1573,18 @@
         "back": "Back to Share & QR",
         "foldHere": "Fold here",
         "draftNotice": "This campaign is currently in Draft status. The QR code will only work for guests after publishing.",
-        "poweredBy": "Powered by Playora"
+        "poweredBy": "Powered by Playora",
+        "topPrizes": "Featured prizes",
+        "glueTab": "Base fold tab — fold & tape to stand on table"
+      },
+      "checklist": {
+        "title": "Ready to launch",
+        "subtitle": "4 quick in-store checks before welcoming guests",
+        "qrPrinted": "Downloaded QR code or opened printable Standee / Tent card for the counter",
+        "staffReady": "Invited counter staff or paired a counter device",
+        "testPlayDone": "Played a test round on a phone to verify prizes & rules",
+        "redeemReady": "Opened the Counter Redemption desk for cashiers",
+        "openRedeem": "Open Redemption Desk"
       }
     },
     "vouchers": {
@@ -1548,12 +1595,19 @@
       "issued": "Issued",
       "status": "Status",
       "redeemed": "Redeemed",
-      "pending": "Not redeemed"
+      "pending": "Not redeemed",
+      "expired": "Expired",
+      "void": "Void",
+      "expiresAt": "Expires",
+      "search": "Search by voucher code or player name...",
+      "filterAll": "All",
+      "loadMore": "Load more"
     },
     "settings": {
       "scheduleTitle": "End time",
       "scheduleHint": "Extend by moving the end time. Players and codes are kept.",
       "endsAt": "Ends at",
+      "saveExtension": "Save extension",
       "extended": "End time updated",
       "baselineTitle": "Normal-day guests (baseline comparison)",
       "baselineHint": "How many guests visit on a normal day? Used to compare counter visits/day against your baseline.",
@@ -1806,8 +1860,11 @@
         "redemptionAndCostWithBudget": "Redemption rate is {rate}% ({visits}/{issued} issued); {costPerVisit} per visit, using {budgetPercent}% of budget ({prizeCost} / {budget}).",
         "redemptionAndCost": "Redemption rate is {rate}% ({visits}/{issued} issued); total redeemed prize cost is {prizeCost} ({costPerVisit} per visit).",
         "issuedPendingRedemption": "{issued} prize codes issued (worth {outstandingCost}), waiting for guests to redeem at the counter.",
-        "noPrizesIssuedYet": "No prize codes issued yet. Prize cost is only counted when guests redeem their code at the counter."
-      }
+        "noPrizesIssuedYet": "No prize codes issued yet. Prize cost is only counted when guests redeem their code at the counter.",
+        "lowSampleNotice": "Early sample ({visits} counter visits, {plays} plays) — trend insights become more reliable after 10+ redemptions.",
+        "lowRedemptionPrize": "Prize “{prize}” has {issued} codes issued with only {rate}% redeemed — consider swapping to a higher-appeal F&B reward."
+      },
+      "printSubtitle": "1-page A4 Outcome Report · {shop}"
     }
   },
   "billing": {
@@ -1876,7 +1933,10 @@
     "invoiceAmount": "Amount",
     "invoicePaidAt": "Paid on",
     "invoiceReference": "Reference",
-    "periodRange": "{start} – {end}"
+    "periodRange": "{start} – {end}",
+    "ownerOnlyUpgrade": "Only organization owners or admins can view upgrade payment details.",
+    "vietQrAlt": "VietQR payment code for {plan} plan",
+    "scanVietQrHint": "Scan the VietQR code with any banking app to auto-fill the amount and transfer memo."
   },
   "admin": {
     "title": "Back-office",
@@ -1910,7 +1970,20 @@
     "save": "Save",
     "cancel": "Cancel",
     "saved": "Updated the plan of {org}",
-    "invoiceSaved": "Recorded the invoice and activated the plan for {org}"
+    "invoiceSaved": "Recorded the invoice and activated the plan for {org}",
+    "tabs": {
+      "orgs": "Organizations ({count})",
+      "upcoming": "Upcoming 14d campaigns ({count})"
+    },
+    "inspectOrg": "Inspect org",
+    "inspectedToast": "Opened read-only support view (audited) for {org}",
+    "upcomingTitle": "Campaigns running or starting in the next 14 days",
+    "upcomingEmpty": "No campaigns running or starting in the next 14 days.",
+    "upcomingCampaign": "Campaign",
+    "upcomingSchedule": "Schedule",
+    "upcomingTraffic": "Expected daily plays",
+    "upcomingStock": "Prize stock",
+    "upcomingPlays": "Plays"
   },
   "events": {
     "title": "Campaigns",

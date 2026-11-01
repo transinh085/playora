@@ -4,6 +4,7 @@ import type { CampaignReport } from '@playora/contracts';
 import {
   buildReportInsights,
   computeBaselineComparison,
+  computePacingMonitor,
   computePlaybookKeyMetric,
   dayWeekday,
   formatCostPerVisitMetric,
@@ -244,5 +245,100 @@ describe('buildReportInsights', () => {
       { key: 'noChannelYet' },
       { key: 'noPrizesIssuedYet' },
     ]);
+  });
+
+  test('guards low sample (<10 visits) and flags low-redemption prizes (PLB-10)', () => {
+    const lowSample: CampaignReport = {
+      ...sampleReport,
+      visits: 5,
+      plays: 20,
+      byPrize: [
+        {
+          prizeId: 'p1',
+          name: 'Voucher giảm 5k',
+          valueVnd: 5_000,
+          quantity: 100,
+          issued: 40,
+          redeemed: 10,
+          remaining: 60,
+        },
+      ],
+    };
+    const insights = buildReportInsights(lowSample, fmt);
+    expect(insights[0]).toEqual({
+      key: 'lowSampleNotice',
+      values: { visits: 5, plays: 20 },
+    });
+    expect(insights[2]).toEqual({
+      key: 'lowRedemptionPrize',
+      values: { prize: 'Voucher giảm 5k', issued: 40, rate: 25 },
+    });
+  });
+});
+
+describe('computePacingMonitor (PRZ-22)', () => {
+  const baseCampaign = {
+    rules: {
+      mode: 'overall_win_rate',
+      overallWinRate: 0.3,
+      startsAt: '2026-02-01T00:00:00.000Z',
+      endsAt: '2026-02-11T00:00:00.000Z', // 10 days
+      baselineGuestsPerDay: 50,
+    },
+    prizes: [{ quantity: 100 }],
+  };
+
+  test('detects exhausting_early when daily issue pace depletes stock before 80% of remaining days', () => {
+    // 2 days elapsed, 8 days left; 60 issued (30/day), 40 remaining -> exhausts in 1.3 days (< 6.4 days)
+    const nowMs = Date.parse('2026-02-03T00:00:00.000Z');
+    const result = computePacingMonitor(
+      baseCampaign,
+      {
+        plays: 120,
+        issued: 60,
+        byPrize: [
+          {
+            prizeId: 'p1',
+            name: 'Free Topping',
+            valueVnd: 10_000,
+            quantity: 100,
+            issued: 60,
+            redeemed: 30,
+            remaining: 40,
+          },
+        ],
+      },
+      nowMs,
+    );
+    expect(result.status).toBe('exhausting_early');
+    expect(result.projectedDaysToExhaust).toBe(1.3);
+    expect(result.suggestedWinRate).toBeLessThan(baseCampaign.rules.overallWinRate);
+  });
+
+  test('detects surplus_remaining when >20% stock will remain unissued at endsAt', () => {
+    // 5 days elapsed, 5 days left; only 10 issued (2/day), 90 remaining -> 80 surplus (> 20)
+    const nowMs = Date.parse('2026-02-06T00:00:00.000Z');
+    const result = computePacingMonitor(
+      baseCampaign,
+      {
+        plays: 250,
+        issued: 10,
+        byPrize: [
+          {
+            prizeId: 'p1',
+            name: 'Free Topping',
+            valueVnd: 10_000,
+            quantity: 100,
+            issued: 10,
+            redeemed: 8,
+            remaining: 90,
+          },
+        ],
+      },
+      nowMs,
+    );
+    expect(result.status).toBe('surplus_remaining');
+    expect(result.projectedSurplusStock).toBe(80);
+    expect(result.suggestedWinRate).toBeGreaterThan(baseCampaign.rules.overallWinRate);
   });
 });

@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouteQuery } from '@playora/api-client/react';
+import { meApi } from '@playora/contracts';
 import { Button, Card, Chip, ProgressBar, Skeleton } from '@playora/ui/components';
 import {
   Coins,
@@ -9,6 +11,7 @@ import {
   Repeat,
   Target,
   TicketCheck,
+  TriangleAlert,
   Wallet,
 } from '@playora/ui/icons';
 import Link from 'next/link';
@@ -19,6 +22,7 @@ import { IconTile } from '@/components/icon-tile';
 import { MetricGrid } from '@/components/metric-card';
 import { PageHeader } from '@/components/page-header';
 import { QueryError } from '@/components/query-error';
+import { api } from '@/lib/api';
 import { type Campaign, type CampaignReport, useCampaign, useCampaignReport } from '../../api';
 import { campaignPhase } from '../../lib/phase';
 import {
@@ -492,6 +496,9 @@ export function PrizesOutcomeCard({
           <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
             {rows.map((row) => {
               const percent = row.quantity ? Math.round((row.remaining / row.quantity) * 100) : 0;
+              const redemptionRate =
+                row.issued > 0 ? Math.round((row.redeemed / row.issued) * 100) : 0;
+              const isLowRedemption = row.issued >= 30 && row.redeemed / row.issued < 0.5;
               return (
                 <li key={row.prizeId} className="flex flex-col gap-2 px-5 py-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
@@ -532,6 +539,7 @@ export function PrizesOutcomeCard({
                         issued: format.number(row.issued),
                         redeemed: format.number(row.redeemed),
                       })}
+                      {row.issued > 0 ? ` (${redemptionRate}%)` : ''}
                     </span>
                     {showRedeemedCost && (
                       <span className="font-medium tabular-nums text-text-primary">
@@ -539,6 +547,14 @@ export function PrizesOutcomeCard({
                       </span>
                     )}
                   </div>
+                  {isLowRedemption && (
+                    <div data-testid="low-redemption-warning">
+                      <Chip variant="soft" color="warning" size="sm">
+                        <TriangleAlert className="mr-1 size-3.5" />
+                        {t('stock.lowRedemptionWarning', { rate: redemptionRate })}
+                      </Chip>
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -561,6 +577,8 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   const locale = useLocale();
   const now = useNow({ updateInterval: 60_000 }).getTime();
   const campaignQuery = useCampaign(orgId, campaignId);
+  const myOrgs = useRouteQuery(api, meApi.orgs, {}, { retry: false });
+  const orgName = myOrgs.data?.items.find((o) => o.id === orgId)?.name ?? 'Playora';
   const phase = campaignQuery.data ? campaignPhase(campaignQuery.data, now) : 'draft';
   const reportQuery = useCampaignReport(orgId, campaignId, {
     refetchInterval: phase === 'live' ? 30_000 : undefined,
@@ -600,7 +618,26 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   });
 
   return (
-    <div className="flex flex-col gap-5" data-testid="campaign-one-page-report">
+    <div className="flex flex-col gap-5 print:gap-3" data-testid="campaign-one-page-report">
+      {/* Dedicated Print Header (visible in @media print for 1-page A4 report, PLB-04) */}
+      <div
+        className="hidden items-center justify-between border-b border-zinc-200 pb-2.5 print:flex"
+        data-testid="report-print-header"
+      >
+        <div>
+          <p className="m-0 text-xs font-semibold uppercase tracking-wider text-teal-700">
+            {tr('printSubtitle', { shop: orgName })}
+          </p>
+          <h1 className="m-0 text-lg font-bold text-zinc-900">{campaign.name}</h1>
+        </div>
+        <div className="text-right text-xs text-zinc-600">
+          <div>{campaignPeriod(format, campaign)}</div>
+          <div>
+            {tl(`templates.${campaign.templateKey}`)} · {tl(`skins.${campaign.skinKey}`)}
+          </div>
+        </div>
+      </div>
+
       <div data-print-hide>
         <PageHeader
           title={tr('pageTitle', { name: campaign.name })}

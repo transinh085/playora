@@ -122,6 +122,21 @@ export const CampaignRules = z
     baselineGuestsPerDay: z.number().int().min(1).max(100_000).nullable().optional(),
     /** Optional Zalo Official Account link shown on result and voucher screens (RET-07). */
     zaloOaUrl: ZaloOaUrl.nullable().optional(),
+    /** Custom share channels saved with the campaign (EVT-11). */
+    customChannels: z
+      .array(
+        z.object({
+          key: z
+            .string()
+            .trim()
+            .min(1)
+            .max(64)
+            .regex(/^[a-z0-9-]+$/),
+          label: z.string().trim().min(1).max(120),
+        }),
+      )
+      .max(50)
+      .optional(),
   })
   .refine((r) => Date.parse(r.startsAt) < Date.parse(r.endsAt), {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
@@ -387,7 +402,48 @@ export const RehearsalLinkResponse = z.object({
 });
 export type RehearsalLinkResponse = z.infer<typeof RehearsalLinkResponse>;
 
+export const AdjustPrizeStockBody = z.object({
+  delta: z
+    .number()
+    .int()
+    .min(-1_000_000)
+    .max(1_000_000)
+    .refine((n) => n !== 0, { message: 'Số lượng điều chỉnh phải khác 0' }),
+});
+export type AdjustPrizeStockBody = z.input<typeof AdjustPrizeStockBody>;
+
+export const CampaignPlayerItem = z.object({
+  id: Id,
+  name: z.string().nullable(),
+  phoneMasked: z.string().nullable(),
+  playsCount: z.number().int().min(0),
+  winsCount: z.number().int().min(0),
+  marketingConsent: z.boolean(),
+  createdAt: IsoDateTime,
+});
+export type CampaignPlayerItem = z.infer<typeof CampaignPlayerItem>;
+
+export const CampaignPlayersQuery = PageQuery.extend({
+  query: z.string().trim().max(120).optional(),
+});
+export type CampaignPlayersQuery = z.input<typeof CampaignPlayersQuery>;
+
+export const CampaignExportKind = z.enum(['players', 'winners', 'vouchers']);
+export type CampaignExportKind = z.infer<typeof CampaignExportKind>;
+
+export const ExportCampaignBody = z.object({
+  kind: CampaignExportKind,
+});
+export type ExportCampaignBody = z.input<typeof ExportCampaignBody>;
+
+export const ExportCampaignResponse = z.object({
+  filename: z.string(),
+  csv: z.string(),
+});
+export type ExportCampaignResponse = z.infer<typeof ExportCampaignResponse>;
+
 const CampaignParams = OrgParams.extend({ campaignId: Id });
+const CampaignPrizeParams = CampaignParams.extend({ prizeId: CampaignPrizeKey });
 
 export const campaignsApi = {
   list: defineRoute({
@@ -548,5 +604,38 @@ export const campaignsApi = {
     params: CampaignParams,
     body: RehearsalLinkBody,
     response: RehearsalLinkResponse,
+  }),
+  adjustPrizeStock: defineRoute({
+    method: 'POST',
+    path: '/orgs/:orgId/campaigns/:campaignId/prizes/:prizeId/stock',
+    summary: 'Atomically adjust live prize stock without republishing the campaign (PRZ-01)',
+    tags: ['campaigns'],
+    auth: 'session',
+    permission: { campaign: ['update'] },
+    params: CampaignPrizeParams,
+    body: AdjustPrizeStockBody,
+    response: Campaign,
+  }),
+  players: defineRoute({
+    method: 'GET',
+    path: '/orgs/:orgId/campaigns/:campaignId/players',
+    summary: 'List registered players of a campaign with masked phone and consent status (EVT-02)',
+    tags: ['campaigns'],
+    auth: 'session',
+    permission: { campaign: ['read'] },
+    params: CampaignParams,
+    query: CampaignPlayersQuery,
+    response: Page(CampaignPlayerItem),
+  }),
+  exportCsv: defineRoute({
+    method: 'POST',
+    path: '/orgs/:orgId/campaigns/:campaignId/export',
+    summary: 'Export players, winners or vouchers of a campaign as CSV (ANL-02)',
+    tags: ['campaigns'],
+    auth: 'session',
+    permission: { export: ['create'] },
+    params: CampaignParams,
+    body: ExportCampaignBody,
+    response: ExportCampaignResponse,
   }),
 };

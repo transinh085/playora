@@ -6,8 +6,10 @@ import {
   type BrandKitSummary,
   type CampaignBrand,
   type CampaignCompliance,
+  type CampaignExportKind,
   type CampaignListItem,
   type CampaignPhase,
+  type CampaignPlayerItem,
   type CampaignPlayRecord,
   type CampaignPrize,
   type CampaignPrizeMode,
@@ -20,6 +22,7 @@ import {
   type CampaignVoucher,
   type Campaign as ContractCampaign,
   campaignsApi,
+  type ExportCampaignResponse,
   type PlaybookKey,
   type PlayResult,
   type RehearsalLinkResponse,
@@ -55,8 +58,10 @@ export type Prize = CampaignPrize;
 export type {
   CampaignBrand,
   CampaignCompliance,
+  CampaignExportKind,
   CampaignListItem,
   CampaignPhase,
+  CampaignPlayerItem,
   CampaignPlayRecord,
   CampaignPrize,
   CampaignPrizeMode,
@@ -67,6 +72,7 @@ export type {
   CampaignStatus,
   CampaignTemplateKey,
   CampaignVoucher,
+  ExportCampaignResponse,
   Industry,
   MechanismKey,
   Occasion,
@@ -165,28 +171,79 @@ export function useCampaignsStats(orgId: string, campaignIds: readonly string[])
 export function useCampaignPlays(
   orgId: string,
   campaignId: string,
-  options?: { enabled?: boolean; refetchInterval?: number },
+  options?: { enabled?: boolean; refetchInterval?: number; cursor?: string; limit?: number },
 ) {
   const query = useRouteQuery(
     api,
     campaignsApi.plays,
-    { params: { orgId, campaignId }, query: { limit: 100 } },
+    {
+      params: { orgId, campaignId },
+      query: {
+        limit: options?.limit ?? 100,
+        ...(options?.cursor ? { cursor: options.cursor } : {}),
+      },
+    },
     {
       enabled: Boolean(orgId && campaignId) && (options?.enabled ?? true),
       refetchInterval: options?.refetchInterval,
     },
   );
-  return { ...query, data: query.data?.items };
+  return {
+    ...query,
+    data: query.data?.items,
+    nextCursor: query.data?.nextCursor ?? null,
+  };
 }
 
-export function useCampaignVouchers(orgId: string, campaignId: string) {
+export function useCampaignVouchers(
+  orgId: string,
+  campaignId: string,
+  options?: { status?: VoucherStatus; cursor?: string; limit?: number; enabled?: boolean },
+) {
   const query = useRouteQuery(
     api,
     campaignsApi.vouchers,
-    { params: { orgId, campaignId }, query: { limit: 100 } },
-    { enabled: Boolean(orgId && campaignId) },
+    {
+      params: { orgId, campaignId },
+      query: {
+        limit: options?.limit ?? 100,
+        ...(options?.status ? { status: options.status } : {}),
+        ...(options?.cursor ? { cursor: options.cursor } : {}),
+      },
+    },
+    { enabled: Boolean(orgId && campaignId) && (options?.enabled ?? true) },
   );
-  return { ...query, data: query.data?.items };
+  return {
+    ...query,
+    data: query.data?.items,
+    nextCursor: query.data?.nextCursor ?? null,
+  };
+}
+
+export function useCampaignPlayers(
+  orgId: string,
+  campaignId: string,
+  options?: { query?: string; cursor?: string; limit?: number; enabled?: boolean },
+) {
+  const trimmedQuery = options?.query?.trim() || undefined;
+  const query = useRouteQuery(
+    api,
+    campaignsApi.players,
+    {
+      params: { orgId, campaignId },
+      query: {
+        limit: options?.limit ?? 50,
+        ...(trimmedQuery ? { query: trimmedQuery } : {}),
+        ...(options?.cursor ? { cursor: options.cursor } : {}),
+      },
+    },
+    { enabled: Boolean(orgId && campaignId) && (options?.enabled ?? true) },
+  );
+  return {
+    ...query,
+    data: query.data?.items,
+    nextCursor: query.data?.nextCursor ?? null,
+  };
 }
 
 export function useCampaignsReports(orgId: string, campaignIds: readonly string[]) {
@@ -432,6 +489,41 @@ export function useRehearsalLink(orgId: string, campaignId: string) {
       api.call(campaignsApi.rehearsalLink, {
         params: { orgId, campaignId },
         body,
+      }),
+  });
+}
+
+export function useAdjustPrizeStock(orgId: string, campaignId: string) {
+  const qc = useQueryClient();
+  const detailKey = routeKey(campaignsApi.get, { params: { orgId, campaignId } });
+
+  return useMutation<Campaign, ApiError, { prizeId: string; delta: number }>({
+    mutationFn: async ({ prizeId, delta }) => {
+      const updated = await api.call(campaignsApi.adjustPrizeStock, {
+        params: { orgId, campaignId, prizeId },
+        body: { delta },
+      });
+      return toStudioCampaign(updated);
+    },
+    onSuccess: (updated) => {
+      qc.setQueryData(detailKey, updated);
+      void qc.invalidateQueries({ queryKey: routePrefix(campaignsApi.list) });
+      void qc.invalidateQueries({
+        queryKey: routeKey(campaignsApi.stats, { params: { orgId, campaignId } }),
+      });
+      void qc.invalidateQueries({
+        queryKey: routeKey(campaignsApi.report, { params: { orgId, campaignId } }),
+      });
+    },
+  });
+}
+
+export function useExportCampaignCsv(orgId: string, campaignId: string) {
+  return useMutation<ExportCampaignResponse, ApiError, CampaignExportKind>({
+    mutationFn: (kind) =>
+      api.call(campaignsApi.exportCsv, {
+        params: { orgId, campaignId },
+        body: { kind },
       }),
   });
 }

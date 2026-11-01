@@ -6,18 +6,23 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  type AdjustPrizeStockBody,
   type Campaign,
   CampaignCompliance,
   type CampaignListItem,
+  type CampaignPlayerItem,
   type CampaignPlayRecord,
   type CampaignReport,
   type CampaignStats,
   type CampaignVoucher,
   type campaignsApi,
   ErrorCode,
+  type ExportCampaignBody,
+  type ExportCampaignResponse,
   type RouteArgs,
   type VoucherStatus,
 } from '@playora/contracts';
+import { normalizePhone } from '@playora/core/pii';
 import {
   campaignPhase,
   isRunningPhase,
@@ -29,6 +34,7 @@ import { canonicalJson } from '@playora/game-sdk';
 import type { Actor } from '../../common/actor';
 import { AuditService } from '../../common/audit/audit.service';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../../common/http/pg-errors';
+import { PiiService } from '../../common/pii/pii.service';
 import { BillingService } from '../billing/billing.service';
 import {
   CAMPAIGN_PLAYER_LIMIT,
@@ -46,6 +52,43 @@ type CreateBody = RouteArgs<typeof campaignsApi.create>['body'];
 type UpdateBody = RouteArgs<typeof campaignsApi.update>['body'];
 type PlaysQuery = RouteArgs<typeof campaignsApi.plays>['query'];
 type VouchersQuery = RouteArgs<typeof campaignsApi.vouchers>['query'];
+type PlayersQuery = RouteArgs<typeof campaignsApi.players>['query'];
+
+export function toLocalPhone(phone: string | null): string | null {
+  if (!phone) return null;
+  if (phone.startsWith('+84')) return `0${phone.slice(3)}`;
+  if (phone.startsWith('84') && phone.length >= 10) return `0${phone.slice(2)}`;
+  return phone;
+}
+
+export function maskPhoneNumber(phone: string | null): string | null {
+  const local = toLocalPhone(phone);
+  if (!local) return null;
+  if (local.length >= 7) {
+    return `${local.slice(0, 3)}***${local.slice(-4)}`;
+  }
+  return `${local.slice(0, 2)}***`;
+}
+
+function escapeCsvCell(value: string | number | boolean | null | undefined): string {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (/[",\r\n]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function toCsvWithBom(
+  headers: string[],
+  rows: Array<Array<string | number | boolean | null>>,
+): string {
+  const lines = [headers.map(escapeCsvCell).join(',')];
+  for (const row of rows) {
+    lines.push(row.map(escapeCsvCell).join(','));
+  }
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
+}
 
 const GENERATED_SLUG_ATTEMPTS = 5;
 /** The report's day series stops at the last 120 days (a campaign rarely runs longer). */
@@ -99,6 +142,7 @@ export class CampaignsService {
     private readonly repo: CampaignsRepository,
     private readonly audit: AuditService,
     private readonly billing: BillingService,
+    private readonly pii: PiiService,
   ) {}
 
   // ── Mapping ──────────────────────────────────────────────────────────────────
@@ -276,7 +320,12 @@ export class CampaignsService {
   }
 
   /** Saves the draft; a published campaign keeps running on its published version. */
-  async update(orgId: string, campaignId: string, body: UpdateBody): Promise<Campaign> {
+  async update(
+    orgId: string,
+    campaignId: string,
+    body: UpdateBody,
+    actor?: Actor,
+  ): Promise<Campaign> {
     await this.repo.transaction(async (tx) => {
       if (!(await this.repo.lockGame(orgId, campaignId, tx))) notFound();
       const row = await this.repo.findById(orgId, campaignId, tx);
@@ -291,6 +340,11 @@ export class CampaignsService {
         rules: body.rules ?? current.rules,
       };
       const now = new Date();
+      const endsAtChanged =
+        row.version !== null &&
+        body.rules !== undefined &&
+        !sameInstant(doc.rules.endsAt, row.event.endsAt);
+
       await this.repo.updateGame(
         orgId,
         row.game.id,
@@ -302,17 +356,65 @@ export class CampaignsService {
         },
         tx,
       );
+
+      if (endsAtChanged && row.game.currentVersionId) {
+        const ver = await this.repo.findVersionById(orgId, row.game.currentVersionId, tx);
+        if (ver) {
+          const verDoc = ver.config as CampaignDocument;
+          const updatedVerDoc: CampaignDocument = {
+            ...verDoc,
+            rules: {
+              ...verDoc.rules,
+              endsAt: doc.rules.endsAt,
+            },
+          };
+          await this.repo.updateVersionConfig(
+            orgId,
+            ver.id,
+            updatedVerDoc,
+            computeConfigHash(updatedVerDoc),
+            tx,
+          );
+        }
+      }
+
+      const newEndsAt = new Date(doc.rules.endsAt);
+      const reopenEnded =
+        endsAtChanged && row.event.status === 'ended' && newEndsAt.getTime() > now.getTime();
+
       await this.repo.updateEvent(
         orgId,
         campaignId,
         {
           ...(body.name !== undefined ? { name: body.name } : {}),
-          // Before the first publish the event mirrors the draft; afterwards only publish does.
-          ...(row.version ? {} : eventMirror(doc)),
+          // Before the first publish the event mirrors the draft; afterwards only publish does,
+          // except live `endsAt` extension (EVT-01) which takes effect immediately.
+          ...(row.version
+            ? endsAtChanged
+              ? {
+                  endsAt: newEndsAt,
+                  ...(reopenEnded ? { status: 'live' as const } : {}),
+                }
+              : {}
+            : eventMirror(doc)),
           updatedAt: now,
         },
         tx,
       );
+
+      if (endsAtChanged && actor) {
+        await this.recordAudit(
+          orgId,
+          actor,
+          'campaign.extend',
+          campaignId,
+          {
+            previousEndsAt: row.event.endsAt?.toISOString() ?? current.rules.endsAt,
+            endsAt: doc.rules.endsAt,
+          },
+          tx,
+        );
+      }
     });
     return this.get(orgId, campaignId);
   }
@@ -678,6 +780,255 @@ export class CampaignsService {
       redeemedValueVnd: s.redeemedValueVnd,
       remainingByPrize,
       issuedByPrize,
+    };
+  }
+
+  // ── Live Stock Adjustment, Players Directory & CSV Export ────────────────────
+
+  async adjustPrizeStock(
+    orgId: string,
+    campaignId: string,
+    prizeId: string,
+    body: AdjustPrizeStockBody,
+    actor: Actor,
+  ): Promise<Campaign> {
+    await this.repo.transaction(async (tx) => {
+      if (!(await this.repo.lockGame(orgId, campaignId, tx))) notFound();
+      const row = await this.repo.findById(orgId, campaignId, tx);
+      if (!row) notFound();
+      if (!row.version) notPublished();
+
+      const prizeRow = await this.repo.findPrizeByKey(orgId, row.game.id, prizeId, tx);
+      if (!prizeRow) {
+        throw new NotFoundException({
+          code: ErrorCode.NOT_FOUND,
+          message: `Prize "${prizeId}" not found`,
+        });
+      }
+
+      const updated = await this.repo.adjustPrizeStock(orgId, prizeRow.id, body.delta, tx);
+      if (!updated) {
+        throw new ConflictException({
+          code: ErrorCode.PRIZE_UNDER_ISSUED,
+          message: `Prize "${prizeRow.name}" stock cannot be reduced below the ${prizeRow.issued} already issued`,
+          details: {
+            prizeId,
+            quantity: prizeRow.quantity,
+            issued: prizeRow.issued,
+            remaining: prizeRow.remaining,
+            delta: body.delta,
+          },
+        });
+      }
+
+      const rawDraft = row.game.draftConfig as CampaignDocument;
+      const updatedDraft: CampaignDocument = {
+        ...rawDraft,
+        prizes: Array.isArray(rawDraft.prizes)
+          ? rawDraft.prizes.map((p) =>
+              p.id === prizeId ? { ...p, quantity: updated.quantity } : p,
+            )
+          : rawDraft.prizes,
+      };
+      const now = new Date();
+      await this.repo.updateGame(
+        orgId,
+        row.game.id,
+        { draftConfig: updatedDraft, updatedAt: now },
+        tx,
+      );
+
+      if (row.game.currentVersionId) {
+        const ver = await this.repo.findVersionById(orgId, row.game.currentVersionId, tx);
+        if (ver) {
+          const verDoc = ver.config as CampaignDocument;
+          const updatedVerDoc: CampaignDocument = {
+            ...verDoc,
+            prizes: Array.isArray(verDoc.prizes)
+              ? verDoc.prizes.map((p) =>
+                  p.id === prizeId ? { ...p, quantity: updated.quantity } : p,
+                )
+              : verDoc.prizes,
+          };
+          await this.repo.updateVersionConfig(
+            orgId,
+            ver.id,
+            updatedVerDoc,
+            computeConfigHash(updatedVerDoc),
+            tx,
+          );
+        }
+      }
+
+      await this.recordAudit(
+        orgId,
+        actor,
+        'prize.stock_adjust',
+        campaignId,
+        {
+          prizeId,
+          delta: body.delta,
+          previousQuantity: prizeRow.quantity,
+          quantity: updated.quantity,
+          remaining: updated.remaining,
+        },
+        tx,
+      );
+    });
+    return this.get(orgId, campaignId);
+  }
+
+  private decryptPhoneSafe(phoneEnc: string | null): string | null {
+    if (!phoneEnc) return null;
+    try {
+      return this.pii.decrypt(phoneEnc);
+    } catch {
+      return null;
+    }
+  }
+
+  async players(orgId: string, campaignId: string, query: PlayersQuery) {
+    await this.load(orgId, campaignId);
+    const q = query.query?.trim().toLowerCase() ?? '';
+    const queryPhoneHash =
+      q && normalizePhone(q) ? (this.pii.protectPhone(q)?.phoneHash ?? null) : null;
+
+    if (!q) {
+      const rows = await this.repo.listPlayers(orgId, campaignId, {
+        limit: query.limit + 1,
+        cursor: query.cursor,
+      });
+      const hasMore = rows.length > query.limit;
+      const slice = hasMore ? rows.slice(0, query.limit) : rows;
+      return {
+        items: slice.map((r): CampaignPlayerItem => {
+          const phone = this.decryptPhoneSafe(r.phoneEnc);
+          return {
+            id: r.id,
+            name: r.displayName ?? null,
+            phoneMasked: maskPhoneNumber(phone),
+            playsCount: r.playsCount,
+            winsCount: r.winsCount,
+            marketingConsent: r.marketingConsent || r.formData?.marketing === true,
+            createdAt: r.createdAt.toISOString(),
+          };
+        }),
+        nextCursor: hasMore ? (slice.at(-1)?.id ?? null) : null,
+      };
+    }
+
+    const allRows = await this.repo.listPlayers(orgId, campaignId, {
+      limit: 2000,
+      cursor: query.cursor,
+    });
+    const matched: CampaignPlayerItem[] = [];
+    for (const r of allRows) {
+      const phone = this.decryptPhoneSafe(r.phoneEnc);
+      const localPhone = toLocalPhone(phone);
+      const masked = maskPhoneNumber(phone);
+      const nameMatch = (r.displayName ?? '').toLowerCase().includes(q);
+      const hashMatch = Boolean(queryPhoneHash && r.phoneHash === queryPhoneHash);
+      const maskedMatch = (masked ?? '').toLowerCase().includes(q);
+      const digitsMatch = (localPhone ?? '').toLowerCase().includes(q);
+      if (nameMatch || hashMatch || maskedMatch || digitsMatch) {
+        matched.push({
+          id: r.id,
+          name: r.displayName ?? null,
+          phoneMasked: masked,
+          playsCount: r.playsCount,
+          winsCount: r.winsCount,
+          marketingConsent: r.marketingConsent || r.formData?.marketing === true,
+          createdAt: r.createdAt.toISOString(),
+        });
+        if (matched.length > query.limit) break;
+      }
+    }
+    const hasMore = matched.length > query.limit;
+    const items = hasMore ? matched.slice(0, query.limit) : matched;
+    return {
+      items,
+      nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
+    };
+  }
+
+  async exportCsv(
+    orgId: string,
+    campaignId: string,
+    body: ExportCampaignBody,
+    actor: Actor,
+  ): Promise<ExportCampaignResponse> {
+    const row = await this.load(orgId, campaignId);
+    const dateKey = new Date().toISOString().slice(0, 10);
+    const filename = `${row.event.slug}-${body.kind}-${dateKey}.csv`;
+
+    if (body.kind === 'players') {
+      const rows = await this.repo.listPlayers(orgId, campaignId, { limit: 100_000 });
+      const csvRows = rows.map((r) => {
+        const phone = this.decryptPhoneSafe(r.phoneEnc);
+        const hasMarketingConsent = r.marketingConsent || r.formData?.marketing === true;
+        // ANL-02: only decrypt full phone for players who granted marketing consent; mask otherwise.
+        const exportedPhone = hasMarketingConsent ? toLocalPhone(phone) : maskPhoneNumber(phone);
+        return [
+          r.id,
+          r.displayName ?? '',
+          exportedPhone ?? '',
+          r.playsCount,
+          r.winsCount,
+          hasMarketingConsent ? 'true' : 'false',
+          r.createdAt.toISOString(),
+        ];
+      });
+      await this.recordAudit(orgId, actor, 'campaign.export', campaignId, {
+        kind: body.kind,
+        rowCount: csvRows.length,
+      });
+      return {
+        filename,
+        csv: toCsvWithBom(
+          ['id', 'name', 'phone', 'playsCount', 'winsCount', 'marketingConsent', 'createdAt'],
+          csvRows,
+        ),
+      };
+    }
+
+    const awardRows = await this.repo.listExportAwards(orgId, campaignId, body.kind === 'winners');
+    const now = Date.now();
+    const csvRows = awardRows.map((a) => {
+      const phone = this.decryptPhoneSafe(a.phoneEnc);
+      return [
+        a.code,
+        a.prizeKey ?? a.prizeRowId,
+        a.prizeName,
+        a.valueVnd ?? 0,
+        a.playerName ?? '',
+        maskPhoneNumber(phone) ?? '',
+        voucherStatus(a, now),
+        a.createdAt.toISOString(),
+        a.redeemedAt?.toISOString() ?? '',
+        a.expiresAt?.toISOString() ?? '',
+      ];
+    });
+    await this.recordAudit(orgId, actor, 'campaign.export', campaignId, {
+      kind: body.kind,
+      rowCount: csvRows.length,
+    });
+    return {
+      filename,
+      csv: toCsvWithBom(
+        [
+          'code',
+          'prizeId',
+          'prizeName',
+          'valueVnd',
+          'playerName',
+          'phoneMasked',
+          'status',
+          'issuedAt',
+          'redeemedAt',
+          'expiresAt',
+        ],
+        csvRows,
+      ),
     };
   }
 }

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { ApiError } from '@playora/api-client';
-import { campaignsApi, ErrorCode } from '@playora/contracts';
+import { ApiError, createApiClient } from '@playora/api-client';
+import { campaignsApi, ErrorCode, publicApi } from '@playora/contracts';
 import { type Database, schema } from '@playora/db';
 import { and, eq } from 'drizzle-orm';
 import { DB } from '../src/infra/tokens';
@@ -549,5 +549,233 @@ describe('campaigns API', () => {
     await expectApiError(asStaff.call(campaignsApi.get, { params }), 403, ErrorCode.FORBIDDEN);
     await expectApiError(asStaff.call(campaignsApi.publish, { params }), 403, ErrorCode.FORBIDDEN);
     await expectApiError(asStaff.call(campaignsApi.stats, { params }), 403, ErrorCode.FORBIDDEN);
+  });
+
+  test('live endsAt extension updates event and version schedule immediately and records campaign.extend (EVT-01)', async () => {
+    const api = t.client(alice);
+    const created = await api.call(campaignsApi.create, {
+      params: { orgId: aliceOrg },
+      body: campaignBody(),
+    });
+    const id = { orgId: aliceOrg, campaignId: created.id };
+    await api.call(campaignsApi.publish, { params: id });
+
+    // End the campaign first, then extend its endsAt into the future without republishing.
+    const ended = await api.call(campaignsApi.end, { params: id });
+    expect(ended.phase).toBe('ended');
+
+    const newEndsAt = new Date(Date.now() + 21 * DAY).toISOString();
+    const extended = await api.call(campaignsApi.update, {
+      params: id,
+      body: { rules: { ...ended.rules, endsAt: newEndsAt } },
+    });
+    expect(extended.phase).toBe('live');
+    expect(extended.rules.endsAt).toBe(newEndsAt);
+    expect(extended.hasUnpublishedChanges).toBe(false);
+
+    // Public join immediately sees the reopened live campaign without republishing.
+    const pub = createApiClient({ baseUrl: t.baseUrl });
+    const joined = await pub.call(publicApi.join, {
+      params: { slug: created.slug },
+      body: {
+        deviceId: crypto.randomUUID(),
+        fields: { name: 'Khách Gia Hạn', phone: '0909111222' },
+        consents: { participation: true, marketing: true },
+      },
+    });
+    expect(joined.player.displayName).toBe('Khách Gia Hạn');
+
+    const logs = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, aliceOrg),
+          eq(schema.auditLogs.targetId, created.id),
+          eq(schema.auditLogs.action, 'campaign.extend'),
+        ),
+      );
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.diff).toMatchObject({ endsAt: newEndsAt });
+  });
+
+  test('adjustPrizeStock atomically adjusts live stock, rejects underflow below issued, and audits prize.stock_adjust (PRZ-01)', async () => {
+    const api = t.client(alice);
+    const created = await api.call(campaignsApi.create, {
+      params: { orgId: aliceOrg },
+      body: campaignBody(),
+    });
+    const id = { orgId: aliceOrg, campaignId: created.id };
+
+    // Unpublished campaign rejects stock adjust with 409 CAMPAIGN_NOT_PUBLISHED.
+    await expectApiError(
+      api.call(campaignsApi.adjustPrizeStock, {
+        params: { ...id, prizeId: 'p2' },
+        body: { delta: 5 },
+      }),
+      409,
+      ErrorCode.CAMPAIGN_NOT_PUBLISHED,
+    );
+
+    await api.call(campaignsApi.publish, { params: id });
+    await issueVoucher(db, { orgId: aliceOrg, campaignId: created.id, prizeKey: 'p2' });
+    await issueVoucher(db, { orgId: aliceOrg, campaignId: created.id, prizeKey: 'p2' });
+
+    // Top up +15 on p2 (quantity 10 -> 25, remaining 8 -> 23).
+    const toppedUp = await api.call(campaignsApi.adjustPrizeStock, {
+      params: { ...id, prizeId: 'p2' },
+      body: { delta: 15 },
+    });
+    expect(toppedUp.prizes.find((p) => p.id === 'p2')?.quantity).toBe(25);
+    expect(toppedUp.hasUnpublishedChanges).toBe(false);
+
+    let stats = await api.call(campaignsApi.stats, { params: id });
+    expect(stats.remainingByPrize.p2).toBe(23);
+    expect(stats.issuedByPrize.p2).toBe(2);
+
+    // Reduce by -24 (25 - 24 = 1 < 2 issued) must fail with 409 PRIZE_UNDER_ISSUED.
+    await expectApiError(
+      api.call(campaignsApi.adjustPrizeStock, {
+        params: { ...id, prizeId: 'p2' },
+        body: { delta: -24 },
+      }),
+      409,
+      ErrorCode.PRIZE_UNDER_ISSUED,
+    );
+
+    // Reduce by -23 (25 - 23 = 2 == issued, remaining = 0) succeeds.
+    const reduced = await api.call(campaignsApi.adjustPrizeStock, {
+      params: { ...id, prizeId: 'p2' },
+      body: { delta: -23 },
+    });
+    expect(reduced.prizes.find((p) => p.id === 'p2')?.quantity).toBe(2);
+    stats = await api.call(campaignsApi.stats, { params: id });
+    expect(stats.remainingByPrize.p2).toBe(0);
+
+    // Cross-tenant 403 and 404.
+    const asBob = t.client(bob);
+    await expectApiError(
+      asBob.call(campaignsApi.adjustPrizeStock, {
+        params: { orgId: aliceOrg, campaignId: created.id, prizeId: 'p2' },
+        body: { delta: 5 },
+      }),
+      403,
+      ErrorCode.FORBIDDEN,
+    );
+    await expectApiError(
+      asBob.call(campaignsApi.adjustPrizeStock, {
+        params: { orgId: bobOrg, campaignId: created.id, prizeId: 'p2' },
+        body: { delta: 5 },
+      }),
+      404,
+      ErrorCode.NOT_FOUND,
+    );
+
+    const logs = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, aliceOrg),
+          eq(schema.auditLogs.targetId, created.id),
+          eq(schema.auditLogs.action, 'prize.stock_adjust'),
+        ),
+      );
+    expect(logs).toHaveLength(2);
+  });
+
+  test('players directory and CSV export enforce RBAC, consent phone masking, and audit logs (EVT-02, ANL-02)', async () => {
+    const api = t.client(alice);
+    const base = campaignBody();
+    const created = await api.call(campaignsApi.create, {
+      params: { orgId: aliceOrg },
+      body: { ...base, rules: { ...base.rules, collectForm: true } },
+    });
+    const id = { orgId: aliceOrg, campaignId: created.id };
+    await api.call(campaignsApi.publish, { params: id });
+
+    const pub = createApiClient({ baseUrl: t.baseUrl });
+    // Player 1: grants marketing consent.
+    await pub.call(publicApi.join, {
+      params: { slug: created.slug },
+      body: {
+        deviceId: crypto.randomUUID(),
+        fields: { name: 'Nguyễn Thu Hà', phone: '0901234567' },
+        consents: { participation: true, marketing: true },
+      },
+    });
+    // Player 2: declines marketing consent.
+    await pub.call(publicApi.join, {
+      params: { slug: created.slug },
+      body: {
+        deviceId: crypto.randomUUID(),
+        fields: { name: 'Trần Minh Quân', phone: '0987654321' },
+        consents: { participation: true, marketing: false },
+      },
+    });
+
+    const playersPage = await api.call(campaignsApi.players, { params: id, query: { limit: 10 } });
+    expect(playersPage.items).toHaveLength(2);
+    expect(playersPage.items).toEqual([
+      expect.objectContaining({
+        name: 'Trần Minh Quân',
+        phoneMasked: '098***4321',
+        marketingConsent: false,
+      }),
+      expect.objectContaining({
+        name: 'Nguyễn Thu Hà',
+        phoneMasked: '090***4567',
+        marketingConsent: true,
+      }),
+    ]);
+
+    // Search by name and by full phone.
+    const byName = await api.call(campaignsApi.players, {
+      params: id,
+      query: { query: 'Thu Hà' },
+    });
+    expect(byName.items.map((p) => p.name)).toEqual(['Nguyễn Thu Hà']);
+
+    const byPhone = await api.call(campaignsApi.players, {
+      params: id,
+      query: { query: '0987654321' },
+    });
+    expect(byPhone.items.map((p) => p.name)).toEqual(['Trần Minh Quân']);
+
+    // CSV export RBAC: editor cannot export (403), owner can export.
+    const editor = await signUp(t.baseUrl, 'Editor');
+    await addMember(db, aliceOrg, await sessionUserId(t.baseUrl, editor), 'editor');
+    await expectApiError(
+      t.client(editor).call(campaignsApi.exportCsv, {
+        params: id,
+        body: { kind: 'players' },
+      }),
+      403,
+      ErrorCode.FORBIDDEN,
+    );
+
+    const exportedPlayers = await api.call(campaignsApi.exportCsv, {
+      params: id,
+      body: { kind: 'players' },
+    });
+    expect(exportedPlayers.filename).toContain('players');
+    expect(exportedPlayers.csv.startsWith('\uFEFF')).toBe(true);
+    // Player with marketingConsent === true has full phone; player without has masked phone.
+    expect(exportedPlayers.csv).toContain('0901234567');
+    expect(exportedPlayers.csv).not.toContain('0987654321');
+    expect(exportedPlayers.csv).toContain('098***4321');
+
+    const logs = await db
+      .select()
+      .from(schema.auditLogs)
+      .where(
+        and(
+          eq(schema.auditLogs.organizationId, aliceOrg),
+          eq(schema.auditLogs.targetId, created.id),
+          eq(schema.auditLogs.action, 'campaign.export'),
+        ),
+      );
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.diff).toMatchObject({ kind: 'players', rowCount: 2 });
   });
 });

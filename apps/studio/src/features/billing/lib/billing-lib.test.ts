@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { planLimits } from '@playora/core/billing';
 import { addMonths, dayToIso, isoToDay } from './dates';
+import { MANUAL_PAYMENT, PLAN_PRICES, transferMemo, vietQrImageUrl } from './plans';
 import { redemptionsLeft, usageLevel, usagePercent } from './usage';
 
 describe('usageLevel (D-21)', () => {
@@ -56,5 +57,27 @@ describe('billing dates (Vietnam calendar days)', () => {
     expect(addMonths('2026-10-27', 1)).toBe('2026-11-27');
     expect(addMonths('2027-01-31', 1)).toBe('2027-02-28');
     expect(addMonths('2026-12-15', 12)).toBe('2027-12-15');
+  });
+});
+
+describe('VietQR & transfer memo (BIL-01)', () => {
+  test('includes org slug, plan, and billing period in transfer memo', () => {
+    expect(transferMemo('moc-tea', 'shop', 'monthly')).toBe('PLAYORA MOC-TEA SHOP MONTHLY');
+    expect(transferMemo('moc-tea', 'chain', 'yearly')).toBe('PLAYORA MOC-TEA CHAIN YEARLY');
+    expect(MANUAL_PAYMENT.transferNote('moc-tea', 'shop', 'yearly')).toBe(
+      'PLAYORA MOC-TEA SHOP YEARLY',
+    );
+  });
+
+  test('builds a valid VietQR URL with amount and memo', () => {
+    const memo = transferMemo('moc-tea', 'shop', 'monthly');
+    const url = vietQrImageUrl({
+      amountVnd: PLAN_PRICES.shop.monthly,
+      memo,
+    });
+    expect(url).toContain('https://img.vietqr.io/image/');
+    expect(url).toContain('amount=299000');
+    expect(url).toContain('PLAYORA+MOC-TEA+SHOP+MONTHLY');
+    expect(MANUAL_PAYMENT.bankName).not.toContain('0000 0000 0000');
   });
 });

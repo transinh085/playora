@@ -29,8 +29,15 @@ export class CampaignsController {
   }
 
   @Route(campaignsApi.update)
-  update(@Args() { params, body }: RouteArgs<typeof campaignsApi.update>) {
-    return this.campaigns.update(params.orgId, params.campaignId, body);
+  update(
+    @Args() { params, body }: RouteArgs<typeof campaignsApi.update>,
+    @CurrentSession() session: AuthSession,
+    @Ip() ip: string,
+  ) {
+    return this.campaigns.update(params.orgId, params.campaignId, body, {
+      userId: session.user.id,
+      ip,
+    });
   }
 
   @Route(campaignsApi.remove)
@@ -96,5 +103,34 @@ export class CampaignsController {
   @Route(campaignsApi.stats)
   stats(@Args() { params }: RouteArgs<typeof campaignsApi.stats>) {
     return this.campaigns.stats(params.orgId, params.campaignId);
+  }
+
+  @Route(campaignsApi.adjustPrizeStock)
+  adjustPrizeStock(
+    @Args() { params, body }: RouteArgs<typeof campaignsApi.adjustPrizeStock>,
+    @CurrentSession() session: AuthSession,
+    @Ip() ip: string,
+  ) {
+    return this.campaigns.adjustPrizeStock(params.orgId, params.campaignId, params.prizeId, body, {
+      userId: session.user.id,
+      ip,
+    });
+  }
+
+  @Route(campaignsApi.players)
+  players(@Args() { params, query }: RouteArgs<typeof campaignsApi.players>) {
+    return this.campaigns.players(params.orgId, params.campaignId, query);
+  }
+
+  @Route(campaignsApi.exportCsv)
+  exportCsv(
+    @Args() { params, body }: RouteArgs<typeof campaignsApi.exportCsv>,
+    @CurrentSession() session: AuthSession,
+    @Ip() ip: string,
+  ) {
+    return this.campaigns.exportCsv(params.orgId, params.campaignId, body, {
+      userId: session.user.id,
+      ip,
+    });
   }
 }

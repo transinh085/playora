@@ -23,7 +23,7 @@ import { PageHeader } from '@/components/page-header';
 import { QueryError } from '@/components/query-error';
 import { api } from '@/lib/api';
 import { useOrgBilling } from '../api';
-import { MANUAL_PAYMENT, PLAN_ORDER, PLAN_PRICES } from '../lib/plans';
+import { MANUAL_PAYMENT, PLAN_ORDER, PLAN_PRICES, vietQrImageUrl } from '../lib/plans';
 import { type UsageLevel, usageLevel, usagePercent } from '../lib/usage';
 import { PlanCampaignLimitAlert } from './plan-limit';
 import { RedemptionUsageAlert } from './usage-banner';
@@ -262,12 +262,17 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
   const t = useTranslations('billing');
   const format = useFormatter();
   const myOrgs = useRouteQuery(api, meApi.orgs, {});
-  const slug = myOrgs.data?.items.find((o) => o.id === orgId)?.slug ?? orgId;
+  const orgItem = myOrgs.data?.items.find((o) => o.id === orgId);
+  const slug = orgItem?.slug ?? orgId;
+  const canManageBilling = !orgItem?.role || orgItem.role === 'owner' || orgItem.role === 'admin';
   const [selected, setSelected] = useState<Exclude<BillingPlan, 'free'>>(
     current === 'free' ? 'shop' : current,
   );
   const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
   const vnd = (amount: number) => format.number(amount, { style: 'currency', currency: 'VND' });
+  const amountVnd = PLAN_PRICES[selected][cycle];
+  const memo = MANUAL_PAYMENT.transferNote(slug, selected, cycle);
+  const qrUrl = vietQrImageUrl({ amountVnd, memo });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -381,61 +386,87 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
           </Tabs>
         </Card.Header>
 
-        <Card.Content
-          className="divide-y divide-border-button-default px-5 py-0 text-caption-1-regular"
-          data-testid="manual-payment"
-        >
-          <div className="flex justify-between py-3">
-            <span className="text-text-secondary">{t('payBank')}</span>
-            <span className="text-caption-1-medium text-text-primary">
-              {MANUAL_PAYMENT.bankName}
-            </span>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <span className="text-text-secondary">{t('payAccount')}</span>
-            <div className="flex items-center gap-1.5 font-mono text-caption-1-semibold text-text-primary">
-              <span>{MANUAL_PAYMENT.accountNumber}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                isIconOnly
-                aria-label="Copy account number"
-                onPress={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
-              >
-                <Copy className="size-3.5" />
-              </Button>
+        {!canManageBilling ? (
+          <Card.Content className="p-5">
+            <Alert status="warning">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Description>{t('ownerOnlyUpgrade')}</Alert.Description>
+              </Alert.Content>
+            </Alert>
+          </Card.Content>
+        ) : (
+          <Card.Content
+            className="grid gap-6 p-5 md:grid-cols-[minmax(0,1fr)_220px]"
+            data-testid="manual-payment"
+          >
+            <div className="divide-y divide-border-button-default text-caption-1-regular">
+              <div className="flex justify-between py-3">
+                <span className="text-text-secondary">{t('payBank')}</span>
+                <span className="text-caption-1-medium text-text-primary">
+                  {MANUAL_PAYMENT.bankName}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <span className="text-text-secondary">{t('payAccount')}</span>
+                <div className="flex items-center gap-1.5 font-mono text-caption-1-semibold text-text-primary">
+                  <span>{MANUAL_PAYMENT.accountNumber}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    aria-label="Copy account number"
+                    onPress={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
+                  >
+                    <Copy className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-between py-3">
+                <span className="text-text-secondary">{t('payHolder')}</span>
+                <span className="text-caption-1-medium text-text-primary">
+                  {MANUAL_PAYMENT.accountName}
+                </span>
+              </div>
+              <div className="flex justify-between py-3">
+                <span className="text-text-secondary">{t('payAmount')}</span>
+                <span className="text-caption-1-semibold tabular-nums text-text-primary">
+                  {vnd(amountVnd)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <span className="text-text-secondary">{t('payNote')}</span>
+                <div className="flex items-center gap-1.5 font-mono text-caption-1-regular">
+                  <code className="rounded bg-background-secondary-default px-1.5 py-0.5 text-text-primary">
+                    {memo}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    aria-label="Copy transfer note"
+                    onPress={() => copyToClipboard(memo)}
+                  >
+                    <Copy className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex justify-between py-3">
-            <span className="text-text-secondary">{t('payHolder')}</span>
-            <span className="text-caption-1-medium text-text-primary">
-              {MANUAL_PAYMENT.accountName}
-            </span>
-          </div>
-          <div className="flex justify-between py-3">
-            <span className="text-text-secondary">{t('payAmount')}</span>
-            <span className="text-caption-1-semibold tabular-nums text-text-primary">
-              {vnd(PLAN_PRICES[selected][cycle])}
-            </span>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <span className="text-text-secondary">{t('payNote')}</span>
-            <div className="flex items-center gap-1.5 font-mono text-caption-1-regular">
-              <code className="rounded bg-background-secondary-default px-1.5 py-0.5 text-text-primary">
-                {MANUAL_PAYMENT.transferNote(slug, selected)}
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                isIconOnly
-                aria-label="Copy transfer note"
-                onPress={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
-              >
-                <Copy className="size-3.5" />
-              </Button>
+
+            <div
+              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border-button-default bg-white p-3 text-center"
+              data-testid="billing-vietqr"
+            >
+              {/* biome-ignore lint/performance/noImgElement: dynamic external VietQR image */}
+              <img
+                src={qrUrl}
+                alt={t('vietQrAlt', { plan: t(`plans.${selected}`) })}
+                className="h-44 w-44 object-contain"
+              />
+              <Caption className="text-[11px] text-zinc-600">{t('scanVietQrHint')}</Caption>
             </div>
-          </div>
-        </Card.Content>
+          </Card.Content>
+        )}
 
         <Card.Footer className="border-t border-border-button-default bg-background-secondary-default p-4">
           <Alert status="accent" className="w-full">

@@ -19,8 +19,18 @@ import {
 } from 'drizzle-orm';
 import { DB } from '../../infra/tokens';
 
-const { awards, billingInvoices, events, games, member, orgSubscriptions, organization, user } =
-  schema;
+const {
+  awards,
+  billingInvoices,
+  events,
+  games,
+  member,
+  orgSubscriptions,
+  organization,
+  plays,
+  prizes,
+  user,
+} = schema;
 
 export type SubscriptionRow = typeof orgSubscriptions.$inferSelect;
 export type InvoiceRow = typeof billingInvoices.$inferSelect;
@@ -227,5 +237,153 @@ export class BillingRepository {
       .from(orgSubscriptions)
       .where(inArray(orgSubscriptions.organizationId, organizationIds));
     return new Map(rows.map((r) => [r.organizationId, r]));
+  }
+
+  /** Batched running campaign count per organization (avoids N+1 in adminListOrgs). */
+  async countRunningCampaignsByOrgIds(organizationIds: string[], now: Date) {
+    if (organizationIds.length === 0) return new Map<string, number>();
+    const rows = await this.db
+      .select({
+        organizationId: events.organizationId,
+        n: count(),
+      })
+      .from(events)
+      .innerJoin(
+        games,
+        and(
+          eq(games.organizationId, events.organizationId),
+          eq(games.eventId, events.id),
+          isNull(games.deletedAt),
+          isNotNull(games.currentVersionId),
+        ),
+      )
+      .where(
+        and(
+          inArray(events.organizationId, organizationIds),
+          isNull(events.deletedAt),
+          eq(events.paused, false),
+          gt(events.endsAt, now),
+          sql`jsonb_exists(${games.draftConfig}, 'rules')`,
+        ),
+      )
+      .groupBy(events.organizationId);
+    return new Map(rows.map((r) => [r.organizationId, r.n]));
+  }
+
+  /** Batched monthly redemptions count per organization (avoids N+1 in adminListOrgs). */
+  async countRedemptionsByOrgIds(organizationIds: string[], from: Date, to: Date) {
+    if (organizationIds.length === 0) return new Map<string, number>();
+    const rows = await this.db
+      .select({
+        organizationId: awards.organizationId,
+        n: count(),
+      })
+      .from(awards)
+      .where(
+        and(
+          inArray(awards.organizationId, organizationIds),
+          eq(awards.env, 'live'),
+          ne(awards.status, 'void'),
+          gte(awards.redeemedAt, from),
+          lt(awards.redeemedAt, to),
+        ),
+      )
+      .groupBy(awards.organizationId);
+    return new Map(rows.map((r) => [r.organizationId, r.n]));
+  }
+
+  /** Batched active issued vouchers count per organization (avoids N+1 in adminListOrgs). */
+  async countActiveIssuedVouchersByOrgIds(organizationIds: string[], now: Date) {
+    if (organizationIds.length === 0) return new Map<string, number>();
+    const rows = await this.db
+      .select({
+        organizationId: awards.organizationId,
+        n: count(),
+      })
+      .from(awards)
+      .where(
+        and(
+          inArray(awards.organizationId, organizationIds),
+          eq(awards.env, 'live'),
+          eq(awards.status, 'issued'),
+          isNull(awards.redeemedAt),
+          or(isNull(awards.expiresAt), gt(awards.expiresAt, now)),
+        ),
+      )
+      .groupBy(awards.organizationId);
+    return new Map(rows.map((r) => [r.organizationId, r.n]));
+  }
+
+  /**
+   * Campaigns running now or starting within `[now, until]` across all organizations (ADM-02).
+   */
+  async listUpcomingCampaigns(now: Date, until: Date, limit = 100) {
+    const stockByGame = this.db
+      .select({
+        gameId: prizes.gameId,
+        totalStock: sql<number>`coalesce(sum(${prizes.quantity}), 0)::int`.as('total_stock'),
+        remainingStock: sql<number>`coalesce(sum(${prizes.remaining}), 0)::int`.as(
+          'remaining_stock',
+        ),
+      })
+      .from(prizes)
+      .groupBy(prizes.gameId)
+      .as('stock_by_game');
+
+    const playsByEvent = this.db
+      .select({
+        eventId: plays.eventId,
+        playsCount: sql<number>`count(*)::int`.as('plays_count'),
+      })
+      .from(plays)
+      .where(eq(plays.env, 'live'))
+      .groupBy(plays.eventId)
+      .as('plays_by_event');
+
+    return this.db
+      .select({
+        id: events.id,
+        organizationId: events.organizationId,
+        organizationName: organization.name,
+        organizationSlug: organization.slug,
+        name: events.name,
+        slug: events.slug,
+        startsAt: events.startsAt,
+        endsAt: events.endsAt,
+        baselineGuestsPerDay: sql<
+          string | null
+        >`${games.draftConfig} -> 'rules' ->> 'baselineGuestsPerDay'`,
+        totalStock: sql<number>`coalesce(${stockByGame.totalStock}, 0)::int`.mapWith(Number),
+        remainingStock: sql<number>`coalesce(${stockByGame.remainingStock}, 0)::int`.mapWith(
+          Number,
+        ),
+        plays: sql<number>`coalesce(${playsByEvent.playsCount}, 0)::int`.mapWith(Number),
+      })
+      .from(events)
+      .innerJoin(organization, eq(organization.id, events.organizationId))
+      .innerJoin(
+        games,
+        and(
+          eq(games.organizationId, events.organizationId),
+          eq(games.eventId, events.id),
+          isNull(games.deletedAt),
+          isNotNull(games.currentVersionId),
+        ),
+      )
+      .leftJoin(stockByGame, eq(stockByGame.gameId, games.id))
+      .leftJoin(playsByEvent, eq(playsByEvent.eventId, events.id))
+      .where(
+        and(
+          isNull(events.deletedAt),
+          eq(events.paused, false),
+          isNotNull(events.startsAt),
+          isNotNull(events.endsAt),
+          gt(events.endsAt, now),
+          lt(events.startsAt, until),
+          sql`jsonb_exists(${games.draftConfig}, 'rules')`,
+        ),
+      )
+      .orderBy(desc(events.startsAt), desc(events.id))
+      .limit(limit);
   }
 }

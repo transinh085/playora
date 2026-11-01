@@ -88,6 +88,23 @@ export const AdminOrgsQuery = z.object({
   limit: z.coerce.number<number | string>().int().min(1).max(100).default(50),
 });
 
+export const AdminUpcomingCampaign = z.object({
+  id: Id,
+  organizationId: AuthId,
+  organizationName: z.string(),
+  organizationSlug: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  phase: z.enum(['scheduled', 'live']),
+  startsAt: IsoDateTime,
+  endsAt: IsoDateTime,
+  expectedDailyPlays: z.number().int().nullable(),
+  totalStock: z.number().int(),
+  remainingStock: z.number().int(),
+  plays: z.number().int(),
+});
+export type AdminUpcomingCampaign = z.infer<typeof AdminUpcomingCampaign>;
+
 export const SetSubscriptionBody = z.object({
   plan: BillingPlan,
   status: SubscriptionStatus.default('active'),
@@ -158,5 +175,26 @@ export const adminApi = {
     body: RecordInvoiceBody,
     response: BillingInvoice,
     status: 201,
+  }),
+  upcomingCampaigns: defineRoute({
+    method: 'GET',
+    path: '/admin/campaigns/upcoming',
+    summary:
+      'Back-office: campaigns running or starting in the next 14 days across organizations (ADM-02)',
+    tags: ['admin'],
+    auth: 'session',
+    platformAdmin: true,
+    response: z.object({ items: z.array(AdminUpcomingCampaign) }),
+  }),
+  inspectOrg: defineRoute({
+    method: 'POST',
+    path: '/admin/orgs/:orgId/inspect',
+    summary:
+      'Back-office: inspect an organization in read-only support mode with audit logging (ADM-01)',
+    tags: ['admin'],
+    auth: 'session',
+    platformAdmin: true,
+    params: OrgParams,
+    response: AdminOrg,
   }),
 };

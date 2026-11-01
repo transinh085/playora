@@ -33,7 +33,7 @@ export function useInvalidateBilling() {
   return () => qc.invalidateQueries({ queryKey: routePrefix(billingApi.get) });
 }
 
-// ── Back-office (ADM-01) ─────────────────────────────────────────────────────
+// ── Back-office (ADM-01, ADM-02) ─────────────────────────────────────────────
 
 export function useAdminOrgs(query: string) {
   return useRouteQuery(
@@ -42,6 +42,14 @@ export function useAdminOrgs(query: string) {
     { query: { query: query || undefined, limit: 50 } },
     { placeholderData: (previous) => previous },
   );
+}
+
+export function useAdminUpcomingCampaigns() {
+  return useRouteQuery(api, adminApi.upcomingCampaigns, {});
+}
+
+export function useAdminInspectOrg() {
+  return useRouteMutation(api, adminApi.inspectOrg);
 }
 
 function useInvalidateAdmin() {

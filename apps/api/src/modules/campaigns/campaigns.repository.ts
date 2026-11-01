@@ -21,7 +21,7 @@ import {
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { DB } from '../../infra/tokens';
 
-const { events, games, gameVersions, prizes, awards, plays, players } = schema;
+const { events, games, gameVersions, prizes, awards, plays, players, consents } = schema;
 
 export type EventRow = typeof events.$inferSelect;
 export type GameRow = typeof games.$inferSelect;
@@ -287,6 +287,80 @@ export class CampaignsRepository {
     return row as typeof gameVersions.$inferSelect;
   }
 
+  async findVersionById(organizationId: string, versionId: string, tx: DbOrTx = this.db) {
+    const [row] = await tx
+      .select()
+      .from(gameVersions)
+      .where(and(eq(gameVersions.organizationId, organizationId), eq(gameVersions.id, versionId)));
+    return row;
+  }
+
+  async updateVersionConfig(
+    organizationId: string,
+    versionId: string,
+    config: unknown,
+    configHash: string,
+    tx: DbOrTx = this.db,
+  ) {
+    await tx
+      .update(gameVersions)
+      .set({ config, configHash })
+      .where(and(eq(gameVersions.organizationId, organizationId), eq(gameVersions.id, versionId)));
+  }
+
+  async findPrizeByKey(
+    organizationId: string,
+    gameId: string,
+    prizeKey: string,
+    tx: DbOrTx = this.db,
+  ) {
+    const [row] = await tx
+      .select()
+      .from(prizes)
+      .where(
+        and(
+          eq(prizes.organizationId, organizationId),
+          eq(prizes.gameId, gameId),
+          eq(prizes.key, prizeKey),
+        ),
+      );
+    return row;
+  }
+
+  /**
+   * Atomically adjusts a prize's live stock by `delta`, rejecting any adjustment where
+   * `quantity + delta < issued` or `remaining + delta < 0`.
+   */
+  async adjustPrizeStock(
+    organizationId: string,
+    prizeId: string,
+    delta: number,
+    tx: DbOrTx = this.db,
+  ) {
+    const [row] = await tx
+      .update(prizes)
+      .set({
+        quantity: sql`${prizes.quantity} + ${delta}`,
+        remaining: sql`${prizes.remaining} + ${delta}`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(prizes.organizationId, organizationId),
+          eq(prizes.id, prizeId),
+          sql`${prizes.quantity} + ${delta} >= ${prizes.issued}`,
+          sql`${prizes.remaining} + ${delta} >= 0`,
+        ),
+      )
+      .returning({
+        id: prizes.id,
+        quantity: prizes.quantity,
+        remaining: prizes.remaining,
+        issued: prizes.issued,
+      });
+    return row;
+  }
+
   async listPrizes(organizationId: string, gameId: string, tx: DbOrTx = this.db) {
     return tx
       .select()
@@ -435,6 +509,128 @@ export class CampaignsRepository {
     const hasMore = rows.length > opts.limit;
     const items = hasMore ? rows.slice(0, opts.limit) : rows;
     return { items, nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null };
+  }
+
+  async listPlayers(
+    organizationId: string,
+    eventId: string,
+    opts: { limit: number; cursor?: string },
+  ) {
+    const playsByPlayer = this.db
+      .select({
+        playerId: plays.playerId,
+        playsCount: sql<number>`count(*)::int`.as('plays_count'),
+      })
+      .from(plays)
+      .where(
+        and(
+          eq(plays.organizationId, organizationId),
+          eq(plays.eventId, eventId),
+          eq(plays.env, 'live'),
+        ),
+      )
+      .groupBy(plays.playerId)
+      .as('plays_by_player');
+
+    const winsByPlayer = this.db
+      .select({
+        playerId: awards.playerId,
+        winsCount: sql<number>`count(*)::int`.as('wins_count'),
+      })
+      .from(awards)
+      .where(
+        and(
+          eq(awards.organizationId, organizationId),
+          eq(awards.eventId, eventId),
+          eq(awards.env, 'live'),
+          ne(awards.status, 'void'),
+        ),
+      )
+      .groupBy(awards.playerId)
+      .as('wins_by_player');
+
+    const marketingByPlayer = this.db
+      .select({
+        playerId: consents.playerId,
+        granted: sql<boolean>`bool_or(${consents.granted})`.as('marketing_granted'),
+      })
+      .from(consents)
+      .where(
+        and(
+          eq(consents.organizationId, organizationId),
+          eq(consents.purpose, 'marketing'),
+          eq(consents.granted, true),
+          isNull(consents.withdrawnAt),
+        ),
+      )
+      .groupBy(consents.playerId)
+      .as('marketing_by_player');
+
+    return this.db
+      .select({
+        id: players.id,
+        displayName: players.displayName,
+        phoneEnc: players.phoneEnc,
+        phoneHash: players.phoneHash,
+        formData: players.formData,
+        createdAt: players.createdAt,
+        playsCount: sql<number>`coalesce(${playsByPlayer.playsCount}, 0)::int`.mapWith(Number),
+        winsCount: sql<number>`coalesce(${winsByPlayer.winsCount}, 0)::int`.mapWith(Number),
+        marketingConsent: sql<boolean>`coalesce(${marketingByPlayer.granted}, false)`.mapWith(
+          Boolean,
+        ),
+      })
+      .from(players)
+      .leftJoin(playsByPlayer, eq(playsByPlayer.playerId, players.id))
+      .leftJoin(winsByPlayer, eq(winsByPlayer.playerId, players.id))
+      .leftJoin(marketingByPlayer, eq(marketingByPlayer.playerId, players.id))
+      .where(
+        and(
+          eq(players.organizationId, organizationId),
+          eq(players.eventId, eventId),
+          eq(players.env, 'live'),
+          opts.cursor ? lt(players.id, opts.cursor) : undefined,
+        ),
+      )
+      .orderBy(desc(players.id))
+      .limit(opts.limit);
+  }
+
+  async listExportAwards(organizationId: string, eventId: string, onlyWinners: boolean) {
+    return this.db
+      .select({
+        id: awards.id,
+        code: awards.redeemCode,
+        status: awards.status,
+        createdAt: awards.createdAt,
+        expiresAt: awards.expiresAt,
+        redeemedAt: awards.redeemedAt,
+        playerId: awards.playerId,
+        playerName: players.displayName,
+        phoneEnc: players.phoneEnc,
+        prizeKey: prizes.key,
+        prizeRowId: prizes.id,
+        prizeName: prizes.name,
+        valueVnd: prizes.valueVnd,
+      })
+      .from(awards)
+      .innerJoin(
+        prizes,
+        and(eq(prizes.organizationId, organizationId), eq(prizes.id, awards.prizeId)),
+      )
+      .leftJoin(
+        players,
+        and(eq(players.organizationId, organizationId), eq(players.id, awards.playerId)),
+      )
+      .where(
+        and(
+          eq(awards.organizationId, organizationId),
+          eq(awards.eventId, eventId),
+          eq(awards.env, 'live'),
+          onlyWinners ? ne(awards.status, 'void') : undefined,
+        ),
+      )
+      .orderBy(desc(awards.id));
   }
 
   async stats(organizationId: string, eventId: string, gameId: string) {

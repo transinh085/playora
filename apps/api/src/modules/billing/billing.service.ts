@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   type AdminOrg,
+  type AdminUpcomingCampaign,
   type adminApi,
   type BillingInvoice,
   type BillingPlan,
@@ -199,17 +200,85 @@ export class BillingService {
 
   async adminListOrgs(query: AdminOrgsQuery): Promise<{ items: AdminOrg[] }> {
     const now = new Date();
+    const month = billingMonth(now);
     const orgs = await this.repo.searchOrgs(query.query || undefined, query.limit);
     const ids = orgs.map((o) => o.id);
-    const [subs, owners] = await Promise.all([
+    const [subs, owners, runningByOrg, redemptionsByOrg, activeIssuedByOrg] = await Promise.all([
       this.repo.subscriptionsOf(ids),
       this.repo.ownerEmails(ids),
+      this.repo.countRunningCampaignsByOrgIds(ids, now),
+      this.repo.countRedemptionsByOrgIds(ids, month.start, month.end),
+      this.repo.countActiveIssuedVouchersByOrgIds(ids, now),
     ]);
     return {
-      items: await Promise.all(
-        orgs.map((o) => this.toAdminOrg(o, subs.get(o.id), owners.get(o.id), now)),
-      ),
+      items: orgs.map((o): AdminOrg => {
+        const sub = subs.get(o.id);
+        return {
+          id: o.id,
+          name: o.name,
+          slug: o.slug,
+          ownerEmail: owners.get(o.id) ?? null,
+          createdAt: o.createdAt.toISOString(),
+          plan: effectivePlan(sub, now),
+          subscription: toSubscription(sub),
+          note: sub?.note ?? null,
+          usage: {
+            runningCampaigns: runningByOrg.get(o.id) ?? 0,
+            redemptionsThisMonth: redemptionsByOrg.get(o.id) ?? 0,
+            activeIssuedVouchers: activeIssuedByOrg.get(o.id) ?? 0,
+            monthStart: month.start.toISOString(),
+          },
+        };
+      }),
     };
+  }
+
+  async adminUpcomingCampaigns(now = new Date()): Promise<{ items: AdminUpcomingCampaign[] }> {
+    const until = new Date(now.getTime() + 14 * 86_400_000);
+    const rows = await this.repo.listUpcomingCampaigns(now, until);
+    return {
+      items: rows.map((r): AdminUpcomingCampaign => {
+        const startsAt = r.startsAt ?? now;
+        const endsAt = r.endsAt ?? until;
+        const phase = startsAt.getTime() > now.getTime() ? 'scheduled' : 'live';
+        const baseline =
+          r.baselineGuestsPerDay !== null && /^\d+$/.test(r.baselineGuestsPerDay)
+            ? Number(r.baselineGuestsPerDay)
+            : null;
+        return {
+          id: r.id,
+          organizationId: r.organizationId,
+          organizationName: r.organizationName,
+          organizationSlug: r.organizationSlug,
+          name: r.name,
+          slug: r.slug,
+          phase,
+          startsAt: startsAt.toISOString(),
+          endsAt: endsAt.toISOString(),
+          expectedDailyPlays: baseline,
+          totalStock: r.totalStock,
+          remainingStock: r.remainingStock,
+          plays: r.plays,
+        };
+      }),
+    };
+  }
+
+  async adminInspectOrg(orgId: string, actor: Actor): Promise<AdminOrg> {
+    const org = await this.repo.findOrg(orgId);
+    if (!org) orgNotFound();
+    await this.repo.transaction(async (tx) => {
+      await this.recordAdminAudit(
+        orgId,
+        actor,
+        'admin.org_inspect',
+        'organization',
+        orgId,
+        { mode: 'read_only', slug: org.slug },
+        tx,
+      );
+    });
+    return this.adminOrg(orgId);
   }
 
   private async adminOrg(orgId: string): Promise<AdminOrg> {
