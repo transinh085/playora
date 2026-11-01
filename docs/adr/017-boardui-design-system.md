@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Trạng thái** | Accepted |
+| **Trạng thái** | Superseded by [ADR-018](./018-heroui-v3-design-system.md) |
 | **Ngày** | 31/10/2026 |
 | **Người quyết định** | Founder (Tech Lead) |
-| **Thay thế / Liên quan** | Thay thế [ADR-016](./016-shadcn-luma-ui.md) · [ADR-009](./009-frontend-stack.md) · [../engineering/design-system.md](../engineering/design-system.md) |
+| **Thay thế / Liên quan** | Thay thế [ADR-016](./016-shadcn-luma-ui.md) · Bị thay thế bởi [ADR-018](./018-heroui-v3-design-system.md) · [ADR-009](./009-frontend-stack.md) · [../engineering/design-system.md](../engineering/design-system.md) |
 
 ## Bối cảnh
 

@@ -1,3 +1,29 @@
+// Direct HeroUI v3 component & style exports
+export * as HeroUI from '@heroui/react';
+export {
+  Accordion,
+  Alert,
+  Autocomplete,
+  Calendar,
+  DateField,
+  DatePicker,
+  DateRangePicker,
+  Description as HeroDescription,
+  Disclosure,
+  DisclosureGroup,
+  ErrorMessage as HeroErrorMessage,
+  FieldError as HeroFieldError,
+  Fieldset as HeroFieldset,
+  InputGroup,
+  ListBox,
+  RangeCalendar,
+  ScrollShadow,
+  Separator as HeroSeparator,
+  Surface,
+  ToggleButton,
+  ToggleButtonGroup,
+  Toolbar,
+} from '@heroui/react';
 export * from './application/dashboard/orders-chart-card';
 export * from './application/dashboard/revenue-chart-card';
 export type { Stat, StatCardsVariant, StatTone } from './application/dashboard/stat-cards';
@@ -49,6 +75,7 @@ export * from './base/textarea/textarea';
 export * from './base/toast/toast';
 export * from './base/tooltip/tooltip';
 export * from './base/tree-view/tree-view';
+export * from './card';
 export * from './foundations/direction/direction';
 export * from './foundations/phone-mockup/phone-mockup';
 export * from './foundations/qr-code/qr-code';

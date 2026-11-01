@@ -1,6 +1,6 @@
-# Design System — Playora v3.0 (BoardUI)
+# Design System — Playora v3.1 (HeroUI v3)
 
-Cập nhật: 31/10/2026 · Owner: Tech Lead (founder) · Trạng thái: **v3.0** (BoardUI + Brand Teal `accent-50..950`, đồng bộ [PRD v4.3](../product/prd.md)) · Code: `packages/ui` · Trang sống: `apps/web` → `/design-system` (noindex) · Liên quan: [ADR-017](../adr/017-boardui-design-system.md) (thay thế [ADR-016](../adr/016-shadcn-luma-ui.md)), [product/specs/studio-ux.md](../product/specs/studio-ux.md), [product/specs/builder.md](../product/specs/builder.md), [product/specs/playbooks.md](../product/specs/playbooks.md), [product/specs/prizes-redemption.md](../product/specs/prizes-redemption.md)
+Cập nhật: 01/11/2026 · Owner: Tech Lead (founder) · Trạng thái: **v3.1** (HeroUI v3 + Brand Teal hue 192, đồng bộ [PRD v4.3](../product/prd.md)) · Code: `packages/ui` · Trang sống: `apps/web` → `/design-system` (noindex) · Liên quan: [ADR-018](../adr/018-heroui-v3-design-system.md) (thay thế [ADR-017](../adr/017-boardui-design-system.md)), [product/specs/studio-ux.md](../product/specs/studio-ux.md), [product/specs/builder.md](../product/specs/builder.md), [product/specs/playbooks.md](../product/specs/playbooks.md), [product/specs/prizes-redemption.md](../product/specs/prizes-redemption.md)
 
 > **Di sản sân khấu:** surface Screen/LED đã gỡ ([ADR-011](../adr/011-remove-live-engine.md)). Token `violet`, `spotlight`, `stage`, `team`, `medal`, skin `classic`/`yep` và component `TeamBar`, `Leaderboard`, `JoinPanel` vẫn còn trong `packages/ui` để giữ tương thích cho các mẫu vòng quay và đối chiếu skin; bề mặt trọng tâm của M1–M2 là **Studio**, **Quầy đổi quà trên điện thoại**, và **Player trên điện thoại**.
 
@@ -160,20 +160,20 @@ Brand kit:
 
 ## 5. Component
 
-### Studio (`@playora/ui/components/base/*` + `@playora/ui/{providers,form,theme,utils/cx}`)
+### Studio (`@playora/ui/components/base/*` + `@playora/ui/components`, `@heroui/react`, `@playora/ui/{providers,form,theme,utils/cx}`)
 
-Sử dụng trực tiếp các component nguyên bản của **BoardUI** (dựng trên `react-aria-components` + `@remixicon/react` + Tailwind v4) tại `packages/ui/src/components/base/*` theo [ADR-017](../adr/017-boardui-design-system.md):
+Sử dụng trực tiếp các component nguyên bản của **HeroUI v3** (`@heroui/react` + `@heroui/styles` v3.2.7+, dựng trên `react-aria-components` + Tailwind v4) tại `@playora/ui/components` và `packages/ui/src/components/base/*` theo [ADR-018](../adr/018-heroui-v3-design-system.md):
 
 | Thành phần | Quy ước |
 |---|---|
-| `Button`, `ButtonLink`, `IconButton`, `CloseButton`, `LinkButton` | `@playora/ui/components/base/buttons/*` — Bo góc `rounded-2lg` (`10px`), `variant`: `primary \| secondary \| ghost \| danger`, `size`: `medium (h-9) \| small (h-8) \| xs (h-6)`, hiệu ứng `button-press-motion`, icon `@remixicon/react` qua `leadingIcon` / `trailingIcon` |
-| `Chip`, `Badge`, `StatusDot` | `@playora/ui/components/base/badges/*` — `Chip` (`bold \| subtle \| caption`, màu semantic `cyan \| lime \| yellow \| rose \| orange \| blue \| purple \| neutral \| gray \| soft`), `Badge` đếm số (`primary \| neutral`), `StatusDot` |
-| `Modal`, `AlertDialog`, `Drawer` | `@playora/ui/components/base/modal/modal` & `base/drawer/drawer` — Khung chứa bo góc `rounded-3xl` (`24px`), nền `bg-background-full`, viền `border-separator-border`, hiệu ứng blur/scale iOS curve |
-| `Input`, `InputBase`, `TextField`, `Textarea`, `Select` | `@playora/ui/components/base/input/*`, `base/textarea/*`, `base/select/*` — Bo góc `rounded-2lg` (`10px`), nền `bg-background-tertiary-default` (hoặc `bg-background-primary-default` cho Select trigger), tự động liên kết `Label` và `HintText` qua React Aria |
-| `Checkbox`, `RadioGroup`, `Switch`, `Slider`, `ProgressBar` | `@playora/ui/components/base/{checkbox,radio,switch,slider,progress}/*` — Dùng gradient `bg-button-primary` (`from-accent-500 to-accent-600`) và `shadow-checkbox-selected` |
-| `Tabs`, `PillTabs`, `SegmentedControl` | `@playora/ui/components/base/{tabs,segmented-control}/*` — Roving-tabindex tự động qua React Aria |
-| `Table`, `DataTable` | `@playora/ui/components/base/table/table` & `application/tables/data-table` — Class `.bui-table` định dạng đồng nhất header, cell, hover surface |
-| Toast / Notification | `Toaster` & `toast` từ `@playora/ui/components/base/toast/toast` (`toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`) dựng trên `Notification` + `NotificationViewport` |
+| `Button`, `ButtonLink`, `IconButton`, `CloseButton`, `LinkButton` | `@playora/ui/components/base/buttons/*` & `HeroUI.Button` — Bo góc `rounded-2lg` (`10px`), `variant`: `primary \| secondary \| ghost \| danger`, `size`: `medium (h-9) \| small (h-8) \| xs (h-6)`, hiệu ứng `button-press-motion`, icon `@remixicon/react` qua `leadingIcon` / `trailingIcon` |
+| `Chip`, `Badge`, `StatusDot` | `@playora/ui/components/base/badges/*` & `HeroUI.Chip`, `HeroUI.Badge` — `Chip` (`bold \| subtle \| caption`, màu semantic `cyan \| lime \| yellow \| rose \| orange \| blue \| purple \| neutral \| gray \| soft`), `Badge` đếm số (`primary \| neutral`), `StatusDot` |
+| `Modal`, `AlertDialog`, `Drawer` | `@playora/ui/components/base/modal/modal`, `base/drawer/drawer`, `HeroUI.Modal`, `HeroUI.AlertDialog`, `HeroUI.Drawer` — Compound components (`Modal.Backdrop`, `Modal.Dialog`, `Drawer.Content`), bo góc `rounded-3xl` (`24px`), nền `bg-background-full`, viền `border-separator-border` |
+| `Input`, `InputBase`, `TextField`, `Textarea`, `Select` | `@playora/ui/components/base/input/*`, `base/textarea/*`, `base/select/*` & `HeroUI.Input`, `HeroUI.Select` — Bo góc `rounded-2lg` (`10px`), nền `bg-background-tertiary-default`, tự động liên kết `Label` và `HintText` qua React Aria |
+| `Checkbox`, `RadioGroup`, `Switch`, `Slider`, `ProgressBar` | `@playora/ui/components/base/{checkbox,radio,switch,slider,progress}/*` & HeroUI primitives — Dùng token `--accent` Brand Teal (`from-accent-500 to-accent-600`) |
+| `Tabs`, `PillTabs`, `SegmentedControl` | `@playora/ui/components/base/{tabs,segmented-control}/*` & `HeroUI.Tabs` (`Tabs.List`, `Tabs.Tab`, `Tabs.Panel`) — Roving-tabindex tự động qua React Aria |
+| `Table`, `DataTable` | `@playora/ui/components/base/table/table`, `HeroUI.Table` & `application/tables/data-table` — Định dạng đồng nhất header, cell, hover surface |
+| Toast / Notification | `Toaster` & `toast` từ `@playora/ui/components/base/toast/toast` (`toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`, `toast.danger()`) dựng trên HeroUI Toast và native Viewport |
 | `PhoneMockup` | `@playora/ui/components/foundations/phone-mockup/phone-mockup` — Khung giả lập iPhone 16 Pro thực tế (vỏ Titanium đa lớp, cụm phím cứng vật lý, khe loa thoại, vạch ăng-ten, Dynamic Island có thấu kính phản quang, thanh trạng thái iOS `9:41` / sóng / Wi-Fi / pin, vạch Home Indicator & lớp phản chiếu kính OLED; hỗ trợ cỡ `xs \| sm \| md \| lg`, màu `titanium-dark \| titanium-natural \| titanium-silver` và `responsiveFrame`) |
 | `Logo`, `LogoMark` | Nút play dưới chấm spotlight; wordmark viết thường bằng font `Unbounded`. Ẩn khi white-label (`ORG-04`) |
 

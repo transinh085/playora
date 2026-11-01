@@ -108,12 +108,16 @@ toast.success = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { ...options, status: 'success' });
 toast.error = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { ...options, status: 'error' });
+toast.danger = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
+  show(title, { ...options, status: 'error' });
 toast.info = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { ...options, status: 'information' });
 toast.warning = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { ...options, status: 'error' });
 toast.loading = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { duration: Number.POSITIVE_INFINITY, ...options, status: 'neutral' });
+
+export { Toast } from '@heroui/react';
 
 /** Change a toast that is showing. A new `duration` restarts its countdown. */
 toast.update = (id: ToastId, options: ToastOptions & { title?: ReactNode }) => {

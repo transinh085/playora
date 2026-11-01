@@ -10,12 +10,12 @@ import { flushSync } from 'react-dom';
 
 export type ThemeMode = 'light' | 'dark';
 
-export const THEME_STORAGE_KEY = 'boardui:theme';
-export const THEME_CHANGE_EVENT = 'boardui:theme-change';
+export const THEME_STORAGE_KEY = 'heroui:theme';
+export const THEME_CHANGE_EVENT = 'heroui:theme-change';
 
 const THEME_TRANSITION_DURATION = 820;
 const THEME_TRANSITION_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const THEME_TRANSITION_STYLE_ID = 'boardui-theme-transition-style';
+const THEME_TRANSITION_STYLE_ID = 'heroui-theme-transition-style';
 
 type ThemeTransitionOrigin = { x: number; y: number };
 
@@ -89,7 +89,9 @@ function storedTheme(): ThemeMode {
   if (typeof window === 'undefined') return 'light';
   try {
     const val =
-      window.localStorage.getItem(THEME_STORAGE_KEY) || window.localStorage.getItem('theme');
+      window.localStorage.getItem(THEME_STORAGE_KEY) ||
+      window.localStorage.getItem('boardui:theme') ||
+      window.localStorage.getItem('theme');
     if (val === 'dark') return 'dark';
     if (val === 'light') return 'light';
     return currentTheme();
@@ -101,9 +103,12 @@ function storedTheme(): ThemeMode {
 export function applyTheme(theme: ThemeMode, { persist = true }: { persist?: boolean } = {}) {
   if (typeof document === 'undefined') return;
   document.documentElement.classList.toggle('dark', theme === 'dark');
+  document.documentElement.classList.toggle('light', theme === 'light');
+  document.documentElement.setAttribute('data-theme', theme);
   if (persist) {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      window.localStorage.setItem('boardui:theme', theme);
       window.localStorage.setItem('theme', theme);
     } catch {
       // The control remains usable when storage is blocked or unavailable.

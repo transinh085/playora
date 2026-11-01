@@ -66,4 +66,35 @@ describe('BoardUI Base Primitives', () => {
     expect(inputHtml).toContain('Campaign Name');
     expect(inputHtml).toContain('Summer Spin');
   });
+
+  it('renders HeroUI v3 Card compound component', async () => {
+    const { Card, CardHeader, CardTitle } = await import('../../card');
+    const html = renderToString(
+      <Card>
+        <Card.Header>
+          <Card.Title>HeroUI v3 Card Title</Card.Title>
+        </Card.Header>
+      </Card>,
+    );
+    expect(html).toContain('card');
+    expect(html).toContain('card__title');
+    expect(html).toContain('HeroUI v3 Card Title');
+
+    const standaloneHtml = renderToString(
+      <Card>
+        <CardHeader>
+          <CardTitle>Standalone Subcomponents</CardTitle>
+        </CardHeader>
+      </Card>,
+    );
+    expect(standaloneHtml).toContain('Standalone Subcomponents');
+  });
+
+  it('verifies HeroUI v3 Button and direct components', async () => {
+    const { Button: HeroButton } = await import('@heroui/react');
+    const html = renderToString(<HeroButton variant="primary">Hero Action</HeroButton>);
+    expect(html).toContain('button');
+    expect(html).toContain('button--primary');
+    expect(html).toContain('Hero Action');
+  });
 });

@@ -13,6 +13,7 @@
  */
 @layer theme, base, components, utilities;
 
+@import "@heroui/styles";
 @import "./styles/theme.css";
 @import "./styles/typography.css";
 
@@ -35,6 +36,11 @@
 @custom-variant active (&:active, &[data-preview~="active"]);
 
 :root {
+  /* ── 0. HeroUI v3 Theming — Playora Brand Teal (hue 192) ────────────────────────── */
+  --accent: oklch(0.6 0.1 192);
+  --accent-foreground: oklch(100% 0 0);
+  --focus: var(--accent);
+
   /* ── 1. Primitives ─────────────────────────────────────────────────────────────── */
   /* Brand teal (hue 192). Mapped onto BoardUI's accent-50..950 ramp in ./styles/theme.css. */
   --teal-50: oklch(0.975 0.018 192);
@@ -119,8 +125,6 @@
   --secondary-foreground: var(--color-text-primary);
   --muted: var(--color-background-secondary-default);
   --muted-foreground: var(--color-text-secondary);
-  --accent: var(--color-background-primary-hover);
-  --accent-foreground: var(--color-text-primary);
   --destructive: var(--color-text-error-primary);
   --destructive-foreground: var(--color-text-white);
   --border: var(--color-border-button-default);
@@ -174,6 +178,10 @@
 }
 
 .dark {
+  --accent: oklch(0.6 0.1 192);
+  --accent-foreground: oklch(100% 0 0);
+  --focus: var(--accent);
+
   --primary: var(--color-accent-500);
   --primary-active: var(--color-accent-600);
   --primary-foreground: var(--color-text-white);

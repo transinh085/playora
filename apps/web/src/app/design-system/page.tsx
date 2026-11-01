@@ -8,7 +8,7 @@ import { StudioPreview } from './_components/studio-preview';
 import { ThemeToggle } from './_components/theme-toggle';
 
 export const metadata: Metadata = {
-  title: 'Playora Design System v2.0 — shadcn/ui Luma',
+  title: 'Playora Design System v3.1 — HeroUI v3',
   robots: { index: false },
 };
 
@@ -45,7 +45,7 @@ function Section({
 
 const NAV_ITEMS = [
   ['foundations', '1. Nền tảng (Tokens & WCAG)'],
-  ['studio', '2. Thành phần Studio (shadcn/ui)'],
+  ['studio', '2. Thành phần Studio (HeroUI v3)'],
   ['recipes', '3. Mẫu nghiệp vụ PRD v4.3'],
   ['game', '4. Player & Skin Engine'],
   ['logo', '5. Nhận diện & White-label'],
@@ -54,13 +54,13 @@ const NAV_ITEMS = [
 export default function DesignSystemPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      {/* Sticky Luma Glass Header */}
+      {/* Sticky Glass Header */}
       <div className="luma-glass sticky top-0 z-40 border-b border-border/70">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <Logo className="text-xl" />
             <Chip variant="caption" color="neutral" className="font-mono text-xs">
-              v2.0 · BoardUI · ADR-016
+              v3.1 · HeroUI v3 · ADR-018
             </Chip>
           </div>
           <nav className="hidden flex-wrap items-center gap-x-5 gap-y-1 text-xs font-medium lg:flex">
