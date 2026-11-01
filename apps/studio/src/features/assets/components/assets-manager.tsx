@@ -1,8 +1,7 @@
 'use client';
 
 import { assetsApi, type ErrorCode } from '@playora/contracts';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import { Card, Skeleton, toast } from '@playora/ui/components';
 import { ImageIcon } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -82,16 +81,16 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       {query.isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[0, 1, 2].map((i) => (
-            <div
+            <Card
               key={i}
-              className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+              className="flex flex-col overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card"
             >
               <Skeleton className="aspect-video w-full rounded-none" />
-              <div className="space-y-2 p-4">
+              <Card.Content className="space-y-2 p-4">
                 <Skeleton className="h-4 w-2/3" />
                 <Skeleton className="h-3 w-1/3" />
-              </div>
-            </div>
+              </Card.Content>
+            </Card>
           ))}
         </div>
       ) : query.isError ? (

@@ -10,9 +10,7 @@ import {
   type PlayerFormValues,
   toCanvasDoc,
 } from '@playora/ui/campaign';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import { Button, Chip, toast } from '@playora/ui/components';
 import Script from 'next/script';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -265,9 +263,10 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
       <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
         {turnsLeft !== undefined && (
           <Chip
-            variant="caption"
-            color="neutral"
-            className="m-0 bg-background/80 backdrop-blur-xs text-xs font-normal"
+            variant="soft"
+            size="sm"
+            color="default"
+            className="m-0 bg-background/80 text-xs font-normal backdrop-blur-xs"
             data-testid="turns-left"
           >
             {t('turnsLeft', { count: turnsLeft })}
@@ -279,9 +278,9 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         <div className="relative inline-flex">
           <Button
             variant="secondary"
-            size="small"
-            className="rounded-full h-7 px-3 text-xs bg-background/80 backdrop-blur-xs shadow-xs"
-            onClick={() => player.current?.openVouchers()}
+            size="sm"
+            className="h-7 rounded-full bg-background/80 px-3 text-xs shadow-xs backdrop-blur-xs"
+            onPress={() => player.current?.openVouchers()}
           >
             {t('myPrizes')}
           </Button>

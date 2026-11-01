@@ -1,4 +1,3 @@
-import type { ChipColor } from '@playora/ui/components/base/badges/chip';
 import { buildScreens, type SkinKey, type TemplateKey } from '@/features/builder-lab/lib/starter';
 import {
   type BrandPalette,
@@ -8,6 +7,8 @@ import {
   DEMO_BRAND,
   presetSrc,
 } from '@/features/canvas-editor/lib/model';
+
+export type BadgeTone = 'rose' | 'orange' | 'cyan' | 'yellow' | 'purple';
 
 export type TemplateOccasion = 'all' | 'tet' | 'opening' | 'everyday';
 
@@ -39,7 +40,7 @@ export interface CatalogTemplate {
   name: string;
   skinKey: SkinKey;
   skinName: string;
-  badgeTone: ChipColor;
+  badgeTone: BadgeTone;
   engineKind: 'instant' | 'skill';
   isReal: boolean;
   occasion: TemplateOccasion;
@@ -58,7 +59,7 @@ export interface CatalogTemplate {
   availableSkins: CatalogSkinOption[];
 }
 
-const SKINS_INFO: Record<SkinKey, { name: string; brand: BrandPalette }> = {
+export const SKINS_INFO: Record<SkinKey, { name: string; brand: BrandPalette }> = {
   tet: {
     name: 'Tết Đỏ Kim Tiền',
     brand: DEMO_BRAND,

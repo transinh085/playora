@@ -1,4 +1,4 @@
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button } from '@playora/ui/components';
 import { RiAddLine } from '@remixicon/react';
 import type { Metadata, Route } from 'next';
 import Link from 'next/link';
@@ -20,7 +20,8 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgI
         description={t('subtitle')}
         extra={
           <Link href={`/orgs/${orgId}/campaigns/new` as Route}>
-            <Button size="small" leadingIcon={RiAddLine} tabIndex={-1}>
+            <Button size="sm" excludeFromTabOrder>
+              <RiAddLine className="size-4" />
               {t('create')}
             </Button>
           </Link>

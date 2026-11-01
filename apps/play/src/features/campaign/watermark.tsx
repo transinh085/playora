@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
 
 export const WATERMARK_HREF = 'https://playora.vn/?ref=watermark';
@@ -10,8 +10,9 @@ export function PlayoraWatermark() {
   const t = useTranslations('play');
   return (
     <Chip
-      variant="caption"
-      color="neutral"
+      variant="soft"
+      size="sm"
+      color="default"
       className="m-0 text-xs shadow-xs"
       data-testid="playora-watermark"
     >

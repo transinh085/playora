@@ -1,10 +1,7 @@
 'use client';
 
 import type { AssetStatus, AssetSummary } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Divider } from '@playora/ui/components/base/divider/divider';
-import { AlertDialog, ModalTrigger } from '@playora/ui/components/base/modal/modal';
+import { AlertDialog, Button, Card, Chip, Separator } from '@playora/ui/components';
 import { CircleAlert, CircleCheck, Film, LoaderCircle, Music, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -22,7 +19,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
   function renderStatusTag(status: AssetStatus) {
     if (status === 'ready') {
       return (
-        <Chip variant="subtle" color="lime" className="gap-1">
+        <Chip variant="soft" color="success" size="sm" className="gap-1">
           <CircleCheck className="size-3" />
           {t('assets.statusReady')}
         </Chip>
@@ -30,14 +27,14 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
     }
     if (status === 'failed') {
       return (
-        <Chip variant="subtle" color="rose" className="gap-1">
+        <Chip variant="soft" color="danger" size="sm" className="gap-1">
           <CircleAlert className="size-3" />
           {t('assets.statusFailed')}
         </Chip>
       );
     }
     return (
-      <Chip variant="subtle" color="neutral" className="gap-1">
+      <Chip variant="soft" color="default" size="sm" className="gap-1">
         <LoaderCircle className="size-3 animate-spin" />
         {t('assets.statusPending')}
       </Chip>
@@ -52,7 +49,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
   );
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+    <Card className="flex flex-col overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
       <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b border-border-button-default bg-background-secondary-default">
         {asset.kind === 'image' ? (
           // biome-ignore lint/performance/noImgElement: presigned S3 URLs are dynamic
@@ -64,7 +61,7 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-3.5">
+      <Card.Content className="flex flex-1 flex-col p-3.5">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-caption-1-semibold text-text-primary">{asset.mime}</span>
           {renderStatusTag(asset.status)}
@@ -79,39 +76,61 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
           )}
         </div>
 
-        <div className="mt-auto pt-2">
-          <Divider className="my-2" />
+        <Card.Footer className="mt-auto flex flex-col items-stretch p-0 pt-2">
+          <Separator className="my-2" />
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1">
               {Object.keys(asset.variants).map((key) => (
-                <Chip key={key} variant="caption" color="neutral">
+                <Chip key={key} variant="soft" color="default" size="sm">
                   {key}
                 </Chip>
               ))}
             </div>
 
-            <ModalTrigger>
+            <AlertDialog>
               <Button
                 variant="ghost"
-                size="xs"
-                iconOnly
-                leadingIcon={Trash2}
+                size="sm"
+                isIconOnly
                 className="text-text-error-primary"
                 aria-label={t('common.delete')}
-                disabled={isRemoving}
-              />
-              <AlertDialog
-                title={t('assets.deleteConfirm')}
-                description={t('common.delete')}
-                variant="danger"
-                confirmLabel={t('common.delete')}
-                cancelLabel={t('common.cancel')}
-                onConfirm={() => onRemove(asset.id)}
-              />
-            </ModalTrigger>
+                isDisabled={isRemoving}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+              <AlertDialog.Backdrop isDismissable>
+                <AlertDialog.Container size="sm">
+                  <AlertDialog.Dialog>
+                    <AlertDialog.CloseTrigger />
+                    <AlertDialog.Header>
+                      <AlertDialog.Icon status="danger" />
+                      <AlertDialog.Heading>{t('assets.deleteConfirm')}</AlertDialog.Heading>
+                    </AlertDialog.Header>
+                    <AlertDialog.Body>
+                      <p className="text-body-2-regular text-text-secondary">
+                        {t('common.delete')}
+                      </p>
+                    </AlertDialog.Body>
+                    <AlertDialog.Footer>
+                      <Button slot="close" variant="secondary" size="sm">
+                        {t('common.cancel')}
+                      </Button>
+                      <Button
+                        slot="close"
+                        variant="danger"
+                        size="sm"
+                        onPress={() => onRemove(asset.id)}
+                      >
+                        {t('common.delete')}
+                      </Button>
+                    </AlertDialog.Footer>
+                  </AlertDialog.Dialog>
+                </AlertDialog.Container>
+              </AlertDialog.Backdrop>
+            </AlertDialog>
           </div>
-        </div>
-      </div>
-    </div>
+        </Card.Footer>
+      </Card.Content>
+    </Card>
   );
 }

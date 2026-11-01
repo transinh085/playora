@@ -45,7 +45,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 3. **DB** — schema in `packages/db/src/schema/`, then `bun run db:generate`; commit the generated SQL.
 4. **API** — `apps/api/src/modules/<feature>/`: repository (every method takes `organizationId` first and filters by it) → service → controller using only `@Route(contract)` + `@Args()`.
 5. **Integration test** — `apps/api/test/<feature>.e2e.test.ts` with `createTestApp()`; must cover happy path, 400, 401 and **cross-tenant 403/404**.
-6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use `react-hook-form` + `zod` + HeroUI inputs (`@playora/ui/components/base/input/input`, `@playora/ui/form`); toast via `@playora/ui/components/base/toast/toast` (`toast.success` / `toast.error`); all text via next-intl with keys in **both** `vi.json` and `en.json`.
+6. **Studio** — `useRouteQuery` / `useRouteMutation` from `@playora/api-client/react`; forms use `react-hook-form` + `zod` + HeroUI v3 inputs (`@playora/ui/components`, `@playora/ui/form`); toast via `@playora/ui/components` (`toast.success` / `toast.error`); all text via next-intl with keys in **both** `vi.json` and `en.json`.
 7. **E2E** for the main user flow in `tooling/e2e/tests/`.
 
 ## Hard rules
@@ -57,7 +57,7 @@ Scope a check to one package with `bunx turbo run typecheck test --filter=@playo
 - Do not edit generated files: `packages/db/src/schema/auth.ts` (regenerate with `bun run --cwd packages/auth generate:schema`), `packages/db/drizzle/**`, `bun.lock` by hand.
 - Do not change pinned versions or add dependencies without saying why in the PR. Pin exact versions (`bunfig.toml` has `exact = true`).
 - NestJS: import injectable classes as values (`import { X }`, not `import type`); decorator flags stay in each Nest app's own `tsconfig.json`.
-- UI: use HeroUI v3 components from `@playora/ui/components/base/*` (`@playora/ui/components`, `@heroui/react`) and helpers from `@playora/ui/{providers,theme,form,game,utils/cx}` (ADR-018); toast via `@playora/ui/components/base/toast/toast` (`toast.*`); style with HeroUI v3 semantic tokens (`--accent` for Playora Brand Teal, `--surface`, `--border`, `--separator`, `rounded-2lg` for controls, `rounded-3xl` for cards/modals) and composite typography utilities (`text-body-medium`, `text-title-2-semibold`, etc.).
+- UI: use HeroUI v3 components from `@playora/ui/components` (`@heroui/react`) and helpers from `@playora/ui/{providers,theme,form,game,utils/cx}` (ADR-018); toast via `@playora/ui/components` (`toast.*`); style with HeroUI v3 semantic tokens (`--accent` for Playora Brand Teal, `--surface`, `--border`, `--separator`, `rounded-2lg` for controls, `rounded-3xl` for cards/modals) and composite typography utilities (`text-body-medium`, `text-title-2-semibold`, etc.).
 - Before any UI work, read `docs/engineering/design-system.md` (Studio follows the games-vt admin look in §3.4 and uses the shared components in `apps/studio/src/components`: PageHeader, MetricGrid, TableCard).
 - Never commit `.env` or secrets. Dev DB/Redis use ports 54329/63799.
 

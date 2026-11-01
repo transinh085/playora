@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal, ModalBody, ModalHeader } from '@playora/ui/components/base/modal/modal';
+import { Modal } from '@playora/ui/components';
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { isTurnstileReady, removeTurnstile, renderTurnstile, resetTurnstile } from './turnstile';
 
@@ -91,17 +91,25 @@ function TurnstileModalComponent(
       onOpenChange={(v) => {
         if (!v) onClose?.();
       }}
-      size="sm"
-      className="max-w-[360px] text-center"
     >
-      <ModalHeader title={title} description={hint} />
-      <ModalBody>
-        <div
-          ref={containerRef}
-          data-testid="turnstile-container"
-          className="flex min-h-[65px] w-full items-center justify-center py-2"
-        />
-      </ModalBody>
+      <Modal.Backdrop isDismissable>
+        <Modal.Container size="sm">
+          <Modal.Dialog className="max-w-[360px] text-center">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>{title}</Modal.Heading>
+              <p className="mt-1 text-caption-1-regular text-muted">{hint}</p>
+            </Modal.Header>
+            <Modal.Body>
+              <div
+                ref={containerRef}
+                data-testid="turnstile-container"
+                className="flex min-h-[65px] w-full items-center justify-center py-2"
+              />
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card, Chip, Separator } from '@playora/ui/components';
 import { ArrowRight, Calendar, Repeat, Sparkles, Wand2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import type React from 'react';
@@ -43,64 +42,72 @@ export function GoalPicker({
           const spec = PLAYBOOKS[key];
           const { icon, tone } = ICONS[spec.key];
           return (
-            <div
+            <Card
               key={spec.key}
-              className="flex h-full flex-col justify-between gap-5 rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
+              data-testid={`playbook-card-${spec.key}`}
+              className="flex h-full flex-col justify-between gap-5 p-6 transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
             >
               <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <IconTile tone={tone} size={44}>
-                    {icon}
-                  </IconTile>
-                  <Chip variant="subtle" color="neutral">
-                    {t('daysTag', { days: spec.days })}
-                  </Chip>
-                </div>
+                <Card.Header className="gap-3 p-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <IconTile tone={tone} size={44}>
+                      {icon}
+                    </IconTile>
+                    <Chip variant="soft" color="default">
+                      {t('daysTag', { days: spec.days })}
+                    </Chip>
+                  </div>
 
-                <div>
-                  <h3 className="m-0 text-title-3-semibold text-text-primary">
-                    {t(`items.${spec.key}.title`)}
-                  </h3>
-                  <p className="mt-1 m-0 text-body-2-medium text-accent-600 dark:text-accent-400">
-                    {t(`items.${spec.key}.goal`)}
-                  </p>
-                </div>
-
-                <dl className="m-0 space-y-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-4">
                   <div>
-                    <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
-                      {t('mechanismLabel')}
-                    </dt>
-                    <dd className="mt-0.5 m-0 text-body-2-regular text-text-primary">
-                      {t(`items.${spec.key}.mechanism`)}
-                    </dd>
+                    <Card.Title className="m-0 text-title-3-semibold text-text-primary">
+                      {t(`items.${spec.key}.title`)}
+                    </Card.Title>
+                    <Card.Description className="mt-1 m-0 text-body-2-medium text-accent-600 dark:text-accent-400">
+                      {t(`items.${spec.key}.goal`)}
+                    </Card.Description>
                   </div>
-                  <div className="border-t border-separator-border pt-2.5">
-                    <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
-                      {t('metricLabel')}
-                    </dt>
-                    <dd className="mt-0.5 m-0 text-body-2-medium text-text-primary">
-                      {t(`items.${spec.key}.metric`)}
-                    </dd>
-                  </div>
-                </dl>
+                </Card.Header>
+
+                <Card.Content className="p-0">
+                  <dl className="m-0 space-y-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-4">
+                    <div>
+                      <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                        {t('mechanismLabel')}
+                      </dt>
+                      <dd className="mt-0.5 m-0 text-body-2-regular text-text-primary">
+                        {t(`items.${spec.key}.mechanism`)}
+                      </dd>
+                    </div>
+                    <Separator />
+                    <div>
+                      <dt className="text-caption-2-semibold uppercase tracking-wider text-text-tertiary">
+                        {t('metricLabel')}
+                      </dt>
+                      <dd className="mt-0.5 m-0 text-body-2-medium text-text-primary">
+                        {t(`items.${spec.key}.metric`)}
+                      </dd>
+                    </div>
+                  </dl>
+                </Card.Content>
               </div>
 
-              <Button
-                variant="primary"
-                className="w-full justify-center"
-                trailingIcon={ArrowRight}
-                data-testid={`playbook-${spec.key}`}
-                onClick={() => onPick(spec.key)}
-              >
-                {t('choose')}
-              </Button>
-            </div>
+              <Card.Footer className="p-0">
+                <Button
+                  variant="primary"
+                  className="w-full justify-center"
+                  data-testid={`playbook-${spec.key}`}
+                  onClick={() => onPick(spec.key)}
+                >
+                  {t('choose')}
+                  <ArrowRight className="size-4" />
+                </Button>
+              </Card.Footer>
+            </Card>
           );
         })}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+      <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-5">
         <div className="flex items-center gap-3.5">
           <IconTile tone="info" size={40}>
             <Wand2 className="size-4" />
@@ -110,10 +117,11 @@ export function GoalPicker({
             <Caption className="block">{t('hint')}</Caption>
           </div>
         </div>
-        <Button variant="secondary" leadingIcon={Wand2} onClick={onCustom}>
+        <Button variant="secondary" onClick={onCustom}>
+          <Wand2 className="size-4" />
           {t('custom')}
         </Button>
-      </div>
+      </Card>
     </div>
   );
 }

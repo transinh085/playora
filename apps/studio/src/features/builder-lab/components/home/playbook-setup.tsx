@@ -1,14 +1,18 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Checkbox } from '@playora/ui/components/base/checkbox/checkbox';
-import { HintText } from '@playora/ui/components/base/input/hint-text';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Label } from '@playora/ui/components/base/input/label';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Chip,
+  Input,
+  InputGroup,
+  Label,
+  Tooltip,
+  toast,
+} from '@playora/ui/components';
 import { applyApiErrorToRHF } from '@playora/ui/form';
 import { ArrowLeft, Coins, Gift, Percent, Plus, Trash2 } from '@playora/ui/icons';
 import { useRouter } from 'next/navigation';
@@ -175,25 +179,26 @@ export function PlaybookSetupForm({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Button variant="secondary" size="small" leadingIcon={ArrowLeft} onClick={onBack}>
+        <Button variant="secondary" size="sm" onClick={onBack}>
+          <ArrowLeft className="size-4" />
           {t('backToGoals')}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-          <div className="flex flex-row items-center justify-between border-b border-separator-border px-6 py-4">
+        <Card className="overflow-hidden p-0">
+          <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-6 py-4">
             <div>
               <Caption className="block">{t('setup.title')}</Caption>
-              <h3 className="m-0 text-headline-semibold text-text-primary">
+              <Card.Title className="m-0 text-headline-semibold text-text-primary">
                 {t(`items.${playbook}.title`)}
-              </h3>
+              </Card.Title>
             </div>
-            <Chip variant="subtle" color="neutral">
+            <Chip variant="soft" color="default">
               {t(`items.${playbook}.goal`)}
             </Chip>
-          </div>
-          <div className="p-6">
+          </Card.Header>
+          <Card.Content className="p-6">
             <form id="playbook-setup" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <Controller
                 control={form.control}
@@ -201,9 +206,9 @@ export function PlaybookSetupForm({
                 render={({ field, fieldState }) => (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="setup-name">{t('setup.name')}</Label>
-                    <InputBase id="setup-name" maxLength={120} {...field} />
+                    <Input id="setup-name" maxLength={120} fullWidth {...field} />
                     {fieldState.error?.message && (
-                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                      <p className="text-caption-regular text-danger">{fieldState.error.message}</p>
                     )}
                   </div>
                 )}
@@ -215,17 +220,22 @@ export function PlaybookSetupForm({
                 render={({ field, fieldState }) => (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="setup-budget">{t('setup.budget')}</Label>
-                    <InputBase
-                      id="setup-budget"
-                      type="number"
-                      step={1000}
-                      min={0}
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                    <HintText>{t('setup.budgetHint')}</HintText>
+                    <InputGroup fullWidth>
+                      <InputGroup.Input
+                        id="setup-budget"
+                        type="number"
+                        step={1000}
+                        min={0}
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                      <InputGroup.Suffix>đ</InputGroup.Suffix>
+                    </InputGroup>
+                    <p className="text-caption-regular text-text-secondary">
+                      {t('setup.budgetHint')}
+                    </p>
                     {fieldState.error?.message && (
-                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                      <p className="text-caption-regular text-danger">{fieldState.error.message}</p>
                     )}
                   </div>
                 )}
@@ -252,14 +262,17 @@ export function PlaybookSetupForm({
                             name={`prizes.${index}.name`}
                             render={({ field, fieldState }) => (
                               <div className="space-y-0">
-                                <InputBase
+                                <Input
                                   placeholder={t('setup.prizeName')}
                                   aria-label={t('setup.prizeName')}
                                   maxLength={120}
+                                  fullWidth
                                   {...field}
                                 />
                                 {fieldState.error?.message && (
-                                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                                  <p className="text-caption-regular text-danger">
+                                    {fieldState.error.message}
+                                  </p>
                                 )}
                               </div>
                             )}
@@ -270,16 +283,21 @@ export function PlaybookSetupForm({
                             name={`prizes.${index}.costVnd`}
                             render={({ field, fieldState }) => (
                               <div className="space-y-0">
-                                <InputBase
-                                  type="number"
-                                  step={1000}
-                                  min={0}
-                                  aria-label={t('setup.prizeCost')}
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
+                                <InputGroup fullWidth>
+                                  <InputGroup.Input
+                                    type="number"
+                                    step={1000}
+                                    min={0}
+                                    aria-label={t('setup.prizeCost')}
+                                    {...field}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                  />
+                                  <InputGroup.Suffix>đ</InputGroup.Suffix>
+                                </InputGroup>
                                 {fieldState.error?.message && (
-                                  <HintText isInvalid>{fieldState.error.message}</HintText>
+                                  <p className="text-caption-regular text-danger">
+                                    {fieldState.error.message}
+                                  </p>
                                 )}
                               </div>
                             )}
@@ -287,8 +305,8 @@ export function PlaybookSetupForm({
                         </div>
 
                         <Chip
-                          variant="subtle"
-                          color={quantity === 0 ? 'rose' : 'neutral'}
+                          variant="soft"
+                          color={quantity === 0 ? 'danger' : 'default'}
                           className="shrink-0 tabular-nums"
                           data-testid="playbook-prize-quantity"
                         >
@@ -297,20 +315,23 @@ export function PlaybookSetupForm({
                             : t('suggestion.quantity', { count: quantity })}
                         </Chip>
 
-                        <TooltipTrigger>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="small"
-                            className="size-8 p-0 text-text-error-primary hover:bg-notification-error-background"
-                            disabled={fields.length <= 1}
-                            onClick={() => remove(index)}
-                            aria-label={t('setup.removePrize')}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                          <Tooltip>{t('setup.removePrize')}</Tooltip>
-                        </TooltipTrigger>
+                        <Tooltip delay={150}>
+                          <Tooltip.Trigger>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              isIconOnly
+                              className="size-8 p-0 text-text-error-primary hover:bg-notification-error-background"
+                              isDisabled={fields.length <= 1}
+                              onClick={() => remove(index)}
+                              aria-label={t('setup.removePrize')}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>{t('setup.removePrize')}</Tooltip.Content>
+                        </Tooltip>
                       </div>
                     );
                   })}
@@ -318,10 +339,9 @@ export function PlaybookSetupForm({
                   <Button
                     type="button"
                     variant="secondary"
-                    size="small"
-                    leadingIcon={Plus}
+                    size="sm"
                     className="w-full justify-center border-dashed"
-                    disabled={fields.length >= 20}
+                    isDisabled={fields.length >= 20}
                     onClick={() => {
                       const current = form.getValues('prizes') ?? [];
                       const weight =
@@ -336,6 +356,7 @@ export function PlaybookSetupForm({
                       });
                     }}
                   >
+                    <Plus className="size-4" />
                     {t('setup.addPrize')}
                   </Button>
                 </div>
@@ -348,9 +369,11 @@ export function PlaybookSetupForm({
                   render={({ field, fieldState }) => (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="setup-start-date">{t('setup.startDate')}</Label>
-                      <InputBase id="setup-start-date" type="date" {...field} />
+                      <Input id="setup-start-date" type="date" fullWidth {...field} />
                       {fieldState.error?.message && (
-                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -362,9 +385,11 @@ export function PlaybookSetupForm({
                   render={({ field, fieldState }) => (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="setup-end-date">{t('setup.endDate')}</Label>
-                      <InputBase id="setup-end-date" type="date" {...field} />
+                      <Input id="setup-end-date" type="date" fullWidth {...field} />
                       {fieldState.error?.message && (
-                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -376,14 +401,17 @@ export function PlaybookSetupForm({
                   render={({ field, fieldState }) => (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="setup-hours-start">{t('setup.hoursStart')}</Label>
-                      <InputBase
+                      <Input
                         id="setup-hours-start"
                         type="time"
+                        fullWidth
                         {...field}
                         value={field.value ?? ''}
                       />
                       {fieldState.error?.message && (
-                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -395,14 +423,17 @@ export function PlaybookSetupForm({
                   render={({ field, fieldState }) => (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="setup-hours-end">{t('setup.hoursEnd')}</Label>
-                      <InputBase
+                      <Input
                         id="setup-hours-end"
                         type="time"
+                        fullWidth
                         {...field}
                         value={field.value ?? ''}
                       />
                       {fieldState.error?.message && (
-                        <HintText isInvalid>{fieldState.error.message}</HintText>
+                        <p className="text-caption-regular text-danger">
+                          {fieldState.error.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -433,13 +464,20 @@ export function PlaybookSetupForm({
                                   }
                                 }}
                               >
-                                {tw(weekdayKey(d))}
+                                <Checkbox.Control>
+                                  <Checkbox.Indicator />
+                                </Checkbox.Control>
+                                <Checkbox.Content>
+                                  <Label>{tw(weekdayKey(d))}</Label>
+                                </Checkbox.Content>
                               </Checkbox>
                             );
                           })}
                         </div>
                         {fieldState.error?.message && (
-                          <HintText isInvalid>{fieldState.error.message}</HintText>
+                          <p className="text-caption-regular text-danger">
+                            {fieldState.error.message}
+                          </p>
                         )}
                       </div>
                     );
@@ -453,26 +491,28 @@ export function PlaybookSetupForm({
                 render={({ field, fieldState }) => (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="setup-guests">{t('setup.guests')}</Label>
-                    <InputBase
+                    <Input
                       id="setup-guests"
                       type="number"
                       min={1}
                       max={100_000}
                       step={10}
-                      fieldClassName="max-w-xs"
+                      className="max-w-xs"
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
-                    <HintText>{t('setup.guestsHint')}</HintText>
+                    <p className="text-caption-regular text-text-secondary">
+                      {t('setup.guestsHint')}
+                    </p>
                     {fieldState.error?.message && (
-                      <HintText isInvalid>{fieldState.error.message}</HintText>
+                      <p className="text-caption-regular text-danger">{fieldState.error.message}</p>
                     )}
                   </div>
                 )}
               />
             </form>
-          </div>
-        </div>
+          </Card.Content>
+        </Card>
 
         <div className="xl:sticky xl:top-4">
           <SuggestionCard
@@ -500,18 +540,20 @@ export function SuggestionCard({
   const zero = suggestion?.prizes.filter((p) => p.quantity === 0) ?? [];
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-      <div className="border-b border-separator-border px-6 py-4">
-        <h3 className="m-0 text-headline-semibold text-text-primary">{t('title')}</h3>
-      </div>
-      <div className="space-y-4 p-6">
+    <Card className="overflow-hidden p-0">
+      <Card.Header className="border-b border-separator-border px-6 py-4">
+        <Card.Title className="m-0 text-headline-semibold text-text-primary">
+          {t('title')}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="space-y-4 p-6">
         {suggestion === null ? (
-          <div
-            role="alert"
-            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-body-2-medium text-text-secondary"
-          >
-            {t('invalid')}
-          </div>
+          <Alert status="default">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{t('invalid')}</Alert.Title>
+            </Alert.Content>
+          </Alert>
         ) : (
           <div className="space-y-4" data-testid="playbook-suggestion">
             <p className="m-0 rounded-2xl border border-accent-500/20 bg-accent-500/5 p-3.5 text-body-medium text-text-primary">
@@ -546,42 +588,41 @@ export function SuggestionCard({
               />
             </div>
             {suggestion.tooFewPrizes ? (
-              <div
-                role="alert"
-                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-body-2-medium text-amber-900 dark:text-amber-200"
-              >
-                {t('tooFew')}
-              </div>
+              <Alert status="warning">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{t('tooFew')}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             ) : (
               <Caption className="block">
                 {t('risk', { percent: Math.round(suggestion.risk * 100) })}
               </Caption>
             )}
             {zero.map((p) => (
-              <div
-                key={p.id}
-                role="alert"
-                className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-body-2-medium text-amber-900 dark:text-amber-200"
-              >
-                {t('zeroPrize', { name: p.name })}
-              </div>
+              <Alert key={p.id} status="warning">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{t('zeroPrize', { name: p.name })}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             ))}
             <RulesSummary rules={suggestion.rules} prizes={suggestion.prizes} />
           </div>
         )}
 
-        <div className="flex flex-col gap-2 pt-2">
+        <Card.Footer className="flex flex-col gap-2 p-0 pt-2">
           <Button
             type="submit"
             form="playbook-setup"
             className="w-full justify-center"
-            disabled={pending || suggestion === null || suggestion.totalPrizes === 0}
+            isDisabled={pending || suggestion === null || suggestion.totalPrizes === 0}
           >
             {t('create')}
           </Button>
           <Caption className="text-center">{t('editLater')}</Caption>
-        </div>
-      </div>
-    </div>
+        </Card.Footer>
+      </Card.Content>
+    </Card>
   );
 }

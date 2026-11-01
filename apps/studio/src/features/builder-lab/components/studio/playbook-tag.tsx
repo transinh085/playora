@@ -1,7 +1,7 @@
 'use client';
 
 import type { PlaybookKey } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@playora/ui/components';
 import { Target } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 
@@ -10,7 +10,7 @@ export function PlaybookTag({ playbook }: { playbook: PlaybookKey | null }) {
   const t = useTranslations('campaigns.playbookTag');
   if (!playbook) return null;
   return (
-    <Chip variant="subtle" color="purple" className="gap-1 font-normal" data-playbook={playbook}>
+    <Chip variant="soft" color="accent" className="gap-1 font-normal" data-playbook={playbook}>
       <Target className="size-3" />
       {t(playbook)}
     </Chip>

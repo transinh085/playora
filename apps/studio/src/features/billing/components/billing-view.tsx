@@ -3,12 +3,17 @@
 import { useRouteQuery } from '@playora/api-client/react';
 import { type BillingInvoice, type BillingPlan, meApi, type OrgBilling } from '@playora/contracts';
 import { planLimits } from '@playora/core/billing';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Check, Copy, Gem, Info } from '@playora/ui/icons';
+import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  ProgressBar,
+  Skeleton,
+  Tabs,
+  toast,
+} from '@playora/ui/components';
+import { Check, Copy, Gem } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -37,7 +42,7 @@ export function BillingView({ orgId }: { orgId: string }) {
         description={t('subtitle')}
         tags={
           query.data && (
-            <Chip variant="subtle" color="neutral">
+            <Chip variant="soft" color="default" size="sm">
               {t(`plans.${query.data.plan}`)}
             </Chip>
           )
@@ -73,20 +78,19 @@ function BillingContent({ orgId, billing }: { orgId: string; billing: OrgBilling
   return (
     <div className="space-y-5">
       {lapsed && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-text-primary"
-        >
-          <Info className="mt-0.5 size-4 shrink-0 text-text-secondary" />
-          <p className="text-body-2-medium">
-            {subscription.currentPeriodEnd
-              ? t('lapsed', {
-                  plan: t(`plans.${subscription.plan}`),
-                  date: format.dateTime(new Date(subscription.currentPeriodEnd), DAY),
-                })
-              : t('lapsedNoDate', { plan: t(`plans.${subscription.plan}`) })}
-          </p>
-        </div>
+        <Alert status="warning">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>
+              {subscription.currentPeriodEnd
+                ? t('lapsed', {
+                    plan: t(`plans.${subscription.plan}`),
+                    date: format.dateTime(new Date(subscription.currentPeriodEnd), DAY),
+                  })
+                : t('lapsedNoDate', { plan: t(`plans.${subscription.plan}`) })}
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
       <RedemptionUsageAlert orgId={orgId} billing={billing} />
       {campaignsLevel === 'limit' && <PlanCampaignLimitAlert orgId={orgId} />}
@@ -110,11 +114,13 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
       : null;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-      <div className="border-b border-border-button-default px-5 py-3.5">
-        <h3 className="text-body-2-semibold text-text-primary">{t('currentPlan')}</h3>
-      </div>
-      <div className="space-y-4 p-5">
+    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+        <Card.Title className="text-body-2-semibold text-text-primary">
+          {t('currentPlan')}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="space-y-4 p-5">
         <div className="flex items-center gap-3">
           <IconTile tone="primary">
             <Gem className="size-5" />
@@ -133,7 +139,7 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
           </div>
         </div>
 
-        <div className="space-y-2 rounded-2xl border border-border-button-default bg-background-secondary-default p-3.5">
+        <Card variant="secondary" className="space-y-2 border border-border-button-default p-3.5">
           <Caption className="font-medium text-text-primary">{t('limitsTitle')}</Caption>
           <div className="divide-y divide-border-button-default text-caption-1-regular">
             <div className="flex justify-between py-2">
@@ -155,9 +161,9 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
               </span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </Card>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -167,11 +173,13 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
   const { usage, limits } = billing;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-      <div className="border-b border-border-button-default px-5 py-3.5">
-        <h3 className="text-body-2-semibold text-text-primary">{t('usageTitle')}</h3>
-      </div>
-      <div className="space-y-5 p-5">
+    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+        <Card.Title className="text-body-2-semibold text-text-primary">
+          {t('usageTitle')}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="space-y-5 p-5">
         <UsageBar
           testId="usage-campaigns"
           label={t('runningCampaigns')}
@@ -198,8 +206,8 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
             {t('graceNote', { hardLimit: format.number(limits.redemptionsHardLimit) })}
           </Caption>
         </div>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -219,12 +227,12 @@ function UsageBar({
   const t = useTranslations('billing');
   const format = useFormatter();
 
-  const progressClass =
+  const progressColor =
     level === 'blocked' || level === 'limit'
-      ? '[&_div[class*="fill"]]:bg-rose-500'
+      ? 'danger'
       : level === 'warning'
-        ? '[&_div[class*="fill"]]:bg-amber-500'
-        : '';
+        ? 'warning'
+        : 'accent';
 
   return (
     <div data-testid={testId} data-level={level} className="space-y-1.5">
@@ -239,9 +247,13 @@ function UsageBar({
       <ProgressBar
         value={limit === null ? 0 : usagePercent(used, limit)}
         size="sm"
-        className={progressClass}
+        color={progressColor}
         aria-label={label}
-      />
+      >
+        <ProgressBar.Track>
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
     </div>
   );
 }
@@ -279,99 +291,98 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
           const price = PLAN_PRICES[plan];
           const isSelected = plan !== 'free' && plan === selected;
           return (
-            <div
+            <Card
               key={plan}
               className={cx(
-                'flex flex-col gap-3 rounded-3xl border bg-background-primary-default p-5 shadow-card transition-all',
+                'flex flex-col gap-3 border bg-background-primary-default p-5 shadow-card transition-all',
                 isSelected
                   ? 'border-accent-500 ring-2 ring-accent-500/20'
                   : 'border-border-button-default',
               )}
               data-testid={`plan-option-${plan}`}
             >
-              <div className="flex items-center justify-between">
-                <h5 className="m-0 text-body-semibold text-text-primary">{t(`plans.${plan}`)}</h5>
+              <Card.Header className="flex-row items-center justify-between p-0">
+                <Card.Title className="m-0 text-body-semibold text-text-primary">
+                  {t(`plans.${plan}`)}
+                </Card.Title>
                 {plan === current && (
-                  <Chip variant="bold" color="orange">
+                  <Chip variant="primary" color="warning" size="sm">
                     {t('currentTag')}
                   </Chip>
                 )}
-              </div>
-              <div>
-                <span className="text-title-2-semibold tabular-nums text-text-primary">
-                  {vnd(price.monthly)}
-                </span>
-                <span className="ml-1 text-caption-1-regular text-text-secondary">
-                  {t('perMonth')}
-                </span>
-                {price.yearly > 0 && (
-                  <Caption className="block">{t('perYear', { price: vnd(price.yearly) })}</Caption>
-                )}
-              </div>
-              <div className="flex flex-1 flex-col gap-2 py-2 text-caption-1-regular text-text-secondary">
-                {[
-                  limits.maxRunningCampaigns === null
-                    ? t('featureCampaignsUnlimited')
-                    : t('featureCampaigns', { count: limits.maxRunningCampaigns }),
-                  t('featureRedemptions', { count: format.number(limits.redemptionsPerMonth) }),
-                  limits.watermark ? t('featureWatermark') : t('featureNoWatermark'),
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-2">
-                    <Check className="size-3.5 shrink-0 text-accent-600 dark:text-accent-400" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
+              </Card.Header>
+              <Card.Content className="flex flex-1 flex-col gap-3 p-0">
+                <div>
+                  <span className="text-title-2-semibold tabular-nums text-text-primary">
+                    {vnd(price.monthly)}
+                  </span>
+                  <span className="ml-1 text-caption-1-regular text-text-secondary">
+                    {t('perMonth')}
+                  </span>
+                  {price.yearly > 0 && (
+                    <Caption className="block">
+                      {t('perYear', { price: vnd(price.yearly) })}
+                    </Caption>
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col gap-2 py-2 text-caption-1-regular text-text-secondary">
+                  {[
+                    limits.maxRunningCampaigns === null
+                      ? t('featureCampaignsUnlimited')
+                      : t('featureCampaigns', { count: limits.maxRunningCampaigns }),
+                    t('featureRedemptions', { count: format.number(limits.redemptionsPerMonth) }),
+                    limits.watermark ? t('featureWatermark') : t('featureNoWatermark'),
+                  ].map((feature) => (
+                    <div key={feature} className="flex items-center gap-2">
+                      <Check className="size-3.5 shrink-0 text-accent-600 dark:text-accent-400" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card.Content>
               {plan !== 'free' && (
-                <Button
-                  className="w-full"
-                  size="small"
-                  variant={isSelected ? 'primary' : 'secondary'}
-                  onClick={() => setSelected(plan)}
-                >
-                  {isSelected ? t('chosen') : t('choose')}
-                </Button>
+                <Card.Footer className="p-0">
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    variant={isSelected ? 'primary' : 'secondary'}
+                    onPress={() => setSelected(plan)}
+                  >
+                    {isSelected ? t('chosen') : t('choose')}
+                  </Button>
+                </Card.Footer>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-button-default px-5 py-3.5">
-          <span className="text-body-2-semibold text-text-primary">
+      <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <Card.Header className="flex-row flex-wrap items-center justify-between gap-3 border-b border-border-button-default px-5 py-3.5">
+          <Card.Title className="text-body-2-semibold text-text-primary">
             {t('payTitle', { plan: t(`plans.${selected}`) })}
-          </span>
-          <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5 text-caption-1-medium">
-            <button
-              type="button"
-              className={cx(
-                'rounded-lg px-3 py-1 transition-all',
-                cycle === 'monthly'
-                  ? 'bg-background-primary-default text-text-primary shadow-xs'
-                  : 'text-text-secondary hover:text-text-primary',
-              )}
-              onClick={() => setCycle('monthly')}
-            >
-              {t('payMonthly')}
-            </button>
-            <button
-              type="button"
-              className={cx(
-                'rounded-lg px-3 py-1 transition-all',
-                cycle === 'yearly'
-                  ? 'bg-background-primary-default text-text-primary shadow-xs'
-                  : 'text-text-secondary hover:text-text-primary',
-              )}
-              onClick={() => setCycle('yearly')}
-            >
-              {t('payYearly')}
-            </button>
-          </div>
-        </div>
+          </Card.Title>
+          <Tabs
+            selectedKey={cycle}
+            onSelectionChange={(key) => setCycle(String(key) as 'monthly' | 'yearly')}
+          >
+            <Tabs.ListContainer>
+              <Tabs.List aria-label={t('payTitle', { plan: t(`plans.${selected}`) })}>
+                <Tabs.Tab id="monthly">
+                  {t('payMonthly')}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="yearly">
+                  {t('payYearly')}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
+          </Tabs>
+        </Card.Header>
 
-        <div
-          className="divide-y divide-border-button-default px-5 text-caption-1-regular"
+        <Card.Content
+          className="divide-y divide-border-button-default px-5 py-0 text-caption-1-regular"
           data-testid="manual-payment"
         >
           <div className="flex justify-between py-3">
@@ -386,11 +397,13 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
               <span>{MANUAL_PAYMENT.accountNumber}</span>
               <Button
                 variant="ghost"
-                size="xs"
-                iconOnly
-                leadingIcon={Copy}
-                onClick={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
-              />
+                size="sm"
+                isIconOnly
+                aria-label="Copy account number"
+                onPress={() => copyToClipboard(MANUAL_PAYMENT.accountNumber)}
+              >
+                <Copy className="size-3.5" />
+              </Button>
             </div>
           </div>
           <div className="flex justify-between py-3">
@@ -413,24 +426,28 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
               </code>
               <Button
                 variant="ghost"
-                size="xs"
-                iconOnly
-                leadingIcon={Copy}
-                onClick={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
-              />
+                size="sm"
+                isIconOnly
+                aria-label="Copy transfer note"
+                onPress={() => copyToClipboard(MANUAL_PAYMENT.transferNote(slug, selected))}
+              >
+                <Copy className="size-3.5" />
+              </Button>
             </div>
           </div>
-        </div>
+        </Card.Content>
 
-        <div className="border-t border-border-button-default bg-background-secondary-default p-4">
-          <div className="flex items-start gap-2.5 rounded-2xl border border-border-button-default bg-background-primary-default p-3.5 text-text-primary">
-            <Info className="mt-0.5 size-4 shrink-0 text-text-secondary" />
-            <p className="text-caption-1-medium">
-              {t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}
-            </p>
-          </div>
-        </div>
-      </div>
+        <Card.Footer className="border-t border-border-button-default bg-background-secondary-default p-4">
+          <Alert status="accent" className="w-full">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>
+                {t('payActivation', { email: MANUAL_PAYMENT.contactEmail })}
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
+        </Card.Footer>
+      </Card>
     </div>
   );
 }
@@ -441,49 +458,53 @@ function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
   const day = (iso: string) => format.dateTime(new Date(iso), DAY);
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-      <div className="border-b border-border-button-default px-5 py-3.5">
-        <h3 className="text-body-2-semibold text-text-primary">{t('invoicesTitle')}</h3>
-      </div>
-      {invoices.length === 0 ? (
-        <div className="flex h-24 items-center justify-center px-5 text-center text-body-2-regular text-text-secondary">
-          {t('invoicesEmpty')}
-        </div>
-      ) : (
-        <ul className="divide-y divide-border-button-default">
-          {invoices.map((inv) => (
-            <li
-              key={inv.id}
-              className="flex flex-wrap items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-background-secondary-default/40"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-body-2-semibold text-text-primary">
-                    {t('periodRange', {
-                      start: day(inv.periodStart),
-                      end: day(inv.periodEnd),
-                    })}
-                  </span>
-                  <Chip variant="subtle" color="neutral">
-                    {t(`plans.${inv.plan}`)}
-                  </Chip>
+    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+        <Card.Title className="text-body-2-semibold text-text-primary">
+          {t('invoicesTitle')}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="p-0">
+        {invoices.length === 0 ? (
+          <div className="flex h-24 items-center justify-center px-5 text-center text-body-2-regular text-text-secondary">
+            {t('invoicesEmpty')}
+          </div>
+        ) : (
+          <ul className="divide-y divide-border-button-default">
+            {invoices.map((inv) => (
+              <li
+                key={inv.id}
+                className="flex flex-wrap items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-background-secondary-default/40"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-body-2-semibold text-text-primary">
+                      {t('periodRange', {
+                        start: day(inv.periodStart),
+                        end: day(inv.periodEnd),
+                      })}
+                    </span>
+                    <Chip variant="soft" color="default" size="sm">
+                      {t(`plans.${inv.plan}`)}
+                    </Chip>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-caption-1-regular text-text-secondary">
+                    <span>
+                      {t('invoicePaidAt')}: {day(inv.paidAt)}
+                    </span>
+                    {inv.reference && (
+                      <span className="font-mono text-text-tertiary">#{inv.reference}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-caption-1-regular text-text-secondary">
-                  <span>
-                    {t('invoicePaidAt')}: {day(inv.paidAt)}
-                  </span>
-                  {inv.reference && (
-                    <span className="font-mono text-text-tertiary">#{inv.reference}</span>
-                  )}
-                </div>
-              </div>
-              <span className="text-body-semibold tabular-nums text-text-primary">
-                {format.number(inv.amountVnd, { style: 'currency', currency: 'VND' })}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                <span className="text-body-semibold tabular-nums text-text-primary">
+                  {format.number(inv.amountVnd, { style: 'currency', currency: 'VND' })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card.Content>
+    </Card>
   );
 }

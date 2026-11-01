@@ -9,22 +9,23 @@ import {
   SetSubscriptionBody,
 } from '@playora/contracts';
 import { planLimits } from '@playora/core/billing';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { HintText } from '@playora/ui/components/base/input/hint-text';
-import { Input } from '@playora/ui/components/base/input/input';
-import { Label } from '@playora/ui/components/base/input/label';
 import {
+  Avatar,
+  Button,
+  Chip,
+  Description,
+  FieldError,
+  Input,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
-import { Textarea } from '@playora/ui/components/base/textarea/textarea';
-import { toast } from '@playora/ui/components/base/toast/toast';
+  SearchField,
+  Select,
+  TextArea,
+  TextField,
+  toast,
+} from '@playora/ui/components';
 import { applyApiErrorToRHF } from '@playora/ui/form';
-import { Search } from '@playora/ui/icons';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -57,32 +58,34 @@ export function AdminView() {
       ) : (
         <TableCard
           toolbar={
-            <div className="max-w-md flex-1">
-              <Input
-                type="search"
-                placeholder={t('search')}
-                aria-label={t('search')}
-                leadingIcon={Search}
-                value={search}
-                onChange={(val) => setSearch(val.trim())}
-              />
-            </div>
+            <SearchField
+              className="max-w-md flex-1"
+              value={search}
+              onChange={(val) => setSearch(val.trim())}
+              aria-label={t('search')}
+            >
+              <SearchField.Group>
+                <SearchField.SearchIcon />
+                <SearchField.Input placeholder={t('search')} />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
           }
         >
           <div className="w-full overflow-x-auto">
-            <table className="bui-table w-full">
+            <table className="w-full border-collapse text-left text-body-2-regular">
               <thead>
-                <tr>
-                  <th>{t('org')}</th>
-                  <th>{t('owner')}</th>
-                  <th>{t('plan')}</th>
-                  <th>{t('campaigns')}</th>
-                  <th>{t('redemptions')}</th>
-                  <th>{t('note')}</th>
-                  <th className="text-right">{tMembers('actionsColumn')}</th>
+                <tr className="border-b border-separator-border text-caption-1-semibold text-text-secondary">
+                  <th className="px-4 py-3">{t('org')}</th>
+                  <th className="px-4 py-3">{t('owner')}</th>
+                  <th className="px-4 py-3">{t('plan')}</th>
+                  <th className="px-4 py-3">{t('campaigns')}</th>
+                  <th className="px-4 py-3">{t('redemptions')}</th>
+                  <th className="px-4 py-3">{t('note')}</th>
+                  <th className="px-4 py-3 text-right">{tMembers('actionsColumn')}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-separator-border">
                 {(query.data?.items ?? []).length === 0 ? (
                   <tr>
                     <td colSpan={7} className="h-24 text-center text-text-secondary">
@@ -95,25 +98,33 @@ export function AdminView() {
                     const lapsed = sub && sub.plan !== 'free' && org.plan === 'free';
                     const limit = planLimits(org.plan).maxRunningCampaigns;
                     return (
-                      <tr key={org.id}>
-                        <td>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-text-primary">{org.name}</span>
-                            <Caption>{org.slug}</Caption>
+                      <tr key={org.id} className="hover:bg-background-secondary-default/40">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar size="sm" color="accent">
+                              <Avatar.Fallback>
+                                {org.name.slice(0, 1).toUpperCase()}
+                              </Avatar.Fallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-text-primary">{org.name}</span>
+                              <Caption>{org.slug}</Caption>
+                            </div>
                           </div>
                         </td>
-                        <td>{org.ownerEmail ?? <Caption>—</Caption>}</td>
-                        <td>
+                        <td className="px-4 py-3">{org.ownerEmail ?? <Caption>—</Caption>}</td>
+                        <td className="px-4 py-3">
                           <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-1.5">
                               <Chip
-                                variant={org.plan === 'free' ? 'subtle' : 'bold'}
-                                color={org.plan === 'free' ? 'neutral' : 'orange'}
+                                variant={org.plan === 'free' ? 'soft' : 'primary'}
+                                color={org.plan === 'free' ? 'default' : 'warning'}
+                                size="sm"
                               >
                                 {tb(`plans.${org.plan}`)}
                               </Chip>
                               {lapsed && (
-                                <Chip variant="subtle" color="rose">
+                                <Chip variant="soft" color="danger" size="sm">
                                   {t('expired')}
                                 </Chip>
                               )}
@@ -127,18 +138,18 @@ export function AdminView() {
                             )}
                           </div>
                         </td>
-                        <td>
+                        <td className="px-4 py-3">
                           {limit === null
                             ? tb('ofUnlimited', { used: org.usage.runningCampaigns })
                             : tb('ofLimit', { used: org.usage.runningCampaigns, limit })}
                         </td>
-                        <td>
+                        <td className="px-4 py-3">
                           {tb('ofLimit', {
                             used: format.number(org.usage.redemptionsThisMonth),
                             limit: format.number(planLimits(org.plan).redemptionsPerMonth),
                           })}
                         </td>
-                        <td>
+                        <td className="px-4 py-3">
                           {org.note ? (
                             <span className="line-clamp-1 max-w-[220px]" title={org.note}>
                               {org.note}
@@ -147,20 +158,12 @@ export function AdminView() {
                             <Caption>—</Caption>
                           )}
                         </td>
-                        <td className="text-right">
+                        <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button
-                              variant="secondary"
-                              size="small"
-                              onClick={() => setEditing(org)}
-                            >
+                            <Button variant="secondary" size="sm" onPress={() => setEditing(org)}>
                               {t('setPlan')}
                             </Button>
-                            <Button
-                              variant="secondary"
-                              size="small"
-                              onClick={() => setInvoicing(org)}
-                            >
+                            <Button variant="secondary" size="sm" onPress={() => setInvoicing(org)}>
                               {t('recordInvoice')}
                             </Button>
                           </div>
@@ -223,101 +226,140 @@ function SetPlanModal({ org, onClose }: { org: AdminOrg; onClose: () => void }) 
   };
 
   return (
-    <Modal isOpen onOpenChange={(open) => !open && onClose()} size="sm">
-      <ModalHeader title={t('setPlanTitle', { org: org.name })} />
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <ModalBody className="space-y-4">
-          <Controller
-            control={form.control}
-            name="plan"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>{tb('invoicePlan')}</Label>
-                <Select
-                  aria-label={tb('invoicePlan')}
-                  selectedKey={field.value}
-                  onSelectionChange={(key) => {
-                    if (key) field.onChange(String(key));
-                  }}
-                  isInvalid={!!fieldState.error}
-                >
-                  {PLAN_ORDER.map((plan) => (
-                    <SelectItem key={plan} id={plan}>
-                      {tb(`plans.${plan}`)}
-                    </SelectItem>
-                  ))}
-                </Select>
-                {fieldState.error?.message && (
-                  <HintText isInvalid>{fieldState.error.message}</HintText>
-                )}
-              </div>
-            )}
-          />
+    <Modal isOpen onOpenChange={(open) => !open && onClose()}>
+      <Modal.Backdrop isDismissable>
+        <Modal.Container size="sm">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>{t('setPlanTitle', { org: org.name })}</Modal.Heading>
+            </Modal.Header>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <Modal.Body className="space-y-4">
+                <Controller
+                  control={form.control}
+                  name="plan"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1">
+                      <Label>{tb('invoicePlan')}</Label>
+                      <Select
+                        aria-label={tb('invoicePlan')}
+                        selectedKey={field.value}
+                        onSelectionChange={(key) => {
+                          if (key) field.onChange(String(key));
+                        }}
+                        isInvalid={!!fieldState.error}
+                      >
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {PLAN_ORDER.map((plan) => (
+                              <ListBox.Item key={plan} id={plan} textValue={tb(`plans.${plan}`)}>
+                                {tb(`plans.${plan}`)}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </div>
+                  )}
+                />
 
-          <Controller
-            control={form.control}
-            name="status"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>{t('status')}</Label>
-                <Select
-                  aria-label={t('status')}
-                  selectedKey={field.value}
-                  onSelectionChange={(key) => {
-                    if (key) field.onChange(String(key));
-                  }}
-                  isInvalid={!!fieldState.error}
-                >
-                  <SelectItem id="active">{t('statusActive')}</SelectItem>
-                  <SelectItem id="expired">{t('statusExpired')}</SelectItem>
-                </Select>
-                {fieldState.error?.message && (
-                  <HintText isInvalid>{fieldState.error.message}</HintText>
-                )}
-              </div>
-            )}
-          />
+                <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1">
+                      <Label>{t('status')}</Label>
+                      <Select
+                        aria-label={t('status')}
+                        selectedKey={field.value}
+                        onSelectionChange={(key) => {
+                          if (key) field.onChange(String(key));
+                        }}
+                        isInvalid={!!fieldState.error}
+                      >
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            <ListBox.Item id="active" textValue={t('statusActive')}>
+                              {t('statusActive')}
+                            </ListBox.Item>
+                            <ListBox.Item id="expired" textValue={t('statusExpired')}>
+                              {t('statusExpired')}
+                            </ListBox.Item>
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </div>
+                  )}
+                />
 
-          <Controller
-            control={form.control}
-            name="currentPeriodEnd"
-            render={({ field, fieldState }) => (
-              <Input
-                label={t('periodEnd')}
-                type="date"
-                value={isoToDay(field.value) ?? ''}
-                onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : null)}
-                isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message ?? t('periodEndHint')}
-              />
-            )}
-          />
+                <Controller
+                  control={form.control}
+                  name="currentPeriodEnd"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      type="date"
+                      value={isoToDay(field.value) ?? ''}
+                      onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : null)}
+                      isInvalid={!!fieldState.error}
+                      fullWidth
+                    >
+                      <Label>{t('periodEnd')}</Label>
+                      <Input />
+                      {fieldState.error?.message ? (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      ) : (
+                        <Description>{t('periodEndHint')}</Description>
+                      )}
+                    </TextField>
+                  )}
+                />
 
-          <Controller
-            control={form.control}
-            name="note"
-            render={({ field, fieldState }) => (
-              <Textarea
-                label={t('noteLabel')}
-                rows={3}
-                maxLength={1000}
-                value={field.value ?? ''}
-                onChange={(val) => field.onChange(val || null)}
-                isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message}
-              />
-            )}
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t('cancel')}
-          </Button>
-          <Button type="submit" disabled={save.isPending}>
-            {t('save')}
-          </Button>
-        </ModalFooter>
-      </form>
+                <Controller
+                  control={form.control}
+                  name="note"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      value={field.value ?? ''}
+                      onChange={(val) => field.onChange(val || null)}
+                      isInvalid={!!fieldState.error}
+                      fullWidth
+                    >
+                      <Label>{t('noteLabel')}</Label>
+                      <TextArea rows={3} maxLength={1000} />
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </TextField>
+                  )}
+                />
+              </Modal.Body>
+              <Modal.Footer>
+                <Button type="button" variant="secondary" onPress={onClose}>
+                  {t('cancel')}
+                </Button>
+                <Button type="submit" isDisabled={save.isPending}>
+                  {t('save')}
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
@@ -373,128 +415,171 @@ function RecordInvoiceModal({ org, onClose }: { org: AdminOrg; onClose: () => vo
   };
 
   return (
-    <Modal isOpen onOpenChange={(open) => !open && onClose()} size="sm">
-      <ModalHeader title={t('invoiceTitle', { org: org.name })} description={t('invoiceHint')} />
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <ModalBody className="space-y-4">
-          <Controller
-            control={form.control}
-            name="plan"
-            render={({ field, fieldState }) => (
-              <div className="flex flex-col gap-1">
-                <Label>{tb('invoicePlan')}</Label>
-                <Select
-                  aria-label={tb('invoicePlan')}
-                  selectedKey={field.value}
-                  onSelectionChange={(key) => {
-                    if (!key) return;
-                    const val = String(key);
-                    field.onChange(val);
-                    if (val === 'shop' || val === 'chain') {
-                      form.setValue('amountVnd', PLAN_PRICES[val].monthly);
-                    }
-                  }}
-                  isInvalid={!!fieldState.error}
-                >
-                  {(['shop', 'chain'] as const).map((value) => (
-                    <SelectItem key={value} id={value}>
-                      {tb(`plans.${value}`)}
-                    </SelectItem>
-                  ))}
-                </Select>
-                {fieldState.error?.message && (
-                  <HintText isInvalid>{fieldState.error.message}</HintText>
-                )}
-              </div>
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="amountVnd"
-            render={({ field, fieldState }) => (
-              <Input
-                label={t('amount')}
-                type="number"
-                value={String(field.value ?? '')}
-                onChange={(val) => field.onChange(Number(val))}
-                isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message}
-              />
-            )}
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Controller
-              control={form.control}
-              name="periodStart"
-              render={({ field, fieldState }) => (
-                <Input
-                  label={t('periodStart')}
-                  type="date"
-                  value={isoToDay(field.value) ?? ''}
-                  onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
-                  isInvalid={!!fieldState.error}
-                  hint={fieldState.error?.message}
+    <Modal isOpen onOpenChange={(open) => !open && onClose()}>
+      <Modal.Backdrop isDismissable>
+        <Modal.Container size="sm">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>{t('invoiceTitle', { org: org.name })}</Modal.Heading>
+              <p className="mt-1 text-caption-1-regular text-text-secondary">{t('invoiceHint')}</p>
+            </Modal.Header>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <Modal.Body className="space-y-4">
+                <Controller
+                  control={form.control}
+                  name="plan"
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1">
+                      <Label>{tb('invoicePlan')}</Label>
+                      <Select
+                        aria-label={tb('invoicePlan')}
+                        selectedKey={field.value}
+                        onSelectionChange={(key) => {
+                          if (!key) return;
+                          const val = String(key);
+                          field.onChange(val);
+                          if (val === 'shop' || val === 'chain') {
+                            form.setValue('amountVnd', PLAN_PRICES[val].monthly);
+                          }
+                        }}
+                        isInvalid={!!fieldState.error}
+                      >
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {(['shop', 'chain'] as const).map((value) => (
+                              <ListBox.Item key={value} id={value} textValue={tb(`plans.${value}`)}>
+                                {tb(`plans.${value}`)}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </div>
+                  )}
                 />
-              )}
-            />
 
-            <Controller
-              control={form.control}
-              name="periodEnd"
-              render={({ field, fieldState }) => (
-                <Input
-                  label={t('periodEndInvoice')}
-                  type="date"
-                  value={isoToDay(field.value) ?? ''}
-                  onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : '')}
-                  isInvalid={!!fieldState.error}
-                  hint={fieldState.error?.message}
+                <Controller
+                  control={form.control}
+                  name="amountVnd"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      type="number"
+                      value={String(field.value ?? '')}
+                      onChange={(val) => field.onChange(Number(val))}
+                      isInvalid={!!fieldState.error}
+                      fullWidth
+                    >
+                      <Label>{t('amount')}</Label>
+                      <Input />
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </TextField>
+                  )}
                 />
-              )}
-            />
-          </div>
 
-          <Controller
-            control={form.control}
-            name="paidAt"
-            render={({ field, fieldState }) => (
-              <Input
-                label={t('paidAt')}
-                type="date"
-                value={isoToDay(field.value) ?? ''}
-                onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
-                isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message}
-              />
-            )}
-          />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Controller
+                    control={form.control}
+                    name="periodStart"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        type="date"
+                        value={isoToDay(field.value) ?? ''}
+                        onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
+                        isInvalid={!!fieldState.error}
+                        fullWidth
+                      >
+                        <Label>{t('periodStart')}</Label>
+                        <Input />
+                        {fieldState.error?.message && (
+                          <FieldError>{fieldState.error.message}</FieldError>
+                        )}
+                      </TextField>
+                    )}
+                  />
 
-          <Controller
-            control={form.control}
-            name="reference"
-            render={({ field, fieldState }) => (
-              <Input
-                label={t('reference')}
-                maxLength={200}
-                value={field.value ?? ''}
-                onChange={(val) => field.onChange(val || null)}
-                isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message}
-              />
-            )}
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            {t('cancel')}
-          </Button>
-          <Button type="submit" disabled={record.isPending}>
-            {t('save')}
-          </Button>
-        </ModalFooter>
-      </form>
+                  <Controller
+                    control={form.control}
+                    name="periodEnd"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        type="date"
+                        value={isoToDay(field.value) ?? ''}
+                        onChange={(val) => field.onChange(val ? dayToIso(val, 'end') : '')}
+                        isInvalid={!!fieldState.error}
+                        fullWidth
+                      >
+                        <Label>{t('periodEndInvoice')}</Label>
+                        <Input />
+                        {fieldState.error?.message && (
+                          <FieldError>{fieldState.error.message}</FieldError>
+                        )}
+                      </TextField>
+                    )}
+                  />
+                </div>
+
+                <Controller
+                  control={form.control}
+                  name="paidAt"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      type="date"
+                      value={isoToDay(field.value) ?? ''}
+                      onChange={(val) => field.onChange(val ? dayToIso(val, 'start') : '')}
+                      isInvalid={!!fieldState.error}
+                      fullWidth
+                    >
+                      <Label>{t('paidAt')}</Label>
+                      <Input />
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </TextField>
+                  )}
+                />
+
+                <Controller
+                  control={form.control}
+                  name="reference"
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      maxLength={200}
+                      value={field.value ?? ''}
+                      onChange={(val) => field.onChange(val || null)}
+                      isInvalid={!!fieldState.error}
+                      fullWidth
+                    >
+                      <Label>{t('reference')}</Label>
+                      <Input />
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </TextField>
+                  )}
+                />
+              </Modal.Body>
+              <Modal.Footer>
+                <Button type="button" variant="secondary" onPress={onClose}>
+                  {t('cancel')}
+                </Button>
+                <Button type="submit" isDisabled={record.isPending}>
+                  {t('save')}
+                </Button>
+              </Modal.Footer>
+            </form>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

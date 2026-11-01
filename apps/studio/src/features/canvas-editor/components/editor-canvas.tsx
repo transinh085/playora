@@ -1,7 +1,7 @@
 'use client';
 
 import { type CanvasLabels, type CanvasPrize, CanvasScreen } from '@playora/ui/campaign';
-import { Badge } from '@playora/ui/components/base/badges/badge';
+import { Chip } from '@playora/ui/components';
 import { type Dispatch, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentScreen, type EditorAction, type EditorState } from '../lib/editor-state';
 import {
@@ -471,10 +471,15 @@ export function EditorCanvas({
       )}
 
       {badge && (
-        <div className="absolute left-1/2 -translate-x-1/2 -bottom-10 pointer-events-none">
-          <Badge color="neutral" className="px-2 py-0.5 text-xs font-mono shadow">
+        <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2">
+          <Chip
+            variant="soft"
+            color="default"
+            size="sm"
+            className="px-2 py-0.5 font-mono text-xs shadow"
+          >
             {badge}
-          </Badge>
+          </Chip>
         </div>
       )}
     </div>

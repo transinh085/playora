@@ -1,7 +1,6 @@
 'use client';
 
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { AlertDialog } from '@playora/ui/components/base/modal/modal';
+import { AlertDialog, Button, Card, Input } from '@playora/ui/components';
 import { Check } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -99,14 +98,13 @@ export function QuickEditPanel({
                   className="size-8 cursor-pointer rounded-lg border border-input bg-transparent p-0.5"
                   aria-label={tBrand(key)}
                 />
-                <InputBase
+                <Input
                   aria-label={tBrand(key)}
                   value={campaign.brand[key] || ''}
                   onChange={(e) =>
                     onChange({ brand: { ...campaign.brand, [key]: e.target.value } })
                   }
-                  fieldClassName="w-24"
-                  className="font-mono text-xs uppercase"
+                  className="w-24 font-mono text-xs uppercase"
                 />
               </div>
             </div>
@@ -114,15 +112,31 @@ export function QuickEditPanel({
         </div>
       </Section>
 
-      <AlertDialog
+      <AlertDialog.Backdrop
         isOpen={!!pendingSkin}
         onOpenChange={(open) => !open && setPendingSkin(null)}
-        title={t('skinConfirmTitle')}
-        description={t('skinConfirm')}
-        cancelLabel={tCommon('cancel')}
-        confirmLabel={t('skinConfirmOk')}
-        onConfirm={confirmSkin}
-      />
+        isDismissable
+      >
+        <AlertDialog.Container size="sm">
+          <AlertDialog.Dialog>
+            <AlertDialog.CloseTrigger />
+            <AlertDialog.Header>
+              <AlertDialog.Heading>{t('skinConfirmTitle')}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              <p className="text-body-2-regular text-text-secondary">{t('skinConfirm')}</p>
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button slot="close" variant="secondary" size="sm">
+                {tCommon('cancel')}
+              </Button>
+              <Button slot="close" variant="primary" size="sm" onPress={confirmSkin}>
+                {t('skinConfirmOk')}
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
     </div>
   );
 }
@@ -162,8 +176,7 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
         const active = skin.key === campaign.skinKey;
         const cover = covers[i];
         return (
-          // biome-ignore lint/a11y/useSemanticElements: interactive skin card
-          <div
+          <Card
             key={skin.key}
             role="button"
             tabIndex={0}
@@ -175,7 +188,7 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
               }
             }}
             data-testid={`skin-${skin.key}`}
-            className={`cursor-pointer overflow-hidden rounded-lg border transition-all shadow-xs ${
+            className={`cursor-pointer overflow-hidden p-0 transition-all ${
               active
                 ? 'border-neutral-900 ring-1 ring-neutral-900/10 dark:border-white dark:ring-white/20'
                 : 'border-neutral-200 hover:border-neutral-400 dark:border-white/10 dark:hover:border-white/20'
@@ -189,12 +202,12 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
                 </span>
               )}
             </div>
-            <div className="p-2">
+            <Card.Content className="p-2">
               <span className="block truncate text-center text-xs font-medium text-neutral-900 dark:text-neutral-100">
                 {t(`skins.${skin.key}`)}
               </span>
-            </div>
-          </div>
+            </Card.Content>
+          </Card>
         );
       })}
     </div>

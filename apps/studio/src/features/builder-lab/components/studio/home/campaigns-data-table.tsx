@@ -1,10 +1,7 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
-import { ExternalLink, Pencil, Plus, QrCode, Search, Sparkles } from '@playora/ui/icons';
-import { cx } from '@playora/ui/utils/cx';
+import { Button, Card, Chip, ProgressBar, SearchField, Tabs } from '@playora/ui/components';
+import { ExternalLink, Pencil, Plus, QrCode, Sparkles } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -57,17 +54,19 @@ export function CampaignsDataTable({
   }, [rows, activeTab, search]);
 
   return (
-    <div
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+    <Card
+      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="home-campaigns"
     >
       {/* Header with Title & All Campaigns Link */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
+      <Card.Header className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
         <div className="flex items-center gap-2.5">
-          <h3 className="m-0 text-body-medium text-text-primary">{t('campaigns')}</h3>
-          <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
+          <Card.Title className="m-0 text-body-medium text-text-primary">
+            {t('campaigns')}
+          </Card.Title>
+          <Chip variant="soft" size="sm" color="default" className="tabular-nums">
             {total}
-          </span>
+          </Chip>
         </div>
         {total > 0 && (
           <Link
@@ -78,49 +77,49 @@ export function CampaignsDataTable({
             <ExternalLink className="size-3.5" />
           </Link>
         )}
-      </div>
+      </Card.Header>
 
       {/* Toolbar: Filter Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-separator-border bg-background-secondary-default/40 px-5 py-2.5">
-        <div className="flex items-center gap-1 rounded-xl border border-border-button-default bg-background-primary-default p-0.5">
-          {(
-            [
-              { key: 'all', label: t('table.tabs.all') },
-              { key: 'live', label: t('table.tabs.live') },
-              { key: 'draft_scheduled', label: t('table.tabs.draftScheduled') },
-              { key: 'ended', label: t('table.tabs.ended') },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={cx(
-                'cursor-pointer rounded-lg px-2.5 py-1 text-caption-1-medium transition-all',
-                activeTab === tab.key
-                  ? 'bg-background-secondary-default text-text-primary shadow-xs'
-                  : 'text-text-tertiary hover:text-text-secondary',
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          selectedKey={activeTab}
+          onSelectionChange={(key) => setActiveTab(String(key) as TableTab)}
+        >
+          <Tabs.ListContainer>
+            <Tabs.List aria-label={t('campaigns')}>
+              {(
+                [
+                  { key: 'all', label: t('table.tabs.all') },
+                  { key: 'live', label: t('table.tabs.live') },
+                  { key: 'draft_scheduled', label: t('table.tabs.draftScheduled') },
+                  { key: 'ended', label: t('table.tabs.ended') },
+                ] as const
+              ).map((tab) => (
+                <Tabs.Tab key={tab.key} id={tab.key}>
+                  {tab.label}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </Tabs>
 
-        <div className="w-full max-w-[220px]">
-          <InputBase
-            size="small"
-            placeholder={t('table.searchPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            leadingIcon={Search}
-            className="h-8 text-caption-1-regular"
-          />
-        </div>
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          aria-label={t('table.searchPlaceholder')}
+          className="w-full max-w-[220px]"
+        >
+          <SearchField.Group>
+            <SearchField.SearchIcon />
+            <SearchField.Input placeholder={t('table.searchPlaceholder')} />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
       </div>
 
       {/* Card-List view (replaces cramped multi-column table on Home) */}
-      <div>
+      <Card.Content className="p-0">
         {filteredRows.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
             <div className="flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary">
@@ -131,7 +130,8 @@ export function CampaignsDataTable({
             </p>
             {rows.length === 0 && (
               <Link href={routes.create as never}>
-                <Button size="small" leadingIcon={Plus} tabIndex={-1}>
+                <Button size="sm" excludeFromTabOrder>
+                  <Plus className="size-4" />
                   {tc('create')}
                 </Button>
               </Link>
@@ -233,7 +233,11 @@ export function CampaignsDataTable({
                             value={stockPercent}
                             size="sm"
                             aria-label={t('table.columns.stock')}
-                          />
+                          >
+                            <ProgressBar.Track>
+                              <ProgressBar.Fill />
+                            </ProgressBar.Track>
+                          </ProgressBar>
                         )}
                       </div>
                     </div>
@@ -243,24 +247,21 @@ export function CampaignsDataTable({
                   <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-center">
                     {isDraft ? (
                       <Link href={routes.edit(campaign.id) as never}>
-                        <Button variant="secondary" size="small" leadingIcon={Pencil} tabIndex={-1}>
+                        <Button variant="secondary" size="sm" excludeFromTabOrder>
+                          <Pencil className="size-4" />
                           {t('continueEditing')}
                         </Button>
                       </Link>
                     ) : (
                       <>
                         <Link href={`${routes.detail(campaign.id)}?tab=share` as never}>
-                          <Button
-                            variant="secondary"
-                            size="small"
-                            leadingIcon={QrCode}
-                            tabIndex={-1}
-                          >
+                          <Button variant="secondary" size="sm" excludeFromTabOrder>
+                            <QrCode className="size-4" />
                             {t('share')}
                           </Button>
                         </Link>
                         <Link href={routes.detail(campaign.id) as never}>
-                          <Button variant="ghost" size="small" tabIndex={-1}>
+                          <Button variant="ghost" size="sm" isIconOnly excludeFromTabOrder>
                             <ExternalLink className="size-4" />
                           </Button>
                         </Link>
@@ -272,7 +273,7 @@ export function CampaignsDataTable({
             })}
           </ul>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

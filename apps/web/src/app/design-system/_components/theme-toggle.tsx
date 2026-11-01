@@ -1,7 +1,6 @@
 'use client';
 
-import { applyThemeWithTransition } from '@playora/ui/components/application/theme/theme-toggle';
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { applyThemeWithTransition, Button } from '@playora/ui/components';
 import { Moon, Sun } from '@playora/ui/icons';
 import { useEffect, useState } from 'react';
 
@@ -12,25 +11,22 @@ export function ThemeToggle() {
     setDark(document.documentElement.classList.contains('dark'));
   }, []);
 
-  const toggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggle = () => {
     const next = !dark;
     setDark(next);
-    const pointerOrigin =
-      event.clientX !== 0 && event.clientY !== 0 ? { x: event.clientX, y: event.clientY } : null;
-    void applyThemeWithTransition(next ? 'dark' : 'light', {
-      origin: pointerOrigin,
-      element: event.currentTarget,
-    });
+    void applyThemeWithTransition(next ? 'dark' : 'light');
   };
+
+  const Icon = dark ? Sun : Moon;
 
   return (
     <Button
       variant="secondary"
-      size="small"
-      leadingIcon={dark ? Sun : Moon}
-      onClick={toggle}
+      size="sm"
+      onPress={toggle}
       aria-label={dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
     >
+      <Icon className="size-4" aria-hidden />
       {dark ? 'Chế độ tối (Dark)' : 'Chế độ sáng (Light)'}
     </Button>
   );

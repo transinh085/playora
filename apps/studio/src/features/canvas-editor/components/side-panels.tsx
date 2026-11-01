@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { Button, Tooltip } from '@playora/ui/components';
 import {
   Award,
   ClipboardList,
@@ -113,28 +112,30 @@ export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
             {group.types.map((type) => {
               const Icon = TYPE_ICONS[type];
               return (
-                <TooltipTrigger key={type}>
-                  <button
-                    type="button"
-                    draggable
-                    title={t('addHint')}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData(TOOLBOX_MIME, type);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    onClick={() => onAdd(type)}
-                    data-testid={`toolbox-${type}`}
-                    className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
-                  >
-                    <IconTile size={28}>
-                      <Icon className="size-3.5" />
-                    </IconTile>
-                    <span className="text-[11px] leading-tight line-clamp-1">
-                      {t(`types.${type}`)}
-                    </span>
-                  </button>
-                  <Tooltip>{t('addHint')}</Tooltip>
-                </TooltipTrigger>
+                <Tooltip key={type} delay={150}>
+                  <Tooltip.Trigger>
+                    <button
+                      type="button"
+                      draggable
+                      title={t('addHint')}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(TOOLBOX_MIME, type);
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                      onClick={() => onAdd(type)}
+                      data-testid={`toolbox-${type}`}
+                      className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
+                    >
+                      <IconTile size={28}>
+                        <Icon className="size-3.5" />
+                      </IconTile>
+                      <span className="line-clamp-1 text-[11px] leading-tight">
+                        {t(`types.${type}`)}
+                      </span>
+                    </button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{t('addHint')}</Tooltip.Content>
+                </Tooltip>
               );
             })}
           </div>
@@ -212,7 +213,8 @@ function LayersPanelView({
             <Button
               type="button"
               variant="ghost"
-              size="xs"
+              size="sm"
+              isIconOnly
               className="size-6 p-0 text-muted-foreground hover:text-foreground"
               aria-label={el.hidden ? t('show') : t('hide')}
               onClick={(e) => {
@@ -225,7 +227,8 @@ function LayersPanelView({
             <Button
               type="button"
               variant="ghost"
-              size="xs"
+              size="sm"
+              isIconOnly
               className="size-6 p-0 text-muted-foreground hover:text-foreground"
               aria-label={el.locked ? t('unlock') : t('lock')}
               onClick={(e) => {

@@ -1,20 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
-import { Input } from '@playora/ui/components/base/input/input';
-import { Slider } from '@playora/ui/components/base/slider/slider';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@playora/ui/components/base/table/table';
-import { Tab, TabList, TabPanel, Tabs } from '@playora/ui/components/base/tabs/tabs';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+import { Button, Chip, Input, QRCodeSvg, Slider, Table, Tabs } from '@playora/ui/components';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -27,7 +13,6 @@ import {
   Phone,
   QrCode,
   Repeat,
-  Search,
   Smartphone,
   Sparkles,
   Store,
@@ -123,15 +108,15 @@ export function PrdRecipes() {
       <div className="grid gap-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
-            <Chip variant="caption" color="neutral" className="mb-1.5 font-mono text-[11px]">
+            <Chip variant="soft" size="sm" color="default" className="mb-1.5 font-mono text-[11px]">
               Recipe 01 · PLB-01 &amp; PLB-02
             </Chip>
             <h3 className="text-lg font-bold tracking-tight text-foreground">
               Luồng tạo từ Mục tiêu &ldquo;Bạn muốn gì?&rdquo; &amp; Đề xuất Ngân sách
             </h3>
             <p className="text-xs text-muted-foreground">
-              Tham khảo pattern AI Copilot / Onboarding của Vercel v0 &amp; Dub: bắt đầu từ kết quả
-              kinh doanh, tự tính số lượng quà sao cho Σ q_i·c_i ≤ B và rủi ro hết quà sớm ≤ 10%.
+              Bắt đầu từ kết quả kinh doanh, tự tính số lượng quà sao cho Σ q_i·c_i ≤ B và rủi ro
+              hết quà sớm ≤ 10%.
             </p>
           </div>
         </div>
@@ -157,7 +142,7 @@ export function PrdRecipes() {
                       <Icon className="size-5" />
                     </div>
                     {active && (
-                      <Chip variant="caption" color="blue">
+                      <Chip variant="soft" size="sm" color="accent">
                         Đang chọn
                       </Chip>
                     )}
@@ -176,7 +161,7 @@ export function PrdRecipes() {
           })}
         </div>
 
-        <div className="rounded-3xl border border-primary/25 bg-background-primary-default p-5 shadow-card">
+        <div className="rounded-3xl border border-primary/25 bg-surface p-5 shadow-surface">
           <div className="grid items-center gap-6 lg:grid-cols-12">
             <div className="grid gap-3 lg:col-span-5">
               <div className="flex items-center justify-between">
@@ -189,12 +174,17 @@ export function PrdRecipes() {
               </div>
               <Slider
                 value={budgetTrieu}
-                onChange={setBudgetTrieu}
+                onChange={(val) => setBudgetTrieu(Array.isArray(val) ? (val[0] ?? 2) : val)}
                 minValue={1}
                 maxValue={10}
                 step={0.5}
                 aria-label="Ngân sách quà tối đa"
-              />
+              >
+                <Slider.Track>
+                  <Slider.Fill />
+                  <Slider.Thumb />
+                </Slider.Track>
+              </Slider>
               <div className="flex justify-between font-mono text-[11px] text-muted-foreground">
                 <span>1.000.000 ₫</span>
                 <span>5.000.000 ₫</span>
@@ -202,7 +192,7 @@ export function PrdRecipes() {
               </div>
             </div>
 
-            <div className="flex flex-col justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/6 p-4 lg:col-span-7 sm:flex-row sm:items-center">
+            <div className="flex flex-col justify-between gap-3 rounded-2xl border border-primary/20 bg-primary/6 p-4 sm:flex-row sm:items-center lg:col-span-7">
               <div className="grid gap-1">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                   <Sparkles className="size-4" />
@@ -227,7 +217,7 @@ export function PrdRecipes() {
       {/* RECIPE 2: Studio Campaign Operation & Outcome Report (PLB-03, PRZ-09, TableCard) */}
       <div className="grid gap-4">
         <div>
-          <Chip variant="caption" color="neutral" className="mb-1.5 font-mono text-[11px]">
+          <Chip variant="soft" size="sm" color="default" className="mb-1.5 font-mono text-[11px]">
             Recipe 02 · PLB-03, PLB-08 &amp; PRZ-09
           </Chip>
           <h3 className="text-lg font-bold tracking-tight text-foreground">
@@ -243,17 +233,19 @@ export function PrdRecipes() {
           {/* PageHeader Recipe */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <IconButton icon={ArrowLeft} size="small" aria-label="Quay lại danh sách" />
+              <Button variant="ghost" size="sm" isIconOnly aria-label="Quay lại danh sách">
+                <ArrowLeft className="size-4" />
+              </Button>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h4 className="type-page-title text-foreground">
                     Lộc Xuân Trà Sữa Hà · Tết Ất Tỵ
                   </h4>
-                  <Chip variant="caption" color="lime" className="gap-1.5">
+                  <Chip variant="soft" size="sm" color="success" className="gap-1.5">
                     <span className="inline-block size-2 animate-live-pulse rounded-full bg-current" />
                     Đang chạy
                   </Chip>
-                  <Chip variant="caption" color="neutral">
+                  <Chip variant="soft" size="sm" color="default">
                     Tết kéo khách
                   </Chip>
                 </div>
@@ -264,13 +256,15 @@ export function PrdRecipes() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="secondary" size="small" leadingIcon={QrCode}>
+              <Button variant="secondary" size="sm">
+                <QrCode className="size-4" />
                 Chia sẻ &amp; In QR
               </Button>
-              <Button variant="secondary" size="small">
+              <Button variant="secondary" size="sm">
                 Xem báo cáo A4
               </Button>
-              <Button size="small" leadingIcon={TicketCheck}>
+              <Button size="sm">
+                <TicketCheck className="size-4" />
                 Mở Quầy đổi quà
               </Button>
             </div>
@@ -316,7 +310,7 @@ export function PrdRecipes() {
               return (
                 <div
                   key={m.label}
-                  className={`rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card transition-shadow hover:shadow-md ${
+                  className={`rounded-3xl border border-border bg-surface p-5 shadow-surface transition-shadow hover:shadow-md ${
                     m.highlighted ? 'border-primary ring-1 ring-primary/20' : ''
                   }`}
                 >
@@ -340,7 +334,7 @@ export function PrdRecipes() {
           </div>
 
           {/* TableCard Recipe */}
-          <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+          <div className="overflow-hidden rounded-3xl border border-border bg-surface p-0 shadow-surface">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 p-4">
               <div>
                 <div className="text-sm font-semibold text-foreground">
@@ -353,64 +347,66 @@ export function PrdRecipes() {
               </div>
               <div className="flex items-center gap-2">
                 <Input
-                  size="small"
-                  leadingIcon={Search}
                   placeholder="Tìm tên quà hoặc mã…"
                   aria-label="Tìm tên quà hoặc mã"
                   className="w-52"
                 />
-                <Button variant="secondary" size="small">
+                <Button variant="secondary" size="sm">
                   + Thêm tồn kho (PRZ-01)
                 </Button>
               </div>
             </div>
-            <Table aria-label="Tồn kho giải thưởng">
-              <TableHeader className="bg-muted/40">
-                <TableColumn isRowHeader className="px-4">
-                  Tên phần quà
-                </TableColumn>
-                <TableColumn className="text-right">Giá vốn</TableColumn>
-                <TableColumn className="text-right">Tổng kho</TableColumn>
-                <TableColumn className="text-right">Đã phát</TableColumn>
-                <TableColumn className="text-right">Đã đổi tại quầy</TableColumn>
-                <TableColumn className="text-right">Còn lại</TableColumn>
-                <TableColumn className="px-4 text-right">Chi phí thực tế</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {PRIZE_ROWS.map((row) => (
-                  <TableRow key={row.name} id={row.name}>
-                    <TableCell className="px-4 font-medium">
-                      <div className="flex items-center gap-2">
-                        <Gift className="size-4 text-primary" />
-                        <span>{row.name}</span>
-                        {row.lowStock && (
-                          <Chip variant="caption" color="yellow">
-                            Còn 12% (&lt; 20%)
-                          </Chip>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {row.cost}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {row.total}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {row.issued}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs font-semibold text-success tabular-nums">
-                      {row.redeemed}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {row.remaining}
-                    </TableCell>
-                    <TableCell className="px-4 text-right font-mono text-xs font-semibold tabular-nums">
-                      {row.spent}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Tồn kho giải thưởng">
+                  <Table.Header>
+                    <Table.Column isRowHeader className="px-4">
+                      Tên phần quà
+                    </Table.Column>
+                    <Table.Column className="text-right">Giá vốn</Table.Column>
+                    <Table.Column className="text-right">Tổng kho</Table.Column>
+                    <Table.Column className="text-right">Đã phát</Table.Column>
+                    <Table.Column className="text-right">Đã đổi tại quầy</Table.Column>
+                    <Table.Column className="text-right">Còn lại</Table.Column>
+                    <Table.Column className="px-4 text-right">Chi phí thực tế</Table.Column>
+                  </Table.Header>
+                  <Table.Body>
+                    {PRIZE_ROWS.map((row) => (
+                      <Table.Row key={row.name} id={row.name}>
+                        <Table.Cell className="px-4 font-medium">
+                          <div className="flex items-center gap-2">
+                            <Gift className="size-4 text-primary" />
+                            <span>{row.name}</span>
+                            {row.lowStock && (
+                              <Chip variant="soft" size="sm" color="warning">
+                                Còn 12% (&lt; 20%)
+                              </Chip>
+                            )}
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell className="text-right font-mono text-xs tabular-nums">
+                          {row.cost}
+                        </Table.Cell>
+                        <Table.Cell className="text-right font-mono text-xs tabular-nums">
+                          {row.total}
+                        </Table.Cell>
+                        <Table.Cell className="text-right font-mono text-xs tabular-nums">
+                          {row.issued}
+                        </Table.Cell>
+                        <Table.Cell className="text-right font-mono text-xs font-semibold text-success tabular-nums">
+                          {row.redeemed}
+                        </Table.Cell>
+                        <Table.Cell className="text-right font-mono text-xs tabular-nums">
+                          {row.remaining}
+                        </Table.Cell>
+                        <Table.Cell className="px-4 text-right font-mono text-xs font-semibold tabular-nums">
+                          {row.spent}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
             </Table>
           </div>
         </div>
@@ -419,7 +415,7 @@ export function PrdRecipes() {
       {/* RECIPE 3: Counter Redemption Mobile UI (PRZ-10, PRZ-15, PRZ-18, ORG-10) */}
       <div className="grid gap-4">
         <div>
-          <Chip variant="caption" color="neutral" className="mb-1.5 font-mono text-[11px]">
+          <Chip variant="soft" size="sm" color="default" className="mb-1.5 font-mono text-[11px]">
             Recipe 03 · PRZ-10, PRZ-15, PRZ-18, PRZ-19 &amp; ORG-10
           </Chip>
           <h3 className="text-lg font-bold tracking-tight text-foreground">
@@ -434,13 +430,13 @@ export function PrdRecipes() {
 
         <div className="grid items-start gap-6 lg:grid-cols-12">
           {/* Left controls & QR Pairing explanation */}
-          <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card lg:col-span-5">
+          <div className="rounded-3xl border border-border bg-surface p-5 shadow-surface lg:col-span-5">
             <div className="grid gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-foreground">
                   Chuyển trạng thái kiểm thử Quầy đổi quà
                 </span>
-                <Chip variant="caption" color="cyan">
+                <Chip variant="soft" size="sm" color="accent">
                   PWA Ready
                 </Chip>
               </div>
@@ -503,45 +499,49 @@ export function PrdRecipes() {
                 <Smartphone className="size-4 text-primary" />
                 <span className="text-xs font-bold text-foreground">Quầy đổi quà · Trà Sữa Hà</span>
               </div>
-              <Chip variant="caption" color="neutral" className="text-[11px]">
+              <Chip variant="soft" size="sm" color="default" className="text-[11px]">
                 Máy Tuấn · Cơ sở Nguyễn Huệ
               </Chip>
             </div>
 
             <Tabs defaultSelectedKey="code" className="mt-4">
-              <TabList aria-label="Chế độ tra cứu">
-                <Tab id="code" icon={Camera}>
-                  Quét QR / Nhập mã
-                </Tab>
-                <Tab id="phone" icon={Phone}>
-                  Tìm theo SĐT (PRZ-15)
-                </Tab>
-              </TabList>
+              <Tabs.ListContainer>
+                <Tabs.List aria-label="Chế độ tra cứu">
+                  <Tabs.Tab id="code">
+                    <Camera className="size-4" />
+                    Quét QR / Nhập mã
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab id="phone">
+                    <Phone className="size-4" />
+                    Tìm theo SĐT (PRZ-15)
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
 
-              <TabPanel id="code" className="mt-3 grid gap-3">
+              <Tabs.Panel id="code" className="mt-3 grid gap-3">
                 <div className="flex gap-2">
                   <Input
                     value={voucherInput}
-                    onChange={(val) => setVoucherInput(val.toUpperCase())}
+                    onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
                     maxLength={6}
                     aria-label="Mã đổi quà 6 ký tự"
-                    inputClassName="type-code-voucher text-center uppercase"
-                    className="flex-1"
+                    className="type-code-voucher flex-1 text-center uppercase"
                   />
                   <Button variant="secondary" className="px-4">
                     Tra cứu
                   </Button>
                 </div>
-              </TabPanel>
+              </Tabs.Panel>
 
-              <TabPanel id="phone" className="mt-3 grid gap-2">
+              <Tabs.Panel id="phone" className="mt-3 grid gap-2">
                 <div className="flex gap-2">
                   <Input
                     defaultValue="0903819482"
                     placeholder="Nhập SĐT khách hàng…"
                     aria-label="Số điện thoại khách hàng"
-                    inputClassName="font-mono"
-                    className="flex-1"
+                    className="flex-1 font-mono"
                   />
                   <Button variant="secondary">Tìm mã</Button>
                 </div>
@@ -549,7 +549,7 @@ export function PrdRecipes() {
                   Liệt kê các mã chưa đổi của SĐT trong tổ chức; nhân viên đối chiếu tên khách rồi
                   trao quà.
                 </p>
-              </TabPanel>
+              </Tabs.Panel>
             </Tabs>
 
             {/* Giant High-Contrast Verification Banner (PRZ-18) */}
@@ -560,7 +560,7 @@ export function PrdRecipes() {
                     <span className="font-display text-xl font-extrabold tracking-tight text-success">
                       ĐỔI ĐƯỢC
                     </span>
-                    <Chip variant="caption" color="lime">
+                    <Chip variant="soft" size="sm" color="success">
                       Chưa sử dụng
                     </Chip>
                   </div>
@@ -572,10 +572,8 @@ export function PrdRecipes() {
                       Khách: <strong>Nguyễn Minh Anh</strong> (090***482) · Hạn: 05/02/2027
                     </div>
                   </div>
-                  <Button
-                    leadingIcon={CheckCircle2}
-                    className="mt-4 h-14 w-full text-base font-bold shadow-sm"
-                  >
+                  <Button fullWidth className="mt-4 h-14 text-base font-bold shadow-sm">
+                    <CheckCircle2 className="size-5" />
                     Xác nhận đã trao quà (PL94K7)
                   </Button>
                 </div>
@@ -587,7 +585,7 @@ export function PrdRecipes() {
                     <span className="font-display text-lg font-extrabold tracking-tight text-destructive">
                       ĐÃ ĐỔI LÚC 14:02 HÔM NAY
                     </span>
-                    <Chip variant="caption" color="rose">
+                    <Chip variant="soft" size="sm" color="danger">
                       Không thể đổi lại
                     </Chip>
                   </div>
@@ -596,7 +594,7 @@ export function PrdRecipes() {
                     <strong>Cơ sở Nguyễn Huệ</strong>. Nếu bấm nhầm, chỉ Chủ quán (Owner) mới mở lại
                     được.
                   </p>
-                  <Button variant="secondary" className="mt-4 h-12 w-full">
+                  <Button variant="secondary" fullWidth className="mt-4 h-12">
                     Quét mã tiếp theo
                   </Button>
                 </div>
@@ -608,7 +606,7 @@ export function PrdRecipes() {
                     <span className="font-display text-lg font-extrabold tracking-tight text-amber-800 dark:text-amber-300">
                       MÃ CHƠI THỬ · TẬP HUẤN
                     </span>
-                    <Chip variant="caption" color="yellow">
+                    <Chip variant="soft" size="sm" color="warning">
                       PRZ-19
                     </Chip>
                   </div>
@@ -616,7 +614,7 @@ export function PrdRecipes() {
                     Đây là mã từ lượt chơi thử trong Studio. Bạn có thể bấm xác nhận để làm quen
                     thao tác — <strong>không trừ kho thật và không tính vào báo cáo</strong>.
                   </p>
-                  <Button variant="secondary" className="mt-4 h-14 w-full text-base font-bold">
+                  <Button variant="secondary" fullWidth className="mt-4 h-14 text-base font-bold">
                     Xác nhận tập huấn (Không ghi sổ)
                   </Button>
                 </div>
@@ -629,7 +627,7 @@ export function PrdRecipes() {
       {/* DO & DON'T PAIRS */}
       <div className="grid gap-4">
         <div>
-          <Chip variant="caption" color="neutral" className="mb-1.5 font-mono text-[11px]">
+          <Chip variant="soft" size="sm" color="default" className="mb-1.5 font-mono text-[11px]">
             Quy tắc bắt buộc · Do &amp; Don&apos;t
           </Chip>
           <h3 className="text-lg font-bold tracking-tight text-foreground">
@@ -639,34 +637,34 @@ export function PrdRecipes() {
 
         <div className="grid gap-4 md:grid-cols-2">
           {/* Pair 1: One primary CTA */}
-          <div className="rounded-3xl border border-success/30 bg-background-primary-default p-5 shadow-card">
+          <div className="rounded-3xl border border-success/30 bg-surface p-5 shadow-surface">
             <div className="flex items-center gap-2 text-xs font-bold text-success">
               <CheckCircle2 className="size-4" />
               NÊN LÀM (DO) — Chỉ một nút Primary (Teal) cho hành động đích mỗi màn hình
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-muted/40 p-4">
-              <Button variant="ghost" size="small">
+              <Button variant="ghost" size="sm">
                 Huỷ
               </Button>
-              <Button variant="secondary" size="small">
+              <Button variant="secondary" size="sm">
                 Chơi thử bản nháp
               </Button>
-              <Button size="small">Phát hành chương trình</Button>
+              <Button size="sm">Phát hành chương trình</Button>
             </div>
             <p className="mt-2.5 text-xs text-muted-foreground">
               Chủ quán nhìn vào biết ngay bước tiếp theo là &ldquo;Phát hành chương trình&rdquo;.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-destructive/30 bg-background-primary-default p-5 shadow-card">
+          <div className="rounded-3xl border border-destructive/30 bg-surface p-5 shadow-surface">
             <div className="flex items-center gap-2 text-xs font-bold text-destructive">
               <XCircle className="size-4" />
               KHÔNG LÀM (DON&apos;T) — Đặt nhiều nút Primary cạnh nhau gây nhiễu thị giác
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-muted/40 p-4">
-              <Button size="small">Lưu nháp</Button>
-              <Button size="small">Chơi thử</Button>
-              <Button size="small">Phát hành</Button>
+              <Button size="sm">Lưu nháp</Button>
+              <Button size="sm">Chơi thử</Button>
+              <Button size="sm">Phát hành</Button>
             </div>
             <p className="mt-2.5 text-xs text-destructive">
               Vi phạm nguyên tắc &ldquo;Studio yên tĩnh&rdquo; — khi mọi nút đều nổi bật thì không
@@ -675,17 +673,17 @@ export function PrdRecipes() {
           </div>
 
           {/* Pair 2: Status never relies on color alone */}
-          <div className="rounded-3xl border border-success/30 bg-background-primary-default p-5 shadow-card">
+          <div className="rounded-3xl border border-success/30 bg-surface p-5 shadow-surface">
             <div className="flex items-center gap-2 text-xs font-bold text-success">
               <CheckCircle2 className="size-4" />
               NÊN LÀM (DO) — Trạng thái luôn đi kèm Icon/Chấm và Nhãn hành động rõ nghĩa
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2.5 rounded-xl bg-muted/40 p-4">
-              <Chip variant="caption" color="lime" className="gap-1.5">
+              <Chip variant="soft" size="sm" color="success" className="gap-1.5">
                 <span className="inline-block size-2 animate-live-pulse rounded-full bg-current" />
                 Đang chạy · 276 khách đã đổi
               </Chip>
-              <Chip variant="caption" color="yellow" className="gap-1.5">
+              <Chip variant="soft" size="sm" color="warning" className="gap-1.5">
                 <AlertTriangle className="size-3" />
                 Quà còn 12% (&lt; 20%)
               </Chip>
@@ -695,7 +693,7 @@ export function PrdRecipes() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-destructive/30 bg-background-primary-default p-5 shadow-card">
+          <div className="rounded-3xl border border-destructive/30 bg-surface p-5 shadow-surface">
             <div className="flex items-center gap-2 text-xs font-bold text-destructive">
               <XCircle className="size-4" />
               KHÔNG LÀM (DON&apos;T) — Chỉ dùng chấm màu trống hoặc nhãn kỹ thuật mơ hồ
@@ -703,7 +701,7 @@ export function PrdRecipes() {
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-muted/40 p-4">
               <span className="inline-block size-3 rounded-full bg-red-500" />
               <span className="inline-block size-3 rounded-full bg-amber-500" />
-              <Chip variant="caption" color="neutral">
+              <Chip variant="soft" size="sm" color="default">
                 STATUS_ACTIVE_01
               </Chip>
             </div>

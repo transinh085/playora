@@ -1,13 +1,20 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Divider } from '@playora/ui/components/base/divider/divider';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Slider } from '@playora/ui/components/base/slider/slider';
-import { Switch } from '@playora/ui/components/base/switch/switch';
-import { TextareaBase } from '@playora/ui/components/base/textarea/textarea';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import {
+  Alert,
+  Button,
+  Input,
+  InputGroup,
+  ListBox,
+  Select,
+  Separator,
+  Slider,
+  Switch,
+  Tabs,
+  TextArea,
+  Tooltip,
+  toast,
+} from '@playora/ui/components';
 import {
   AlignCenter,
   AlignHorizontalJustifyCenter,
@@ -122,31 +129,31 @@ function Segmented<T extends string | number>({
   block?: boolean;
 }) {
   return (
-    <div
-      className={`inline-flex rounded-full border border-border bg-muted/50 p-0.5 text-xs ${
-        block ? 'w-full' : ''
-      }`}
+    <Tabs
+      selectedKey={String(value)}
+      onSelectionChange={(key) => {
+        const found = options.find((opt) => String(opt.value) === String(key));
+        if (found) onChange(found.value);
+      }}
+      className={block ? 'w-full' : undefined}
     >
-      {options.map((opt) => {
-        const active = opt.value === value;
-        return (
-          <button
-            key={String(opt.value)}
-            type="button"
-            title={opt.title}
-            onClick={() => onChange(opt.value)}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-full px-2.5 py-1 font-medium transition-colors ${
-              active
-                ? 'bg-background text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {opt.icon}
-            {opt.label && <span>{opt.label}</span>}
-          </button>
-        );
-      })}
-    </div>
+      <Tabs.ListContainer>
+        <Tabs.List aria-label="options" className={block ? 'w-full' : undefined}>
+          {options.map((opt) => (
+            <Tabs.Tab
+              key={String(opt.value)}
+              id={String(opt.value)}
+              aria-label={opt.title}
+              className="flex flex-1 items-center justify-center gap-1 px-2.5 py-1 text-xs font-medium"
+            >
+              {opt.icon}
+              {opt.label && <span>{opt.label}</span>}
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs.ListContainer>
+    </Tabs>
   );
 }
 
@@ -160,17 +167,28 @@ function PropSelect<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as T)}
-      className="h-9 w-full rounded-xl border border-input bg-background px-3 py-1 text-xs shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
+    <Select
+      aria-label="select"
+      selectedKey={value}
+      onSelectionChange={(key) => {
+        if (key !== null) onChange(String(key) as T);
+      }}
+      fullWidth
     >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+      <Select.Trigger className="h-9 text-xs">
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {options.map((opt) => (
+            <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
+              {opt.label}
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }
 
@@ -193,11 +211,15 @@ function PropSlider({
       minValue={min}
       maxValue={max}
       step={step}
-      showTooltip={false}
-      onChange={onChange}
+      onChange={(val) => onChange(Array.isArray(val) ? (val[0] ?? 0) : val)}
       aria-label="slider"
       className="my-1"
-    />
+    >
+      <Slider.Track>
+        <Slider.Fill />
+        <Slider.Thumb />
+      </Slider.Track>
+    </Slider>
   );
 }
 
@@ -218,20 +240,22 @@ function ColorField({
         const ref = `brand.${key}` as const;
         const active = value === ref;
         return (
-          <TooltipTrigger key={key}>
-            <button
-              type="button"
-              aria-label={t(`brand.${key}`)}
-              aria-pressed={active}
-              title={`${t('props.brandColors')}: ${t(`brand.${key}`)}`}
-              onClick={() => onChange(ref)}
-              className={`size-7 cursor-pointer rounded-lg border transition-all ${
-                active ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-              }`}
-              style={{ background: brand[key] }}
-            />
-            <Tooltip>{`${t('props.brandColors')}: ${t(`brand.${key}`)}`}</Tooltip>
-          </TooltipTrigger>
+          <Tooltip key={key} delay={150}>
+            <Tooltip.Trigger>
+              <button
+                type="button"
+                aria-label={t(`brand.${key}`)}
+                aria-pressed={active}
+                title={`${t('props.brandColors')}: ${t(`brand.${key}`)}`}
+                onClick={() => onChange(ref)}
+                className={`size-7 cursor-pointer rounded-lg border transition-all ${
+                  active ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                }`}
+                style={{ background: brand[key] }}
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content>{`${t('props.brandColors')}: ${t(`brand.${key}`)}`}</Tooltip.Content>
+          </Tooltip>
         );
       })}
       <input
@@ -298,7 +322,11 @@ function PropertiesPanelView({
                     'gradientToggle',
                   )
                 }
-              />
+              >
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch>
               {screen.background.gradientTo ? (
                 <ColorField
                   value={screen.background.gradientTo}
@@ -336,174 +364,204 @@ function PropertiesPanelView({
   const singleton = SINGLETON_TYPES.includes(element.type);
   const index = screen.elements.findIndex((e) => e.id === element.id);
   const num = (key: 'x' | 'y' | 'w' | 'h' | 'rotation', min?: number) => (
-    <div className="relative flex items-center">
-      <span className="pointer-events-none absolute left-2 z-10 text-[10px] text-muted-foreground uppercase font-semibold">
-        {t(`props.${key}`)}
-      </span>
-      <InputBase
+    <InputGroup fullWidth>
+      <InputGroup.Prefix>
+        <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+          {t(`props.${key}`)}
+        </span>
+      </InputGroup.Prefix>
+      <InputGroup.Input
         type="number"
         min={min}
         step={key === 'rotation' ? 1 : 1}
         aria-label={t(`props.${key}`)}
-        className="pl-8 text-right font-mono text-xs"
-        value={Math.round(element[key] * 10) / 10}
+        className="text-right font-mono text-xs"
+        value={String(Math.round(element[key] * 10) / 10)}
         onChange={(e) => {
           const v = parseFloat(e.target.value);
           if (!Number.isNaN(v)) update({ [key]: v }, key);
         }}
       />
-    </div>
+    </InputGroup>
   );
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex justify-end gap-1">
-        <TooltipTrigger>
-          <Button
-            size="xs"
-            variant="ghost"
-            className="size-7 rounded-full p-0"
-            aria-label={t('props.bringFront')}
-            onClick={() =>
-              dispatch({ type: 'reorder', id: element.id, toIndex: screen.elements.length - 1 })
-            }
-            disabled={index === screen.elements.length - 1}
-          >
-            <ArrowUpToLine className="size-4" />
-          </Button>
-          <Tooltip>{t('props.bringFront')}</Tooltip>
-        </TooltipTrigger>
-        <TooltipTrigger>
-          <Button
-            size="xs"
-            variant="ghost"
-            className="size-7 rounded-full p-0"
-            aria-label={t('props.sendBack')}
-            onClick={() => dispatch({ type: 'reorder', id: element.id, toIndex: 0 })}
-            disabled={index === 0}
-          >
-            <ArrowDownToLine className="size-4" />
-          </Button>
-          <Tooltip>{t('props.sendBack')}</Tooltip>
-        </TooltipTrigger>
-        <TooltipTrigger>
-          <Button
-            size="xs"
-            variant="ghost"
-            className="size-7 rounded-full p-0"
-            aria-label={t('props.duplicate')}
-            disabled={singleton}
-            onClick={() => dispatch({ type: 'duplicate', id: element.id })}
-          >
-            <Copy className="size-4" />
-          </Button>
-          <Tooltip>{t('props.duplicate')}</Tooltip>
-        </TooltipTrigger>
-        <TooltipTrigger>
-          <Button
-            size="xs"
-            variant="ghost"
-            className="size-7 rounded-full p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label={t('props.delete')}
-            disabled={singleton}
-            onClick={() => dispatch({ type: 'remove', id: element.id })}
-          >
-            <Trash2 className="size-4" />
-          </Button>
-          <Tooltip>{t('props.delete')}</Tooltip>
-        </TooltipTrigger>
+        <Tooltip delay={150}>
+          <Tooltip.Trigger>
+            <Button
+              size="sm"
+              variant="ghost"
+              isIconOnly
+              className="size-7 rounded-full p-0"
+              aria-label={t('props.bringFront')}
+              onPress={() =>
+                dispatch({ type: 'reorder', id: element.id, toIndex: screen.elements.length - 1 })
+              }
+              isDisabled={index === screen.elements.length - 1}
+            >
+              <ArrowUpToLine className="size-4" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('props.bringFront')}</Tooltip.Content>
+        </Tooltip>
+        <Tooltip delay={150}>
+          <Tooltip.Trigger>
+            <Button
+              size="sm"
+              variant="ghost"
+              isIconOnly
+              className="size-7 rounded-full p-0"
+              aria-label={t('props.sendBack')}
+              onPress={() => dispatch({ type: 'reorder', id: element.id, toIndex: 0 })}
+              isDisabled={index === 0}
+            >
+              <ArrowDownToLine className="size-4" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('props.sendBack')}</Tooltip.Content>
+        </Tooltip>
+        <Tooltip delay={150}>
+          <Tooltip.Trigger>
+            <Button
+              size="sm"
+              variant="ghost"
+              isIconOnly
+              className="size-7 rounded-full p-0"
+              aria-label={t('props.duplicate')}
+              isDisabled={singleton}
+              onPress={() => dispatch({ type: 'duplicate', id: element.id })}
+            >
+              <Copy className="size-4" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('props.duplicate')}</Tooltip.Content>
+        </Tooltip>
+        <Tooltip delay={150}>
+          <Tooltip.Trigger>
+            <Button
+              size="sm"
+              variant="ghost"
+              isIconOnly
+              className="size-7 rounded-full p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              aria-label={t('props.delete')}
+              isDisabled={singleton}
+              onPress={() => dispatch({ type: 'remove', id: element.id })}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('props.delete')}</Tooltip.Content>
+        </Tooltip>
       </div>
 
       <Field bind label={t('props.name')}>
-        <InputBase
+        <Input
           value={element.name}
           onChange={(e) => update({ name: e.target.value }, 'name')}
+          fullWidth
         />
       </Field>
 
       {element.type === 'gameStage' && (
-        <div
-          role="alert"
-          className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs font-medium text-text-primary"
-        >
-          {t('props.stageHint')}
-        </div>
+        <Alert status="default">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title className="text-xs font-medium">{t('props.stageHint')}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
       {element.type === 'form' && (
-        <div
-          role="alert"
-          className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs font-medium text-text-primary"
-        >
-          {t('props.formHint')}
-        </div>
+        <Alert status="default">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title className="text-xs font-medium">{t('props.formHint')}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
 
       <Section title={t('props.layout')}>
         <div className="flex items-center justify-between gap-1 rounded-xl border bg-muted/30 p-1">
-          <TooltipTrigger>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="size-7 rounded-lg p-0"
-              aria-label={t('props.alignCenterH')}
-              onClick={() =>
-                update({ x: Math.round((ARTBOARD_WIDTH - element.w) / 2) }, 'alignCenterX')
-              }
-            >
-              <AlignHorizontalJustifyCenter className="size-3.5" />
-            </Button>
-            <Tooltip>{t('props.alignCenterH')}</Tooltip>
-          </TooltipTrigger>
-          <TooltipTrigger>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="size-7 rounded-lg p-0"
-              aria-label={t('props.alignCenterV')}
-              onClick={() =>
-                update({ y: Math.round((screen.height - element.h) / 2) }, 'alignCenterY')
-              }
-            >
-              <AlignVerticalJustifyCenter className="size-3.5" />
-            </Button>
-            <Tooltip>{t('props.alignCenterV')}</Tooltip>
-          </TooltipTrigger>
-          <TooltipTrigger>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="size-7 rounded-lg p-0"
-              aria-label={t('props.alignLeft')}
-              onClick={() => update({ x: 16 }, 'alignLeft')}
-            >
-              <AlignLeft className="size-3.5" />
-            </Button>
-            <Tooltip>{t('props.alignLeft')}</Tooltip>
-          </TooltipTrigger>
-          <TooltipTrigger>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="size-7 rounded-lg p-0"
-              aria-label={t('props.alignRight')}
-              onClick={() => update({ x: ARTBOARD_WIDTH - element.w - 16 }, 'alignRight')}
-            >
-              <AlignRight className="size-3.5" />
-            </Button>
-            <Tooltip>{t('props.alignRight')}</Tooltip>
-          </TooltipTrigger>
-          <TooltipTrigger>
-            <Button
-              size="xs"
-              variant="ghost"
-              className="size-7 rounded-lg p-0"
-              aria-label={t('props.fullWidth')}
-              onClick={() => update({ x: 0, w: ARTBOARD_WIDTH }, 'fullWidth')}
-            >
-              <Maximize2 className="size-3.5" />
-            </Button>
-            <Tooltip>{t('props.fullWidth')}</Tooltip>
-          </TooltipTrigger>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                className="size-7 rounded-lg p-0"
+                aria-label={t('props.alignCenterH')}
+                onPress={() =>
+                  update({ x: Math.round((ARTBOARD_WIDTH - element.w) / 2) }, 'alignCenterX')
+                }
+              >
+                <AlignHorizontalJustifyCenter className="size-3.5" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('props.alignCenterH')}</Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                className="size-7 rounded-lg p-0"
+                aria-label={t('props.alignCenterV')}
+                onPress={() =>
+                  update({ y: Math.round((screen.height - element.h) / 2) }, 'alignCenterY')
+                }
+              >
+                <AlignVerticalJustifyCenter className="size-3.5" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('props.alignCenterV')}</Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                className="size-7 rounded-lg p-0"
+                aria-label={t('props.alignLeft')}
+                onPress={() => update({ x: 16 }, 'alignLeft')}
+              >
+                <AlignLeft className="size-3.5" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('props.alignLeft')}</Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                className="size-7 rounded-lg p-0"
+                aria-label={t('props.alignRight')}
+                onPress={() => update({ x: ARTBOARD_WIDTH - element.w - 16 }, 'alignRight')}
+              >
+                <AlignRight className="size-3.5" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('props.alignRight')}</Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Button
+                size="sm"
+                variant="ghost"
+                isIconOnly
+                className="size-7 rounded-lg p-0"
+                aria-label={t('props.fullWidth')}
+                onPress={() => update({ x: 0, w: ARTBOARD_WIDTH }, 'fullWidth')}
+              >
+                <Maximize2 className="size-3.5" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('props.fullWidth')}</Tooltip.Content>
+          </Tooltip>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {num('x')}
@@ -530,25 +588,26 @@ function PropertiesPanelView({
         </Field>
       </Section>
 
-      <Divider />
+      <Separator />
 
       {element.type === 'text' && (
         <Section title={t('types.text')}>
           <Field bind label={t('props.content')}>
-            <TextareaBase
+            <TextArea
               rows={3}
               value={element.content}
               onChange={(e) => update({ content: e.target.value }, 'content')}
               className="resize-none"
+              fullWidth
             />
-            <div className="flex flex-wrap items-center gap-1 mt-1">
-              <Caption className="text-xs mr-1">{t('props.insertVariable')}:</Caption>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              <Caption className="mr-1 text-xs">{t('props.insertVariable')}:</Caption>
               {(['{player.name}', '{prize.name}', '{event.name}'] as const).map((variable) => (
                 <button
                   key={variable}
                   type="button"
                   onClick={() => update({ content: `${element.content} ${variable}` }, 'content')}
-                  className="text-xs font-mono px-1.5 py-0.5 rounded-md bg-muted hover:bg-muted/80 cursor-pointer border border-border"
+                  className="cursor-pointer rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-xs hover:bg-muted/80"
                 >
                   +{variable}
                 </button>
@@ -568,30 +627,32 @@ function PropertiesPanelView({
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field bind label={t('props.fontSize')}>
-              <InputBase
+              <Input
                 type="number"
                 min={8}
                 max={120}
-                value={element.fontSize}
+                value={String(element.fontSize)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) update({ fontSize: v }, 'fontSize');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
             <Field bind label={t('props.lineHeight')}>
-              <InputBase
+              <Input
                 type="number"
                 min={0.8}
                 max={3}
                 step={0.05}
-                value={element.lineHeight}
+                value={String(element.lineHeight)}
                 onChange={(e) => {
                   const v = parseFloat(e.target.value);
                   if (!Number.isNaN(v)) update({ lineHeight: v }, 'lineHeight');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
           </div>
@@ -626,24 +687,22 @@ function PropertiesPanelView({
               />
             </Field>
             <Field label={t('props.letterSpacing')}>
-              <div className="relative">
-                <InputBase
+              <InputGroup fullWidth>
+                <InputGroup.Input
                   type="number"
                   min={-2}
                   max={12}
                   step={0.5}
                   aria-label={t('props.letterSpacing')}
-                  value={element.letterSpacing ?? 0}
+                  value={String(element.letterSpacing ?? 0)}
                   onChange={(e) => {
                     const v = parseFloat(e.target.value);
                     if (!Number.isNaN(v)) update({ letterSpacing: v }, 'spacing');
                   }}
-                  className="pr-6 font-mono text-xs"
+                  className="font-mono text-xs"
                 />
-                <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-                  px
-                </span>
-              </div>
+                <InputGroup.Suffix>px</InputGroup.Suffix>
+              </InputGroup>
             </Field>
           </div>
           <Field label={t('props.textEffect')}>
@@ -719,8 +778,8 @@ function PropertiesPanelView({
               <Button
                 type="button"
                 variant="secondary"
-                disabled={uploadingImage}
-                onClick={() => fileInputRef.current?.click()}
+                isDisabled={uploadingImage}
+                onPress={() => fileInputRef.current?.click()}
                 className="w-full rounded-full"
               >
                 <ImageUp className="mr-1.5 size-4" />
@@ -729,17 +788,18 @@ function PropertiesPanelView({
             </div>
           )}
           <Field bind label={t('props.imageUrl')}>
-            <InputBase
+            <Input
               placeholder={t('props.imageUrlPlaceholder')}
               value={element.src.startsWith('data:') ? '' : element.src}
               onChange={(e) => {
                 const next = e.target.value;
                 if (!next.startsWith('data:')) update({ src: next }, 'src');
               }}
+              fullWidth
             />
           </Field>
-          <Caption className="text-xs font-semibold mt-1">Stickers / Presets</Caption>
-          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 border rounded-xl">
+          <Caption className="mt-1 text-xs font-semibold">Stickers / Presets</Caption>
+          <div className="grid max-h-48 grid-cols-4 gap-2 overflow-y-auto rounded-xl border p-1">
             {IMAGE_PRESETS.map((preset) => (
               <PresetTile
                 key={preset.key}
@@ -782,23 +842,21 @@ function PropertiesPanelView({
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field label={t('props.border')}>
-              <div className="relative">
-                <InputBase
+              <InputGroup fullWidth>
+                <InputGroup.Input
                   type="number"
                   min={0}
                   max={12}
                   aria-label={t('props.border')}
-                  value={element.borderWidth ?? 0}
+                  value={String(element.borderWidth ?? 0)}
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10);
                     if (!Number.isNaN(v)) update({ borderWidth: v }, 'borderWidth');
                   }}
-                  className="pr-6 font-mono text-xs"
+                  className="font-mono text-xs"
                 />
-                <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-                  px
-                </span>
-              </div>
+                <InputGroup.Suffix>px</InputGroup.Suffix>
+              </InputGroup>
             </Field>
             {Boolean(element.borderWidth) && (
               <Field label={t('props.borderColor')}>
@@ -816,9 +874,10 @@ function PropertiesPanelView({
       {element.type === 'button' && (
         <Section title={t('types.button')}>
           <Field bind label={t('props.label')}>
-            <InputBase
+            <Input
               value={element.label}
               onChange={(e) => update({ label: e.target.value }, 'label')}
+              fullWidth
             />
           </Field>
           <Field bind label={t('props.action')}>
@@ -832,10 +891,11 @@ function PropertiesPanelView({
             element.action === 'zalo' ||
             element.action === 'phone') && (
             <Field bind label={t('props.actionTarget')}>
-              <InputBase
+              <Input
                 placeholder={t('props.actionTargetHint')}
                 value={element.actionTarget ?? ''}
                 onChange={(e) => update({ actionTarget: e.target.value }, 'actionTarget')}
+                fullWidth
               />
             </Field>
           )}
@@ -880,29 +940,31 @@ function PropertiesPanelView({
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field bind label={t('props.fontSize')}>
-              <InputBase
+              <Input
                 type="number"
                 min={10}
                 max={48}
-                value={element.fontSize}
+                value={String(element.fontSize)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) update({ fontSize: v }, 'fontSize');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
             <Field bind label={t('props.radius')}>
-              <InputBase
+              <Input
                 type="number"
                 min={0}
                 max={100}
-                value={element.radius}
+                value={String(element.radius)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) update({ radius: v }, 'radius');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
           </div>
@@ -946,7 +1008,11 @@ function PropertiesPanelView({
                 onChange={(on) =>
                   update({ fillGradientTo: on ? 'brand.primary' : undefined }, 'gradientToggle')
                 }
-              />
+              >
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch>
               {element.fillGradientTo ? (
                 <ColorField
                   value={element.fillGradientTo}
@@ -1003,9 +1069,10 @@ function PropertiesPanelView({
       {element.type === 'badge' && (
         <Section title={t('types.badge')}>
           <Field bind label={t('props.badgeText')}>
-            <InputBase
+            <Input
               value={element.text}
               onChange={(e) => update({ text: e.target.value }, 'badgeText')}
+              fullWidth
             />
           </Field>
           <Field label={t('props.badgeVariant')}>
@@ -1038,7 +1105,11 @@ function PropertiesPanelView({
               isSelected={element.pulse ?? false}
               aria-label={t('props.pulseEffect')}
               onChange={(pulse) => update({ pulse }, 'pulse')}
-            />
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
           <Field label={t('props.fill')}>
             <ColorField
@@ -1056,29 +1127,31 @@ function PropertiesPanelView({
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field bind label={t('props.fontSize')}>
-              <InputBase
+              <Input
                 type="number"
                 min={9}
                 max={28}
-                value={element.fontSize}
+                value={String(element.fontSize)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) update({ fontSize: v }, 'fontSize');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
             <Field bind label={t('props.radius')}>
-              <InputBase
+              <Input
                 type="number"
                 min={0}
                 max={100}
-                value={element.radius}
+                value={String(element.radius)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) update({ radius: v }, 'radius');
                 }}
                 className="font-mono text-xs"
+                fullWidth
               />
             </Field>
           </div>
@@ -1088,11 +1161,12 @@ function PropertiesPanelView({
       {element.type === 'marquee' && (
         <Section title={t('types.marquee')}>
           <Field bind label={t('props.marqueeText')}>
-            <TextareaBase
+            <TextArea
               rows={2}
               value={element.text}
               onChange={(e) => update({ text: e.target.value }, 'marqueeText')}
               className="resize-none"
+              fullWidth
             />
           </Field>
           <Field label={t('props.marqueeSpeed')}>
@@ -1188,10 +1262,11 @@ function PropertiesPanelView({
       {element.type === 'audio' && (
         <Section title={t('types.audio')}>
           <Field bind label={t('props.audioLabel')}>
-            <InputBase
+            <Input
               placeholder="VD: Bật âm thanh (hoặc để trống)"
               value={element.label ?? ''}
               onChange={(e) => update({ label: e.target.value }, 'audioLabel')}
+              fullWidth
             />
           </Field>
           <Field label={t('props.fill')}>
@@ -1226,16 +1301,18 @@ function PropertiesPanelView({
             />
           </Field>
           <Field bind label={t('props.label')}>
-            <InputBase
+            <Input
               value={element.label}
               onChange={(e) => update({ label: e.target.value }, 'socialLabel')}
+              fullWidth
             />
           </Field>
           <Field bind label={t('props.socialUrl')}>
-            <InputBase
+            <Input
               placeholder="VD: https://zalo.me/... hoặc 19006868"
               value={element.url ?? ''}
               onChange={(e) => update({ url: e.target.value }, 'socialUrl')}
+              fullWidth
             />
           </Field>
           <Field label={t('props.fill')}>
@@ -1258,10 +1335,11 @@ function PropertiesPanelView({
       {element.type === 'countdown' && (
         <Section title={t('types.countdown')}>
           <Field bind label={t('props.countdownTitle')}>
-            <InputBase
+            <Input
               value={element.title ?? ''}
               placeholder="VD: ƯU ĐÃI KẾT THÚC SAU"
               onChange={(e) => update({ title: e.target.value }, 'title')}
+              fullWidth
             />
           </Field>
           <Field label={t('props.countdownVariant')}>
@@ -1284,7 +1362,11 @@ function PropertiesPanelView({
               isSelected={element.showDays ?? true}
               aria-label={t('props.showDays')}
               onChange={(showDays) => update({ showDays }, 'showDays')}
-            />
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm">{t('props.showSeconds')}</span>
@@ -1292,7 +1374,11 @@ function PropertiesPanelView({
               isSelected={element.showSeconds ?? true}
               aria-label={t('props.showSeconds')}
               onChange={(showSeconds) => update({ showSeconds }, 'showSeconds')}
-            />
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
           <Field label={t('props.textColor')}>
             <ColorField
@@ -1314,10 +1400,11 @@ function PropertiesPanelView({
       {element.type === 'prizeList' && (
         <Section title={t('types.prizeList')}>
           <Field bind label={t('props.prizeListTitle')}>
-            <InputBase
+            <Input
               value={element.title ?? ''}
               placeholder="VD: CƠ CẤU GIẢI THƯỞNG"
               onChange={(e) => update({ title: e.target.value }, 'title')}
+              fullWidth
             />
           </Field>
           <Field label={t('props.prizeLayout')}>
@@ -1339,7 +1426,11 @@ function PropertiesPanelView({
               isSelected={element.showRemaining}
               aria-label={t('props.showRemaining')}
               onChange={(showRemaining) => update({ showRemaining }, 'showRemaining')}
-            />
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm">{t('props.cardBorder')}</span>
@@ -1347,7 +1438,11 @@ function PropertiesPanelView({
               isSelected={element.cardBorder ?? true}
               aria-label={t('props.cardBorder')}
               onChange={(cardBorder) => update({ cardBorder }, 'cardBorder')}
-            />
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
           <Field label={t('props.textColor')}>
             <ColorField
@@ -1387,26 +1482,24 @@ function PropertiesPanelView({
                 label: t(`props.animations.${value}`),
               }))}
             />
-            <div className="relative">
-              <InputBase
+            <InputGroup fullWidth>
+              <InputGroup.Input
                 type="number"
                 min={0}
                 max={3000}
                 step={100}
                 aria-label={t('props.animationEnter')}
-                value={element.animation.delayMs}
+                value={String(element.animation.delayMs)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
                   if (!Number.isNaN(v)) {
                     update({ animation: { ...element.animation, delayMs: v } }, 'delay');
                   }
                 }}
-                className="pr-8 font-mono text-xs"
+                className="font-mono text-xs"
               />
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
-                ms
-              </span>
-            </div>
+              <InputGroup.Suffix>ms</InputGroup.Suffix>
+            </InputGroup>
           </div>
         </Field>
         <Field label={t('props.loopAnimation')}>

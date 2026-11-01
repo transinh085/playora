@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiBookmarkFill,
@@ -30,9 +30,9 @@ export function TemplateCard({
   const coverScreen = template.screens.cover;
 
   return (
-    <article
+    <Card
       className={cx(
-        'group relative flex flex-col overflow-hidden rounded-2xl border-[0.5px] border-border-card-default bg-background-secondary-default',
+        'group relative flex flex-col overflow-hidden border-[0.5px] border-border-card-default bg-background-secondary-default p-0',
         'transition-all duration-200 hover:border-border-card-hover hover:shadow-card',
       )}
     >
@@ -79,27 +79,27 @@ export function TemplateCard({
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/45 p-3 opacity-0 backdrop-blur-xs transition-opacity duration-200 group-hover:opacity-100">
           <Button
             variant="secondary"
-            size="small"
-            leadingIcon={RiEyeLine}
-            className="w-full max-w-[140px] shadow-sm justify-center"
-            onClick={() => onPreview(template)}
+            size="sm"
+            className="w-full max-w-[140px] justify-center shadow-sm"
+            onPress={() => onPreview(template)}
           >
+            <RiEyeLine className="size-4" />
             {t('preview')}
           </Button>
           <Button
             variant="primary"
-            size="small"
-            leadingIcon={RiMagicLine}
-            className="w-full max-w-[140px] shadow-sm justify-center"
-            onClick={() => onUse(template)}
+            size="sm"
+            className="w-full max-w-[140px] justify-center shadow-sm"
+            onPress={() => onUse(template)}
           >
+            <RiMagicLine className="size-4" />
             {t('use')}
           </Button>
         </div>
       </div>
 
       {/* Card Info Body - Title only, focused on preview */}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      <Card.Footer className="flex items-center justify-between px-3 py-2.5">
         <button
           type="button"
           onClick={() => onPreview(template)}
@@ -108,7 +108,7 @@ export function TemplateCard({
         >
           {template.name}
         </button>
-      </div>
-    </article>
+      </Card.Footer>
+    </Card>
   );
 }

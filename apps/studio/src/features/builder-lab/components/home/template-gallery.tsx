@@ -1,18 +1,19 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Label } from '@playora/ui/components/base/input/label';
 import {
+  Button,
+  Card,
+  Chip,
+  Input,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
-import { toast } from '@playora/ui/components/base/toast/toast';
+  SearchField,
+  Select,
+  Tabs,
+  toast,
+} from '@playora/ui/components';
 import { ArrowLeft, Plus, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import { useRouter } from 'next/navigation';
@@ -56,6 +57,7 @@ export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () 
 
   const [occasion, setOccasion] = useState<'all' | Occasion>('all');
   const [mechanic, setMechanic] = useState<'all' | TemplateKey>('all');
+  const [search, setSearch] = useState('');
 
   const [picked, setPicked] = useState<{ templateKey: TemplateKey; skinKey: SkinKey } | null>(null);
   const [name, setName] = useState('');
@@ -66,6 +68,7 @@ export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () 
     occasion === 'all' ? allSkins : allSkins.filter((skin) => skin.occasion === occasion);
   const visibleTemplates =
     mechanic === 'all' ? TEMPLATES : TEMPLATES.filter((tpl) => tpl.key === mechanic);
+  const normalizedSearch = search.trim().toLowerCase();
 
   const pickCard = (templateKey: TemplateKey, skinKey: SkinKey) => {
     setPicked({ templateKey, skinKey });
@@ -125,127 +128,147 @@ export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () 
     <div className="flex flex-col gap-5">
       {onBack && (
         <div>
-          <Button variant="secondary" size="small" leadingIcon={ArrowLeft} onClick={onBack}>
+          <Button variant="secondary" size="sm" onClick={onBack}>
+            <ArrowLeft className="size-4" />
             {tp('backToGoals')}
           </Button>
         </div>
       )}
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card">
+      <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-caption-1-semibold uppercase tracking-wider text-text-secondary">
             {t('occasionsLabel')}:
           </span>
-          <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5">
-            {OCCASIONS.map((item) => {
-              const active = occasion === item;
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setOccasion(item)}
-                  className={cx(
-                    'cursor-pointer rounded-lg px-3 py-1 text-caption-1-medium transition-all',
-                    active
-                      ? 'bg-background-primary-default text-text-primary shadow-xs'
-                      : 'text-text-secondary hover:text-text-primary',
-                  )}
-                >
-                  {t(`occasions.${item}`)}
-                </button>
-              );
-            })}
-          </div>
+          <Tabs
+            selectedKey={occasion}
+            onSelectionChange={(key) => setOccasion(key as 'all' | Occasion)}
+          >
+            <Tabs.ListContainer>
+              <Tabs.List aria-label={t('occasionsLabel')}>
+                {OCCASIONS.map((item) => (
+                  <Tabs.Tab key={item} id={item} className="px-3 py-1 text-caption-1-medium">
+                    {t(`occasions.${item}`)}
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+            </Tabs.ListContainer>
+          </Tabs>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-caption-1-semibold uppercase tracking-wider text-text-secondary">
             {t('mechanicsLabel')}:
           </span>
-          <div className="inline-flex rounded-xl border border-border-button-default bg-background-secondary-default p-0.5">
-            {MECHANICS.map((item) => {
-              const active = mechanic === item;
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => setMechanic(item)}
-                  className={cx(
-                    'cursor-pointer rounded-lg px-3 py-1 text-caption-1-medium transition-all',
-                    active
-                      ? 'bg-background-primary-default text-text-primary shadow-xs'
-                      : 'text-text-secondary hover:text-text-primary',
-                  )}
-                >
-                  {item === 'all' ? t('occasions.all') : t(`templates.${item}`)}
-                </button>
-              );
-            })}
-          </div>
+          <Tabs
+            selectedKey={mechanic}
+            onSelectionChange={(key) => setMechanic(key as 'all' | TemplateKey)}
+          >
+            <Tabs.ListContainer>
+              <Tabs.List aria-label={t('mechanicsLabel')}>
+                {MECHANICS.map((item) => (
+                  <Tabs.Tab key={item} id={item} className="px-3 py-1 text-caption-1-medium">
+                    {item === 'all' ? t('occasions.all') : t(`templates.${item}`)}
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+            </Tabs.ListContainer>
+          </Tabs>
+
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            aria-label={t('nameLabel')}
+            className="w-48"
+          >
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input placeholder={t('namePlaceholder')} />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
         </div>
-      </div>
+      </Card>
 
       {/* Template Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {visibleTemplates.map((template) =>
-          visibleSkins.map((skin) => {
-            const key = `${template.key}:${skin.key}`;
-            const selected = picked?.templateKey === template.key && picked?.skinKey === skin.key;
-            const screens = buildScreens(template.key, skin.key);
-            const cardLabel = `${t(`templates.${template.key}`)} · ${t(`skins.${skin.key}`)}`;
-            const selectedKit =
-              selectedBrandKitId === DEFAULT_BRAND_KIT_ID
-                ? undefined
-                : brandKits.find((k) => k.id === selectedBrandKitId);
-            const previewBrand = { ...skin.brand, ...brandFromKit(selectedKit) };
+          visibleSkins
+            .filter((skin) => {
+              if (!normalizedSearch) return true;
+              const tplTitle = t(`templates.${template.key}`).toLowerCase();
+              const skinTitle = t(`skins.${skin.key}`).toLowerCase();
+              return tplTitle.includes(normalizedSearch) || skinTitle.includes(normalizedSearch);
+            })
+            .map((skin) => {
+              const key = `${template.key}:${skin.key}`;
+              const selected = picked?.templateKey === template.key && picked?.skinKey === skin.key;
+              const screens = buildScreens(template.key, skin.key);
+              const cardLabel = `${t(`templates.${template.key}`)} · ${t(`skins.${skin.key}`)}`;
+              const selectedKit =
+                selectedBrandKitId === DEFAULT_BRAND_KIT_ID
+                  ? undefined
+                  : brandKits.find((k) => k.id === selectedBrandKitId);
+              const previewBrand = { ...skin.brand, ...brandFromKit(selectedKit) };
 
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => pickCard(template.key, skin.key)}
-                aria-label={cardLabel}
-                aria-pressed={selected}
-                className={cx(
-                  'group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border bg-background-primary-default text-left shadow-card transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown',
-                  selected
-                    ? 'border-accent-500 ring-2 ring-accent-500/20'
-                    : 'border-border-button-default',
-                )}
-              >
-                {/* Preview Cover */}
-                <div className="relative h-64 w-full overflow-hidden border-b border-separator-border bg-background-secondary-default">
-                  <FitScreen screen={screens.cover} brand={previewBrand} prizes={previewPrizes} />
-                  <div className="pointer-events-none absolute top-3 left-3 flex flex-wrap gap-1.5">
-                    <Chip variant="subtle" color="neutral">
-                      {t(`occasions.${skin.occasion}`)}
-                    </Chip>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="flex w-full flex-1 flex-col justify-between gap-4 p-5">
-                  <div>
-                    <h4 className="m-0 text-body-semibold text-text-primary">
-                      {t(`templates.${template.key}`)}
-                    </h4>
-                    <div className="mt-1 flex items-center justify-between">
-                      <Caption>{t(`skins.${skin.key}`)}</Caption>
-                      <span className="text-caption-2-medium text-text-tertiary">
-                        {defaultPlaysPerDay} lượt/ngày
-                      </span>
+              return (
+                <Card
+                  key={key}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => pickCard(template.key, skin.key)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      pickCard(template.key, skin.key);
+                    }
+                  }}
+                  aria-label={cardLabel}
+                  aria-pressed={selected}
+                  className={cx(
+                    'group relative flex cursor-pointer flex-col overflow-hidden p-0 text-left transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown',
+                    selected
+                      ? 'border-accent-500 ring-2 ring-accent-500/20'
+                      : 'border-border-button-default',
+                  )}
+                >
+                  {/* Preview Cover */}
+                  <div className="relative h-64 w-full overflow-hidden border-b border-separator-border bg-background-secondary-default">
+                    <FitScreen screen={screens.cover} brand={previewBrand} prizes={previewPrizes} />
+                    <div className="pointer-events-none absolute top-3 left-3 flex flex-wrap gap-1.5">
+                      <Chip variant="soft" color="default">
+                        {t(`occasions.${skin.occasion}`)}
+                      </Chip>
                     </div>
                   </div>
 
-                  <span className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border-button-default bg-background-primary-default px-2 py-1.5 text-body-medium text-text-primary shadow-xs transition-colors group-hover:border-border-button-hover group-hover:bg-background-primary-hover">
-                    <Sparkles className="size-[18px] shrink-0" aria-hidden />
-                    <span>{t('useTemplate')}</span>
-                  </span>
-                </div>
-              </button>
-            );
-          }),
+                  {/* Card Body */}
+                  <Card.Content className="flex w-full flex-1 flex-col justify-between gap-4 p-5">
+                    <div>
+                      <Card.Title className="m-0 text-body-semibold text-text-primary">
+                        {t(`templates.${template.key}`)}
+                      </Card.Title>
+                      <div className="mt-1 flex items-center justify-between">
+                        <Caption>{t(`skins.${skin.key}`)}</Caption>
+                        <span className="text-caption-2-medium text-text-tertiary">
+                          {defaultPlaysPerDay} lượt/ngày
+                        </span>
+                      </div>
+                    </div>
+
+                    <Card.Footer className="p-0">
+                      <span className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border-button-default bg-background-primary-default px-2 py-1.5 text-body-medium text-text-primary shadow-xs transition-colors group-hover:border-border-button-hover group-hover:bg-background-primary-hover">
+                        <Sparkles className="size-[18px] shrink-0" aria-hidden />
+                        <span>{t('useTemplate')}</span>
+                      </span>
+                    </Card.Footer>
+                  </Card.Content>
+                </Card>
+              );
+            }),
         )}
       </div>
 
@@ -255,91 +278,114 @@ export function TemplateGallery({ orgId, onBack }: { orgId: string; onBack?: () 
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        size="md"
       >
-        <ModalHeader title={t('modalTitle')} description={t('modalSubtitle')} />
+        <Modal.Backdrop isDismissable>
+          <Modal.Container size="md">
+            <Modal.Dialog>
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading>{t('modalTitle')}</Modal.Heading>
+                <p className="mt-1 text-body-2-regular text-text-secondary">{t('modalSubtitle')}</p>
+              </Modal.Header>
 
-        {picked && (
-          <ModalBody className="space-y-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-3.5">
-              <div className="h-14 w-10 shrink-0 overflow-hidden rounded-xl border border-border-button-default">
-                <FitScreen
-                  screen={buildScreens(picked.templateKey, picked.skinKey).cover}
-                  brand={{
-                    ...getSkin(picked.skinKey).brand,
-                    ...brandFromKit(
-                      selectedBrandKitId === DEFAULT_BRAND_KIT_ID
-                        ? undefined
-                        : brandKits.find((k) => k.id === selectedBrandKitId),
-                    ),
-                  }}
-                  prizes={previewPrizes}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="m-0 truncate text-body-medium text-text-primary">
-                  {t(`templates.${picked.templateKey}`)}
-                </p>
-                <Caption>
-                  {t(`skins.${picked.skinKey}`)} ·{' '}
-                  {t(`occasions.${getSkin(picked.skinKey).occasion}`)}
-                </Caption>
-              </div>
-            </div>
+              {picked && (
+                <Modal.Body className="space-y-4">
+                  <div className="flex items-center gap-3 rounded-2xl border border-separator-border bg-background-secondary-default/50 p-3.5">
+                    <div className="h-14 w-10 shrink-0 overflow-hidden rounded-xl border border-border-button-default">
+                      <FitScreen
+                        screen={buildScreens(picked.templateKey, picked.skinKey).cover}
+                        brand={{
+                          ...getSkin(picked.skinKey).brand,
+                          ...brandFromKit(
+                            selectedBrandKitId === DEFAULT_BRAND_KIT_ID
+                              ? undefined
+                              : brandKits.find((k) => k.id === selectedBrandKitId),
+                          ),
+                        }}
+                        prizes={previewPrizes}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="m-0 truncate text-body-medium text-text-primary">
+                        {t(`templates.${picked.templateKey}`)}
+                      </p>
+                      <Caption>
+                        {t(`skins.${picked.skinKey}`)} ·{' '}
+                        {t(`occasions.${getSkin(picked.skinKey).occasion}`)}
+                      </Caption>
+                    </div>
+                  </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="campaign-name-input">{t('nameLabel')}</Label>
-              <InputBase
-                id="campaign-name-input"
-                aria-label={t('nameLabel')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('namePlaceholder')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !create.isPending) {
-                    handleCreate();
-                  }
-                }}
-              />
-            </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="campaign-name-input">{t('nameLabel')}</Label>
+                    <Input
+                      id="campaign-name-input"
+                      aria-label={t('nameLabel')}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={t('namePlaceholder')}
+                      fullWidth
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !create.isPending) {
+                          handleCreate();
+                        }
+                      }}
+                    />
+                  </div>
 
-            {brandKits.length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t('brandKitLabel')}</Label>
-                <Select
-                  aria-label={t('brandKitLabel')}
-                  selectedKey={selectedBrandKitId}
-                  onSelectionChange={(key) => {
-                    if (key) setSelectedBrandKitId(String(key));
-                  }}
+                  {brandKits.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <Label>{t('brandKitLabel')}</Label>
+                      <Select
+                        aria-label={t('brandKitLabel')}
+                        selectedKey={selectedBrandKitId}
+                        onSelectionChange={(key) => {
+                          if (key) setSelectedBrandKitId(String(key));
+                        }}
+                      >
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            <ListBox.Item
+                              id={DEFAULT_BRAND_KIT_ID}
+                              textValue={t('defaultBrandKit')}
+                            >
+                              {t('defaultBrandKit')}
+                            </ListBox.Item>
+                            {brandKits.map((kit) => (
+                              <ListBox.Item key={kit.id} id={kit.id} textValue={kit.name}>
+                                {kit.name}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+                    </div>
+                  )}
+                </Modal.Body>
+              )}
+
+              <Modal.Footer>
+                <Button type="button" variant="secondary" size="sm" onClick={closeModal}>
+                  Huỷ
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  isDisabled={!picked || create.isPending}
+                  onClick={handleCreate}
                 >
-                  <SelectItem id={DEFAULT_BRAND_KIT_ID}>{t('defaultBrandKit')}</SelectItem>
-                  {brandKits.map((kit) => (
-                    <SelectItem key={kit.id} id={kit.id}>
-                      {kit.name}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </div>
-            )}
-          </ModalBody>
-        )}
-
-        <ModalFooter>
-          <Button type="button" variant="secondary" size="small" onClick={closeModal}>
-            Huỷ
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="small"
-            leadingIcon={Plus}
-            disabled={!picked || create.isPending}
-            onClick={handleCreate}
-          >
-            {t('createButton')}
-          </Button>
-        </ModalFooter>
+                  <Plus className="size-4" />
+                  {t('createButton')}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );

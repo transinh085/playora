@@ -1,7 +1,7 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import { toast } from '@playora/ui/components';
 import { applyApiError, type FormErrorTarget } from '@playora/ui/form';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';

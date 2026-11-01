@@ -1,4 +1,4 @@
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@playora/ui/components';
 import type { Metadata } from 'next';
 import { Logo, LogoMark } from '@/components/logo';
 import { FoundationsShowcase } from './_components/foundations-showcase';
@@ -29,7 +29,7 @@ function Section({
     <section id={id} className="grid scroll-mt-20 gap-6 border-t border-border/80 py-12">
       <header className="grid max-w-3xl gap-2">
         <div>
-          <Chip variant="caption" color="neutral" className="font-mono text-[11px]">
+          <Chip variant="soft" size="sm" color="default" className="font-mono text-[11px]">
             {badge}
           </Chip>
         </div>
@@ -59,7 +59,7 @@ export default function DesignSystemPage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <Logo className="text-xl" />
-            <Chip variant="caption" color="neutral" className="font-mono text-xs">
+            <Chip variant="soft" size="sm" color="default" className="font-mono text-xs">
               v3.1 · HeroUI v3 · ADR-018
             </Chip>
           </div>
@@ -82,13 +82,13 @@ export default function DesignSystemPage() {
         {/* Hero Overview */}
         <header className="grid gap-6 pb-12">
           <div className="flex flex-wrap items-center gap-2">
-            <Chip variant="caption" color="blue">
+            <Chip variant="soft" size="sm" color="accent">
               PRD v4.3 Aligned
             </Chip>
-            <Chip variant="caption" color="neutral">
-              React Aria + Tailwind CSS v4
+            <Chip variant="soft" size="sm" color="default">
+              HeroUI v3 + React Aria + Tailwind CSS v4
             </Chip>
-            <Chip variant="caption" color="neutral">
+            <Chip variant="soft" size="sm" color="default">
               OKLCH Perceptual Tokens
             </Chip>
           </div>
@@ -96,10 +96,10 @@ export default function DesignSystemPage() {
             Studio yên tĩnh cho chủ quán. Game rực rỡ cho khách chơi. Quầy đổi quà 3 giây.
           </h1>
           <p className="max-w-3xl text-base text-muted-foreground sm:text-lg">
-            Hệ thống thiết kế Playora v2.0 dựng trên <strong>shadcn/ui (style luma)</strong>, kết
-            hợp triết lý bàn làm việc SaaS/AI hiện đại (Vercel Geist/v0, Dub.co, Cal.com, Midday)
-            với bộ máy skin 3 tầng cho minigame có thưởng tại quán trà sữa, cà phê và chuỗi F&amp;B.
-            Đặc tả kỹ thuật đầy đủ tại{' '}
+            Hệ thống thiết kế Playora dựng trên{' '}
+            <strong>HeroUI v3 (@heroui/react + @heroui/styles)</strong>, kết hợp React Aria
+            Components và Tailwind CSS v4 với bộ máy skin 3 tầng cho minigame có thưởng tại quán trà
+            sữa, cà phê và chuỗi F&amp;B. Đặc tả kỹ thuật đầy đủ tại{' '}
             <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-sm">
               docs/engineering/design-system.md
             </code>
@@ -112,7 +112,7 @@ export default function DesignSystemPage() {
               {
                 surface: '1. Studio (Desktop-first)',
                 persona: 'Chị Hà (Chủ quán) · Chị Thảo (Quản lý)',
-                desc: 'Nền ink-50 yên tĩnh, thẻ bo 16px (rounded-2xl), mọi control Button/Input/Select đồng bộ bo 12px (rounded-xl).',
+                desc: 'Nền sáng yên tĩnh, thẻ surface bo 24px (rounded-3xl), mọi control HeroUI v3 đồng bộ token --accent Teal.',
               },
               {
                 surface: '2. Builder 3 Chế độ',
@@ -145,17 +145,17 @@ export default function DesignSystemPage() {
         <Section
           id="foundations"
           badge="Foundations · Tokens & Accessibility"
-          title="Nền tảng: Màu sắc OKLCH, Chữ tiếng Việt & Hình khối Luma"
-          lead="Ba tầng token: Primitive (--teal-*, --ink-*, --spotlight-*) → Studio Semantic (--background, --primary, --success…) → Game Surface (--game-*). Mọi cặp màu ngữ nghĩa được đo độ tương phản WCAG 2.1 trực tiếp trên trang."
+          title="Nền tảng: Màu sắc OKLCH, Chữ tiếng Việt & Hình khối HeroUI v3"
+          lead="Ba tầng token: Primitive (--teal-*, --ink-*, --spotlight-*) → HeroUI v3 Semantic (--background, --surface, --overlay, --accent, --success…) → Game Surface (--game-*). Mọi cặp màu ngữ nghĩa được đo độ tương phản WCAG 2.1 trực tiếp trên trang."
         >
           <FoundationsShowcase />
         </Section>
 
         <Section
           id="studio"
-          badge="Components · @playora/ui/components"
-          title="Thành phần Studio & Ma trận Trạng thái (shadcn/ui Luma)"
-          lead="Toàn bộ primitive dùng Radix UI + Tailwind v4 với hệ bo góc đồng tâm (Concentric Radius): mọi control (Button, Input, Select, Textarea, TabsList) thống nhất bo 12px (rounded-xl), item con bên trong bo 8px (rounded-lg), thẻ và hộp thoại bo 16px (rounded-2xl)."
+          badge="Components · @heroui/react"
+          title="Thành phần Studio (HeroUI v3 Compound Components)"
+          lead="Toàn bộ component từ @heroui/react + @heroui/styles trên nền React Aria Components và Tailwind CSS v4: Button, Card, Chip, Input, TextField, Select, Tabs, Modal, Drawer, Dropdown, Popover, Switch, Slider, ProgressBar, Toast."
         >
           <StudioPreview />
         </Section>
@@ -164,7 +164,7 @@ export default function DesignSystemPage() {
           id="recipes"
           badge="Domain Recipes · PRD v4.3"
           title="Mẫu nghiệp vụ chuẩn theo PRD v4.3 & Quy tắc Do / Don't"
-          lead="4 bản mẫu lắp ghép trực tiếp từ bộ component của hệ thống: Luồng Playbook & Ngân sách (PLB-01/02), Màn Vận hành & Báo cáo Kết quả (PLB-03), Quầy đổi quà trên điện thoại (PRZ-10/18), và 4 cặp quy tắc bắt buộc."
+          lead="4 bản mẫu lắp ghép trực tiếp từ bộ component HeroUI v3: Luồng Playbook & Ngân sách (PLB-01/02), Màn Vận hành & Báo cáo Kết quả (PLB-03), Quầy đổi quà trên điện thoại (PRZ-10/18), và 4 cặp quy tắc bắt buộc."
         >
           <PrdRecipes />
         </Section>

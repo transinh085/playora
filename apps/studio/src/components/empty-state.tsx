@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card } from '@playora/ui/components';
 import type { LucideIcon } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
@@ -19,8 +19,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Consistent, delightful empty state following the Playora / BoardUI aesthetic.
- * Clean neutral surface, muted icon tile, clear typography, and a prominent call-to-action.
+ * Consistent, delightful empty state built on HeroUI v3 Card & Button.
  */
 export function EmptyState({
   icon: Icon,
@@ -36,22 +35,18 @@ export function EmptyState({
     actionText &&
     (actionHref ? (
       <Link href={actionHref as Route}>
-        <Button tabIndex={-1}>{actionText}</Button>
+        <Button excludeFromTabOrder>{actionText}</Button>
       </Link>
     ) : onAction ? (
-      <Button onClick={onAction}>{actionText}</Button>
+      <Button onPress={onAction}>{actionText}</Button>
     ) : null);
 
   return (
-    <div
-      className={cx(
-        'rounded-3xl px-4 py-16 text-center',
-        bordered
-          ? 'border border-border-button-default bg-background-primary-default shadow-card'
-          : 'border-0 bg-transparent shadow-none',
-      )}
+    <Card
+      variant={bordered ? 'default' : 'transparent'}
+      className={cx('px-4 py-16 text-center', !bordered && 'border-0 shadow-none')}
     >
-      <div className="mx-auto flex max-w-md flex-col items-center justify-center">
+      <Card.Content className="mx-auto flex max-w-md flex-col items-center justify-center">
         <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary shadow-xs">
           <Icon className="size-5 stroke-[1.75]" />
         </div>
@@ -63,7 +58,7 @@ export function EmptyState({
             {extra}
           </div>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

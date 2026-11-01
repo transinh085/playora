@@ -1,8 +1,7 @@
 'use client';
 
 import type { OrgBilling } from '@playora/contracts';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { AlertCircle, AlertTriangle } from '@playora/ui/icons';
+import { Alert, Button } from '@playora/ui/components';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useOrgBillingIfAllowed } from '../api';
@@ -37,7 +36,7 @@ export function RedemptionUsageAlert({
 
   const action = withLink ? (
     <Link href={billingPath(orgId)}>
-      <Button variant="secondary" size="small" tabIndex={-1} className="shrink-0">
+      <Button variant="secondary" size="sm" excludeFromTabOrder className="shrink-0">
         {t('viewPlan')}
       </Button>
     </Link>
@@ -45,45 +44,33 @@ export function RedemptionUsageAlert({
 
   if (level === 'blocked') {
     return (
-      <div
-        role="alert"
-        className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-background-notification-error-secondary p-4 text-text-error-primary"
-        data-testid="redemption-usage-banner"
-      >
-        <AlertCircle className="mt-0.5 size-4 shrink-0" />
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold">{t('redemptionsBlocked')}</p>
-            <p className="text-xs opacity-90">{t('redemptionsBlockedBody')}</p>
-          </div>
-          {action}
-        </div>
-      </div>
+      <Alert status="danger" data-testid="redemption-usage-banner">
+        <Alert.Indicator />
+        <Alert.Content>
+          <Alert.Title>{t('redemptionsBlocked')}</Alert.Title>
+          <Alert.Description>{t('redemptionsBlockedBody')}</Alert.Description>
+        </Alert.Content>
+        {action}
+      </Alert>
     );
   }
 
   return (
-    <div
-      role="alert"
-      className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
-      data-testid="redemption-usage-banner"
-    >
-      <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-      <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold">
-            {level === 'limit'
-              ? t('redemptionsLimit', { limit })
-              : t('redemptionsWarning', { percent: usagePercent(used, limit), used, limit })}
-          </p>
-          <p className="text-xs text-amber-800/90 dark:text-amber-300/80">
-            {level === 'limit'
-              ? t('redemptionsLimitBody', { left: redemptionsLeft(used, hardLimit) })
-              : t('redemptionsWarningBody', { limit, hardLimit })}
-          </p>
-        </div>
-        {action}
-      </div>
-    </div>
+    <Alert status="warning" data-testid="redemption-usage-banner">
+      <Alert.Indicator />
+      <Alert.Content>
+        <Alert.Title>
+          {level === 'limit'
+            ? t('redemptionsLimit', { limit })
+            : t('redemptionsWarning', { percent: usagePercent(used, limit), used, limit })}
+        </Alert.Title>
+        <Alert.Description>
+          {level === 'limit'
+            ? t('redemptionsLimitBody', { left: redemptionsLeft(used, hardLimit) })
+            : t('redemptionsWarningBody', { limit, hardLimit })}
+        </Alert.Description>
+      </Alert.Content>
+      {action}
+    </Alert>
   );
 }

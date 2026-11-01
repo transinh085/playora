@@ -2,10 +2,18 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type MyOrg, Slug } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Input } from '@playora/ui/components/base/input/input';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Description,
+  FieldError,
+  Input,
+  Label,
+  TextField,
+  toast,
+} from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiArrowLeftLine,
@@ -148,25 +156,20 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
               {session.user.email}
             </span>
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            size="small"
-            leadingIcon={RiLogoutBoxRLine}
-            onClick={handleSignOut}
-          >
+          <Button type="button" variant="ghost" size="sm" onPress={handleSignOut}>
+            <RiLogoutBoxRLine className="size-4" />
             {tAuth('signOut')}
           </Button>
         </div>
       </header>
 
       {/* Center 2-Column Split Onboarding Card */}
-      <div className="mx-auto my-auto grid w-full max-w-[1020px] overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card lg:grid-cols-12">
+      <Card className="mx-auto my-auto grid w-full max-w-[1020px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card lg:grid-cols-12">
         {/* Left Column: Store Setup Form */}
         <div className="flex flex-col justify-between p-6 sm:p-10 lg:col-span-7">
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <Chip variant="caption" color="cyan" className="gap-1">
+              <Chip variant="soft" size="sm" color="accent" className="gap-1">
                 <RiSparklingFill className="size-3.5" aria-hidden />
                 <span>{t('stepBadge')}</span>
               </Chip>
@@ -184,10 +187,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
                 control={form.control}
                 name="name"
                 render={({ field, fieldState }) => (
-                  <Input
-                    label={t('orgName')}
-                    placeholder={t('orgNamePlaceholder')}
-                    leadingIcon={RiStore2Line}
+                  <TextField
                     value={field.value}
                     onChange={(val) => {
                       field.onChange(val);
@@ -195,8 +195,19 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
                       form.setValue('slug', slug, { shouldValidate: true });
                     }}
                     isInvalid={!!fieldState.error}
-                    hint={fieldState.error?.message ?? t('orgNameHint')}
-                  />
+                    fullWidth
+                  >
+                    <Label className="inline-flex items-center gap-1.5">
+                      <RiStore2Line className="size-3.5 text-text-tertiary" />
+                      {t('orgName')}
+                    </Label>
+                    <Input placeholder={t('orgNamePlaceholder')} />
+                    {fieldState.error?.message ? (
+                      <FieldError>{fieldState.error.message}</FieldError>
+                    ) : (
+                      <Description>{t('orgNameHint')}</Description>
+                    )}
+                  </TextField>
                 )}
               />
 
@@ -204,15 +215,23 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
                 control={form.control}
                 name="slug"
                 render={({ field, fieldState }) => (
-                  <Input
-                    label={t('orgSlug')}
-                    leadingIcon={RiLinksLine}
+                  <TextField
                     value={field.value}
                     onChange={field.onChange}
                     isInvalid={!!fieldState.error}
-                    hint={fieldState.error?.message ?? t('orgSlugHint')}
-                    inputClassName="font-mono"
-                  />
+                    fullWidth
+                  >
+                    <Label className="inline-flex items-center gap-1.5">
+                      <RiLinksLine className="size-3.5 text-text-tertiary" />
+                      {t('orgSlug')}
+                    </Label>
+                    <Input className="font-mono" />
+                    {fieldState.error?.message ? (
+                      <FieldError>{fieldState.error.message}</FieldError>
+                    ) : (
+                      <Description>{t('orgSlugHint')}</Description>
+                    )}
+                  </TextField>
                 )}
               />
 
@@ -258,13 +277,9 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
               </div>
 
               <div className="pt-3">
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto"
-                  trailingIcon={RiArrowRightLine}
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" className="w-full sm:w-auto" isDisabled={isSubmitting}>
                   {t('submit')}
+                  <RiArrowRightLine className="size-4" />
                 </Button>
               </div>
             </form>
@@ -286,15 +301,17 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
             </div>
 
             {/* Storefront Game Card Simulation */}
-            <div className="overflow-hidden rounded-2xl border border-border-button-default bg-background-primary-default shadow-card">
+            <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
               {/* Dynamic Brand Header Banner */}
               <div
                 className="flex items-center gap-3 p-4 text-white transition-colors duration-300"
                 style={{ backgroundColor: selectedPreset.hex }}
               >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20 font-display text-body-semibold font-bold text-white backdrop-blur-xs">
-                  {displayInitial}
-                </div>
+                <Avatar size="md" className="rounded-xl bg-white/20 text-white backdrop-blur-xs">
+                  <Avatar.Fallback className="bg-transparent font-display text-body-semibold font-bold text-white">
+                    {displayInitial}
+                  </Avatar.Fallback>
+                </Avatar>
                 <div className="min-w-0 flex-1">
                   <p className="m-0 truncate text-caption-1-medium text-white/85">
                     {displayShopName}
@@ -306,7 +323,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
               </div>
 
               {/* Sample Prize & Counter Voucher Preview */}
-              <div className="flex flex-col gap-3 p-4">
+              <Card.Content className="flex flex-col gap-3 p-4">
                 <div className="flex items-center gap-3 rounded-xl bg-background-secondary-default p-3">
                   <div
                     className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white"
@@ -332,32 +349,36 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
                 >
                   {t('preview.samplePlayCta')}
                 </div>
-              </div>
-            </div>
+              </Card.Content>
+            </Card>
           </div>
 
           {/* Starter Plan Perks Box */}
-          <div className="mt-6 rounded-2xl border border-border-button-default bg-background-primary-default p-4">
-            <p className="m-0 text-caption-1-semibold text-text-primary">
-              {t('preview.planTitle')}
-            </p>
-            <ul className="mt-2.5 mb-0 flex list-none flex-col gap-2 p-0">
-              <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
-                <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                <span>{t('preview.planPerk1')}</span>
-              </li>
-              <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
-                <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                <span>{t('preview.planPerk2')}</span>
-              </li>
-              <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
-                <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                <span>{t('preview.planPerk3')}</span>
-              </li>
-            </ul>
-          </div>
+          <Card className="mt-6 border border-border-button-default bg-background-primary-default p-4">
+            <Card.Header className="p-0">
+              <Card.Title className="m-0 text-caption-1-semibold text-text-primary">
+                {t('preview.planTitle')}
+              </Card.Title>
+            </Card.Header>
+            <Card.Content className="p-0">
+              <ul className="mt-2.5 mb-0 flex list-none flex-col gap-2 p-0">
+                <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
+                  <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>{t('preview.planPerk1')}</span>
+                </li>
+                <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
+                  <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>{t('preview.planPerk2')}</span>
+                </li>
+                <li className="flex items-start gap-2 text-caption-1-regular text-text-secondary">
+                  <RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>{t('preview.planPerk3')}</span>
+                </li>
+              </ul>
+            </Card.Content>
+          </Card>
         </div>
-      </div>
+      </Card>
 
       {/* Bottom spacer for balanced vertical centering */}
       <div className="h-2" />

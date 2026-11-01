@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button } from '@playora/ui/components';
 import { ArrowLeft } from '@playora/ui/icons';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';

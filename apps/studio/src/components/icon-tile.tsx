@@ -13,7 +13,7 @@ const TONE_CLASSES: Record<Tone, string> = {
   info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
 };
 
-/** Tinted icon tile: pale tone background, tone-coloured icon (BoardUI soft rounded geometry). */
+/** Tinted icon tile: pale tone background, tone-coloured icon (HeroUI v3 soft rounded geometry). */
 export function IconTile({
   tone = 'primary',
   size = 44,

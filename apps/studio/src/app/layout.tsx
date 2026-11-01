@@ -1,4 +1,4 @@
-import { Toaster } from '@playora/ui/components/base/toast/toast';
+import { Toaster } from '@playora/ui/components';
 import type { Metadata } from 'next';
 import { Google_Sans, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-dvh font-sans antialiased bg-background-full text-text-primary selection:bg-accent-500/20 selection:text-accent-700">
         <NextIntlClientProvider>
           <Providers>{children}</Providers>
-          <Toaster position="top-right" />
+          <Toaster placement="bottom end" />
         </NextIntlClientProvider>
       </body>
     </html>

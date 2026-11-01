@@ -1,7 +1,7 @@
 'use client';
 
 import type { PublicCampaign } from '@playora/contracts';
-import { ButtonLink } from '@playora/ui/components/base/buttons/button';
+import { buttonVariants } from '@playora/ui/components';
 import { AlertCircle, Clock, PauseCircle } from '@playora/ui/icons';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -70,12 +70,15 @@ export function CampaignNotice({
             )}
           </div>
           {phase !== 'scheduled' && (
-            <ButtonLink
+            <a
               href={`/${campaign.slug}/prizes`}
-              className="mt-4 rounded-full px-6 shadow-sm"
+              className={buttonVariants({
+                variant: 'primary',
+                className: 'mt-4 rounded-full px-6 shadow-sm',
+              })}
             >
               {t('myPrizes')}
-            </ButtonLink>
+            </a>
           )}
         </div>
       </div>

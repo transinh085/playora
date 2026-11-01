@@ -11,11 +11,7 @@ import {
   type PlayerFormValues,
   type PlayerVoucher,
 } from '@playora/ui/campaign';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
-import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
+import { Button, Card, Chip, PhoneMockup, Tooltip, toast } from '@playora/ui/components';
 import { ArrowLeft, ExternalLink, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -67,28 +63,38 @@ export function LabPlayer({
     );
   } else if (campaign.isError || !campaign.data) {
     content = (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <h3 className="text-lg font-bold">{t('errors.notFoundTitle')}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{t('errors.notFoundBody')}</p>
-        <Link href={routes.list} className="mt-4">
-          <Button>{t('errors.backToCampaigns')}</Button>
-        </Link>
-      </div>
+      <Card className="flex max-w-md flex-col items-center justify-center p-8 text-center">
+        <Card.Header className="items-center p-0">
+          <Card.Title className="m-0 text-lg font-bold">{t('errors.notFoundTitle')}</Card.Title>
+          <Card.Description className="mt-1 text-sm text-muted-foreground">
+            {t('errors.notFoundBody')}
+          </Card.Description>
+        </Card.Header>
+        <Card.Footer className="mt-4 justify-center p-0">
+          <Link href={routes.list}>
+            <Button>{t('errors.backToCampaigns')}</Button>
+          </Link>
+        </Card.Footer>
+      </Card>
     );
   } else if (!rehearsal && campaign.data.status !== 'published') {
     content = (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <h3 className="text-lg font-bold">{t('errors.notPublishedTitle')}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{t('errors.notPublishedBody')}</p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <Card className="flex max-w-md flex-col items-center justify-center p-8 text-center">
+        <Card.Header className="items-center p-0">
+          <Card.Title className="m-0 text-lg font-bold">{t('errors.notPublishedTitle')}</Card.Title>
+          <Card.Description className="mt-1 text-sm text-muted-foreground">
+            {t('errors.notPublishedBody')}
+          </Card.Description>
+        </Card.Header>
+        <Card.Footer className="mt-4 flex flex-wrap justify-center gap-2 p-0">
           <Link href={routes.rehearsal(campaignId)}>
             <Button>{t('errors.openRehearsal')}</Button>
           </Link>
           <Link href={routes.edit(campaignId)}>
             <Button variant="secondary">{t('backToEditor')}</Button>
           </Link>
-        </div>
-      </div>
+        </Card.Footer>
+      </Card>
     );
   }
 
@@ -282,25 +288,27 @@ function PlayerSession({
   return (
     <>
       <div className="flex items-center gap-2 border-b bg-card px-4 py-2.5 max-[479px]:hidden">
-        <TooltipTrigger>
-          <Link
-            href={routes.edit(campaign.id)}
-            aria-label={t('backToEditor')}
-            className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-          <Tooltip>{t('backToEditor')}</Tooltip>
-        </TooltipTrigger>
+        <Tooltip delay={150}>
+          <Tooltip.Trigger>
+            <Link
+              href={routes.edit(campaign.id)}
+              aria-label={t('backToEditor')}
+              className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
+            >
+              <ArrowLeft className="size-4" />
+            </Link>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('backToEditor')}</Tooltip.Content>
+        </Tooltip>
 
         <span className="min-w-0 truncate text-sm font-semibold">{campaign.name}</span>
 
         {rehearsal ? (
-          <Chip variant="caption" color="yellow">
+          <Chip variant="soft" color="warning" size="sm">
             {t('rehearsal')}
           </Chip>
         ) : (
-          <Chip variant="caption" color="lime">
+          <Chip variant="soft" color="success" size="sm">
             {t('live')}
           </Chip>
         )}
@@ -315,7 +323,7 @@ function PlayerSession({
 
         <Button
           variant="secondary"
-          size="small"
+          size="sm"
           className="gap-1.5"
           onClick={() => player.current?.openVouchers()}
         >
@@ -324,20 +332,20 @@ function PlayerSession({
         </Button>
         <Button
           variant="secondary"
-          size="small"
+          size="sm"
           className="gap-1.5"
           onClick={() => player.current?.restart()}
         >
           <RotateCcw className="size-3.5" />
           {t('restart')}
         </Button>
-        <Button variant="secondary" size="small" className="gap-1.5" onClick={newPlayer}>
+        <Button variant="secondary" size="sm" className="gap-1.5" onClick={newPlayer}>
           <UserPlus className="size-3.5" />
           {t('newPlayer')}
         </Button>
         {campaign.status === 'published' && (
           <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
-            <Button size="small" className="gap-1.5">
+            <Button size="sm" className="gap-1.5">
               <ExternalLink className="size-3.5" />
               {t('live')}
             </Button>
@@ -367,8 +375,9 @@ function PlayerSession({
 
           {rehearsal && (
             <Chip
-              variant="caption"
-              color="yellow"
+              variant="soft"
+              color="warning"
+              size="sm"
               className="absolute left-2 top-2 z-10 min-[480px]:hidden"
             >
               {t('rehearsal')}

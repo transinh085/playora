@@ -1,10 +1,11 @@
 'use client';
 
+import { Card, Separator } from '@playora/ui/components';
 import type React from 'react';
 
 /**
- * Bordered card that holds a list page's table flush to its edges, with an optional toolbar
- * (search, filters, bulk actions) above it. BoardUI rounded container.
+ * Bordered HeroUI Card that holds a list page's table flush to its edges, with an optional toolbar
+ * (search, filters, bulk actions) above it.
  */
 export function TableCard({
   toolbar,
@@ -16,14 +17,15 @@ export function TableCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+    <Card className="overflow-hidden p-0">
       {header}
       {toolbar && (
-        <div className="flex min-h-[48px] items-center justify-between bg-background-primary-default p-3">
-          {toolbar}
-        </div>
+        <>
+          <div className="flex min-h-[48px] items-center justify-between p-3">{toolbar}</div>
+          <Separator />
+        </>
       )}
       {children}
-    </div>
+    </Card>
   );
 }

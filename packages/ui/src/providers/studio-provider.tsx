@@ -1,7 +1,7 @@
 'use client';
 
-import { DirectionProvider } from '@playora/ui/components/foundations/direction/direction';
 import type { ReactNode } from 'react';
+import { DirectionProvider } from '../components/foundations/direction/direction';
 
 export type StudioThemeMode = 'light' | 'dark';
 

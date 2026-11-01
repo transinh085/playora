@@ -1,9 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Button, Card, Chip, ProgressBar, Skeleton } from '@playora/ui/components';
 import {
   Coins,
   Lightbulb,
@@ -14,7 +11,6 @@ import {
   TicketCheck,
   Wallet,
 } from '@playora/ui/icons';
-import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
 import { useFormatter, useLocale, useNow, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -119,13 +115,13 @@ export function PlaybookGoalBanner({
       : null;
 
   return (
-    <div
+    <Card
       className="rounded-3xl border border-teal-500/25 bg-teal-50/50 p-5 shadow-card dark:border-teal-500/30 dark:bg-teal-950/20"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
     >
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <Card.Content className="flex flex-wrap items-center justify-between gap-4 p-0">
         <div className="flex items-center gap-3.5">
           <IconTile tone="primary" size={40}>
             <Target className="size-5" />
@@ -133,7 +129,7 @@ export function PlaybookGoalBanner({
           <div className="min-w-0 space-y-0.5">
             <div className="flex items-center gap-2">
               <Caption>{tr('goalLabel')}</Caption>
-              <Chip variant="subtle" color="neutral">
+              <Chip variant="soft" color="default">
                 {title}
               </Chip>
             </div>
@@ -152,8 +148,8 @@ export function PlaybookGoalBanner({
             </span>
           </div>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -284,16 +280,16 @@ export function DailyOutcomeCard({
   const locale = useLocale();
 
   return (
-    <div
+    <Card
       className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="daily-chart-card"
       data-print-card
     >
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
         {extra}
-      </div>
-      <div className="p-5">
+      </Card.Header>
+      <Card.Content className="p-5">
         {loading ? (
           <Skeleton className="h-64 w-full" />
         ) : (
@@ -309,13 +305,13 @@ export function DailyOutcomeCard({
             }}
           />
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
 
 /**
- * Channel performance breakdown — rendered as a visual BoardUI card-list with progress bars
+ * Channel performance breakdown — rendered as a visual HeroUI v3 card-list with progress bars
  * instead of a dense HTML table.
  */
 export function ChannelsTableCard({
@@ -331,15 +327,15 @@ export function ChannelsTableCard({
   const maxPlays = Math.max(1, ...rows.map((r) => r.plays));
 
   return (
-    <div
+    <Card
       className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="channel-table"
       data-print-card
     >
-      <div className="border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
-      </div>
-      <div className="p-0">
+      <Card.Header className="border-b border-separator-border px-5 py-3.5">
+        <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
+      </Card.Header>
+      <Card.Content className="p-0">
         {loading ? (
           <div className="space-y-2 p-5">
             <Skeleton className="h-10 w-full rounded-xl" />
@@ -362,7 +358,7 @@ export function ChannelsTableCard({
                     <div className="flex items-center gap-2">
                       <span className="text-body-2-semibold text-text-primary">{label}</span>
                       {row.channel?.trim() && (
-                        <Chip variant="caption" color="neutral" className="font-mono">
+                        <Chip variant="soft" color="default" size="sm" className="font-mono">
                           ?ch={row.channel}
                         </Chip>
                       )}
@@ -375,14 +371,18 @@ export function ChannelsTableCard({
                         {format.number(row.visits)}
                       </span>
                       {row.wins > 0 && (
-                        <Chip variant="subtle" color="lime">
+                        <Chip variant="soft" color="success">
                           {conversionRate}%
                         </Chip>
                       )}
                     </div>
                   </div>
 
-                  <ProgressBar value={sharePercent} size="sm" aria-label={label} />
+                  <ProgressBar value={sharePercent} size="sm" aria-label={label}>
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
 
                   <div className="flex flex-wrap items-center justify-between gap-3 text-caption-1-regular text-text-secondary">
                     <span>
@@ -403,13 +403,13 @@ export function ChannelsTableCard({
             })}
           </ul>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
 
 /**
- * Prize stock & redemption outcome card — rendered as a visual BoardUI card-list with progress bars
+ * Prize stock & redemption outcome card — rendered as a visual HeroUI card-list with progress bars
  * instead of a wide multi-column HTML table.
  */
 export function PrizesOutcomeCard({
@@ -446,22 +446,23 @@ export function PrizesOutcomeCard({
         }));
 
   return (
-    <div
+    <Card
       className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="prize-stock"
       data-print-card
     >
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">{tr('title')}</h3>
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
         {showEditLink && (
           <Link href={campaignRoutes(orgId).edit(campaign.id, 'rules')} data-print-hide>
-            <Button variant="secondary" size="small" leadingIcon={Pencil} tabIndex={-1}>
+            <Button variant="secondary" size="sm" excludeFromTabOrder>
+              <Pencil className="size-4" />
               {t('stock.edit')}
             </Button>
           </Link>
         )}
-      </div>
-      <div className="p-0">
+      </Card.Header>
+      <Card.Content className="p-0">
         {loading ? (
           <div className="space-y-2 p-5">
             <Skeleton className="h-10 w-full rounded-xl" />
@@ -502,8 +503,12 @@ export function PrizesOutcomeCard({
                     value={percent}
                     aria-label={row.name}
                     size="sm"
-                    className={cx('h-1.5', percent < 20 && '[&>div]:bg-rose-500')}
-                  />
+                    color={percent < 20 ? 'danger' : 'accent'}
+                  >
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 text-caption-1-regular text-text-secondary">
                     <span>
@@ -523,8 +528,8 @@ export function PrizesOutcomeCard({
             })}
           </ul>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -556,12 +561,14 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
-        <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
-        <Link href={routes.list}>
-          <Button size="small">{t('backToList')}</Button>
-        </Link>
-      </div>
+      <Card className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
+        <Card.Content className="p-0">
+          <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
+          <Link href={routes.list}>
+            <Button size="sm">{t('backToList')}</Button>
+          </Link>
+        </Card.Content>
+      </Card>
     );
   }
   if (reportQuery.isError || !reportQuery.data) {
@@ -586,7 +593,8 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
           backHref={routes.detail(campaign.id)}
           backLabel={tr('backToCampaign')}
           extra={
-            <Button size="small" leadingIcon={Printer} onClick={() => window.print()}>
+            <Button size="sm" onClick={() => window.print()}>
+              <Printer className="size-4" />
               {tr('printPdf')}
             </Button>
           }
@@ -597,15 +605,17 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
 
       <OutcomeMetricGrid campaign={campaign} report={report} />
 
-      <div
+      <Card
         className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
         data-testid="report-insights"
         data-print-card
       >
-        <div className="border-b border-separator-border px-5 py-3.5">
-          <h3 className="m-0 text-body-medium text-text-primary">{tr('insights.title')}</h3>
-        </div>
-        <div className="space-y-3 p-5">
+        <Card.Header className="border-b border-separator-border px-5 py-3.5">
+          <Card.Title className="m-0 text-body-medium text-text-primary">
+            {tr('insights.title')}
+          </Card.Title>
+        </Card.Header>
+        <Card.Content className="space-y-3 p-5">
           {insights.map((insight) => (
             <div
               key={insight.key}
@@ -617,8 +627,8 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
               <span>{tr(`insights.${insight.key}`, insight.values)}</span>
             </div>
           ))}
-        </div>
-      </div>
+        </Card.Content>
+      </Card>
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <DailyOutcomeCard report={report} />

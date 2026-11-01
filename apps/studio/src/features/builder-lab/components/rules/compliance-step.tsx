@@ -1,9 +1,7 @@
 'use client';
 
 import { generateTerms } from '@playora/core/compliance';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { TextareaBase } from '@playora/ui/components/base/textarea/textarea';
+import { Button, Card, Chip, TextArea } from '@playora/ui/components';
 import { FileText, RotateCcw, ShoppingBag, Sparkles } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -46,8 +44,7 @@ export function ComplianceStep({
         <span className="font-semibold text-sm">{t('question')}</span>
         <div role="radiogroup" aria-label={t('question')} className="grid gap-3 sm:grid-cols-2">
           {/* purchase_linked */}
-          {/* biome-ignore lint/a11y/useSemanticElements: radio container card */}
-          <div
+          <Card
             role="radio"
             aria-checked={compliance.promotionType === 'purchase_linked'}
             tabIndex={0}
@@ -58,13 +55,13 @@ export function ComplianceStep({
                 onChange({ promotionType: 'purchase_linked' });
               }
             }}
-            className={`cursor-pointer rounded-lg border p-3.5 transition-all shadow-xs ${
+            className={`cursor-pointer p-3.5 transition-all ${
               compliance.promotionType === 'purchase_linked'
                 ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-white/10 dark:bg-[#0A0A0A] dark:hover:border-white/20'
+                : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
             }`}
           >
-            <div className="flex items-start gap-3">
+            <Card.Content className="flex flex-row items-start gap-3 p-0">
               <IconTile
                 tone={compliance.promotionType === 'purchase_linked' ? 'primary' : 'info'}
                 size={32}
@@ -72,19 +69,18 @@ export function ComplianceStep({
                 <ShoppingBag className="size-4" />
               </IconTile>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
                   {t('purchaseLinked')}
-                </span>
-                <span className="text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                </Card.Title>
+                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
                   {t('purchaseLinkedHint')}
-                </span>
+                </Card.Description>
               </div>
-            </div>
-          </div>
+            </Card.Content>
+          </Card>
 
           {/* not_linked */}
-          {/* biome-ignore lint/a11y/useSemanticElements: radio container card */}
-          <div
+          <Card
             role="radio"
             aria-checked={compliance.promotionType === 'not_linked'}
             tabIndex={0}
@@ -95,13 +91,13 @@ export function ComplianceStep({
                 onChange({ promotionType: 'not_linked' });
               }
             }}
-            className={`cursor-pointer rounded-lg border p-3.5 transition-all shadow-xs ${
+            className={`cursor-pointer p-3.5 transition-all ${
               compliance.promotionType === 'not_linked'
                 ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-white/10 dark:bg-[#0A0A0A] dark:hover:border-white/20'
+                : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
             }`}
           >
-            <div className="flex items-start gap-3">
+            <Card.Content className="flex flex-row items-start gap-3 p-0">
               <IconTile
                 tone={compliance.promotionType === 'not_linked' ? 'success' : 'info'}
                 size={32}
@@ -109,15 +105,15 @@ export function ComplianceStep({
                 <Sparkles className="size-4" />
               </IconTile>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
                   {t('notLinked')}
-                </span>
-                <span className="text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                </Card.Title>
+                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
                   {t('notLinkedHint')}
-                </span>
+                </Card.Description>
               </div>
-            </div>
-          </div>
+            </Card.Content>
+          </Card>
         </div>
       </div>
 
@@ -127,11 +123,11 @@ export function ComplianceStep({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{t('termsTitle')}</span>
             {isCustom ? (
-              <Chip variant="caption" color="yellow">
+              <Chip variant="soft" color="warning" size="sm">
                 {t('customBadge')}
               </Chip>
             ) : (
-              <Chip variant="caption" color="neutral">
+              <Chip variant="soft" color="default" size="sm">
                 {t('generatedBadge')}
               </Chip>
             )}
@@ -140,7 +136,7 @@ export function ComplianceStep({
             <Button
               type="button"
               variant="ghost"
-              size="small"
+              size="sm"
               className="h-8 rounded-md text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onChange({ termsText: null })}
             >
@@ -151,7 +147,7 @@ export function ComplianceStep({
             <Button
               type="button"
               variant="secondary"
-              size="small"
+              size="sm"
               className="h-8 rounded-md text-xs"
               onClick={() => onChange({ termsText: generatedTerms })}
             >
@@ -164,17 +160,21 @@ export function ComplianceStep({
         <span className="text-neutral-500 text-xs dark:text-neutral-400">{t('termsHint')}</span>
 
         {isCustom ? (
-          <TextareaBase
+          <TextArea
             rows={10}
             value={compliance.termsText ?? ''}
             onChange={(e) => onChange({ termsText: e.target.value })}
             placeholder={t('termsPlaceholder')}
+            fullWidth
             className="font-mono text-xs"
           />
         ) : (
-          <div className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg border border-neutral-200 bg-neutral-50/50 p-3.5 text-xs leading-relaxed text-neutral-800 dark:border-white/10 dark:bg-white/[0.02] dark:text-neutral-200">
-            {generatedTerms}
-          </div>
+          <Card
+            variant="secondary"
+            className="max-h-72 overflow-y-auto whitespace-pre-wrap p-3.5 text-xs leading-relaxed text-neutral-800 dark:text-neutral-200"
+          >
+            <Card.Content className="p-0">{generatedTerms}</Card.Content>
+          </Card>
         )}
       </div>
     </div>

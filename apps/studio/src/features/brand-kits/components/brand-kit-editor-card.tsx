@@ -6,9 +6,18 @@ import {
   type BrandKitSummary,
   type CreateBrandKitBody,
 } from '@playora/contracts';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Input } from '@playora/ui/components/base/input/input';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import {
+  Button,
+  Card,
+  Description,
+  FieldError,
+  Input,
+  InputGroup,
+  Label,
+  ListBox,
+  Select,
+  TextField,
+} from '@playora/ui/components';
 import { Plus } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useMemo } from 'react';
@@ -90,25 +99,29 @@ export function HexColorInput({
     : '#000000';
 
   return (
-    <Input
+    <TextField
       id={id}
-      label={label}
       aria-label={!label ? 'Hex color' : undefined}
       value={hexValue}
       onChange={(val) => onChange?.(val)}
       isInvalid={isInvalid}
-      hint={hint}
-      inputClassName="font-mono"
-      leadingAddon={
-        <input
-          type="color"
-          value={safePickerColor}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="size-6 shrink-0 cursor-pointer rounded-md border border-border-button-default bg-transparent p-0.5 shadow-2xs"
-          aria-label="Pick color"
-        />
-      }
-    />
+      fullWidth
+    >
+      {label && <Label>{label}</Label>}
+      <InputGroup fullWidth>
+        <InputGroup.Prefix className="px-1.5">
+          <input
+            type="color"
+            value={safePickerColor}
+            onChange={(e) => onChange?.(e.target.value)}
+            className="size-6 shrink-0 cursor-pointer rounded border border-border-button-default bg-transparent p-0"
+            aria-label="Pick color"
+          />
+        </InputGroup.Prefix>
+        <InputGroup.Input className="font-mono" />
+      </InputGroup>
+      {hint && (isInvalid ? <FieldError>{hint}</FieldError> : <Description>{hint}</Description>)}
+    </TextField>
   );
 }
 
@@ -153,36 +166,34 @@ export function BrandKitEditorCard({
   ] as const;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">
+    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <Card.Title className="m-0 text-body-medium text-text-primary">
           {editingId ? t('brandKits.edit') : t('brandKits.new')}
-        </h3>
+        </Card.Title>
         {editingId ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="small"
-            leadingIcon={Plus}
-            onClick={onResetToNew}
-          >
+          <Button type="button" variant="ghost" size="sm" onPress={onResetToNew}>
+            <Plus className="size-4" />
             {t('brandKits.new')}
           </Button>
         ) : null}
-      </div>
-      <div className="p-5">
+      </Card.Header>
+      <Card.Content className="p-5">
         <div className="grid gap-4">
           <Controller
             control={form.control}
             name="name"
             render={({ field, fieldState }) => (
-              <Input
-                label={t('brandKits.name')}
+              <TextField
                 value={field.value}
                 onChange={field.onChange}
                 isInvalid={!!fieldState.error}
-                hint={fieldState.error?.message}
-              />
+                fullWidth
+              >
+                <Label>{t('brandKits.name')}</Label>
+                <Input />
+                {fieldState.error?.message && <FieldError>{fieldState.error.message}</FieldError>}
+              </TextField>
             )}
           />
 
@@ -221,11 +232,19 @@ export function BrandKitEditorCard({
                         if (key !== null) field.onChange(String(key));
                       }}
                     >
-                      {fontOptions.map((f) => (
-                        <SelectItem key={f.value} id={f.value}>
-                          {f.label}
-                        </SelectItem>
-                      ))}
+                      <Select.Trigger>
+                        <Select.Value />
+                        <Select.Indicator />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {fontOptions.map((f) => (
+                            <ListBox.Item key={f.value} id={f.value} textValue={f.label}>
+                              {f.label}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
                     </Select>
                     {fieldState.error?.message && (
                       <span className="text-caption-1-medium text-text-error-primary">
@@ -257,11 +276,19 @@ export function BrandKitEditorCard({
                         }
                       }}
                     >
-                      {options.map((opt) => (
-                        <SelectItem key={opt.value} id={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
+                      <Select.Trigger>
+                        <Select.Value />
+                        <Select.Indicator />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {options.map((opt) => (
+                            <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
+                              {opt.label}
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
                     </Select>
                     {fieldState.error?.message && (
                       <span className="text-caption-1-medium text-text-error-primary">
@@ -274,18 +301,18 @@ export function BrandKitEditorCard({
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-separator-border pt-3">
+          <Card.Footer className="flex justify-end gap-2 border-t border-separator-border p-0 pt-3">
             {editingId && (
-              <Button type="button" variant="secondary" size="small" onClick={onResetToNew}>
+              <Button type="button" variant="secondary" size="sm" onPress={onResetToNew}>
                 {t('common.cancel')}
               </Button>
             )}
-            <Button type="submit" size="small" disabled={isSubmitting}>
+            <Button type="submit" size="sm" isDisabled={isSubmitting}>
               {editingId ? t('common.save') : t('common.create')}
             </Button>
-          </div>
+          </Card.Footer>
         </div>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

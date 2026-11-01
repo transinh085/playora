@@ -1,10 +1,15 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { AlertCircle } from '@playora/ui/icons';
+import {
+  Alert,
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Separator,
+  Skeleton,
+  toast,
+} from '@playora/ui/components';
 import {
   RiCheckLine,
   RiCloseLine,
@@ -91,10 +96,10 @@ export function AcceptInvitationCard() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background-full p-4 sm:p-6">
-      <div className="w-full max-w-[460px] overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+      <Card className="w-full max-w-[460px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
         {/* Top Brand & Title Header */}
-        <div className="border-b border-separator-border px-6 pt-6 pb-5 sm:px-8">
-          <div className="mb-5 flex items-center justify-between">
+        <Card.Header className="border-b border-separator-border px-6 pt-6 pb-5 sm:px-8">
+          <div className="mb-5 flex w-full items-center justify-between">
             <Logo className="text-text-primary" />
             {session?.user.email && (
               <span className="max-w-[200px] truncate rounded-full bg-background-tertiary-default px-2.5 py-1 text-caption-2-medium text-text-secondary">
@@ -102,20 +107,22 @@ export function AcceptInvitationCard() {
               </span>
             )}
           </div>
-          <h2 className="m-0 text-title-3-semibold text-text-primary">{t('auth.inviteTitle')}</h2>
+          <Card.Title className="m-0 text-title-3-semibold text-text-primary">
+            {t('auth.inviteTitle')}
+          </Card.Title>
           {invitation && (
-            <p className="mt-1.5 m-0 text-body-regular text-text-secondary">
+            <Card.Description className="mt-1.5 m-0 text-body-regular text-text-secondary">
               {t('auth.inviteDescription', {
                 inviter: invitation.inviterEmail,
                 organization: invitation.organizationName,
                 role: t(`members.roles.${roleKey}`),
               })}
-            </p>
+            </Card.Description>
           )}
-        </div>
+        </Card.Header>
 
         {/* Body */}
-        <div className="space-y-4 p-6 sm:p-8">
+        <Card.Content className="space-y-4 p-6 sm:p-8">
           {(sessionPending || invitationQuery.isPending) && (
             <div className="space-y-3 py-2">
               <Skeleton className="h-16 w-full rounded-2xl" />
@@ -124,13 +131,18 @@ export function AcceptInvitationCard() {
           )}
 
           {invitation && (
-            <div className="flex flex-col gap-3 rounded-2xl border border-border-button-default bg-background-secondary-default p-4">
+            <Card
+              variant="secondary"
+              className="flex flex-col gap-3 border border-border-button-default p-4"
+            >
               {/* Organization & Role Badge Row */}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-tr from-emerald-500 to-cyan-600 text-body-semibold font-bold text-white shadow-xs">
-                    {invitation.organizationName.slice(0, 1).toUpperCase()}
-                  </div>
+                  <Avatar size="md" color="accent">
+                    <Avatar.Fallback>
+                      {invitation.organizationName.slice(0, 1).toUpperCase()}
+                    </Avatar.Fallback>
+                  </Avatar>
                   <div className="min-w-0">
                     <p className="m-0 truncate text-body-semibold text-text-primary">
                       {invitation.organizationName}
@@ -141,7 +153,12 @@ export function AcceptInvitationCard() {
                     </p>
                   </div>
                 </div>
-                <Chip variant="caption" color={redeemerRole ? 'lime' : 'cyan'} className="gap-1">
+                <Chip
+                  variant="soft"
+                  size="sm"
+                  color={redeemerRole ? 'success' : 'accent'}
+                  className="gap-1"
+                >
                   {redeemerRole ? (
                     <RiTicket2Line className="size-3.5" aria-hidden />
                   ) : (
@@ -151,58 +168,56 @@ export function AcceptInvitationCard() {
                 </Chip>
               </div>
 
+              <Separator />
+
               {/* Natural-language role explanation */}
-              <div className="border-t border-separator-border pt-3 text-caption-1-regular text-text-secondary">
+              <div className="text-caption-1-regular text-text-secondary">
                 {t(`auth.inviteRoleDescriptions.${roleKey}`)}
               </div>
-            </div>
+            </Card>
           )}
 
           {invitationQuery.isError && (
-            <div
-              role="alert"
-              className="flex items-start gap-2.5 rounded-2xl border border-border-button-default bg-notification-error-background p-4 text-text-error-primary"
-            >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" />
-              <span className="text-body-2-medium">{t('auth.inviteError')}</span>
-            </div>
+            <Alert status="danger">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>{t('auth.inviteError')}</Alert.Title>
+              </Alert.Content>
+            </Alert>
           )}
 
           {actionError && (
-            <div
-              role="alert"
-              className="flex items-start gap-2.5 rounded-2xl border border-border-button-default bg-notification-error-background p-4 text-text-error-primary"
-            >
-              <AlertCircle className="mt-0.5 size-4 shrink-0" />
-              <span className="text-body-2-medium">{actionError}</span>
-            </div>
+            <Alert status="danger">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Title>{actionError}</Alert.Title>
+              </Alert.Content>
+            </Alert>
           )}
 
           {/* Actions */}
-          <div className="mt-2 flex flex-col gap-2.5 pt-2 sm:flex-row sm:justify-end">
+          <Card.Footer className="mt-2 flex flex-col gap-2.5 p-0 pt-2 sm:flex-row sm:justify-end">
             {invitation && (
               <>
-                <Button
-                  variant="secondary"
-                  leadingIcon={RiCloseLine}
-                  disabled={submitting}
-                  onClick={onDecline}
-                >
+                <Button variant="secondary" isDisabled={submitting} onPress={onDecline}>
+                  <RiCloseLine className="size-4" />
                   {t('auth.declineInvite')}
                 </Button>
-                <Button leadingIcon={RiCheckLine} disabled={submitting} onClick={onAccept}>
+                <Button isDisabled={submitting} onPress={onAccept}>
+                  <RiCheckLine className="size-4" />
                   {t('auth.acceptInvite')}
                 </Button>
               </>
             )}
             {invitationQuery.isError && (
-              <Button className="w-full" leadingIcon={RiSwitchLine} onClick={onSwitchAccount}>
+              <Button className="w-full" onPress={onSwitchAccount}>
+                <RiSwitchLine className="size-4" />
                 {t('auth.switchAccount')}
               </Button>
             )}
-          </div>
-        </div>
-      </div>
+          </Card.Footer>
+        </Card.Content>
+      </Card>
     </main>
   );
 }

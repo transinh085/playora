@@ -1,10 +1,6 @@
 'use client';
 
-import { Avatar } from '@playora/ui/components/base/avatar/avatar';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { AlertDialog, ModalTrigger } from '@playora/ui/components/base/modal/modal';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
+import { AlertDialog, Avatar, Button, Chip, ListBox, Select } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
 import { TableCard } from '@/components/table-card';
@@ -50,15 +46,15 @@ export function MembersTable({
   return (
     <TableCard>
       <div className="w-full overflow-x-auto">
-        <table className="bui-table w-full">
+        <table className="w-full border-collapse text-left text-body-2-regular">
           <thead>
-            <tr>
-              <th className="w-[45%]">{t('members.memberColumn')}</th>
-              <th>{t('members.role')}</th>
-              {canManage && <th className="text-right">{t('members.actionsColumn')}</th>}
+            <tr className="border-b border-separator-border text-caption-1-semibold text-text-secondary">
+              <th className="w-[45%] px-4 py-3">{t('members.memberColumn')}</th>
+              <th className="px-4 py-3">{t('members.role')}</th>
+              {canManage && <th className="px-4 py-3 text-right">{t('members.actionsColumn')}</th>}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-separator-border">
             {members.map((member) => {
               const isSelf = member.userId === currentUserId;
               const primaryRole: OrgRole = parseMemberRoles(member.role)[0] ?? 'viewer';
@@ -69,21 +65,24 @@ export function MembersTable({
                 canManage && !isSelf && (!targetIsOwner || (actorIsOwner && ownerCount > 1));
 
               return (
-                <tr key={member.id}>
-                  <td>
+                <tr key={member.id} className="hover:bg-background-secondary-default/40">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar
-                        size="md"
-                        src={member.user.image ?? undefined}
-                        initials={(member.user.name || member.user.email).slice(0, 1).toUpperCase()}
-                      />
+                      <Avatar size="sm" color="accent">
+                        {member.user.image ? (
+                          <Avatar.Image src={member.user.image} alt={member.user.name} />
+                        ) : null}
+                        <Avatar.Fallback>
+                          {(member.user.name || member.user.email).slice(0, 1).toUpperCase()}
+                        </Avatar.Fallback>
+                      </Avatar>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-body-medium text-text-primary">
                             {member.user.name}
                           </span>
                           {isSelf && (
-                            <Chip variant="caption" color="soft">
+                            <Chip variant="soft" color="accent" size="sm">
                               {t('members.you')}
                             </Chip>
                           )}
@@ -93,14 +92,13 @@ export function MembersTable({
                     </div>
                   </td>
 
-                  <td>
+                  <td className="px-4 py-3">
                     {!canEditRole ? (
-                      <Chip variant="caption" color="neutral">
+                      <Chip variant="soft" color="default" size="sm">
                         {t(`members.roles.${primaryRole}`)}
                       </Chip>
                     ) : (
                       <Select
-                        size="sm"
                         className="w-36"
                         selectedKey={primaryRole}
                         isDisabled={busyId === member.id}
@@ -109,36 +107,71 @@ export function MembersTable({
                           if (key !== null) onRoleChange(member.id, String(key) as OrgRole);
                         }}
                       >
-                        {assignableRoles.map((role) => (
-                          <SelectItem key={role} id={role}>
-                            {t(`members.roles.${role}`)}
-                          </SelectItem>
-                        ))}
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {assignableRoles.map((role) => (
+                              <ListBox.Item
+                                key={role}
+                                id={role}
+                                textValue={t(`members.roles.${role}`)}
+                              >
+                                {t(`members.roles.${role}`)}
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
                       </Select>
                     )}
                   </td>
 
                   {canManage && (
-                    <td className="text-right">
+                    <td className="px-4 py-3 text-right">
                       {canRemove && (
-                        <ModalTrigger>
+                        <AlertDialog>
                           <Button
                             variant="ghost"
-                            size="small"
+                            size="sm"
                             className="text-text-error-primary hover:bg-notification-error-background"
-                            disabled={busyId === member.id}
+                            isDisabled={busyId === member.id}
                           >
                             {t('members.remove')}
                           </Button>
-                          <AlertDialog
-                            title={t('members.removeConfirm')}
-                            description={`${member.user.name} (${member.user.email})`}
-                            variant="danger"
-                            confirmLabel={t('common.delete')}
-                            cancelLabel={t('common.cancel')}
-                            onConfirm={() => onRemoveMember(member.id)}
-                          />
-                        </ModalTrigger>
+                          <AlertDialog.Backdrop isDismissable>
+                            <AlertDialog.Container size="sm">
+                              <AlertDialog.Dialog>
+                                <AlertDialog.CloseTrigger />
+                                <AlertDialog.Header>
+                                  <AlertDialog.Icon status="danger" />
+                                  <AlertDialog.Heading>
+                                    {t('members.removeConfirm')}
+                                  </AlertDialog.Heading>
+                                </AlertDialog.Header>
+                                <AlertDialog.Body>
+                                  <p className="text-body-2-regular text-text-secondary">
+                                    {`${member.user.name} (${member.user.email})`}
+                                  </p>
+                                </AlertDialog.Body>
+                                <AlertDialog.Footer>
+                                  <Button slot="close" variant="secondary" size="sm">
+                                    {t('common.cancel')}
+                                  </Button>
+                                  <Button
+                                    slot="close"
+                                    variant="danger"
+                                    size="sm"
+                                    onPress={() => onRemoveMember(member.id)}
+                                  >
+                                    {t('common.delete')}
+                                  </Button>
+                                </AlertDialog.Footer>
+                              </AlertDialog.Dialog>
+                            </AlertDialog.Container>
+                          </AlertDialog.Backdrop>
+                        </AlertDialog>
                       )}
                     </td>
                   )}

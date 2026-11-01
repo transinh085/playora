@@ -2,27 +2,18 @@
 
 import { ApiError } from '@playora/api-client';
 import { ErrorCode } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
 import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  Input,
+  InputGroup,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import {
-  AlertCircle,
-  AlertTriangle,
-  ArrowLeft,
-  CheckCircle2,
-  Gift,
-  RotateCcw,
-  Search,
-  Sparkles,
-} from '@playora/ui/icons';
+  Skeleton,
+  toast,
+} from '@playora/ui/components';
+import { ArrowLeft, CheckCircle2, Gift, RotateCcw, Search, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -152,110 +143,98 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
       <RedemptionUsageBanner orgId={orgId} />
 
       {/* Lookup Input Card */}
-      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitLookup(input);
-          }}
-          className="flex flex-col gap-3 sm:flex-row"
-        >
-          <InputBase
-            aria-label={t('codeLabel')}
-            value={input}
-            onChange={(e) => setInput(normalizeCode(e.target.value))}
-            placeholder={t('codePlaceholder')}
-            maxLength={12}
-            autoFocus
-            fieldClassName="flex-1"
-            className="font-mono text-title-3-semibold tracking-[0.22em] uppercase"
-          />
-          <Button
-            type="submit"
-            leadingIcon={Search}
-            disabled={!normalizeCode(input) || lookup.isFetching}
-            className="shrink-0 justify-center sm:px-6"
+      <Card className="p-5">
+        <Card.Content>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitLookup(input);
+            }}
+            className="flex flex-col gap-3 sm:flex-row"
           >
-            {t('check')}
-          </Button>
-        </form>
-      </div>
+            <InputGroup className="flex-1">
+              <InputGroup.Prefix>
+                <Search className="size-4 text-muted" />
+              </InputGroup.Prefix>
+              <InputGroup.Input
+                aria-label={t('codeLabel')}
+                value={input}
+                onChange={(e) => setInput(normalizeCode(e.target.value))}
+                placeholder={t('codePlaceholder')}
+                maxLength={12}
+                autoFocus
+                className="font-mono text-title-3-semibold tracking-[0.22em] uppercase"
+              />
+            </InputGroup>
+            <Button
+              type="submit"
+              isDisabled={!normalizeCode(input) || lookup.isFetching}
+              className="shrink-0 justify-center sm:px-6"
+            >
+              <Search className="size-4" />
+              {t('check')}
+            </Button>
+          </form>
+        </Card.Content>
+      </Card>
 
       {lookupCode && lookup.isPending && (
-        <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card">
-          <div className="space-y-3">
+        <Card className="p-6">
+          <Card.Content className="space-y-3">
             <Skeleton className="h-6 w-1/2" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-10 w-2/3" />
-          </div>
-        </div>
+          </Card.Content>
+        </Card>
       )}
 
       {lookupCode && notFound && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-3xl border border-rose-500/30 bg-notification-error-background p-5 text-text-error-primary shadow-card"
-        >
-          <AlertCircle className="mt-0.5 size-5 shrink-0" />
-          <div>
-            <div className="text-body-semibold">{t('notFound', { code: lookupCode })}</div>
-          </div>
-        </div>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{t('notFound', { code: lookupCode })}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
 
       {lookupCode && lookup.isError && !notFound && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-3xl border border-rose-500/30 bg-notification-error-background p-5 text-text-error-primary shadow-card"
-        >
-          <AlertCircle className="mt-0.5 size-5 shrink-0" />
-          <div>
-            <div className="text-body-semibold">{t('genericError')}</div>
-          </div>
-        </div>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{t('genericError')}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
 
       {voucher && (
-        <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card">
-          <div className="flex flex-col gap-5">
+        <Card className="overflow-hidden p-6" data-testid="redeem-result">
+          <Card.Content className="flex flex-col gap-5">
             {justRedeemed?.code === voucher.code && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-teal-500/30 bg-teal-500/10 p-4 text-teal-900 dark:text-teal-200"
-              >
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-teal-600 dark:text-teal-400" />
-                <div>
-                  <div className="text-body-semibold">{t('successTitle')}</div>
-                  <div className="mt-0.5 text-body-2-regular">
+              <Alert status="success">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{t('successTitle')}</Alert.Title>
+                  <Alert.Description>
                     {t('successBody', { prize: voucher.prize?.name ?? t('unknownPrize') })}
-                  </div>
-                </div>
-              </div>
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
             )}
 
             {redeemBlockedByPlan && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
-                data-testid="redeem-plan-blocked"
-              >
-                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <div className="text-body-semibold">
-                    {tb('redeemBlocked', { code: voucher.code })}
-                  </div>
-                </div>
-              </div>
+              <Alert status="warning" data-testid="redeem-plan-blocked">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{tb('redeemBlocked', { code: voucher.code })}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             {voucher.status === 'redeemed' && justRedeemed?.code !== voucher.code && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
-              >
-                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <div className="text-body-semibold">
+              <Alert status="warning">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>
                     {voucher.redeemedAt
                       ? t('alreadyRedeemed', {
                           code: voucher.code,
@@ -265,47 +244,38 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
                           }),
                         })
                       : t('alreadyRedeemedShort', { code: voucher.code })}
-                  </div>
-                </div>
-              </div>
+                  </Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             {voucher.status === 'expired' && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-text-secondary"
-              >
-                <AlertTriangle className="mt-0.5 size-5 shrink-0" />
-                <div>
-                  <div className="text-body-semibold">
-                    {t('expiredAlert', { code: voucher.code })}
-                  </div>
-                </div>
-              </div>
+              <Alert status="default">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{t('expiredAlert', { code: voucher.code })}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             {voucher.status === 'void' && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-notification-error-background p-4 text-text-error-primary"
-              >
-                <AlertCircle className="mt-0.5 size-5 shrink-0" />
-                <div>
-                  <div className="text-body-semibold">{t('voidAlert', { code: voucher.code })}</div>
-                </div>
-              </div>
+              <Alert status="danger">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>{t('voidAlert', { code: voucher.code })}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             {voucher.rehearsal && (
-              <div
-                role="alert"
-                className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
-              >
-                <Sparkles className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <div className="text-body-semibold">{t('rehearsalNote')}</div>
-                </div>
-              </div>
+              <Alert status="warning">
+                <Alert.Indicator>
+                  <Sparkles className="size-5" />
+                </Alert.Indicator>
+                <Alert.Content>
+                  <Alert.Title>{t('rehearsalNote')}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
 
             {/* Prize Hero Block */}
@@ -328,24 +298,24 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
                     {voucher.code}
                   </code>
                   {voucher.status === 'redeemed' ? (
-                    <Chip variant="subtle" color="neutral" className="m-0">
+                    <Chip variant="soft" color="default" className="m-0">
                       {t('redeemed')}
                     </Chip>
                   ) : voucher.status === 'expired' ? (
-                    <Chip variant="subtle" color="neutral" className="m-0">
+                    <Chip variant="soft" color="default" className="m-0">
                       {t('expired')}
                     </Chip>
                   ) : voucher.status === 'void' ? (
-                    <Chip variant="subtle" color="rose" className="m-0">
+                    <Chip variant="soft" color="danger" className="m-0">
                       {t('void')}
                     </Chip>
                   ) : (
-                    <Chip variant="subtle" color="lime" className="m-0">
+                    <Chip variant="soft" color="success" className="m-0">
                       {t('notRedeemed')}
                     </Chip>
                   )}
                   {voucher.rehearsal && (
-                    <Chip variant="subtle" color="yellow" className="m-0">
+                    <Chip variant="soft" color="warning" className="m-0">
                       {t('rehearsal')}
                     </Chip>
                   )}
@@ -423,44 +393,52 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
               <>
                 <Button
                   variant="primary"
-                  leadingIcon={CheckCircle2}
-                  disabled={redeem.isPending}
+                  isDisabled={redeem.isPending}
                   className="w-full justify-center"
                   onClick={() => setIsConfirmOpen(true)}
                 >
+                  <CheckCircle2 className="size-4" />
                   {t('confirm')}
                 </Button>
 
-                <Modal isOpen={isConfirmOpen} onOpenChange={setIsConfirmOpen} size="sm">
-                  <ModalHeader
-                    title={t('confirmTitle', { code: voucher.code })}
-                    description={t('confirmBody')}
-                  />
-                  <ModalFooter>
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      onClick={() => setIsConfirmOpen(false)}
-                    >
-                      {t('cancel')}
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        confirmRedeem(voucher);
-                        setIsConfirmOpen(false);
-                      }}
-                    >
-                      {t('confirmOk')}
-                    </Button>
-                  </ModalFooter>
+                <Modal isOpen={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                  <Modal.Backdrop isDismissable>
+                    <Modal.Container size="sm">
+                      <Modal.Dialog>
+                        <Modal.CloseTrigger />
+                        <Modal.Header>
+                          <Modal.Heading>{t('confirmTitle', { code: voucher.code })}</Modal.Heading>
+                          <p className="mt-1 text-body-2-regular text-text-secondary">
+                            {t('confirmBody')}
+                          </p>
+                        </Modal.Header>
+                        <Modal.Footer>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setIsConfirmOpen(false)}
+                          >
+                            {t('cancel')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              confirmRedeem(voucher);
+                              setIsConfirmOpen(false);
+                            }}
+                          >
+                            {t('confirmOk')}
+                          </Button>
+                        </Modal.Footer>
+                      </Modal.Dialog>
+                    </Modal.Container>
+                  </Modal.Backdrop>
                 </Modal>
               </>
             ) : (
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="secondary"
-                  leadingIcon={ArrowLeft}
                   className="flex-1 justify-center"
                   onClick={() => {
                     setInput('');
@@ -468,6 +446,7 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
                     setJustRedeemed(null);
                   }}
                 >
+                  <ArrowLeft className="size-4" />
                   {t('newCode')}
                 </Button>
 
@@ -475,115 +454,131 @@ export function RedeemDesk({ orgId, standalone }: { orgId: string; standalone?: 
                   <>
                     <Button
                       variant="secondary"
-                      leadingIcon={RotateCcw}
-                      disabled={reopen.isPending}
+                      isDisabled={reopen.isPending}
                       onClick={() => {
                         setReopenReason('');
                         setIsReopenOpen(true);
                       }}
                     >
+                      <RotateCcw className="size-4" />
                       {t('reopen')}
                     </Button>
 
-                    <Modal isOpen={isReopenOpen} onOpenChange={setIsReopenOpen} size="sm">
-                      <ModalHeader
-                        title={t('reopenTitle', { code: voucher.code })}
-                        description={t('reopenDescription')}
-                      />
-                      <ModalBody className="py-2">
-                        <div className="space-y-1.5">
-                          <label
-                            htmlFor="reopen-reason-input"
-                            className="text-body-2-medium text-text-primary"
-                          >
-                            {t('reopenReasonLabel')}
-                          </label>
-                          <InputBase
-                            id="reopen-reason-input"
-                            value={reopenReason}
-                            onChange={(e) => setReopenReason(e.target.value)}
-                            placeholder={t('reopenReasonPlaceholder')}
-                            maxLength={240}
-                            autoFocus
-                          />
-                        </div>
-                      </ModalBody>
-                      <ModalFooter>
-                        <Button
-                          variant="secondary"
-                          size="small"
-                          onClick={() => setIsReopenOpen(false)}
-                        >
-                          {t('cancel')}
-                        </Button>
-                        <Button
-                          size="small"
-                          disabled={!reopenReason.trim() || reopen.isPending}
-                          onClick={() => confirmReopen(voucher)}
-                        >
-                          {t('reopenSubmit')}
-                        </Button>
-                      </ModalFooter>
+                    <Modal isOpen={isReopenOpen} onOpenChange={setIsReopenOpen}>
+                      <Modal.Backdrop isDismissable>
+                        <Modal.Container size="sm">
+                          <Modal.Dialog>
+                            <Modal.CloseTrigger />
+                            <Modal.Header>
+                              <Modal.Heading>
+                                {t('reopenTitle', { code: voucher.code })}
+                              </Modal.Heading>
+                              <p className="mt-1 text-body-2-regular text-text-secondary">
+                                {t('reopenDescription')}
+                              </p>
+                            </Modal.Header>
+                            <Modal.Body className="py-2">
+                              <div className="space-y-1.5">
+                                <label
+                                  htmlFor="reopen-reason-input"
+                                  className="text-body-2-medium text-text-primary"
+                                >
+                                  {t('reopenReasonLabel')}
+                                </label>
+                                <Input
+                                  id="reopen-reason-input"
+                                  value={reopenReason}
+                                  onChange={(e) => setReopenReason(e.target.value)}
+                                  placeholder={t('reopenReasonPlaceholder')}
+                                  maxLength={240}
+                                  fullWidth
+                                  autoFocus
+                                />
+                              </div>
+                            </Modal.Body>
+                            <Modal.Footer>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setIsReopenOpen(false)}
+                              >
+                                {t('cancel')}
+                              </Button>
+                              <Button
+                                size="sm"
+                                isDisabled={!reopenReason.trim() || reopen.isPending}
+                                onClick={() => confirmReopen(voucher)}
+                              >
+                                {t('reopenSubmit')}
+                              </Button>
+                            </Modal.Footer>
+                          </Modal.Dialog>
+                        </Modal.Container>
+                      </Modal.Backdrop>
                     </Modal>
                   </>
                 )}
               </div>
             )}
-          </div>
-        </div>
+          </Card.Content>
+        </Card>
       )}
 
       {/* Session History Card */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-        <div className="flex items-center justify-between border-b border-separator-border px-5 py-3.5">
-          <h3 className="m-0 text-body-medium text-text-primary">{t('sessionTitle')}</h3>
-          <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
+      <Card className="overflow-hidden p-0">
+        <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+          <Card.Title className="m-0 text-body-medium text-text-primary">
+            {t('sessionTitle')}
+          </Card.Title>
+          <Chip size="sm" variant="soft" color="default" className="tabular-nums">
             {recent.length}
-          </span>
-        </div>
-        {recent.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <Caption>{t('sessionEmpty')}</Caption>
-          </div>
-        ) : (
-          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
-            {recent.map((item) => (
-              <li
-                key={item.code}
-                className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-background-secondary-default/40"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
-                    <Gift className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={
-                          (standalone
-                            ? `/orgs/${orgId}/redeem?code=${item.code}`
-                            : `${campaignRoutes(orgId).redeem}?code=${item.code}`) as Route
-                        }
-                        onClick={() => submitLookup(item.code)}
-                        className="font-mono text-body-2-semibold text-accent-600 hover:underline dark:text-accent-400"
-                      >
-                        {item.code}
-                      </Link>
-                      <span className="truncate text-body-2-medium text-text-primary">
-                        {item.prizeName}
-                      </span>
+          </Chip>
+        </Card.Header>
+        <Card.Content>
+          {recent.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <Caption>{t('sessionEmpty')}</Caption>
+            </div>
+          ) : (
+            <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+              {recent.map((item) => (
+                <li
+                  key={item.code}
+                  className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-background-secondary-default/40"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                      <Gift className="size-4" />
                     </div>
-                    <Caption className="block">{item.campaignName}</Caption>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={
+                            (standalone
+                              ? `/orgs/${orgId}/redeem?code=${item.code}`
+                              : `${campaignRoutes(orgId).redeem}?code=${item.code}`) as Route
+                          }
+                          onClick={() => submitLookup(item.code)}
+                          className="font-mono text-body-2-semibold text-accent-600 hover:underline dark:text-accent-400"
+                        >
+                          {item.code}
+                        </Link>
+                        <span className="truncate text-body-2-medium text-text-primary">
+                          {item.prizeName}
+                        </span>
+                      </div>
+                      <Caption className="block">{item.campaignName}</Caption>
+                    </div>
                   </div>
-                </div>
-                <Caption className="shrink-0 tabular-nums">
-                  {format.dateTime(new Date(item.redeemedAt), { timeStyle: 'short' })}
-                </Caption>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                  <Caption className="shrink-0 tabular-nums">
+                    {format.dateTime(new Date(item.redeemedAt), { timeStyle: 'short' })}
+                  </Caption>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card.Content>
+      </Card>
     </div>
   );
 }

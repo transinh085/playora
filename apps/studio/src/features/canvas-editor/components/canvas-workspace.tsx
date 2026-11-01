@@ -1,16 +1,7 @@
 'use client';
 
 import type { CanvasPrize } from '@playora/ui/campaign';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import {
-  ContextMenu,
-  ContextMenuItem,
-  ContextMenuSection,
-  ContextMenuSeparator,
-  ContextMenuSubmenu,
-  ContextMenuTrigger,
-} from '@playora/ui/components/base/context-menu/context-menu';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { Button, Separator, Tabs, Tooltip } from '@playora/ui/components';
 import {
   AlignCenter,
   AlignHorizontalJustifyCenter,
@@ -21,6 +12,7 @@ import {
   ArrowUpToLine,
   Award,
   ChevronDown,
+  ChevronRightIcon,
   ChevronUp,
   Clock,
   Copy,
@@ -51,8 +43,10 @@ import {
   ZoomIn,
   ZoomOut,
 } from '@playora/ui/icons';
+import { cx } from '@playora/ui/utils/cx';
 import { useTranslations } from 'next-intl';
 import {
+  type ComponentType,
   type ReactNode,
   useCallback,
   useEffect,
@@ -81,6 +75,87 @@ import { LayersPanel, ScreensPanel, Toolbox } from './side-panels';
 import { useCanvasLabels } from './use-canvas-labels';
 
 type MenuTarget = 'element' | 'canvas' | 'workspace';
+
+function CtxItem({
+  icon: Icon,
+  shortcut,
+  isDisabled,
+  variant = 'default',
+  onAction,
+  children,
+}: {
+  icon?: ComponentType<{ className?: string }>;
+  shortcut?: string;
+  isDisabled?: boolean;
+  variant?: 'default' | 'danger';
+  onAction: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      disabled={isDisabled}
+      onClick={onAction}
+      className={cx(
+        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors disabled:pointer-events-none disabled:opacity-45',
+        variant === 'danger'
+          ? 'text-text-error-primary hover:bg-notification-error-background'
+          : 'text-text-primary hover:bg-background-secondary-hover',
+      )}
+    >
+      <span className="flex items-center gap-2 truncate">
+        {Icon && <Icon className="size-3.5 shrink-0 opacity-75" />}
+        <span className="truncate">{children}</span>
+      </span>
+      {shortcut && <span className="font-mono text-[10px] text-text-tertiary">{shortcut}</span>}
+    </button>
+  );
+}
+
+function CtxSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col py-0.5">
+      <span className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-text-tertiary uppercase">
+        {title}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function CtxSubmenu({
+  label,
+  icon: Icon,
+  className,
+  children,
+}: {
+  label: string;
+  textValue?: string;
+  icon?: ComponentType<{ className?: string }>;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="group/sub relative">
+      <div className="flex w-full cursor-default items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text-primary hover:bg-background-secondary-hover">
+        <span className="flex items-center gap-2 truncate">
+          {Icon && <Icon className="size-3.5 shrink-0 opacity-75" />}
+          <span className="truncate">{label}</span>
+        </span>
+        <ChevronRightIcon className="size-3.5 shrink-0 text-text-tertiary" />
+      </div>
+      <div
+        className={cx(
+          'invisible absolute top-0 left-full z-50 ml-1 rounded-2xl border border-border-button-default bg-background-primary-default p-1.5 opacity-0 shadow-dropdown transition-opacity group-hover/sub:visible group-hover/sub:opacity-100',
+          className ?? 'w-48',
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 /**
  * The free canvas editor (ADR-014) as a controlled component: the parent owns the document
@@ -188,6 +263,7 @@ export function CanvasWorkspace({
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, id: string | null, target: MenuTarget) => {
+      e.preventDefault();
       if (id) {
         dispatch({ type: 'select', id });
       }
@@ -200,6 +276,11 @@ export function CanvasWorkspace({
     },
     [],
   );
+
+  const runMenuAction = (fn: () => void) => {
+    fn();
+    setMenuState(null);
+  };
 
   const addAtPosition = (type: AddableType) => {
     let cx = ARTBOARD_WIDTH / 2;
@@ -246,105 +327,119 @@ export function CanvasWorkspace({
         <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
           <div className="flex min-w-0 items-center gap-2">
             {toolbarStart}
-            <TooltipTrigger>
-              <Button
-                type="button"
-                variant="ghost"
-                size="small"
-                aria-label={t('undo')}
-                disabled={!state.past.length}
-                onClick={() => dispatch({ type: 'undo' })}
-                className="size-8 rounded-full p-0"
-              >
-                <Undo2 className="size-4" />
-              </Button>
-              <Tooltip>{`${t('undo')} (⌘Z)`}</Tooltip>
-            </TooltipTrigger>
-            <TooltipTrigger>
-              <Button
-                type="button"
-                variant="ghost"
-                size="small"
-                aria-label={t('redo')}
-                disabled={!state.future.length}
-                onClick={() => dispatch({ type: 'redo' })}
-                className="size-8 rounded-full p-0"
-              >
-                <Redo2 className="size-4" />
-              </Button>
-              <Tooltip>{`${t('redo')} (⇧⌘Z)`}</Tooltip>
-            </TooltipTrigger>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  aria-label={t('undo')}
+                  isDisabled={!state.past.length}
+                  onPress={() => dispatch({ type: 'undo' })}
+                  className="size-8 rounded-full p-0"
+                >
+                  <Undo2 className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{`${t('undo')} (⌘Z)`}</Tooltip.Content>
+            </Tooltip>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  aria-label={t('redo')}
+                  isDisabled={!state.future.length}
+                  onPress={() => dispatch({ type: 'redo' })}
+                  className="size-8 rounded-full p-0"
+                >
+                  <Redo2 className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{`${t('redo')} (⇧⌘Z)`}</Tooltip.Content>
+            </Tooltip>
           </div>
 
           <div className="flex items-center gap-1">
             <Button
               type="button"
               variant="ghost"
-              size="small"
+              size="sm"
+              isIconOnly
               aria-label={t('zoomOut')}
-              onClick={() => setZoomManually(zoom - 0.1)}
+              onPress={() => setZoomManually(zoom - 0.1)}
               className="size-8 rounded-full p-0"
             >
               <Minus className="size-4" />
             </Button>
-            <span className="w-12 text-center text-xs font-mono">{Math.round(zoom * 100)}%</span>
+            <span className="w-12 text-center font-mono text-xs">{Math.round(zoom * 100)}%</span>
             <Button
               type="button"
               variant="ghost"
-              size="small"
+              size="sm"
+              isIconOnly
               aria-label={t('zoomIn')}
-              onClick={() => setZoomManually(zoom + 0.1)}
+              onPress={() => setZoomManually(zoom + 0.1)}
               className="size-8 rounded-full p-0"
             >
               <Plus className="size-4" />
             </Button>
-            <TooltipTrigger>
-              <Button
-                type="button"
-                variant="ghost"
-                size="small"
-                aria-label={t('fit')}
-                onClick={() => setAutoFit(true)}
-                className="size-8 rounded-full p-0"
-              >
-                <Maximize className="size-4" />
-              </Button>
-              <Tooltip>{t('fit')}</Tooltip>
-            </TooltipTrigger>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  aria-label={t('fit')}
+                  onPress={() => setAutoFit(true)}
+                  className="size-8 rounded-full p-0"
+                >
+                  <Maximize className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('fit')}</Tooltip.Content>
+            </Tooltip>
           </div>
 
           <div className="flex items-center gap-2">
             {toolbarEnd}
-            <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
-              <button
-                type="button"
-                onClick={() => setPreview(false)}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
-                  !preview
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Pencil className="size-3.5" />
-                <span>{t('edit')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
+            <Tabs
+              selectedKey={preview ? 'preview' : 'edit'}
+              onSelectionChange={(key) => {
+                if (key === 'preview') {
                   setPreview(true);
                   setReplay((n) => n + 1);
                   dispatch({ type: 'select', id: null });
-                }}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
-                  preview
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Play className="size-3.5" />
-                <span>{t('preview')}</span>
-              </button>
-            </div>
+                } else {
+                  setPreview(false);
+                }
+              }}
+            >
+              <Tabs.ListContainer>
+                <Tabs.List aria-label={t('edit')}>
+                  <Tabs.Tab
+                    id="edit"
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium"
+                  >
+                    <Pencil className="size-3.5" />
+                    <span>{t('edit')}</span>
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab
+                    id="preview"
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium"
+                  >
+                    <Play className="size-3.5" />
+                    <span>{t('preview')}</span>
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
+            </Tabs>
           </div>
         </header>
       )}
@@ -362,351 +457,408 @@ export function CanvasWorkspace({
         </aside>
 
         <div className="relative min-h-0 min-w-0 overflow-hidden">
-          <ContextMenuTrigger onOpenChange={(open) => !open && setMenuState(null)}>
-            <main
-              ref={stageRef}
-              className="flex h-full min-h-0 justify-center overflow-auto py-10 bg-muted/20"
-              style={{
-                backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)',
-                backgroundSize: '16px 16px',
-              }}
-              data-testid="canvas-stage"
-              onContextMenu={(e) => {
-                if (!(e.target as Element).closest('[data-testid="canvas-artboard"]')) {
-                  handleContextMenu(e, null, 'workspace');
-                }
-              }}
-            >
-              <div className="h-fit pb-12">
-                <EditorCanvas
-                  state={state}
-                  dispatch={dispatch}
-                  zoom={zoom}
-                  preview={preview}
-                  replay={replay}
-                  brand={brand}
-                  labels={labels}
-                  newElementName={newElementName}
-                  heightLabel={t('artboardHeight')}
-                  renderStage={renderStage}
-                  prizes={prizes}
-                  onContextMenu={(e, id) => handleContextMenu(e, id, id ? 'element' : 'canvas')}
-                />
+          <main
+            ref={stageRef}
+            className="flex h-full min-h-0 justify-center overflow-auto bg-muted/20 py-10"
+            style={{
+              backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)',
+              backgroundSize: '16px 16px',
+            }}
+            data-testid="canvas-stage"
+            onContextMenu={(e) => {
+              if (!(e.target as Element).closest('[data-testid="canvas-artboard"]')) {
+                handleContextMenu(e, null, 'workspace');
+              }
+            }}
+          >
+            <div className="h-fit pb-12">
+              <EditorCanvas
+                state={state}
+                dispatch={dispatch}
+                zoom={zoom}
+                preview={preview}
+                replay={replay}
+                brand={brand}
+                labels={labels}
+                newElementName={newElementName}
+                heightLabel={t('artboardHeight')}
+                renderStage={renderStage}
+                prizes={prizes}
+                onContextMenu={(e, id) => handleContextMenu(e, id, id ? 'element' : 'canvas')}
+              />
+            </div>
+          </main>
+
+          {menuState && (
+            <>
+              <div
+                aria-hidden="true"
+                className="fixed inset-0 z-40"
+                onClick={() => setMenuState(null)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setMenuState(null);
+                }}
+              />
+              <div
+                role="menu"
+                data-testid="canvas-context-menu"
+                className="fixed z-50 w-56 rounded-2xl border border-border-button-default bg-background-primary-default p-1.5 shadow-dropdown"
+                style={{ left: menuState.x, top: menuState.y }}
+              >
+                {targetElement && targetId ? (
+                  <>
+                    <CtxItem
+                      icon={Copy}
+                      shortcut="⌘D"
+                      isDisabled={isSingleton}
+                      onAction={() =>
+                        runMenuAction(() => dispatch({ type: 'duplicate', id: targetId }))
+                      }
+                    >
+                      {t('context.duplicate')}
+                    </CtxItem>
+                    <CtxItem
+                      icon={targetElement.locked ? Unlock : Lock}
+                      onAction={() =>
+                        runMenuAction(() =>
+                          dispatch({
+                            type: 'update',
+                            id: targetId,
+                            patch: { locked: !targetElement.locked },
+                          }),
+                        )
+                      }
+                    >
+                      {targetElement.locked ? t('context.unlock') : t('context.lock')}
+                    </CtxItem>
+                    <CtxItem
+                      icon={targetElement.hidden ? Eye : EyeOff}
+                      onAction={() =>
+                        runMenuAction(() =>
+                          dispatch({
+                            type: 'update',
+                            id: targetId,
+                            patch: { hidden: !targetElement.hidden },
+                          }),
+                        )
+                      }
+                    >
+                      {targetElement.hidden ? t('context.show') : t('context.hide')}
+                    </CtxItem>
+
+                    <Separator className="my-1" />
+
+                    <CtxSubmenu
+                      label={t('context.layerOrder')}
+                      textValue={t('context.layerOrder')}
+                      icon={Layers}
+                      className="w-48"
+                    >
+                      <CtxItem
+                        icon={ArrowUpToLine}
+                        isDisabled={isLast}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({
+                              type: 'reorder',
+                              id: targetId,
+                              toIndex: screen.elements.length - 1,
+                            }),
+                          )
+                        }
+                      >
+                        {t('context.bringFront')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={ChevronUp}
+                        isDisabled={isLast}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex + 1 }),
+                          )
+                        }
+                      >
+                        {t('context.bringForward')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={ChevronDown}
+                        isDisabled={isFirst}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex - 1 }),
+                          )
+                        }
+                      >
+                        {t('context.sendBackward')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={ArrowDownToLine}
+                        isDisabled={isFirst}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({ type: 'reorder', id: targetId, toIndex: 0 }),
+                          )
+                        }
+                      >
+                        {t('context.sendBack')}
+                      </CtxItem>
+                    </CtxSubmenu>
+
+                    <CtxSubmenu
+                      label={t('context.align')}
+                      textValue={t('context.align')}
+                      icon={AlignCenter}
+                      className="w-48"
+                    >
+                      <CtxItem
+                        icon={AlignHorizontalJustifyCenter}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({
+                              type: 'update',
+                              id: targetId,
+                              patch: { x: Math.round((ARTBOARD_WIDTH - targetElement.w) / 2) },
+                            }),
+                          )
+                        }
+                      >
+                        {t('context.centerH')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={AlignVerticalJustifyCenter}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({
+                              type: 'update',
+                              id: targetId,
+                              patch: { y: Math.round((screen.height - targetElement.h) / 2) },
+                            }),
+                          )
+                        }
+                      >
+                        {t('context.centerV')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={AlignLeft}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({ type: 'update', id: targetId, patch: { x: 16 } }),
+                          )
+                        }
+                      >
+                        {t('context.alignLeft')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={AlignRight}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({
+                              type: 'update',
+                              id: targetId,
+                              patch: { x: ARTBOARD_WIDTH - targetElement.w - 16 },
+                            }),
+                          )
+                        }
+                      >
+                        {t('context.alignRight')}
+                      </CtxItem>
+                      <CtxItem
+                        icon={Maximize2}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({
+                              type: 'update',
+                              id: targetId,
+                              patch: { x: 0, w: ARTBOARD_WIDTH },
+                            }),
+                          )
+                        }
+                      >
+                        {t('context.fullWidth')}
+                      </CtxItem>
+                    </CtxSubmenu>
+
+                    {targetElement.rotation !== 0 && (
+                      <CtxItem
+                        icon={RotateCcw}
+                        onAction={() =>
+                          runMenuAction(() =>
+                            dispatch({ type: 'update', id: targetId, patch: { rotation: 0 } }),
+                          )
+                        }
+                      >
+                        {t('context.resetRotation')}
+                      </CtxItem>
+                    )}
+
+                    <Separator className="my-1" />
+
+                    <CtxItem
+                      variant="danger"
+                      icon={Trash2}
+                      shortcut="Del"
+                      isDisabled={isSingleton}
+                      onAction={() =>
+                        runMenuAction(() => dispatch({ type: 'remove', id: targetId }))
+                      }
+                    >
+                      {t('context.delete')}
+                    </CtxItem>
+                  </>
+                ) : (
+                  <>
+                    <CtxSubmenu
+                      label={t('context.addElement')}
+                      textValue={t('context.addElement')}
+                      icon={Plus}
+                      className="w-52"
+                    >
+                      <CtxSection title={t('toolboxCategories.content')}>
+                        <CtxItem icon={Type} onAction={() => addAtPosition('text')}>
+                          {t('types.text')}
+                        </CtxItem>
+                        <CtxItem icon={ImageIcon} onAction={() => addAtPosition('image')}>
+                          {t('types.image')}
+                        </CtxItem>
+                        <CtxItem icon={Award} onAction={() => addAtPosition('badge')}>
+                          {t('types.badge')}
+                        </CtxItem>
+                        <CtxItem icon={Megaphone} onAction={() => addAtPosition('marquee')}>
+                          {t('types.marquee')}
+                        </CtxItem>
+                      </CtxSection>
+
+                      <Separator className="my-1" />
+                      <CtxSection title={t('toolboxCategories.interactive')}>
+                        <CtxItem icon={MousePointerClick} onAction={() => addAtPosition('button')}>
+                          {t('types.button')}
+                        </CtxItem>
+                        <CtxItem icon={Clock} onAction={() => addAtPosition('countdown')}>
+                          {t('types.countdown')}
+                        </CtxItem>
+                        <CtxItem icon={Gift} onAction={() => addAtPosition('prizeList')}>
+                          {t('types.prizeList')}
+                        </CtxItem>
+                        <CtxItem icon={MessageCircle} onAction={() => addAtPosition('social')}>
+                          {t('types.social')}
+                        </CtxItem>
+                        <CtxItem icon={Volume2} onAction={() => addAtPosition('audio')}>
+                          {t('types.audio')}
+                        </CtxItem>
+                      </CtxSection>
+
+                      <Separator className="my-1" />
+                      <CtxSection title={t('toolboxCategories.decor')}>
+                        <CtxItem icon={Shapes} onAction={() => addAtPosition('shape')}>
+                          {t('types.shape')}
+                        </CtxItem>
+                        <CtxItem icon={Minus} onAction={() => addAtPosition('divider')}>
+                          {t('types.divider')}
+                        </CtxItem>
+                      </CtxSection>
+                    </CtxSubmenu>
+
+                    <Separator className="my-1" />
+
+                    <CtxItem
+                      icon={Undo2}
+                      shortcut="⌘Z"
+                      isDisabled={!state.past.length}
+                      onAction={() => runMenuAction(() => dispatch({ type: 'undo' }))}
+                    >
+                      {t('undo')}
+                    </CtxItem>
+                    <CtxItem
+                      icon={Redo2}
+                      shortcut="⇧⌘Z"
+                      isDisabled={!state.future.length}
+                      onAction={() => runMenuAction(() => dispatch({ type: 'redo' }))}
+                    >
+                      {t('redo')}
+                    </CtxItem>
+
+                    <Separator className="my-1" />
+
+                    <CtxItem icon={Maximize} onAction={() => runMenuAction(() => setAutoFit(true))}>
+                      {t('fit')}
+                    </CtxItem>
+                    <CtxItem
+                      icon={ZoomIn}
+                      onAction={() => runMenuAction(() => setZoomManually(zoom + 0.1))}
+                    >
+                      {t('zoomIn')}
+                    </CtxItem>
+                    <CtxItem
+                      icon={ZoomOut}
+                      onAction={() => runMenuAction(() => setZoomManually(zoom - 0.1))}
+                    >
+                      {t('zoomOut')}
+                    </CtxItem>
+
+                    {selectedElement(state) && (
+                      <>
+                        <Separator className="my-1" />
+                        <CtxItem
+                          icon={X}
+                          onAction={() =>
+                            runMenuAction(() => dispatch({ type: 'select', id: null }))
+                          }
+                        >
+                          {t('context.deselect')}
+                        </CtxItem>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
-            </main>
-
-            <ContextMenu data-testid="canvas-context-menu" className="w-56">
-              {targetElement && targetId ? (
-                <>
-                  <ContextMenuItem
-                    icon={Copy}
-                    shortcut="⌘D"
-                    isDisabled={isSingleton}
-                    onAction={() => dispatch({ type: 'duplicate', id: targetId })}
-                  >
-                    {t('context.duplicate')}
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    icon={targetElement.locked ? Unlock : Lock}
-                    onAction={() =>
-                      dispatch({
-                        type: 'update',
-                        id: targetId,
-                        patch: { locked: !targetElement.locked },
-                      })
-                    }
-                  >
-                    {targetElement.locked ? t('context.unlock') : t('context.lock')}
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    icon={targetElement.hidden ? Eye : EyeOff}
-                    onAction={() =>
-                      dispatch({
-                        type: 'update',
-                        id: targetId,
-                        patch: { hidden: !targetElement.hidden },
-                      })
-                    }
-                  >
-                    {targetElement.hidden ? t('context.show') : t('context.hide')}
-                  </ContextMenuItem>
-
-                  <ContextMenuSeparator />
-
-                  <ContextMenuSubmenu
-                    label={t('context.layerOrder')}
-                    textValue={t('context.layerOrder')}
-                    icon={Layers}
-                    className="w-48"
-                  >
-                    <ContextMenuItem
-                      icon={ArrowUpToLine}
-                      isDisabled={isLast}
-                      onAction={() =>
-                        dispatch({
-                          type: 'reorder',
-                          id: targetId,
-                          toIndex: screen.elements.length - 1,
-                        })
-                      }
-                    >
-                      {t('context.bringFront')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={ChevronUp}
-                      isDisabled={isLast}
-                      onAction={() =>
-                        dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex + 1 })
-                      }
-                    >
-                      {t('context.bringForward')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={ChevronDown}
-                      isDisabled={isFirst}
-                      onAction={() =>
-                        dispatch({ type: 'reorder', id: targetId, toIndex: targetIndex - 1 })
-                      }
-                    >
-                      {t('context.sendBackward')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={ArrowDownToLine}
-                      isDisabled={isFirst}
-                      onAction={() => dispatch({ type: 'reorder', id: targetId, toIndex: 0 })}
-                    >
-                      {t('context.sendBack')}
-                    </ContextMenuItem>
-                  </ContextMenuSubmenu>
-
-                  <ContextMenuSubmenu
-                    label={t('context.align')}
-                    textValue={t('context.align')}
-                    icon={AlignCenter}
-                    className="w-48"
-                  >
-                    <ContextMenuItem
-                      icon={AlignHorizontalJustifyCenter}
-                      onAction={() =>
-                        dispatch({
-                          type: 'update',
-                          id: targetId,
-                          patch: { x: Math.round((ARTBOARD_WIDTH - targetElement.w) / 2) },
-                        })
-                      }
-                    >
-                      {t('context.centerH')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={AlignVerticalJustifyCenter}
-                      onAction={() =>
-                        dispatch({
-                          type: 'update',
-                          id: targetId,
-                          patch: { y: Math.round((screen.height - targetElement.h) / 2) },
-                        })
-                      }
-                    >
-                      {t('context.centerV')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={AlignLeft}
-                      onAction={() => dispatch({ type: 'update', id: targetId, patch: { x: 16 } })}
-                    >
-                      {t('context.alignLeft')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={AlignRight}
-                      onAction={() =>
-                        dispatch({
-                          type: 'update',
-                          id: targetId,
-                          patch: { x: ARTBOARD_WIDTH - targetElement.w - 16 },
-                        })
-                      }
-                    >
-                      {t('context.alignRight')}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      icon={Maximize2}
-                      onAction={() =>
-                        dispatch({
-                          type: 'update',
-                          id: targetId,
-                          patch: { x: 0, w: ARTBOARD_WIDTH },
-                        })
-                      }
-                    >
-                      {t('context.fullWidth')}
-                    </ContextMenuItem>
-                  </ContextMenuSubmenu>
-
-                  {targetElement.rotation !== 0 && (
-                    <ContextMenuItem
-                      icon={RotateCcw}
-                      onAction={() =>
-                        dispatch({ type: 'update', id: targetId, patch: { rotation: 0 } })
-                      }
-                    >
-                      {t('context.resetRotation')}
-                    </ContextMenuItem>
-                  )}
-
-                  <ContextMenuSeparator />
-
-                  <ContextMenuItem
-                    variant="danger"
-                    icon={Trash2}
-                    shortcut="Del"
-                    isDisabled={isSingleton}
-                    onAction={() => dispatch({ type: 'remove', id: targetId })}
-                  >
-                    {t('context.delete')}
-                  </ContextMenuItem>
-                </>
-              ) : (
-                <>
-                  <ContextMenuSubmenu
-                    label={t('context.addElement')}
-                    textValue={t('context.addElement')}
-                    icon={Plus}
-                    className="w-52"
-                  >
-                    <ContextMenuSection title={t('toolboxCategories.content')}>
-                      <ContextMenuItem icon={Type} onAction={() => addAtPosition('text')}>
-                        {t('types.text')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={ImageIcon} onAction={() => addAtPosition('image')}>
-                        {t('types.image')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Award} onAction={() => addAtPosition('badge')}>
-                        {t('types.badge')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Megaphone} onAction={() => addAtPosition('marquee')}>
-                        {t('types.marquee')}
-                      </ContextMenuItem>
-                    </ContextMenuSection>
-
-                    <ContextMenuSeparator />
-                    <ContextMenuSection title={t('toolboxCategories.interactive')}>
-                      <ContextMenuItem
-                        icon={MousePointerClick}
-                        onAction={() => addAtPosition('button')}
-                      >
-                        {t('types.button')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Clock} onAction={() => addAtPosition('countdown')}>
-                        {t('types.countdown')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Gift} onAction={() => addAtPosition('prizeList')}>
-                        {t('types.prizeList')}
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        icon={MessageCircle}
-                        onAction={() => addAtPosition('social')}
-                      >
-                        {t('types.social')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Volume2} onAction={() => addAtPosition('audio')}>
-                        {t('types.audio')}
-                      </ContextMenuItem>
-                    </ContextMenuSection>
-
-                    <ContextMenuSeparator />
-                    <ContextMenuSection title={t('toolboxCategories.decor')}>
-                      <ContextMenuItem icon={Shapes} onAction={() => addAtPosition('shape')}>
-                        {t('types.shape')}
-                      </ContextMenuItem>
-                      <ContextMenuItem icon={Minus} onAction={() => addAtPosition('divider')}>
-                        {t('types.divider')}
-                      </ContextMenuItem>
-                    </ContextMenuSection>
-                  </ContextMenuSubmenu>
-
-                  <ContextMenuSeparator />
-
-                  <ContextMenuItem
-                    icon={Undo2}
-                    shortcut="⌘Z"
-                    isDisabled={!state.past.length}
-                    onAction={() => dispatch({ type: 'undo' })}
-                  >
-                    {t('undo')}
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    icon={Redo2}
-                    shortcut="⇧⌘Z"
-                    isDisabled={!state.future.length}
-                    onAction={() => dispatch({ type: 'redo' })}
-                  >
-                    {t('redo')}
-                  </ContextMenuItem>
-
-                  <ContextMenuSeparator />
-
-                  <ContextMenuItem icon={Maximize} onAction={() => setAutoFit(true)}>
-                    {t('fit')}
-                  </ContextMenuItem>
-                  <ContextMenuItem icon={ZoomIn} onAction={() => setZoomManually(zoom + 0.1)}>
-                    {t('zoomIn')}
-                  </ContextMenuItem>
-                  <ContextMenuItem icon={ZoomOut} onAction={() => setZoomManually(zoom - 0.1)}>
-                    {t('zoomOut')}
-                  </ContextMenuItem>
-
-                  {selectedElement(state) && (
-                    <>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        icon={X}
-                        onAction={() => dispatch({ type: 'select', id: null })}
-                      >
-                        {t('context.deselect')}
-                      </ContextMenuItem>
-                    </>
-                  )}
-                </>
-              )}
-            </ContextMenu>
-          </ContextMenuTrigger>
+            </>
+          )}
 
           {hideHeader && (
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border bg-background/80 backdrop-blur-md pointer-events-auto shrink-0">
-              <TooltipTrigger>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  aria-label={t('undo')}
-                  disabled={!state.past.length}
-                  onClick={() => dispatch({ type: 'undo' })}
-                  className="size-7 rounded-full p-0"
-                >
-                  <Undo2 className="size-3.5" />
-                </Button>
-                <Tooltip>{`${t('undo')} (⌘Z)`}</Tooltip>
-              </TooltipTrigger>
-              <TooltipTrigger>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  aria-label={t('redo')}
-                  disabled={!state.future.length}
-                  onClick={() => dispatch({ type: 'redo' })}
-                  className="size-7 rounded-full p-0"
-                >
-                  <Redo2 className="size-3.5" />
-                </Button>
-                <Tooltip>{`${t('redo')} (⇧⌘Z)`}</Tooltip>
-              </TooltipTrigger>
-              <span className="h-3 w-px bg-border mx-0.5" />
+            <div className="pointer-events-auto absolute bottom-5 left-1/2 z-30 flex shrink-0 -translate-x-1/2 items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 shadow-lg backdrop-blur-md">
+              <Tooltip delay={150}>
+                <Tooltip.Trigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    aria-label={t('undo')}
+                    isDisabled={!state.past.length}
+                    onPress={() => dispatch({ type: 'undo' })}
+                    className="size-7 rounded-full p-0"
+                  >
+                    <Undo2 className="size-3.5" />
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>{`${t('undo')} (⌘Z)`}</Tooltip.Content>
+              </Tooltip>
+              <Tooltip delay={150}>
+                <Tooltip.Trigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    aria-label={t('redo')}
+                    isDisabled={!state.future.length}
+                    onPress={() => dispatch({ type: 'redo' })}
+                    className="size-7 rounded-full p-0"
+                  >
+                    <Redo2 className="size-3.5" />
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>{`${t('redo')} (⇧⌘Z)`}</Tooltip.Content>
+              </Tooltip>
+              <Separator orientation="vertical" className="mx-0.5 h-3" />
               <Button
                 type="button"
                 variant="ghost"
-                size="xs"
+                size="sm"
+                isIconOnly
                 aria-label={t('zoomOut')}
-                onClick={() => setZoomManually(zoom - 0.1)}
+                onPress={() => setZoomManually(zoom - 0.1)}
                 className="size-7 rounded-full p-0"
               >
                 <Minus className="size-3.5" />
@@ -717,53 +869,64 @@ export function CanvasWorkspace({
               <Button
                 type="button"
                 variant="ghost"
-                size="xs"
+                size="sm"
+                isIconOnly
                 aria-label={t('zoomIn')}
-                onClick={() => setZoomManually(zoom + 0.1)}
+                onPress={() => setZoomManually(zoom + 0.1)}
                 className="size-7 rounded-full p-0"
               >
                 <Plus className="size-3.5" />
               </Button>
-              <TooltipTrigger>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  aria-label={t('fit')}
-                  onClick={() => setAutoFit(true)}
-                  className="size-7 rounded-full p-0"
-                >
-                  <Maximize className="size-3.5" />
-                </Button>
-                <Tooltip>{t('fit')}</Tooltip>
-              </TooltipTrigger>
-              <span className="h-3 w-px bg-border mx-0.5" />
-              <div className="inline-flex rounded-full border bg-muted/50 p-0.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setPreview(false)}
-                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                    !preview ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Pencil className="size-3" />
-                  <span>{t('edit')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
+              <Tooltip delay={150}>
+                <Tooltip.Trigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    aria-label={t('fit')}
+                    onPress={() => setAutoFit(true)}
+                    className="size-7 rounded-full p-0"
+                  >
+                    <Maximize className="size-3.5" />
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>{t('fit')}</Tooltip.Content>
+              </Tooltip>
+              <Separator orientation="vertical" className="mx-0.5 h-3" />
+              <Tabs
+                selectedKey={preview ? 'preview' : 'edit'}
+                onSelectionChange={(key) => {
+                  if (key === 'preview') {
                     setPreview(true);
                     setReplay((n) => n + 1);
                     dispatch({ type: 'select', id: null });
-                  }}
-                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                    preview ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Play className="size-3" />
-                  <span>{t('preview')}</span>
-                </button>
-              </div>
+                  } else {
+                    setPreview(false);
+                  }
+                }}
+              >
+                <Tabs.ListContainer>
+                  <Tabs.List aria-label={t('edit')}>
+                    <Tabs.Tab
+                      id="edit"
+                      className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium"
+                    >
+                      <Pencil className="size-3" />
+                      <span>{t('edit')}</span>
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab
+                      id="preview"
+                      className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium"
+                    >
+                      <Play className="size-3" />
+                      <span>{t('preview')}</span>
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  </Tabs.List>
+                </Tabs.ListContainer>
+              </Tabs>
             </div>
           )}
         </div>

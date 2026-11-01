@@ -7,8 +7,7 @@ import {
   CreateBrandKitBody,
   type ErrorCode,
 } from '@playora/contracts';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import { Skeleton, toast } from '@playora/ui/components';
 import { applyApiErrorToRHF } from '@playora/ui/form';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';

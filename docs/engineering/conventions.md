@@ -22,7 +22,7 @@ packages/
   core/         logic thuần, không I/O: prize engine, pacing, hạn mức gói (billing), thể lệ (compliance), PII, provably-fair (bốc thăm cuối chương trình)
   game-sdk/     interface template game (instant / skill)
   templates/    registry template (client + ./server)
-  ui/           design system: shadcn/ui luma components, tokens, theme, providers, form, auto-form, game/campaign surface, ./styles.css
+  ui/           design system: HeroUI v3 components (@heroui/react + @heroui/styles), tokens, theme, providers, form, auto-form, game/campaign surface, ./styles.css
   i18n/         messages vi/en (vi là chuẩn)
   env/          zod schema env theo app
   tsconfig/     base, library, nestjs, nextjs
@@ -158,10 +158,10 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 |---|---|
 | Xác thực | `src/proxy.ts` chặn khi không có cookie phiên (kiểm tra lạc quan). `(app)/layout.tsx` gọi `/me/orgs`; 401 thì chuyển về `/login` |
 | Data | Client component: `useRouteQuery` / `useRouteMutation` với `api` (`src/lib/api.ts`). Server component: `await serverApi()` (chuyển tiếp cookie) |
-| Form | `react-hook-form` + `useZodForm(<schema từ contracts>)` + shadcn `Form` (`@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
-| UI | Dùng component shadcn/ui style `luma` từ `@playora/ui/components` và helper từ `@playora/ui/{providers,theme,form,game}`; Tailwind CSS v4 cho layout và token; không hard-code màu. Xem [design-system.md](./design-system.md) và [ADR-016](../adr/016-shadcn-luma-ui.md) |
+| Form | `react-hook-form` + `useZodForm(<schema từ contracts>)` + HeroUI v3 inputs (`@playora/ui/components`, `@playora/ui/form`); `applyApiError(form, err, messageFor)` gắn lỗi server vào field |
+| UI | Dùng component HeroUI v3 từ `@playora/ui/components` (`@heroui/react`) và helper từ `@playora/ui/{providers,theme,form,game}`; Tailwind CSS v4 cho layout và token; không hard-code màu. Xem [design-system.md](./design-system.md) và [ADR-018](../adr/018-heroui-v3-design-system.md) |
 | i18n | next-intl, locale lấy từ cookie `playora_locale` (mặc định `vi`); key có type sinh từ `vi.json` |
-| Thông báo | `toast.success(...)` / `toast.error(...)` từ `sonner` (mount `<Toaster />` ở root `layout.tsx`) |
+| Thông báo | `toast.success(...)` / `toast.error(...)` từ `@playora/ui/components` (mount `<Toaster />` / `Toast.Provider` trong `UiProvider`) |
 | Route có type | `typedRoutes: true`; link động cần `as Route` |
 
 ### 6.2 Play (Player / Kiosk)
@@ -175,13 +175,12 @@ helmet → CORS → [/auth/* → Better Auth] → express.json
 Import trực tiếp từ `@playora/ui/components` và `@playora/ui/form`:
 
 ```tsx
-import { Button, Dialog, Input } from '@playora/ui/components';
-import { applyApiError, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useZodForm } from '@playora/ui/form';
-import { toast } from 'sonner';
+import { Button, Input, Modal, toast } from '@playora/ui/components';
+import { applyApiError, useZodForm } from '@playora/ui/form';
 ```
 
 - Dùng `StudioProvider` (Studio) hoặc `PlayProvider` / `GameRoot` (Play) ở root `layout.tsx`.
-- Giữ đúng thẩm mỹ `luma` ([ADR-016](../adr/016-shadcn-luma-ui.md)): nút pill (`rounded-full`), thẻ bo mềm (`rounded-2xl`), xác nhận hành động xoá qua `AlertDialog`.
+- Giữ đúng thẩm mỹ HeroUI v3 ([ADR-018](../adr/018-heroui-v3-design-system.md)): control bo góc `rounded-2lg`, thẻ/modal bo mềm (`rounded-3xl`), xác nhận hành động xoá qua `AlertDialog`.
 
 ### 6.4 Cấu trúc thư mục frontend
 

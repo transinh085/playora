@@ -1,18 +1,17 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
 import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  Input,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+  ProgressBar,
+  QRCodeSvg,
+  Skeleton,
+  toast,
+} from '@playora/ui/components';
 import {
   AlertTriangle,
   Copy,
@@ -184,13 +183,15 @@ export function CampaignShareView({
           extra={
             isDraft ? (
               <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-                <Button variant="secondary" size="small" leadingIcon={Play}>
+                <Button variant="secondary" size="sm">
+                  <Play className="size-4" />
                   {tc('rehearse')}
                 </Button>
               </a>
             ) : (
               <a href={routes.play(campaign.slug)} target="_blank" rel="noreferrer">
-                <Button size="small" leadingIcon={ExternalLink}>
+                <Button size="sm">
+                  <ExternalLink className="size-4" />
                   {tc('openPlay')}
                 </Button>
               </a>
@@ -200,39 +201,46 @@ export function CampaignShareView({
       )}
 
       {isDraft && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
+        <Alert
+          status="warning"
+          className="items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200"
         >
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Alert.Indicator className="mt-0.5 text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="size-4 shrink-0" />
+          </Alert.Indicator>
+          <Alert.Content className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-body-2-semibold">{t('draftNotice')}</div>
-              <div className="mt-0.5 text-caption-1-regular text-amber-800/90 dark:text-amber-300/80">
+              <Alert.Title className="text-body-2-semibold">{t('draftNotice')}</Alert.Title>
+              <Alert.Description className="mt-0.5 text-caption-1-regular text-amber-800/90 dark:text-amber-300/80">
                 {t('draft')}
-              </div>
+              </Alert.Description>
             </div>
             <a href={routes.rehearsal(campaign.id)} target="_blank" rel="noreferrer">
-              <Button variant="secondary" size="small" className="shrink-0">
+              <Button variant="secondary" size="sm" className="shrink-0">
                 {tc('rehearse')}
               </Button>
             </a>
-          </div>
-        </div>
+          </Alert.Content>
+        </Alert>
       )}
 
       {/* Preset and Custom Channels */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-        <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-4">
+      <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-4">
           <div>
-            <h3 className="m-0 text-body-medium text-text-primary">{t('channels.title')}</h3>
-            <Caption className="block">{t('channels.hint')}</Caption>
+            <Card.Title className="m-0 text-body-medium text-text-primary">
+              {t('channels.title')}
+            </Card.Title>
+            <Card.Description className="text-caption-1-regular text-text-secondary">
+              {t('channels.hint')}
+            </Card.Description>
           </div>
-          <Button size="small" leadingIcon={Plus} onClick={() => setIsAddModalOpen(true)}>
+          <Button size="sm" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="size-4" />
             {t('channels.add')}
           </Button>
-        </div>
-        <div className="p-5">
+        </Card.Header>
+        <Card.Content className="p-5">
           <div className="grid gap-4 md:grid-cols-2">
             {allChannels.map((channel) => (
               <ChannelCard
@@ -246,15 +254,15 @@ export function CampaignShareView({
               />
             ))}
           </div>
-        </div>
-      </div>
+        </Card.Content>
+      </Card>
 
       {/* Counter Staff Card */}
-      <div
-        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+      <Card
+        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
         data-testid="invite-counter-staff"
       >
-        <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+        <Card.Content className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div className="flex items-start gap-3.5">
             <IconTile tone="success" size={40}>
               <Users className="size-4" />
@@ -265,106 +273,132 @@ export function CampaignShareView({
             </div>
           </div>
           <Link href={`/orgs/${orgId}/settings` as Route}>
-            <Button variant="secondary" size="small" leadingIcon={ExternalLink}>
+            <Button variant="secondary" size="sm">
+              <ExternalLink className="size-4" />
               {t('counterStaff.action')}
             </Button>
           </Link>
-        </div>
-      </div>
+        </Card.Content>
+      </Card>
 
       {/* Traffic by Channel Visual List (replaces table) */}
-      <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
-        <div className="border-b border-separator-border px-5 py-4">
-          <h3 className="m-0 text-body-medium text-text-primary">{t('report.title')}</h3>
-          <Caption className="block">{t('report.description')}</Caption>
-        </div>
-        <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
-          {reportTableData.map((row) => {
-            const sharePercent = row.plays > 0 ? Math.round((row.plays / maxPlays) * 100) : 0;
-            return (
-              <li key={row.key} className="flex flex-col gap-2.5 px-5 py-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-body-2-semibold text-text-primary">{row.name}</span>
-                    <Chip variant="caption" color="neutral" className="font-mono">
-                      ?ch={row.key}
-                    </Chip>
+      <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <Card.Header className="border-b border-separator-border px-5 py-4">
+          <Card.Title className="m-0 text-body-medium text-text-primary">
+            {t('report.title')}
+          </Card.Title>
+          <Card.Description className="text-caption-1-regular text-text-secondary">
+            {t('report.description')}
+          </Card.Description>
+        </Card.Header>
+        <Card.Content className="p-0">
+          <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
+            {reportTableData.map((row) => {
+              const sharePercent = row.plays > 0 ? Math.round((row.plays / maxPlays) * 100) : 0;
+              return (
+                <li key={row.key} className="flex flex-col gap-2.5 px-5 py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-body-2-semibold text-text-primary">{row.name}</span>
+                      <Chip variant="soft" color="default" size="sm" className="font-mono">
+                        ?ch={row.key}
+                      </Chip>
+                    </div>
+                    <div className="flex items-center gap-4 text-caption-1-regular text-text-secondary">
+                      <span>
+                        {t('report.plays')}:{' '}
+                        <strong className="font-medium tabular-nums text-text-primary">
+                          {format.number(row.plays)}
+                        </strong>
+                      </span>
+                      <span>
+                        {t('report.wins')}:{' '}
+                        <strong className="font-medium tabular-nums text-text-primary">
+                          {format.number(row.wins)}
+                        </strong>
+                      </span>
+                      <span>
+                        {t('report.visits')}:{' '}
+                        <strong className="font-semibold tabular-nums text-teal-600 dark:text-teal-400">
+                          {format.number(row.visits)}
+                        </strong>
+                      </span>
+                      <Chip variant="soft" color={row.visits > 0 ? 'success' : 'default'}>
+                        {t('report.redemptionRate')}: {row.rate}
+                      </Chip>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-caption-1-regular text-text-secondary">
-                    <span>
-                      {t('report.plays')}:{' '}
-                      <strong className="font-medium tabular-nums text-text-primary">
-                        {format.number(row.plays)}
-                      </strong>
-                    </span>
-                    <span>
-                      {t('report.wins')}:{' '}
-                      <strong className="font-medium tabular-nums text-text-primary">
-                        {format.number(row.wins)}
-                      </strong>
-                    </span>
-                    <span>
-                      {t('report.visits')}:{' '}
-                      <strong className="font-semibold tabular-nums text-teal-600 dark:text-teal-400">
-                        {format.number(row.visits)}
-                      </strong>
-                    </span>
-                    <Chip variant="subtle" color={row.visits > 0 ? 'lime' : 'neutral'}>
-                      {t('report.redemptionRate')}: {row.rate}
-                    </Chip>
-                  </div>
-                </div>
-                <ProgressBar value={sharePercent} size="sm" aria-label={row.name} />
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                  <ProgressBar value={sharePercent} size="sm" aria-label={row.name}>
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
+                </li>
+              );
+            })}
+          </ul>
+        </Card.Content>
+      </Card>
 
       {/* Add Custom Channel Modal */}
-      <Modal isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen} size="md">
-        <ModalHeader title={t('channels.addTitle')} />
-        <ModalBody className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <span className="text-body-2-medium text-text-primary">
-              {t('channels.channelName')}
-            </span>
-            <InputBase
-              placeholder={t('channels.channelNamePlaceholder')}
-              value={newChannelName}
-              onChange={(e) => {
-                setNewChannelName(e.target.value);
-                setNewChannelKey(slugifyChannelKey(e.target.value));
-              }}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <span className="text-body-2-medium text-text-primary">{t('channels.channelKey')}</span>
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono text-caption-1-regular text-text-secondary">?ch=</span>
-              <InputBase
-                value={newChannelKey}
-                onChange={(e) =>
-                  setNewChannelKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
-                }
-                fieldClassName="font-mono"
-              />
-            </div>
-            <Caption>{t('channels.channelKeyHint')}</Caption>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="secondary" size="small" onClick={() => setIsAddModalOpen(false)}>
-            {tCommon('cancel')}
-          </Button>
-          <Button
-            size="small"
-            disabled={!newChannelName.trim() || !newChannelKey.trim()}
-            onClick={handleAddChannel}
-          >
-            {t('channels.add')}
-          </Button>
-        </ModalFooter>
+      <Modal isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <Modal.Backdrop isDismissable>
+          <Modal.Container size="md">
+            <Modal.Dialog>
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading>{t('channels.addTitle')}</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <span className="text-body-2-medium text-text-primary">
+                    {t('channels.channelName')}
+                  </span>
+                  <Input
+                    placeholder={t('channels.channelNamePlaceholder')}
+                    value={newChannelName}
+                    fullWidth
+                    onChange={(e) => {
+                      setNewChannelName(e.target.value);
+                      setNewChannelKey(slugifyChannelKey(e.target.value));
+                    }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-body-2-medium text-text-primary">
+                    {t('channels.channelKey')}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-caption-1-regular text-text-secondary">
+                      ?ch=
+                    </span>
+                    <Input
+                      value={newChannelKey}
+                      onChange={(e) =>
+                        setNewChannelKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
+                      }
+                      fullWidth
+                      className="font-mono"
+                    />
+                  </div>
+                  <Caption>{t('channels.channelKeyHint')}</Caption>
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" size="sm" onClick={() => setIsAddModalOpen(false)}>
+                  {tCommon('cancel')}
+                </Button>
+                <Button
+                  size="sm"
+                  isDisabled={!newChannelName.trim() || !newChannelKey.trim()}
+                  onClick={handleAddChannel}
+                >
+                  {t('channels.add')}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );
@@ -400,16 +434,17 @@ function ChannelCard({
   };
 
   return (
-    <div
+    <Card
+      variant="secondary"
       className="rounded-3xl border border-border-button-default bg-background-secondary-default/40 p-4 transition-colors hover:bg-background-secondary-default/70"
       data-testid={`share-channel-${channel.key}`}
     >
-      <div className="space-y-3">
+      <Card.Content className="space-y-3 p-0">
         {/* Channel Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-body-2-semibold text-text-primary">{channel.name}</span>
-            <Chip variant="caption" color="neutral" className="font-mono">
+            <Chip variant="soft" color="default" size="sm" className="font-mono">
               ch={channel.key}
             </Chip>
           </div>
@@ -417,30 +452,44 @@ function ChannelCard({
             <>
               <Button
                 variant="ghost"
-                size="small"
+                size="sm"
+                isIconOnly
                 aria-label={tc('settings.delete')}
                 className="size-7 p-0 text-text-error-primary hover:bg-notification-error-background"
                 onClick={() => setIsDeleteOpen(true)}
               >
                 <Trash2 className="size-3.5" />
               </Button>
-              <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen} size="sm">
-                <ModalHeader title={t('channels.deleteConfirm')} />
-                <ModalFooter>
-                  <Button variant="secondary" size="small" onClick={() => setIsDeleteOpen(false)}>
-                    {tCommon('cancel')}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="small"
-                    onClick={() => {
-                      onDelete();
-                      setIsDeleteOpen(false);
-                    }}
-                  >
-                    {tc('settings.delete')}
-                  </Button>
-                </ModalFooter>
+              <Modal isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <Modal.Backdrop isDismissable>
+                  <Modal.Container size="sm">
+                    <Modal.Dialog>
+                      <Modal.CloseTrigger />
+                      <Modal.Header>
+                        <Modal.Heading>{t('channels.deleteConfirm')}</Modal.Heading>
+                      </Modal.Header>
+                      <Modal.Footer>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setIsDeleteOpen(false)}
+                        >
+                          {tCommon('cancel')}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => {
+                            onDelete();
+                            setIsDeleteOpen(false);
+                          }}
+                        >
+                          {tc('settings.delete')}
+                        </Button>
+                      </Modal.Footer>
+                    </Modal.Dialog>
+                  </Modal.Container>
+                </Modal.Backdrop>
               </Modal>
             </>
           )}
@@ -448,20 +497,14 @@ function ChannelCard({
 
         {/* Link and Copy */}
         <div className="flex items-center gap-2">
-          <InputBase
+          <Input
             value={playerLink}
             readOnly
-            size="small"
-            fieldClassName="min-w-0 flex-1 font-mono"
+            className="min-w-0 flex-1 font-mono"
             data-testid={`channel-link-${channel.key}`}
           />
-          <Button
-            variant="secondary"
-            size="small"
-            leadingIcon={Copy}
-            className="shrink-0"
-            onClick={copyLink}
-          >
+          <Button variant="secondary" size="sm" className="shrink-0" onClick={copyLink}>
+            <Copy className="size-4" />
             {t('links.copy')}
           </Button>
         </div>
@@ -479,8 +522,7 @@ function ChannelCard({
             <div className="flex flex-wrap gap-1.5">
               <Button
                 variant="secondary"
-                size="xs"
-                leadingIcon={Download}
+                size="sm"
                 onClick={() =>
                   downloadCanvasQRCode(
                     qrContainerRef.current,
@@ -488,12 +530,12 @@ function ChannelCard({
                   )
                 }
               >
+                <Download className="size-3.5" />
                 {t('links.downloadPng')}
               </Button>
               <Button
                 variant="secondary"
-                size="xs"
-                leadingIcon={Download}
+                size="sm"
                 onClick={() =>
                   downloadSvgQRCode(
                     qrContainerRef.current,
@@ -501,6 +543,7 @@ function ChannelCard({
                   )
                 }
               >
+                <Download className="size-3.5" />
                 {t('links.downloadSvg')}
               </Button>
             </div>
@@ -514,12 +557,8 @@ function ChannelCard({
                 target="_blank"
                 rel="noreferrer"
               >
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  leadingIcon={Printer}
-                  data-testid={`print-standee-${channel.key}`}
-                >
+                <Button variant="secondary" size="sm" data-testid={`print-standee-${channel.key}`}>
+                  <Printer className="size-3.5" />
                   {t('links.printStandee')}
                 </Button>
               </a>
@@ -531,19 +570,15 @@ function ChannelCard({
                 target="_blank"
                 rel="noreferrer"
               >
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  leadingIcon={Printer}
-                  data-testid={`print-tent-${channel.key}`}
-                >
+                <Button variant="secondary" size="sm" data-testid={`print-tent-${channel.key}`}>
+                  <Printer className="size-3.5" />
                   {t('links.printTent')}
                 </Button>
               </a>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

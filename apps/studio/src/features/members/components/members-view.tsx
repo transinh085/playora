@@ -1,9 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { AlertDialog, ModalTrigger } from '@playora/ui/components/base/modal/modal';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import { AlertDialog, Button, Skeleton, toast } from '@playora/ui/components';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -150,18 +147,30 @@ export function MembersView({ orgId }: { orgId: string }) {
         extra={
           <>
             {canLeave && (
-              <ModalTrigger>
-                <Button variant="secondary" size="small" disabled={busyId === 'leave'}>
+              <AlertDialog>
+                <Button variant="secondary" size="sm" isDisabled={busyId === 'leave'}>
                   {t('members.leave')}
                 </Button>
-                <AlertDialog
-                  title={t('members.leaveConfirm')}
-                  variant="danger"
-                  confirmLabel={t('members.leave')}
-                  cancelLabel={t('common.cancel')}
-                  onConfirm={onLeaveOrg}
-                />
-              </ModalTrigger>
+                <AlertDialog.Backdrop isDismissable>
+                  <AlertDialog.Container size="sm">
+                    <AlertDialog.Dialog>
+                      <AlertDialog.CloseTrigger />
+                      <AlertDialog.Header>
+                        <AlertDialog.Icon status="danger" />
+                        <AlertDialog.Heading>{t('members.leaveConfirm')}</AlertDialog.Heading>
+                      </AlertDialog.Header>
+                      <AlertDialog.Footer>
+                        <Button slot="close" variant="secondary" size="sm">
+                          {t('common.cancel')}
+                        </Button>
+                        <Button slot="close" variant="danger" size="sm" onPress={onLeaveOrg}>
+                          {t('members.leave')}
+                        </Button>
+                      </AlertDialog.Footer>
+                    </AlertDialog.Dialog>
+                  </AlertDialog.Container>
+                </AlertDialog.Backdrop>
+              </AlertDialog>
             )}
             {canManage && <InviteMemberDialog orgId={orgId} assignableRoles={assignableRoles} />}
           </>

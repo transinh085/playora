@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Card, Skeleton, Tooltip } from '@playora/ui/components';
 import { CircleHelp } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import type React from 'react';
@@ -17,7 +17,7 @@ export interface MetricCardItem {
   testId?: string;
 }
 
-/** One headline number with its label and a tinted icon tile. BoardUI rounded cards with soft elevation. */
+/** One headline number with its label and a tinted icon tile, rendered with HeroUI v3 Card & Tooltip. */
 export function MetricCard({
   label,
   value,
@@ -31,7 +31,7 @@ export function MetricCard({
 }: MetricCardItem & { loading?: boolean }) {
   if (loading) {
     return (
-      <div className="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+      <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-24" />
@@ -39,31 +39,31 @@ export function MetricCard({
           </div>
           <Skeleton className="size-9 rounded-xl" />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div
+    <Card
       data-testid={testId}
       data-highlighted={highlighted ? 'true' : undefined}
       className={cx(
-        'flex flex-col justify-between gap-3 rounded-3xl border bg-background-primary-default p-5 shadow-card transition-colors',
-        highlighted
-          ? 'border-accent-500/60 ring-1 ring-accent-500/20'
-          : 'border-border-button-default',
+        'flex flex-col justify-between gap-3 p-5 transition-colors',
+        highlighted && 'border-accent-500/60 ring-1 ring-accent-500/20',
       )}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-body-medium text-text-secondary">{label}</span>
           {tooltip && (
-            <span
-              className="cursor-help text-foreground-icon-tertiary hover:text-text-primary"
-              title={typeof tooltip === 'string' ? tooltip : undefined}
-            >
-              <CircleHelp className="size-3.5" />
-            </span>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger aria-label={typeof tooltip === 'string' ? tooltip : label}>
+                <span className="cursor-help text-foreground-icon-tertiary hover:text-text-primary">
+                  <CircleHelp className="size-3.5" />
+                </span>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{tooltip}</Tooltip.Content>
+            </Tooltip>
           )}
         </div>
         <IconTile tone={tone}>{icon}</IconTile>
@@ -71,15 +71,17 @@ export function MetricCard({
       <div className="flex items-center gap-3">
         <p
           className={cx(
-            'text-title-1-semibold tabular-nums',
+            'm-0 text-title-1-semibold tabular-nums',
             highlighted ? 'text-accent-600' : 'text-text-primary',
           )}
         >
           {value}
         </p>
       </div>
-      {subtext && <p className="line-clamp-2 text-body-2-regular text-text-secondary">{subtext}</p>}
-    </div>
+      {subtext && (
+        <p className="m-0 line-clamp-2 text-body-2-regular text-text-secondary">{subtext}</p>
+      )}
+    </Card>
   );
 }
 

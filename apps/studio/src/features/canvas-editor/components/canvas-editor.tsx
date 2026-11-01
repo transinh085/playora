@@ -1,10 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { AlertDialog } from '@playora/ui/components/base/modal/modal';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { AlertDialog, Button, Chip, Separator, Tooltip, toast } from '@playora/ui/components';
 import { ArrowLeft, Braces, RotateCcw } from '@playora/ui/icons';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -56,72 +52,100 @@ export function CanvasEditor({ orgId }: { orgId: string }) {
         brand={DEMO_BRAND}
         toolbarStart={
           <div className="flex items-center gap-2">
-            <TooltipTrigger>
-              <Link
-                href={`/orgs/${orgId}/campaigns` as Route}
-                aria-label={t('back')}
-                className="inline-flex size-8 items-center justify-center rounded-full text-button-ghost-foreground hover:bg-button-ghost-hover"
-              >
-                <ArrowLeft className="size-4" />
-              </Link>
-              <Tooltip>{t('back')}</Tooltip>
-            </TooltipTrigger>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Link
+                  href={`/orgs/${orgId}/campaigns` as Route}
+                  aria-label={t('back')}
+                  className="inline-flex size-8 items-center justify-center rounded-full text-button-ghost-foreground hover:bg-button-ghost-hover"
+                >
+                  <ArrowLeft className="size-4" />
+                </Link>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('back')}</Tooltip.Content>
+            </Tooltip>
             <LogoMark className="size-7" aria-hidden />
             <span className="font-semibold text-sm whitespace-nowrap">{t('title')}</span>
-            <Chip variant="caption" color="yellow">
+            <Chip variant="soft" color="warning" size="sm">
               {t('badge')}
             </Chip>
-            <div className="h-5 w-px bg-separator-border" aria-hidden="true" />
+            <Separator orientation="vertical" className="h-5" />
           </div>
         }
         toolbarEnd={
           <div className="flex items-center gap-1">
-            <TooltipTrigger>
-              <Button
-                type="button"
-                variant="ghost"
-                size="small"
-                className="size-8 rounded-full p-0"
-                aria-label={t('reset')}
-                onClick={() => setConfirmResetOpen(true)}
-              >
-                <RotateCcw className="size-4" />
-              </Button>
-              <Tooltip>{t('reset')}</Tooltip>
-            </TooltipTrigger>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  className="size-8 rounded-full"
+                  aria-label={t('reset')}
+                  onPress={() => setConfirmResetOpen(true)}
+                >
+                  <RotateCcw className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('reset')}</Tooltip.Content>
+            </Tooltip>
 
-            <TooltipTrigger>
-              <Button
-                type="button"
-                variant="ghost"
-                size="small"
-                className="size-8 rounded-full p-0"
-                aria-label={t('copyJson')}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(JSON.stringify(doc, null, 2));
-                  toast.success(t('copied'));
-                }}
-              >
-                <Braces className="size-4" />
-              </Button>
-              <Tooltip>{t('copyJson')}</Tooltip>
-            </TooltipTrigger>
+            <Tooltip delay={150}>
+              <Tooltip.Trigger>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  className="size-8 rounded-full"
+                  aria-label={t('copyJson')}
+                  onPress={async () => {
+                    await navigator.clipboard.writeText(JSON.stringify(doc, null, 2));
+                    toast.success(t('copied'));
+                  }}
+                >
+                  <Braces className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>{t('copyJson')}</Tooltip.Content>
+            </Tooltip>
           </div>
         }
       />
 
-      <AlertDialog
-        isOpen={confirmResetOpen}
-        onOpenChange={setConfirmResetOpen}
-        title={t('reset')}
-        description={t('resetConfirm')}
-        cancelLabel="Hủy"
-        confirmLabel="Đồng ý"
-        onConfirm={() => {
-          setDoc(createDemoDoc());
-          setConfirmResetOpen(false);
-        }}
-      />
+      <AlertDialog isOpen={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialog.Backdrop isDismissable>
+          <AlertDialog.Container size="sm">
+            <AlertDialog.Dialog>
+              <AlertDialog.CloseTrigger />
+              <AlertDialog.Header>
+                <AlertDialog.Icon status="danger" />
+                <AlertDialog.Heading>{t('reset')}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                <p className="text-body-2-regular text-text-secondary">{t('resetConfirm')}</p>
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <Button slot="close" variant="secondary" size="sm">
+                  Hủy
+                </Button>
+                <Button
+                  slot="close"
+                  variant="danger"
+                  size="sm"
+                  onPress={() => {
+                    setDoc(createDemoDoc());
+                    setConfirmResetOpen(false);
+                  }}
+                >
+                  Đồng ý
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
+      </AlertDialog>
     </div>
   );
 }

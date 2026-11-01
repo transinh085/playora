@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@heroui/react';
 import { cx } from '@playora/ui/utils/cx';
 import * as React from 'react';
 import type { AssetSlot, AutoFormProps, FieldDescriptor, Locale } from './types';
@@ -45,7 +45,7 @@ function renderFieldLabel(field: FieldDescriptor, label: string, locale: Locale)
     <span className="inline-flex items-center gap-2">
       <span>{label}</span>
       {field.hotEditable && (
-        <Chip variant="caption" color="neutral">
+        <Chip variant="soft" color="default" size="sm">
           {locale === 'en' ? 'Hot-editable' : 'Sửa nhanh'}
         </Chip>
       )}
@@ -80,9 +80,9 @@ function AutoFormField(props: FieldRendererProps) {
         data-slot="autoform-object"
         data-widget="object"
         data-field-path={path}
-        className="rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card"
+        className="rounded-3xl border border-border bg-surface p-4 shadow-surface"
       >
-        <div className="text-body-semibold text-text-primary mb-3">
+        <div className="mb-3 text-body-semibold text-foreground">
           {renderFieldLabel(field, label, locale)}
         </div>
         <div className="grid gap-3">
@@ -131,7 +131,7 @@ function AutoFormField(props: FieldRendererProps) {
         role="alert"
         data-widget-fallback={String(field.widget)}
         data-widget-unsupported={String(field.widget)}
-        className="rounded-2xl border border-border-button-default bg-background-secondary-default px-4 py-3 text-body-medium text-text-primary"
+        className="rounded-2xl border border-border bg-surface-secondary px-4 py-3 text-body-medium text-foreground"
       >
         {msg}
       </div>
@@ -214,23 +214,19 @@ function AutoFormField(props: FieldRendererProps) {
       <div className="flex items-center justify-between">
         <label
           htmlFor={id}
-          className="text-body-medium text-text-primary leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-body-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           {renderFieldLabel(field, label, locale)}
-          {field.required && <span className="text-text-error-primary ml-1">*</span>}
+          {field.required && <span className="ml-1 text-danger">*</span>}
         </label>
       </div>
       {control}
       {errorMsg ? (
-        <span
-          role="alert"
-          data-slot="field-error"
-          className="text-caption-1-regular text-text-error-primary"
-        >
+        <span role="alert" data-slot="field-error" className="text-caption-1-regular text-danger">
           {errorMsg}
         </span>
       ) : description ? (
-        <span className="text-caption-1-regular text-text-tertiary">{description}</span>
+        <span className="text-caption-1-regular text-muted">{description}</span>
       ) : null}
     </div>
   );
@@ -319,17 +315,13 @@ export function AutoForm(props: AutoFormProps) {
                 open
                 data-slot="autoform-group"
                 data-group={grp}
-                className="group rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-card transition-all"
+                className="group rounded-3xl border border-border bg-surface p-4 shadow-surface transition-all"
               >
-                <summary className="flex cursor-pointer items-center justify-between text-headline-semibold text-text-primary select-none list-none [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-headline-semibold text-foreground select-none [&::-webkit-details-marker]:hidden">
                   <span>{groupLabelFor(grp, locale)}</span>
-                  <span className="text-text-tertiary transition-transform group-open:rotate-180">
-                    ▾
-                  </span>
+                  <span className="text-muted transition-transform group-open:rotate-180">▾</span>
                 </summary>
-                <div className="mt-4 pt-3 border-t border-separator-border">
-                  {renderFields(list)}
-                </div>
+                <div className="mt-4 border-t border-separator pt-3">{renderFields(list)}</div>
               </details>
             ))}
           </div>

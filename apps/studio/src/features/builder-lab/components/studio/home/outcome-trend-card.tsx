@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Button, Card, Skeleton, Tabs } from '@playora/ui/components';
 import { useCountUp } from '@playora/ui/hooks/use-count-up';
 import { BarChart2, Play } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
@@ -91,11 +90,11 @@ export function OutcomeTrendCard({
 
   if (isPending) {
     return (
-      <div className="flex h-[320px] flex-col justify-between rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+      <Card className="flex h-[320px] flex-col justify-between rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
         <Skeleton className="h-6 w-48 rounded-md" />
         <Skeleton className="h-44 w-full rounded-xl" />
         <Skeleton className="h-4 w-64 rounded-md" />
-      </div>
+      </Card>
     );
   }
 
@@ -139,248 +138,244 @@ export function OutcomeTrendCard({
   const playsLine = buildLinePath(playsPoints);
 
   return (
-    <div
+    <Card
       className="flex flex-col gap-4 overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
       data-testid="home-outcome-trend"
     >
       {/* Top Bar: Title & 7d/30d Segmented Filter */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <Card.Header className="flex flex-row flex-wrap items-center justify-between gap-3 p-0">
         <div className="flex flex-col gap-0.5">
-          <h3 className="text-body-medium text-text-primary">{t('title')}</h3>
-          <p className="text-caption-1-regular text-text-tertiary">
+          <Card.Title className="text-body-medium text-text-primary">{t('title')}</Card.Title>
+          <Card.Description className="text-caption-1-regular text-text-tertiary">
             {activePoint ? activePoint.day : range === '7d' ? t('range7d') : t('range30d')}
-          </p>
+          </Card.Description>
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl border border-border-button-default bg-background-secondary-default p-0.5">
-          <button
-            type="button"
-            onClick={() => setRange('7d')}
-            className={cx(
-              'rounded-lg px-2.5 py-1 text-caption-1-medium transition-all',
-              range === '7d'
-                ? 'bg-background-primary-default text-text-primary shadow-xs'
-                : 'text-text-tertiary hover:text-text-secondary',
+        <Tabs
+          selectedKey={range}
+          onSelectionChange={(key) => {
+            if (key === '7d' || key === '30d') setRange(key);
+          }}
+        >
+          <Tabs.ListContainer>
+            <Tabs.List aria-label={t('title')}>
+              <Tabs.Tab id="7d">
+                {t('range7d')}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="30d">
+                {t('range30d')}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </Tabs>
+      </Card.Header>
+
+      <Card.Content className="flex flex-col gap-4 p-0">
+        {/* Metrics Row: Large Count-up for Visits & Sub-stats */}
+        <div className="flex flex-wrap items-baseline gap-6 border-b border-separator-border pb-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-title-1-semibold tabular-nums text-text-primary">
+              {format.number(displayVisits)}
+            </span>
+            <span className="flex items-center gap-1.5 text-caption-1-medium text-emerald-600 dark:text-emerald-400">
+              <span className="inline-block size-2 rounded-full bg-emerald-500" />
+              {t('redeemed')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 text-caption-1-regular text-text-secondary">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block size-2 rounded-full bg-teal-500" />
+              <span>{t('plays')}:</span>
+              <strong className="font-semibold tabular-nums text-text-primary">
+                {format.number(headlinePlays)}
+              </strong>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block size-2 rounded-full bg-amber-500" />
+              <span>{t('wins')}:</span>
+              <strong className="font-semibold tabular-nums text-text-primary">
+                {format.number(headlineWins)}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Chart or Empty State */}
+        {!hasActivity ? (
+          <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-button-default bg-background-secondary-default/50 px-4 py-8 text-center">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-background-primary-default text-text-tertiary shadow-xs">
+              <BarChart2 className="size-5" />
+            </div>
+            <div className="max-w-md space-y-1">
+              <p className="text-body-medium text-text-primary">{t('emptyTitle')}</p>
+              <p className="text-caption-1-regular text-text-tertiary">{t('emptyDesc')}</p>
+            </div>
+            {firstPlayable && (
+              <Link href={routes.rehearsal(firstPlayable.id) as never}>
+                <Button size="sm" variant="secondary" excludeFromTabOrder>
+                  <Play className="size-4" />
+                  {t('playRehearsal')}
+                </Button>
+              </Link>
             )}
-          >
-            {t('range7d')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setRange('30d')}
-            className={cx(
-              'rounded-lg px-2.5 py-1 text-caption-1-medium transition-all',
-              range === '30d'
-                ? 'bg-background-primary-default text-text-primary shadow-xs'
-                : 'text-text-tertiary hover:text-text-secondary',
-            )}
-          >
-            {t('range30d')}
-          </button>
-        </div>
-      </div>
-
-      {/* Metrics Row: Large Count-up for Visits & Sub-stats */}
-      <div className="flex flex-wrap items-baseline gap-6 border-b border-separator-border pb-3">
-        <div className="flex items-baseline gap-2">
-          <span className="text-title-1-semibold tabular-nums text-text-primary">
-            {format.number(displayVisits)}
-          </span>
-          <span className="flex items-center gap-1.5 text-caption-1-medium text-emerald-600 dark:text-emerald-400">
-            <span className="inline-block size-2 rounded-full bg-emerald-500" />
-            {t('redeemed')}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4 text-caption-1-regular text-text-secondary">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-teal-500" />
-            <span>{t('plays')}:</span>
-            <strong className="font-semibold tabular-nums text-text-primary">
-              {format.number(headlinePlays)}
-            </strong>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-amber-500" />
-            <span>{t('wins')}:</span>
-            <strong className="font-semibold tabular-nums text-text-primary">
-              {format.number(headlineWins)}
-            </strong>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Chart or Empty State */}
-      {!hasActivity ? (
-        <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-button-default bg-background-secondary-default/50 px-4 py-8 text-center">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-background-primary-default text-text-tertiary shadow-xs">
-            <BarChart2 className="size-5" />
-          </div>
-          <div className="max-w-md space-y-1">
-            <p className="text-body-medium text-text-primary">{t('emptyTitle')}</p>
-            <p className="text-caption-1-regular text-text-tertiary">{t('emptyDesc')}</p>
-          </div>
-          {firstPlayable && (
-            <Link href={routes.rehearsal(firstPlayable.id) as never}>
-              <Button size="small" variant="secondary" leadingIcon={Play} tabIndex={-1}>
-                {t('playRehearsal')}
-              </Button>
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="relative w-full">
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            className="w-full overflow-visible"
-            role="img"
-            aria-label={t('title')}
-          >
-            <defs>
-              <linearGradient id={`${maskId}-visits`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.68 0.16 155)" stopOpacity="0.28" />
-                <stop offset="100%" stopColor="oklch(0.68 0.16 155)" stopOpacity="0.01" />
-              </linearGradient>
-            </defs>
-
-            {/* Horizontal Grid lines */}
-            <line
-              x1={PAD_L}
-              y1={PAD_T}
-              x2={W - PAD_R}
-              y2={PAD_T}
-              stroke="var(--color-separator-border)"
-              strokeDasharray="3 3"
-              strokeWidth="0.8"
-            />
-            <line
-              x1={PAD_L}
-              y1={PAD_T + PLOT_H / 2}
-              x2={W - PAD_R}
-              y2={PAD_T + PLOT_H / 2}
-              stroke="var(--color-separator-border)"
-              strokeDasharray="3 3"
-              strokeWidth="0.8"
-            />
-            <line
-              x1={PAD_L}
-              y1={PAD_T + PLOT_H}
-              x2={W - PAD_R}
-              y2={PAD_T + PLOT_H}
-              stroke="var(--color-separator-border)"
-              strokeWidth="1"
-            />
-
-            {/* Y axis ticks */}
-            <text
-              x={PAD_L - 8}
-              y={PAD_T + 4}
-              textAnchor="end"
-              className="fill-text-tertiary text-[10px] tabular-nums"
+        ) : (
+          <div className="relative w-full">
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              className="w-full overflow-visible"
+              role="img"
+              aria-label={t('title')}
             >
-              {maxVal}
-            </text>
-            <text
-              x={PAD_L - 8}
-              y={PAD_T + PLOT_H / 2 + 4}
-              textAnchor="end"
-              className="fill-text-tertiary text-[10px] tabular-nums"
-            >
-              {Math.round(maxVal / 2)}
-            </text>
-            <text
-              x={PAD_L - 8}
-              y={PAD_T + PLOT_H}
-              textAnchor="end"
-              className="fill-text-tertiary text-[10px] tabular-nums"
-            >
-              0
-            </text>
+              <defs>
+                <linearGradient id={`${maskId}-visits`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="oklch(0.68 0.16 155)" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="oklch(0.68 0.16 155)" stopOpacity="0.01" />
+                </linearGradient>
+              </defs>
 
-            {/* Areas and lines */}
-            <path d={visitsArea} fill={`url(#${maskId}-visits)`} />
-            <path
-              d={playsLine}
-              fill="none"
-              stroke="oklch(0.65 0.14 200)"
-              strokeWidth="1.8"
-              strokeDasharray="4 3"
-            />
-            <path
-              d={visitsLine}
-              fill="none"
-              stroke="oklch(0.62 0.16 155)"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-            />
+              {/* Horizontal Grid lines */}
+              <line
+                x1={PAD_L}
+                y1={PAD_T}
+                x2={W - PAD_R}
+                y2={PAD_T}
+                stroke="var(--color-separator-border)"
+                strokeDasharray="3 3"
+                strokeWidth="0.8"
+              />
+              <line
+                x1={PAD_L}
+                y1={PAD_T + PLOT_H / 2}
+                x2={W - PAD_R}
+                y2={PAD_T + PLOT_H / 2}
+                stroke="var(--color-separator-border)"
+                strokeDasharray="3 3"
+                strokeWidth="0.8"
+              />
+              <line
+                x1={PAD_L}
+                y1={PAD_T + PLOT_H}
+                x2={W - PAD_R}
+                y2={PAD_T + PLOT_H}
+                stroke="var(--color-separator-border)"
+                strokeWidth="1"
+              />
 
-            {/* Interactive column hover targets */}
-            {chartData.map((d, i) => {
-              const x = getX(i);
-              const isHovered = activeIndex === i;
-              const labelStep = range === '30d' ? 5 : 1;
-              const showLabel = i % labelStep === 0 || i === chartData.length - 1;
+              {/* Y axis ticks */}
+              <text
+                x={PAD_L - 8}
+                y={PAD_T + 4}
+                textAnchor="end"
+                className="fill-text-tertiary text-[10px] tabular-nums"
+              >
+                {maxVal}
+              </text>
+              <text
+                x={PAD_L - 8}
+                y={PAD_T + PLOT_H / 2 + 4}
+                textAnchor="end"
+                className="fill-text-tertiary text-[10px] tabular-nums"
+              >
+                {Math.round(maxVal / 2)}
+              </text>
+              <text
+                x={PAD_L - 8}
+                y={PAD_T + PLOT_H}
+                textAnchor="end"
+                className="fill-text-tertiary text-[10px] tabular-nums"
+              >
+                0
+              </text>
 
-              return (
-                <g key={d.day}>
-                  {/* Invisible hit box */}
-                  {/* biome-ignore lint/a11y/noStaticElementInteractions: chart hover guide hit area */}
-                  <rect
-                    x={x - stepX / 2}
-                    y={PAD_T}
-                    width={stepX}
-                    height={PLOT_H}
-                    fill="transparent"
-                    className="cursor-pointer"
-                    onMouseEnter={() => setActiveIndex(i)}
-                    onMouseLeave={() => setActiveIndex(null)}
-                    aria-label={`${d.label}: ${d.visits} ${t('redeemed')}`}
-                  />
+              {/* Areas and lines */}
+              <path d={visitsArea} fill={`url(#${maskId}-visits)`} />
+              <path
+                d={playsLine}
+                fill="none"
+                stroke="oklch(0.65 0.14 200)"
+                strokeWidth="1.8"
+                strokeDasharray="4 3"
+              />
+              <path
+                d={visitsLine}
+                fill="none"
+                stroke="oklch(0.62 0.16 155)"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
 
-                  {/* Vertical guide line on hover */}
-                  {isHovered && (
-                    <line
-                      x1={x}
-                      y1={PAD_T}
-                      x2={x}
-                      y2={PAD_T + PLOT_H}
-                      stroke="var(--color-border-focus-ring)"
-                      strokeWidth="1"
+              {/* Interactive column hover targets */}
+              {chartData.map((d, i) => {
+                const x = getX(i);
+                const isHovered = activeIndex === i;
+                const labelStep = range === '30d' ? 5 : 1;
+                const showLabel = i % labelStep === 0 || i === chartData.length - 1;
+
+                return (
+                  <g key={d.day}>
+                    {/* Invisible hit box */}
+                    {/* biome-ignore lint/a11y/noStaticElementInteractions: chart hover guide hit area */}
+                    <rect
+                      x={x - stepX / 2}
+                      y={PAD_T}
+                      width={stepX}
+                      height={PLOT_H}
+                      fill="transparent"
+                      className="cursor-pointer"
+                      onMouseEnter={() => setActiveIndex(i)}
+                      onMouseLeave={() => setActiveIndex(null)}
+                      aria-label={`${d.label}: ${d.visits} ${t('redeemed')}`}
                     />
-                  )}
 
-                  {/* Active dot */}
-                  {isHovered && (
-                    <circle
-                      cx={x}
-                      cy={getY(d.visits)}
-                      r={4}
-                      fill="oklch(0.62 0.16 155)"
-                      stroke="var(--color-background-primary-default)"
-                      strokeWidth="2"
-                    />
-                  )}
+                    {/* Vertical guide line on hover */}
+                    {isHovered && (
+                      <line
+                        x1={x}
+                        y1={PAD_T}
+                        x2={x}
+                        y2={PAD_T + PLOT_H}
+                        stroke="var(--color-border-focus-ring)"
+                        strokeWidth="1"
+                      />
+                    )}
 
-                  {/* X Axis Label */}
-                  {showLabel && (
-                    <text
-                      x={x}
-                      y={H - 6}
-                      textAnchor="middle"
-                      className={cx(
-                        'text-[10px] tabular-nums transition-colors',
-                        isHovered ? 'fill-text-primary font-semibold' : 'fill-text-tertiary',
-                      )}
-                    >
-                      {d.label}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-      )}
-    </div>
+                    {/* Active dot */}
+                    {isHovered && (
+                      <circle
+                        cx={x}
+                        cy={getY(d.visits)}
+                        r={4}
+                        fill="oklch(0.62 0.16 155)"
+                        stroke="var(--color-background-primary-default)"
+                        strokeWidth="2"
+                      />
+                    )}
+
+                    {/* X Axis Label */}
+                    {showLabel && (
+                      <text
+                        x={x}
+                        y={H - 6}
+                        textAnchor="middle"
+                        className={cx(
+                          'text-[10px] tabular-nums transition-colors',
+                          isHovered ? 'fill-text-primary font-semibold' : 'fill-text-tertiary',
+                        )}
+                      >
+                        {d.label}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        )}
+      </Card.Content>
+    </Card>
   );
 }

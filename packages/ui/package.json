@@ -8,10 +8,6 @@
   ],
   "exports": {
     "./components": "./src/components/index.ts",
-    "./components/*": [
-      "./src/components/*.tsx",
-      "./src/components/*.ts"
-    ],
     "./utils/*": [
       "./src/utils/*.ts",
       "./src/utils/*.tsx"
@@ -20,7 +16,6 @@
       "./src/hooks/*.ts",
       "./src/hooks/*.tsx"
     ],
-    "./styles/*": "./src/styles/*",
     "./auto-form": "./src/auto-form/index.tsx",
     "./auto-form/*": "./src/auto-form/*.tsx",
     "./campaign": "./src/campaign/index.ts",

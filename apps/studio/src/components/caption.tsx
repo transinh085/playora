@@ -1,7 +1,7 @@
 import { cx } from '@playora/ui/utils/cx';
 import type React from 'react';
 
-/** BoardUI caption text: hints, metadata, timestamps. */
+/** Studio caption text: hints, metadata, timestamps. */
 export interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> {
   type?: 'secondary' | 'danger';
   italic?: boolean;

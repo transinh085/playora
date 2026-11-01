@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button } from '@heroui/react';
 import { renderToString } from 'react-dom/server';
 import { gameThemeConfig } from '../theme/game-theme';
 import { PlayProvider, StudioProvider } from './index';

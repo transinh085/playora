@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Button, Card, Chip, ProgressBar } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiArrowDownSLine,
@@ -49,13 +49,13 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
   const nextStep = steps.find((s) => !s.done);
 
   return (
-    <section
+    <Card
       data-testid="home-onboarding-launchpad"
       aria-label={t('launchpad.title')}
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+      className="overflow-hidden p-0"
     >
       {/* Top Header & Progress Bar */}
-      <div className="flex flex-col gap-3 border-b border-separator-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card.Header className="flex flex-col gap-3 border-b border-separator-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3 sm:items-center">
           <div
             className={cx(
@@ -69,37 +69,40 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="m-0 text-body-semibold text-text-primary">
+              <Card.Title className="m-0 text-body-semibold text-text-primary">
                 {allDone ? t('setupComplete') : t('launchpad.title')}
-              </h2>
-              <Chip variant="caption" color={allDone ? 'lime' : 'cyan'}>
+              </Card.Title>
+              <Chip variant="soft" size="sm" color={allDone ? 'success' : 'accent'}>
                 {`${doneCount}/${totalCount}`}
               </Chip>
             </div>
-            <p className="mt-0.5 mb-0 text-caption-1-regular text-text-secondary">
+            <Card.Description className="mt-0.5 mb-0 text-caption-1-regular text-text-secondary">
               {t('launchpad.subtitle', { done: doneCount, total: totalCount })}
-            </p>
+            </Card.Description>
           </div>
         </div>
 
         {/* Right Controls: Progress Track + Collapse / Dismiss */}
         <div className="flex shrink-0 items-center gap-3">
-          <div className="hidden w-32 overflow-hidden rounded-full bg-background-tertiary-default sm:block h-2">
-            <div
-              className={cx(
-                'h-full rounded-full transition-all duration-300',
-                allDone ? 'bg-emerald-500' : 'bg-linear-to-r from-accent-500 to-accent-600',
-              )}
-              style={{ width: `${percent}%` }}
-            />
-          </div>
+          <ProgressBar
+            value={percent}
+            size="sm"
+            color={allDone ? 'success' : 'accent'}
+            aria-label={t('launchpad.title')}
+            className="hidden w-32 sm:flex"
+          >
+            <ProgressBar.Track>
+              <ProgressBar.Fill />
+            </ProgressBar.Track>
+          </ProgressBar>
 
-          <button
-            type="button"
-            onClick={() => setIsCollapsed((prev) => !prev)}
+          <Button
+            variant="secondary"
+            size="sm"
+            isIconOnly
+            onPress={() => setIsCollapsed((prev) => !prev)}
             aria-expanded={!isCollapsed}
             aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary transition-colors hover:bg-background-secondary-hover hover:text-foreground-icon-primary"
           >
             <RiArrowDownSLine
               className={cx(
@@ -107,23 +110,23 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
                 !isCollapsed && 'rotate-180',
               )}
             />
-          </button>
+          </Button>
 
-          <button
-            type="button"
-            onClick={dismiss}
+          <Button
+            variant="secondary"
+            size="sm"
+            isIconOnly
+            onPress={dismiss}
             aria-label={t('dismiss')}
-            title={t('dismiss')}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary transition-colors hover:bg-background-secondary-hover hover:text-foreground-icon-primary"
           >
             <RiCloseLine className="size-4" />
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card.Header>
 
       {/* 5-Step Interactive Grid */}
       {!isCollapsed && (
-        <div className="grid grid-cols-1 divide-y divide-separator-border lg:grid-cols-5 lg:divide-x lg:divide-y-0">
+        <Card.Content className="grid grid-cols-1 divide-y divide-separator-border p-0 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
           {steps.map((step, index) => {
             const Icon = STEP_ICONS[step.key];
             const isNext = nextStep?.key === step.key;
@@ -170,9 +173,9 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
                     </div>
 
                     {step.done ? (
-                      <span className="text-caption-2-medium text-emerald-600 dark:text-emerald-400">
+                      <Chip variant="soft" size="sm" color="success">
                         {t('launchpad.completedBadge')}
-                      </span>
+                      </Chip>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-caption-2-regular text-text-tertiary">
                         <RiTimeLine className="size-3" />
@@ -200,25 +203,24 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
                 {/* Action Link */}
                 {!step.done && (
                   <div className="pt-1">
-                    <Link
-                      href={step.href as Route}
-                      className={cx(
-                        'inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-caption-1-semibold transition-all',
-                        isNext
-                          ? 'bg-linear-to-b from-accent-500 to-accent-600 text-white shadow-xs hover:opacity-95'
-                          : 'border border-border-button-default bg-background-primary-default text-text-primary hover:bg-background-secondary-hover',
-                      )}
-                    >
-                      <span>{step.actionLabel}</span>
-                      <RiArrowRightLine className="size-3.5 shrink-0" />
+                    <Link href={step.href as Route} className="block">
+                      <Button
+                        size="sm"
+                        variant={isNext ? 'primary' : 'secondary'}
+                        fullWidth
+                        excludeFromTabOrder
+                      >
+                        <span>{step.actionLabel}</span>
+                        <RiArrowRightLine className="size-3.5 shrink-0" />
+                      </Button>
                     </Link>
                   </div>
                 )}
               </div>
             );
           })}
-        </div>
+        </Card.Content>
       )}
-    </section>
+    </Card>
   );
 }

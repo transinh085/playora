@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
+import { Card, Skeleton } from '@playora/ui/components';
 import {
   ArrowRight,
   Calendar,
@@ -226,25 +226,23 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {quickPlaybooks.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href as Route}
-              className="group flex items-center justify-between gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3.5 shadow-card transition-all hover:border-border-card-hover hover:bg-background-secondary-default/40"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <IconTile tone={item.tone} size={38}>
-                  {item.icon}
-                </IconTile>
-                <div className="min-w-0">
-                  <span className="block truncate text-body-2-semibold text-text-primary group-hover:text-accent-600 dark:group-hover:text-accent-400">
-                    {item.title}
-                  </span>
-                  <span className="block truncate text-caption-1-regular text-text-secondary">
-                    {item.desc}
-                  </span>
-                </div>
-              </div>
-              <ArrowRight className="size-4 shrink-0 text-foreground-icon-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
+            <Link key={item.key} href={item.href as Route} className="group block">
+              <Card className="flex flex-row items-center justify-between gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3.5 shadow-card transition-all group-hover:border-border-card-hover group-hover:bg-background-secondary-default/40">
+                <Card.Content className="flex min-w-0 flex-row items-center gap-3 p-0">
+                  <IconTile tone={item.tone} size={38}>
+                    {item.icon}
+                  </IconTile>
+                  <div className="min-w-0">
+                    <span className="block truncate text-body-2-semibold text-text-primary group-hover:text-accent-600 dark:group-hover:text-accent-400">
+                      {item.title}
+                    </span>
+                    <span className="block truncate text-caption-1-regular text-text-secondary">
+                      {item.desc}
+                    </span>
+                  </div>
+                </Card.Content>
+                <ArrowRight className="size-4 shrink-0 text-foreground-icon-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
+              </Card>
             </Link>
           ))}
         </div>

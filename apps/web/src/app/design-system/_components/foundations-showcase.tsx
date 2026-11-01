@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@playora/ui/components';
 import {
   AlertTriangle,
   CalendarDays,
@@ -348,7 +348,7 @@ export function FoundationsShowcase() {
               <strong>Be Vietnam Pro / Google Sans</strong> cho bàn làm việc mật độ cao.
             </p>
           </div>
-          <Chip variant="caption" color="neutral" className="font-mono text-xs">
+          <Chip variant="soft" size="sm" color="default" className="font-mono text-xs">
             Kiểm dấu: Ầ Ẩ Ẫ Ậ Ắ Ặ Ữ Ỹ ổ ợ ự Đ ₫
           </Chip>
         </div>

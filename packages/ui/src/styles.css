@@ -1,23 +1,19 @@
 /* biome-ignore-all lint/complexity/noImportantStyles: the reduced-motion reset must beat every component transition */
 /*
- * Playora design tokens — BoardUI + Brand Teal (hue 192) + Game skins (--game-*).
+ * Playora design tokens — HeroUI v3 (`@heroui/styles`) + Brand Teal (hue 192) + Game skins (`--game-*`).
  * Apps import this after `@import "tailwindcss";` and add `@source` for packages/ui.
  *
  * Three layers:
- *   1. BoardUI Primitives & Semantic Tokens (`./styles/theme.css` + `./styles/typography.css`)
- *      with `--color-accent-50..950` mapped to Playora's Brand Teal (hue 192).
- *   2. Studio & Redeem Semantic Bridge (`--background`, `--foreground`, `--card`, `--primary`…)
- *      pointing to BoardUI semantic tokens for light + `.dark`.
+ *   1. HeroUI v3 Tokens & Primitives (`@heroui/styles`) with `--accent` mapped to Playora's Brand Teal (hue 192).
+ *   2. Studio & Redeem Semantic Tokens (`--background`, `--foreground`, `--surface`, `--overlay`, `--border`, `--separator`, `--field-*`).
  *   3. Game (`--game-*`): everything players and kiosks see. Swapped per campaign by a skin
  *      (`data-skin`) and then by the shop's brand kit (inline vars from `brandKitVars()`).
  */
 @layer theme, base, components, utilities;
 
 @import "@heroui/styles";
-@import "./styles/theme.css";
-@import "./styles/typography.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 @custom-variant rtl (&:dir(rtl));
 @custom-variant ltr (&:dir(ltr));
 
@@ -35,14 +31,20 @@
 @custom-variant focus-visible (&:focus-visible, &[data-preview~="focus"]);
 @custom-variant active (&:active, &[data-preview~="active"]);
 
-:root {
-  /* ── 0. HeroUI v3 Theming — Playora Brand Teal (hue 192) ────────────────────────── */
+:root,
+.light,
+[data-theme="light"] {
+  /* ── 0. HeroUI v3 Theming — Playora Brand Teal (hue 192) & Semantic Tokens ────── */
   --accent: oklch(0.6 0.1 192);
   --accent-foreground: oklch(100% 0 0);
   --focus: var(--accent);
+  --radius: 0.5rem;
+  --field-radius: 0.625rem;
+  --field-border-width: 1px;
+  --field-border: var(--border);
 
   /* ── 1. Primitives ─────────────────────────────────────────────────────────────── */
-  /* Brand teal (hue 192). Mapped onto BoardUI's accent-50..950 ramp in ./styles/theme.css. */
+  /* Brand teal (hue 192). */
   --teal-50: oklch(0.975 0.018 192);
   --teal-100: oklch(0.945 0.035 192);
   --teal-200: oklch(0.89 0.065 192);
@@ -110,52 +112,43 @@
   --duration-slow: 320ms;
   --duration-stage: 640ms;
 
-  /* ── 2. Studio / Semantic Bridge to BoardUI Tokens ─────────────────────────── */
-  --radius: 0.625rem;
-  --background: var(--color-background-full);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-background-primary-default);
-  --card-foreground: var(--color-text-primary);
-  --popover: var(--color-background-primary-default);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-accent-600);
-  --primary-active: var(--color-accent-700);
-  --primary-foreground: var(--color-text-white);
-  --secondary: var(--color-background-secondary-default);
-  --secondary-foreground: var(--color-text-primary);
-  --muted: var(--color-background-secondary-default);
-  --muted-foreground: var(--color-text-secondary);
-  --destructive: var(--color-text-error-primary);
-  --destructive-foreground: var(--color-text-white);
-  --border: var(--color-border-button-default);
-  --border-hover: var(--color-border-button-hover);
-  --input: var(--color-border-button-default);
-  --ring: var(--color-border-focus-ring);
+  /* ── 2. Studio Semantic Tokens (HeroUI v3 Aligned) ──────────────────────────── */
+  --card: var(--surface);
+  --card-foreground: var(--surface-foreground);
+  --popover: var(--overlay);
+  --popover-foreground: var(--overlay-foreground);
+  --primary: var(--accent);
+  --primary-active: var(--teal-700);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--surface-secondary);
+  --secondary-foreground: var(--surface-secondary-foreground);
+  --muted-foreground: var(--muted);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--danger-foreground);
+  --border-hover: var(--field-border-hover);
+  --input: var(--field-border);
+  --ring: var(--focus);
 
-  --text-primary: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --text-muted: var(--color-text-tertiary);
-  --text-faint: var(--color-text-disabled);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted);
+  --text-muted: color-mix(in oklab, var(--muted) 80%, transparent);
+  --text-faint: color-mix(in oklab, var(--muted) 50%, transparent);
 
-  --sidebar: var(--color-background-secondary-default);
-  --sidebar-foreground: var(--color-text-secondary);
-  --sidebar-primary: var(--color-accent-600);
-  --sidebar-primary-foreground: var(--color-text-white);
-  --sidebar-accent: var(--color-background-secondary-hover);
-  --sidebar-accent-foreground: var(--color-text-primary);
-  --sidebar-border: var(--color-separator-border);
-  --sidebar-ring: var(--color-border-focus-ring);
+  --sidebar: var(--surface-secondary);
+  --sidebar-foreground: var(--muted);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--accent-foreground);
+  --sidebar-accent: var(--surface-tertiary);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--separator);
+  --sidebar-ring: var(--focus);
 
-  --chart-1: var(--color-chart-1);
-  --chart-2: var(--color-chart-2);
-  --chart-3: var(--color-chart-3);
-  --chart-4: var(--color-chart-4);
-  --chart-5: var(--color-chart-5);
+  --chart-1: var(--teal-500);
+  --chart-2: oklch(0.64 0.17 255);
+  --chart-3: oklch(0.78 0.17 75);
+  --chart-4: oklch(0.65 0.2 305);
+  --chart-5: oklch(0.68 0.2 25);
 
-  --success: #16a34a;
-  --success-foreground: #fafafa;
-  --warning: #d97706;
-  --warning-foreground: #fafafa;
   --info: #2563eb;
   --info-foreground: #fafafa;
   --live: #10b981;
@@ -177,19 +170,17 @@
   --game-font: var(--font-display);
 }
 
-.dark {
-  --accent: oklch(0.6 0.1 192);
+.dark,
+[data-theme="dark"] {
+  --accent: oklch(0.65 0.11 192);
   --accent-foreground: oklch(100% 0 0);
   --focus: var(--accent);
+  --field-border: var(--border);
 
-  --primary: var(--color-accent-500);
-  --primary-active: var(--color-accent-600);
-  --primary-foreground: var(--color-text-white);
+  --primary: var(--accent);
+  --primary-active: var(--teal-600);
+  --primary-foreground: var(--accent-foreground);
 
-  --success: #22c55e;
-  --success-foreground: #0a0a0a;
-  --warning: #f59e0b;
-  --warning-foreground: #0a0a0a;
   --info: #3b82f6;
   --info-foreground: #0a0a0a;
   --live: #34d399;
@@ -261,6 +252,7 @@
   --font-display: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-game: var(--game-font), ui-sans-serif, system-ui, sans-serif;
 
+  /* HeroUI v3 & Playora Semantic Color Aliases */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -289,6 +281,41 @@
   --color-info-foreground: var(--info-foreground);
   --color-live: var(--live);
   --color-live-foreground: var(--live-foreground);
+
+  /* Accent ramp (Brand Teal) */
+  --color-accent-50: var(--teal-50);
+  --color-accent-100: var(--teal-100);
+  --color-accent-200: var(--teal-200);
+  --color-accent-300: var(--teal-300);
+  --color-accent-400: var(--teal-400);
+  --color-accent-500: var(--teal-500);
+  --color-accent-600: var(--teal-600);
+  --color-accent-700: var(--teal-700);
+  --color-accent-800: var(--teal-800);
+  --color-accent-900: var(--teal-900);
+
+  /* Semantic surface & text aliases mapped to HeroUI v3 tokens */
+  --color-background-full: var(--background);
+  --color-background-primary-default: var(--surface);
+  --color-background-primary-hover: var(--surface-hover);
+  --color-background-secondary-default: var(--surface-secondary);
+  --color-background-secondary-hover: var(--surface-tertiary);
+  --color-background-tertiary-default: var(--surface-tertiary);
+  --color-background-tertiary-hover: var(--default);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted);
+  --color-text-tertiary: var(--text-muted);
+  --color-text-disabled: var(--text-faint);
+  --color-text-white: var(--white);
+  --color-text-error-primary: var(--danger);
+  --color-foreground-icon-primary: var(--foreground);
+  --color-foreground-icon-secondary: var(--muted);
+  --color-border-button-default: var(--border);
+  --color-border-button-hover: var(--field-border-hover);
+  --color-border-card-default: var(--border);
+  --color-border-card-hover: var(--field-border-hover);
+  --color-border-focus-ring: var(--focus);
+  --color-separator-border: var(--separator);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -324,8 +351,104 @@
   --color-medal-silver: var(--medal-silver);
   --color-medal-bronze: var(--medal-bronze);
 
+  --radius-2lg: 0.625rem;
+  --radius-2-5xl: 1.25rem;
   --radius-4xl: 9999px;
   --radius-game: var(--game-radius);
+
+  /* Composite Typography Scale */
+  --text-large-title-semibold: 2.25rem;
+  --text-large-title-semibold--line-height: 2.75rem;
+  --text-large-title-semibold--letter-spacing: -0.022em;
+  --text-large-title-semibold--font-weight: 600;
+
+  --text-title-1-semibold: 1.75rem;
+  --text-title-1-semibold--line-height: 2.25rem;
+  --text-title-1-semibold--letter-spacing: -0.02em;
+  --text-title-1-semibold--font-weight: 600;
+
+  --text-title-1-bold: 1.75rem;
+  --text-title-1-bold--line-height: 2.25rem;
+  --text-title-1-bold--letter-spacing: -0.02em;
+  --text-title-1-bold--font-weight: 700;
+
+  --text-title-2-semibold: 1.375rem;
+  --text-title-2-semibold--line-height: 1.75rem;
+  --text-title-2-semibold--letter-spacing: -0.016em;
+  --text-title-2-semibold--font-weight: 600;
+
+  --text-title-2-bold: 1.375rem;
+  --text-title-2-bold--line-height: 1.75rem;
+  --text-title-2-bold--letter-spacing: -0.016em;
+  --text-title-2-bold--font-weight: 700;
+
+  --text-title-3-medium: 1.125rem;
+  --text-title-3-medium--line-height: 1.5rem;
+  --text-title-3-medium--letter-spacing: -0.012em;
+  --text-title-3-medium--font-weight: 500;
+
+  --text-title-3-semibold: 1.125rem;
+  --text-title-3-semibold--line-height: 1.5rem;
+  --text-title-3-semibold--letter-spacing: -0.012em;
+  --text-title-3-semibold--font-weight: 600;
+
+  --text-headline-medium: 1rem;
+  --text-headline-medium--line-height: 1.5rem;
+  --text-headline-medium--letter-spacing: -0.01em;
+  --text-headline-medium--font-weight: 500;
+
+  --text-headline-semibold: 1rem;
+  --text-headline-semibold--line-height: 1.5rem;
+  --text-headline-semibold--letter-spacing: -0.01em;
+  --text-headline-semibold--font-weight: 600;
+
+  --text-body-regular: 0.875rem;
+  --text-body-regular--line-height: 1.25rem;
+  --text-body-regular--font-weight: 400;
+
+  --text-body-medium: 0.875rem;
+  --text-body-medium--line-height: 1.25rem;
+  --text-body-medium--font-weight: 500;
+
+  --text-body-semibold: 0.875rem;
+  --text-body-semibold--line-height: 1.25rem;
+  --text-body-semibold--font-weight: 600;
+
+  --text-body-2-regular: 0.8125rem;
+  --text-body-2-regular--line-height: 1.125rem;
+  --text-body-2-regular--font-weight: 400;
+
+  --text-body-2-medium: 0.8125rem;
+  --text-body-2-medium--line-height: 1.125rem;
+  --text-body-2-medium--font-weight: 500;
+
+  --text-body-2-semibold: 0.8125rem;
+  --text-body-2-semibold--line-height: 1.125rem;
+  --text-body-2-semibold--font-weight: 600;
+
+  --text-caption-1-regular: 0.75rem;
+  --text-caption-1-regular--line-height: 1rem;
+  --text-caption-1-regular--font-weight: 400;
+
+  --text-caption-1-medium: 0.75rem;
+  --text-caption-1-medium--line-height: 1rem;
+  --text-caption-1-medium--font-weight: 500;
+
+  --text-caption-1-semibold: 0.75rem;
+  --text-caption-1-semibold--line-height: 1rem;
+  --text-caption-1-semibold--font-weight: 600;
+
+  --text-caption-2-regular: 0.6875rem;
+  --text-caption-2-regular--line-height: 0.875rem;
+  --text-caption-2-regular--font-weight: 400;
+
+  --text-caption-2-medium: 0.6875rem;
+  --text-caption-2-medium--line-height: 0.875rem;
+  --text-caption-2-medium--font-weight: 500;
+
+  --text-caption-2-semibold: 0.6875rem;
+  --text-caption-2-semibold--line-height: 0.875rem;
+  --text-caption-2-semibold--font-weight: 600;
 
   /* Stage type scale, in container-height units of <Stage>. */
   --text-stage-sm: 3cqh;
@@ -398,7 +521,7 @@
   }
 }
 
-/* ── Typography Scale Utilities (aliased to BoardUI composite type scale) ──── */
+/* ── Typography Scale Utilities ─────────────────────────────────────────────── */
 @utility type-display-lg {
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 2.8vw + 1rem, 2.75rem);
@@ -471,7 +594,7 @@
 }
 
 @utility luma-glass {
-  background-color: color-mix(in oklch, var(--color-background-primary-default) 84%, transparent);
+  background-color: color-mix(in oklch, var(--surface) 84%, transparent);
   backdrop-filter: blur(12px);
 }
 
@@ -479,58 +602,6 @@
   background-color: var(--game-bg);
   background-image: radial-gradient(120% 70% at 50% -12%, var(--game-glow), transparent 62%);
   color: var(--game-fg);
-}
-
-/* ── BoardUI Dark Shadow Overrides ─────────────────────────────────────────── */
-@utility shadow-2xs {
-  &:where(.dark .shadow-2xs) {
-    --tw-shadow: var(--shadow-2xs);
-  }
-}
-@utility shadow-xs {
-  &:where(.dark .shadow-xs) {
-    --tw-shadow: var(--shadow-xs);
-  }
-}
-@utility shadow-sm {
-  &:where(.dark .shadow-sm) {
-    --tw-shadow: var(--shadow-sm);
-  }
-}
-@utility shadow-md {
-  &:where(.dark .shadow-md) {
-    --tw-shadow: var(--shadow-md);
-  }
-}
-@utility shadow-lg {
-  &:where(.dark .shadow-lg) {
-    --tw-shadow: var(--shadow-lg);
-  }
-}
-@utility shadow-xl {
-  &:where(.dark .shadow-xl) {
-    --tw-shadow: var(--shadow-xl);
-  }
-}
-@utility shadow-card {
-  &:where(.dark .shadow-card) {
-    --tw-shadow: var(--shadow-card);
-  }
-}
-@utility shadow-dropdown {
-  &:where(.dark .shadow-dropdown) {
-    --tw-shadow: var(--shadow-dropdown);
-  }
-}
-@utility shadow-sidebar {
-  &:where(.dark .shadow-sidebar) {
-    --tw-shadow: var(--shadow-sidebar);
-  }
-}
-@utility shadow-waitlist {
-  &:where(.dark .shadow-waitlist) {
-    --tw-shadow: var(--shadow-waitlist);
-  }
 }
 
 @layer base {
@@ -548,14 +619,14 @@
 
   html {
     color-scheme: light;
-    background-color: var(--color-background-full);
+    background-color: var(--background);
   }
   html.dark {
     color-scheme: dark;
   }
   body {
-    background-color: var(--color-background-full);
-    color: var(--color-text-primary);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 
   ::view-transition-old(root),
@@ -610,19 +681,6 @@
   }
 }
 
-/* ── BoardUI Component Classes (.bui-table, .bui-skeleton, animations) ─────── */
-@keyframes number-fade {
-  from {
-    opacity: 0.35;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.animate-number-fade {
-  animation: number-fade 220ms ease-out;
-}
-
 .recharts-wrapper {
   direction: ltr;
 }
@@ -631,180 +689,4 @@
 .recharts-wrapper :focus,
 .recharts-wrapper :focus-visible {
   outline: none;
-}
-
-@keyframes check-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-.animate-check-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: check-draw 200ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
-}
-@media (prefers-reduced-motion: reduce) {
-  .animate-check-draw {
-    animation: none;
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes label-out {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-}
-@keyframes label-in {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-.animate-label-out {
-  animation: label-out 220ms ease-out forwards;
-}
-.animate-label-in {
-  animation: label-in 220ms ease-out;
-}
-
-@keyframes bar-rise {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-.animate-bar-rise {
-  transform-origin: bottom;
-  animation: bar-rise 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes chart-reveal {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-.animate-chart-reveal {
-  animation: chart-reveal 1800ms cubic-bezier(0.33, 0, 0.15, 1) both;
-}
-
-@keyframes bui-progress-sweep {
-  from {
-    translate: -100% 0;
-  }
-  to {
-    translate: 250% 0;
-  }
-}
-
-.bui-table {
-  @apply w-full border-collapse text-start;
-}
-.bui-table th {
-  @apply px-3 py-2.5 text-start align-middle text-body-medium text-text-tertiary whitespace-nowrap outline-none;
-  background-color: var(--color-background-secondary-default);
-  border-top: 1px solid var(--color-separator-border);
-  border-bottom: 1px solid var(--color-separator-border);
-  transition:
-    padding 200ms ease,
-    font-size 200ms ease;
-}
-.bui-table td {
-  @apply px-3 py-2.5 align-middle text-body-medium text-text-primary outline-none;
-  transition:
-    padding 200ms ease,
-    font-size 200ms ease;
-}
-.bui-table tbody tr:not(:last-child) {
-  border-bottom: 1px solid var(--color-separator-border);
-}
-.bui-table tbody tr {
-  @apply transition-colors duration-150;
-}
-.bui-table tbody tr[data-focus-visible] {
-  @apply ring-2 ring-inset ring-border-focus-ring;
-}
-.bui-table.bui-table-sm th,
-.bui-table.bui-table-sm td {
-  @apply px-2.5 py-1.5 text-body-2-medium;
-}
-
-.bui-skeleton {
-  --bui-skeleton-line: rgb(255 255 255 / 0.9);
-  --bui-skeleton-glow: rgb(255 255 255 / 0.55);
-  --bui-skeleton-bloom: rgb(255 255 255 / 0.35);
-  overflow: hidden;
-  isolation: isolate;
-}
-.dark .bui-skeleton {
-  --bui-skeleton-line: rgb(255 255 255 / 0.2);
-  --bui-skeleton-glow: rgb(255 255 255 / 0.08);
-  --bui-skeleton-bloom: rgb(255 255 255 / 0.04);
-}
-.bui-skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, transparent, var(--bui-skeleton-line)) right / 2px 100% no-repeat,
-    linear-gradient(90deg, transparent, var(--bui-skeleton-glow)) right / 72px 100% no-repeat,
-    linear-gradient(90deg, transparent, var(--bui-skeleton-bloom)) right / 240px 100% no-repeat;
-  translate: -100% 0;
-  animation: bui-skeleton-sheen 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-.bui-skeleton:dir(rtl)::after {
-  scale: -1 1;
-  animation-direction: reverse;
-}
-@keyframes bui-skeleton-sheen {
-  0% {
-    translate: -100% 0;
-  }
-  60%,
-  100% {
-    translate: 100% 0;
-  }
-}
-@keyframes bui-skeleton-pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bui-skeleton::after {
-    display: none;
-  }
-  .bui-skeleton {
-    animation: bui-skeleton-pulse 2s ease-in-out infinite;
-  }
-}
-
-@layer utilities {
-  .scrollbar-none,
-  .no-scrollbar {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    &::-webkit-scrollbar {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
-  }
 }

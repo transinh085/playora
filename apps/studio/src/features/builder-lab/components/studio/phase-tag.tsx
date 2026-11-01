@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
+import { Chip } from '@playora/ui/components';
 import { CircleCheck, CircleStop, Clock, Pause, PencilLine } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import type { CampaignPhase } from '../../lib/phase';
@@ -8,19 +8,19 @@ import type { CampaignPhase } from '../../lib/phase';
 const LOOK: Record<
   CampaignPhase,
   {
-    color: 'neutral' | 'blue' | 'lime' | 'orange' | 'gray';
+    color: 'default' | 'accent' | 'success' | 'warning';
     className?: string;
     Icon: typeof Clock;
   }
 > = {
-  draft: { color: 'neutral', Icon: PencilLine },
-  scheduled: { color: 'blue', Icon: Clock },
+  draft: { color: 'default', Icon: PencilLine },
+  scheduled: { color: 'accent', Icon: Clock },
   live: {
-    color: 'lime',
+    color: 'success',
     Icon: CircleCheck,
   },
-  paused: { color: 'orange', Icon: Pause },
-  ended: { color: 'gray', Icon: CircleStop },
+  paused: { color: 'warning', Icon: Pause },
+  ended: { color: 'default', Icon: CircleStop },
 };
 
 /** Lifecycle tag with an icon (docs/engineering/design-system.md §3.4): colour is never the only signal. */
@@ -29,7 +29,7 @@ export function PhaseTag({ phase }: { phase: CampaignPhase }) {
   const { color, className, Icon } = LOOK[phase];
   return (
     <Chip
-      variant="subtle"
+      variant="soft"
       color={color}
       className={`gap-1.5 text-xs font-medium ${className ?? ''}`}
       data-phase={phase}

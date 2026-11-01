@@ -1,9 +1,15 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
-import { Skeleton } from '@playora/ui/components/base/skeleton/skeleton';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+import {
+  Alert,
+  Button,
+  ListBox,
+  QRCodeSvg,
+  Select,
+  Skeleton,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@playora/ui/components';
 import { AlertTriangle, ArrowLeft, Printer } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
@@ -125,7 +131,7 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link href={routes.share(campaign.id)}>
-              <Button variant="secondary" size="small" className="gap-2">
+              <Button variant="secondary" size="sm" className="gap-2">
                 <ArrowLeft className="size-4" />
                 {t('print.back')}
               </Button>
@@ -138,50 +144,50 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
                 onSelectionChange={(val) => {
                   if (val !== null) updateQueryParams(String(val), currentFormat);
                 }}
-                size="sm"
                 aria-label={t('channels.title')}
                 className="w-44"
               >
-                {allChannels.map((ch) => (
-                  <SelectItem key={ch.value} id={ch.value}>
-                    {ch.label}
-                  </SelectItem>
-                ))}
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {allChannels.map((ch) => (
+                      <ListBox.Item key={ch.value} id={ch.value} textValue={ch.label}>
+                        {ch.label}
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
-              <button
-                type="button"
-                className={cx(
-                  'rounded-md px-3 py-1 font-medium transition-all',
-                  currentFormat === 'standee'
-                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
-                )}
-                onClick={() => updateQueryParams(currentCh, 'standee')}
-              >
-                {t('print.standeeA5')}
-              </button>
-              <button
-                type="button"
-                className={cx(
-                  'rounded-md px-3 py-1 font-medium transition-all',
-                  currentFormat === 'tent'
-                    ? 'bg-white text-neutral-900 shadow-xs dark:bg-[#171717] dark:text-[#FAFAFA]'
-                    : 'text-neutral-500 hover:text-neutral-900 dark:text-[#A3A3A3] dark:hover:text-[#FAFAFA]',
-                )}
-                onClick={() => updateQueryParams(currentCh, 'tent')}
-              >
+            <ToggleButtonGroup
+              selectionMode="single"
+              disallowEmptySelection
+              size="sm"
+              selectedKeys={new Set([currentFormat])}
+              onSelectionChange={(keys) => {
+                const next = [...keys][0];
+                if (next === 'standee' || next === 'tent') {
+                  updateQueryParams(currentCh, next);
+                }
+              }}
+              aria-label={t('print.standeeA5')}
+            >
+              <ToggleButton id="standee">{t('print.standeeA5')}</ToggleButton>
+              <ToggleButton id="tent">
+                <ToggleButtonGroup.Separator />
                 {t('print.tentCardA6')}
-              </button>
-            </div>
+              </ToggleButton>
+            </ToggleButtonGroup>
 
             <Button
               className="gap-2 rounded-md h-8 text-xs shadow-xs"
-              size="small"
+              size="sm"
               onClick={() => window.print()}
             >
               <Printer className="size-3.5" />
@@ -192,13 +198,17 @@ export function CampaignSharePrint({ orgId, campaignId }: { orgId: string; campa
 
         {isDraft && (
           <div className="mt-3">
-            <div
-              role="alert"
+            <Alert
+              status="warning"
               className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200"
             >
-              <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-              <div className="text-xs font-medium">{t('print.draftNotice')}</div>
-            </div>
+              <Alert.Indicator className="text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="size-3.5 shrink-0" />
+              </Alert.Indicator>
+              <Alert.Content>
+                <Alert.Title className="text-xs font-medium">{t('print.draftNotice')}</Alert.Title>
+              </Alert.Content>
+            </Alert>
           </div>
         )}
       </header>

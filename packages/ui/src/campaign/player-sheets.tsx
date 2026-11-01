@@ -1,11 +1,7 @@
 'use client';
 
+import { Button, buttonVariants, Chip, Drawer, Spinner } from '@heroui/react';
 import type { CampaignPrize, CampaignRules, PlayResult, VoucherStatus } from '@playora/contracts';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button, ButtonLink } from '@playora/ui/components/base/buttons/button';
-import { Drawer, DrawerBody, DrawerHeader } from '@playora/ui/components/base/drawer/drawer';
-import { Spinner } from '@playora/ui/components/base/spinner/spinner';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
 import {
   RiArrowDownSLine,
   RiCheckLine,
@@ -14,6 +10,7 @@ import {
   RiInformationLine,
 } from '@remixicon/react';
 import { type ReactNode, useEffect, useState } from 'react';
+import { QRCodeSvg } from '../components/foundations/qr-code/qr-code';
 import type { CampaignPlayerLabels } from './labels';
 
 /**
@@ -62,25 +59,25 @@ export function VoucherStatusTag({
   switch (voucherStatusOf(voucher)) {
     case 'redeemed':
       return (
-        <Chip variant="caption" color="neutral" data-status="redeemed">
+        <Chip variant="soft" size="sm" color="default" data-status="redeemed">
           {l.redeemed}
         </Chip>
       );
     case 'expired':
       return (
-        <Chip variant="caption" color="yellow" data-status="expired">
+        <Chip variant="soft" size="sm" color="warning" data-status="expired">
           {l.expired}
         </Chip>
       );
     case 'void':
       return (
-        <Chip variant="caption" color="rose" data-status="void">
+        <Chip variant="soft" size="sm" color="danger" data-status="void">
           {l.void}
         </Chip>
       );
     default:
       return (
-        <Chip variant="caption" color="cyan" data-status="issued">
+        <Chip variant="soft" size="sm" color="accent" data-status="issued">
           {l.notRedeemed}
         </Chip>
       );
@@ -103,11 +100,11 @@ export function LiveClock({ labels }: { labels: CampaignPlayerLabels }) {
   return (
     <div
       data-testid="voucher-live-clock"
-      className="inline-flex items-center gap-2 rounded-full bg-status-cyan-background px-3 py-1 text-caption-1-medium text-status-cyan-text"
+      className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-caption-1-medium text-accent-soft-foreground"
     >
       <span className="relative flex size-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-accent-600" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-accent" />
       </span>
       <span className="font-mono tabular-nums">{labels.vouchers.liveClock(now)}</span>
     </div>
@@ -142,7 +139,7 @@ export function VoucherList({
   }
   if (vouchers.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-text-tertiary">
+      <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-muted">
         <RiGiftLine className="size-8 opacity-40" />
         <p className="text-body-regular">{l.empty}</p>
       </div>
@@ -155,7 +152,7 @@ export function VoucherList({
         return (
           <div
             key={voucher.code}
-            className="flex items-center gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3 shadow-xs"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 shadow-xs"
             data-testid="voucher-row"
             data-status={status}
             style={{ opacity: status === 'issued' ? 1 : 0.6 }}
@@ -163,19 +160,17 @@ export function VoucherList({
             {voucher.prizeImage ? (
               <img src={voucher.prizeImage} alt="" className="size-10 rounded-lg object-cover" />
             ) : (
-              <div className="flex size-10 items-center justify-center rounded-lg bg-background-secondary-default text-icon-secondary">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-surface-secondary text-muted">
                 <RiGiftLine className="size-5" />
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-body-semibold text-text-primary">
+              <p className="truncate text-body-semibold text-foreground">
                 {voucher.prizeName ?? l.unknownPrize}
               </p>
               <div className="flex items-center gap-1.5 font-mono text-caption-1-medium">
                 <span
-                  className={
-                    status !== 'issued' ? 'line-through text-text-tertiary' : 'text-text-primary'
-                  }
+                  className={status !== 'issued' ? 'text-muted line-through' : 'text-foreground'}
                 >
                   {voucher.code}
                 </span>
@@ -183,22 +178,20 @@ export function VoucherList({
                   <button
                     type="button"
                     onClick={() => handleCopy(voucher.code)}
-                    className="text-icon-secondary hover:text-text-primary transition-colors"
+                    className="text-muted transition-colors hover:text-foreground"
                     aria-label="Copy"
                   >
                     {copiedCode === voucher.code ? (
-                      <RiCheckLine className="size-3.5 text-accent-600" />
+                      <RiCheckLine className="size-3.5 text-accent" />
                     ) : (
                       <RiFileCopyLine className="size-3.5" />
                     )}
                   </button>
                 )}
               </div>
-              <p className="text-caption-1-regular text-text-tertiary">
-                {l.issuedAt(voucher.issuedAt)}
-              </p>
+              <p className="text-caption-1-regular text-muted">{l.issuedAt(voucher.issuedAt)}</p>
               {status === 'issued' && voucher.expiresAt && (
-                <p className="text-caption-1-regular text-text-tertiary">
+                <p className="text-caption-1-regular text-muted">
                   {l.expiresAt(voucher.expiresAt)}
                 </p>
               )}
@@ -226,14 +219,20 @@ export function PhoneSheet({
   size?: number | string;
 }) {
   return (
-    <Drawer
-      isOpen={open}
-      onOpenChange={(v) => !v && onClose()}
-      placement="bottom"
-      aria-label={typeof title === 'string' ? title : 'Sheet'}
-    >
-      {title ? <DrawerHeader title={title} /> : null}
-      <DrawerBody>{children}</DrawerBody>
+    <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()}>
+      <Drawer.Backdrop isDismissable>
+        <Drawer.Content placement="bottom">
+          <Drawer.Dialog aria-label={typeof title === 'string' ? title : 'Sheet'}>
+            <Drawer.CloseTrigger />
+            {title ? (
+              <Drawer.Header>
+                <Drawer.Heading>{title}</Drawer.Heading>
+              </Drawer.Header>
+            ) : null}
+            <Drawer.Body>{children}</Drawer.Body>
+          </Drawer.Dialog>
+        </Drawer.Content>
+      </Drawer.Backdrop>
     </Drawer>
   );
 }
@@ -266,22 +265,22 @@ export function NoticeContent({
 
   return (
     <div className="flex flex-col items-center gap-3 py-4 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-status-cyan-background text-accent-600">
+      <div className="flex size-12 items-center justify-center rounded-full bg-accent-soft text-accent">
         <RiInformationLine className="size-6" />
       </div>
-      <h3 className="text-title-3-semibold text-text-primary">{notice.title}</h3>
-      <div className="flex flex-col items-center gap-1 text-body-regular text-text-secondary">
+      <h3 className="text-title-3-semibold text-foreground">{notice.title}</h3>
+      <div className="flex flex-col items-center gap-1 text-body-regular text-muted">
         <span>{notice.body}</span>
         {extraText && (
           <span
             data-testid={kind === 'noTurns' ? 'next-turn-notice' : 'open-days-notice'}
-            className="text-caption-1-regular text-text-tertiary"
+            className="text-caption-1-regular text-muted"
           >
             {extraText}
           </span>
         )}
       </div>
-      <Button className="mt-2 w-full rounded-full" onClick={onClose}>
+      <Button fullWidth className="mt-2 rounded-full" onPress={onClose}>
         {notice.ok}
       </Button>
     </div>
@@ -352,19 +351,19 @@ export function RulesSheet({
     <PhoneSheet open={open} onClose={onClose} title={l.title}>
       <div className="flex flex-col gap-4">
         {rehearsal && (
-          <Chip variant="caption" color="yellow" className="w-fit">
+          <Chip variant="soft" size="sm" color="warning" className="w-fit">
             {l.rehearsalNote}
           </Chip>
         )}
-        <ul className="m-0 flex flex-col gap-2 pl-5 text-body-regular text-text-primary">
+        <ul className="m-0 flex flex-col gap-2 pl-5 text-body-regular text-foreground">
           {lines.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
         {prizes.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <h4 className="text-body-semibold text-text-primary">{l.prizes}</h4>
-            <ul className="m-0 flex flex-col gap-1 pl-5 text-body-regular text-text-secondary">
+            <h4 className="text-body-semibold text-foreground">{l.prizes}</h4>
+            <ul className="m-0 flex flex-col gap-1 pl-5 text-body-regular text-muted">
               {prizes.map((prize) => (
                 <li key={prize.id}>
                   {prize.quantity === undefined
@@ -376,16 +375,14 @@ export function RulesSheet({
           </div>
         )}
         {terms && (
-          <details className="rounded-xl border border-separator-border bg-background-secondary-default p-3 text-body-regular">
-            <summary className="cursor-pointer text-body-medium text-text-primary">
+          <details className="rounded-xl border border-separator bg-surface-secondary p-3 text-body-regular">
+            <summary className="cursor-pointer text-body-medium text-foreground">
               {l.fullTerms}
             </summary>
-            <p className="mt-2 whitespace-pre-wrap text-caption-1-regular text-text-secondary">
-              {terms}
-            </p>
+            <p className="mt-2 text-caption-1-regular whitespace-pre-wrap text-muted">{terms}</p>
           </details>
         )}
-        <Button className="w-full rounded-full" onClick={onClose}>
+        <Button fullWidth className="rounded-full" onPress={onClose}>
           {l.ok}
         </Button>
       </div>
@@ -419,9 +416,9 @@ export function MyPrizesSheet({
         </div>
         <VoucherList vouchers={vouchers} loading={loading} labels={labels} />
         {pageHref && (
-          <ButtonLink variant="ghost" href={pageHref} className="w-full">
+          <a href={pageHref} className={buttonVariants({ variant: 'ghost', fullWidth: true })}>
             {l.openPage}
-          </ButtonLink>
+          </a>
         )}
       </div>
     </PhoneSheet>
@@ -463,7 +460,8 @@ export function VoucherCard({
   if (!expanded) {
     return (
       <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
-        <Button leadingIcon={RiGiftLine} className="rounded-full shadow-lg" onClick={onToggle}>
+        <Button className="rounded-full shadow-lg" onPress={onToggle}>
+          <RiGiftLine className="size-4" aria-hidden />
           {labels.voucher.show}
         </Button>
       </div>
@@ -472,28 +470,26 @@ export function VoucherCard({
 
   return (
     <div className="absolute inset-x-3 bottom-3 z-10">
-      <div className="flex flex-col items-center gap-2.5 rounded-3xl border border-border-button-default bg-background-primary-default p-4 shadow-dropdown">
+      <div className="flex flex-col items-center gap-2.5 rounded-3xl border border-border bg-surface p-4 shadow-overlay">
         <div className="flex w-full items-center justify-between">
-          <span className="text-caption-1-medium text-text-secondary">{labels.voucher.title}</span>
+          <span className="text-caption-1-medium text-muted">{labels.voucher.title}</span>
           <button
             type="button"
             onClick={onToggle}
             aria-label={labels.voucher.collapse}
-            className="rounded-full p-1 text-icon-secondary hover:bg-background-primary-hover hover:text-text-primary transition-colors"
+            className="rounded-full p-1 text-muted transition-colors hover:bg-surface-secondary hover:text-foreground"
           >
             <RiArrowDownSLine className="size-4" />
           </button>
         </div>
-        <div className="rounded-xl border border-separator-border bg-white p-2 shadow-xs">
+        <div className="rounded-xl border border-separator bg-white p-2 shadow-xs">
           <QRCodeSvg value={redeemUrl} size={132} />
         </div>
         <div className="flex items-center gap-2">
           <span
             data-testid="voucher-code"
             className={`font-mono text-title-2-semibold tracking-widest ${
-              status && status !== 'issued'
-                ? 'line-through text-text-tertiary'
-                : 'text-text-primary'
+              status && status !== 'issued' ? 'text-muted line-through' : 'text-foreground'
             }`}
           >
             {code}
@@ -502,11 +498,11 @@ export function VoucherCard({
             <button
               type="button"
               onClick={handleCopy}
-              className="text-icon-secondary hover:text-text-primary transition-colors"
+              className="text-muted transition-colors hover:text-foreground"
               aria-label="Copy"
             >
               {copied ? (
-                <RiCheckLine className="size-4 text-accent-600" />
+                <RiCheckLine className="size-4 text-accent" />
               ) : (
                 <RiFileCopyLine className="size-4" />
               )}
@@ -516,15 +512,11 @@ export function VoucherCard({
         {status && status !== 'issued' ? (
           <VoucherStatusTag voucher={{ status, redeemedAt: null }} labels={labels} />
         ) : (
-          <span className="text-caption-1-regular text-text-secondary">{labels.voucher.hint}</span>
+          <span className="text-caption-1-regular text-muted">{labels.voucher.hint}</span>
         )}
         <LiveClock labels={labels} />
-        <Button
-          variant="secondary"
-          leadingIcon={RiGiftLine}
-          className="w-full rounded-full"
-          onClick={onOpenPrizes}
-        >
+        <Button variant="secondary" fullWidth className="rounded-full" onPress={onOpenPrizes}>
+          <RiGiftLine className="size-4" aria-hidden />
           {labels.myPrizes}
         </Button>
       </div>

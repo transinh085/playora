@@ -1,8 +1,7 @@
 'use client';
 
 import type { PrizeMode } from '@playora/core/prize';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Slider } from '@playora/ui/components/base/slider/slider';
+import { Alert, Card, InputGroup, Slider } from '@playora/ui/components';
 import { Gift, ListOrdered, Percent } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -55,8 +54,7 @@ export function ModeStep({
         {MODES.map((mode) => {
           const selected = rules.mode === mode.key;
           return (
-            // biome-ignore lint/a11y/useSemanticElements: radio container card
-            <div
+            <Card
               key={mode.key}
               role="radio"
               aria-checked={selected}
@@ -68,25 +66,25 @@ export function ModeStep({
                   onChange({ mode: mode.key });
                 }
               }}
-              className={`cursor-pointer rounded-lg border p-4 transition-all shadow-xs ${
+              className={`cursor-pointer p-4 transition-all ${
                 selected
                   ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                  : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-white/10 dark:bg-[#0A0A0A] dark:hover:border-white/20'
+                  : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
               }`}
             >
-              <div className="flex flex-col gap-2">
+              <Card.Content className="flex flex-col gap-2 p-0">
                 <IconTile tone={mode.tone} size={32}>
                   {mode.icon}
                 </IconTile>
-                <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
                   {t(`${mode.i18n}.title`)}
-                </span>
-                <span className="text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                </Card.Title>
+                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
                   {t(`${mode.i18n}.description`)}
-                </span>
+                </Card.Description>
                 <Caption italic>{t(`${mode.i18n}.example`)}</Caption>
-              </div>
-            </div>
+              </Card.Content>
+            </Card>
           );
         })}
       </div>
@@ -103,13 +101,19 @@ export function ModeStep({
                 minValue={0}
                 maxValue={100}
                 step={1}
-                showTooltip={false}
                 value={ratePercent}
-                onChange={(v) => onChange({ overallWinRate: fromPercent(v) })}
-              />
+                onChange={(v) =>
+                  onChange({ overallWinRate: fromPercent(Array.isArray(v) ? (v[0] ?? 0) : v) })
+                }
+              >
+                <Slider.Track>
+                  <Slider.Fill />
+                  <Slider.Thumb />
+                </Slider.Track>
+              </Slider>
             </div>
-            <div className="relative w-28">
-              <InputBase
+            <InputGroup className="w-28">
+              <InputGroup.Input
                 aria-label={t('overall.rateLabel')}
                 type="number"
                 min={0}
@@ -120,12 +124,10 @@ export function ModeStep({
                   const val = parseFloat(e.target.value);
                   if (!Number.isNaN(val)) onChange({ overallWinRate: fromPercent(val) });
                 }}
-                className="pr-6 text-right font-mono text-xs"
+                className="text-right font-mono text-xs"
               />
-              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                %
-              </span>
-            </div>
+              <InputGroup.Suffix>%</InputGroup.Suffix>
+            </InputGroup>
           </div>
           <Caption>{t('overall.rateHint', { rate: ratePercent, lose: 100 - ratePercent })}</Caption>
         </div>
@@ -133,35 +135,35 @@ export function ModeStep({
 
       {rules.mode === 'per_prize_probability' &&
         (probabilityPercent > 100 ? (
-          <div
-            role="alert"
-            className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive"
-          >
-            <div className="font-semibold">{t('perPrize.over', { total: probabilityPercent })}</div>
-            <div className="mt-1 opacity-90">{t('perPrize.overHint')}</div>
-          </div>
+          <Alert status="danger">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{t('perPrize.over', { total: probabilityPercent })}</Alert.Title>
+              <Alert.Description>{t('perPrize.overHint')}</Alert.Description>
+            </Alert.Content>
+          </Alert>
         ) : (
-          <div
-            role="alert"
-            className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs"
-          >
-            <div className="font-semibold">
-              {t('perPrize.total', {
-                total: probabilityPercent,
-                lose: Math.round((100 - probabilityPercent) * 10) / 10,
-              })}
-            </div>
-            <div className="mt-1 text-text-secondary">{t('perPrize.totalHint')}</div>
-          </div>
+          <Alert status="default">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>
+                {t('perPrize.total', {
+                  total: probabilityPercent,
+                  lose: Math.round((100 - probabilityPercent) * 10) / 10,
+                })}
+              </Alert.Title>
+              <Alert.Description>{t('perPrize.totalHint')}</Alert.Description>
+            </Alert.Content>
+          </Alert>
         ))}
 
       {rules.mode === 'guaranteed' && (
-        <div
-          role="alert"
-          className="rounded-2xl border border-border-button-default bg-background-secondary-default p-4 text-xs font-medium"
-        >
-          {t('guaranteed.note')}
-        </div>
+        <Alert status="default">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{t('guaranteed.note')}</Alert.Title>
+          </Alert.Content>
+        </Alert>
       )}
     </div>
   );

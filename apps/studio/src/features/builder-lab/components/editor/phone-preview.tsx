@@ -1,8 +1,7 @@
 'use client';
 
 import { Mechanism, toCanvasPrizes } from '@playora/ui/campaign';
-import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
-import { cx } from '@playora/ui/utils/cx';
+import { PhoneMockup, Tabs } from '@playora/ui/components';
 import { useTranslations } from 'next-intl';
 import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import { SCREEN_KEYS, type ScreenKey } from '@/features/canvas-editor/lib/model';
@@ -46,23 +45,18 @@ export function PhonePreview({
     <div className="flex w-full flex-col items-center gap-4">
       {!hideScreenSwitcher && (
         <div className="max-w-full overflow-x-auto">
-          <div className="inline-flex rounded-full border border-border-button-default bg-background-secondary-default p-0.5 text-xs">
-            {SCREEN_KEYS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                className={cx(
-                  'rounded-full px-3 py-1 font-medium transition-all',
-                  screen === key
-                    ? 'bg-background-primary-default text-text-primary shadow-xs'
-                    : 'text-text-secondary hover:text-text-primary',
-                )}
-                onClick={() => onScreenChange(key)}
-              >
-                {t(key)}
-              </button>
-            ))}
-          </div>
+          <Tabs selectedKey={screen} onSelectionChange={(key) => onScreenChange(key as ScreenKey)}>
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="Screens">
+                {SCREEN_KEYS.map((key) => (
+                  <Tabs.Tab key={key} id={key} className="px-3 py-1 text-xs font-medium">
+                    {t(key)}
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+            </Tabs.ListContainer>
+          </Tabs>
         </div>
       )}
 

@@ -951,7 +951,7 @@ Pháp lý: [compliance](../business/compliance.md).
 
 | Nhóm | Yêu cầu |
 |---|---|
-| Hiệu năng Player | First load ≤ 2 s trên 4G; First Load JS `play /[slug]` ≤ 260 KB gzip (trần 280; [ADR-016](../adr/016-shadcn-luma-ui.md), thay ADR-013); mỗi mẫu lazy-load ≤ 300 KB; ≥ 30 fps máy cũ |
+| Hiệu năng Player | First load ≤ 2 s trên 4G; First Load JS `play /[slug]` ≤ 260 KB gzip (trần 280; [ADR-018](../adr/018-heroui-v3-design-system.md), thay ADR-016); mỗi mẫu lazy-load ≤ 300 KB; ≥ 30 fps máy cũ |
 | Play API | Đỉnh ≥ 500 lượt/giây/chương trình (M1); quyết định kết quả + trừ kho p95 < 200 ms |
 | Quầy đổi quà | Từ quét mã đến kết quả ≤ 2 s trên 4G |
 | Khả dụng | 99,9%/tháng; không deploy trong khung giờ đánh dấu "quan trọng" ([runbook](../operations/runbook.md)) |

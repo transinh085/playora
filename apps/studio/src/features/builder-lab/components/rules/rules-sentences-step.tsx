@@ -1,9 +1,15 @@
 'use client';
 
-import { Checkbox } from '@playora/ui/components/base/checkbox/checkbox';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Radio, RadioGroup } from '@playora/ui/components/base/radio/radio';
-import { Switch } from '@playora/ui/components/base/switch/switch';
+import {
+  Card,
+  Checkbox,
+  Input,
+  InputGroup,
+  Label,
+  Radio,
+  RadioGroup,
+  Switch,
+} from '@playora/ui/components';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Caption } from '@/components/caption';
@@ -47,14 +53,13 @@ export function RulesSentencesStep({
     apply: (v: number) => void,
     max = 99,
   ): React.ReactNode => (
-    <InputBase
+    <Input
       type="number"
       aria-label={label}
       min={1}
       max={max}
       step={1}
-      fieldClassName="inline-block w-20"
-      className="text-center font-mono"
+      className="inline-block w-20 text-center font-mono"
       value={value}
       onChange={(e) => {
         const val = parseInt(e.target.value, 10);
@@ -63,21 +68,19 @@ export function RulesSentencesStep({
     />
   );
   const time = (value: string, label: string, apply: (v: string) => void) => (
-    <InputBase
+    <Input
       type="time"
       aria-label={label}
-      fieldClassName="inline-block w-32"
-      className="font-mono"
+      className="inline-block w-32 font-mono"
       value={value}
       onChange={(e) => e.target.value && apply(e.target.value)}
     />
   );
   const dateTime = (iso: string, label: string, apply: (iso: string) => void) => (
-    <InputBase
+    <Input
       type="datetime-local"
       aria-label={label}
-      fieldClassName="inline-block w-56"
-      className="font-mono text-xs"
+      className="inline-block w-56 font-mono text-xs"
       value={isoToLocalInput(iso)}
       onChange={(e) => {
         const next = localInputToIso(e.target.value);
@@ -118,7 +121,11 @@ export function RulesSentencesStep({
             aria-label={t('hoursLabel')}
             isSelected={hours !== null}
             onChange={(on) => onChange({ openingHours: on ? DEFAULT_HOURS : null })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           {hours
             ? t.rich('hoursOn', {
                 start: () =>
@@ -142,7 +149,11 @@ export function RulesSentencesStep({
             aria-label={t('daysLabel')}
             isSelected={rules.openDays !== null}
             onChange={(on) => onChange({ openDays: on ? DEFAULT_OPEN_DAYS : null })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           {rules.openDays !== null ? (
             <div className="flex flex-wrap items-center gap-3">
               <span>{t('daysOn')}</span>
@@ -168,7 +179,12 @@ export function RulesSentencesStep({
                         }
                       }}
                     >
-                      <span className="text-xs">{tw(weekdayKey(d))}</span>
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Content>
+                        <Label className="text-xs font-normal">{tw(weekdayKey(d))}</Label>
+                      </Checkbox.Content>
                     </Checkbox>
                   );
                 })}
@@ -188,7 +204,11 @@ export function RulesSentencesStep({
             aria-label={t('pacingLabel')}
             isSelected={rules.pacing}
             onChange={(pacing) => onChange({ pacing })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           <span>{t('pacing')}</span>
         </div>
       ),
@@ -201,25 +221,27 @@ export function RulesSentencesStep({
             aria-label={t('budgetLabel')}
             isSelected={rules.budgetVnd !== null}
             onChange={(on) => onChange({ budgetVnd: on ? Math.max(totalValueVnd, 100_000) : null })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           {rules.budgetVnd !== null
             ? t.rich('budgetOn', {
                 amount: () => (
-                  <div className="relative inline-block w-44">
-                    <InputBase
+                  <InputGroup className="inline-flex w-44">
+                    <InputGroup.Input
                       aria-label={t('budgetLabel')}
                       type="text"
-                      className="pr-6 font-mono"
+                      className="font-mono"
                       value={groupDigits(rules.budgetVnd ?? 0, locale)}
                       onChange={(e) => {
                         const val = parseDigits(e.target.value);
                         if (val !== null) onChange({ budgetVnd: val });
                       }}
                     />
-                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
-                      đ
-                    </span>
-                  </div>
+                    <InputGroup.Suffix>đ</InputGroup.Suffix>
+                  </InputGroup>
                 ),
               })
             : t('budgetOff')}
@@ -234,7 +256,11 @@ export function RulesSentencesStep({
             aria-label={t('formLabel')}
             isSelected={rules.collectForm}
             onChange={(collectForm) => onChange({ collectForm })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           <span>{t('form')}</span>
         </div>
       ),
@@ -247,7 +273,11 @@ export function RulesSentencesStep({
             aria-label={t('redeemFirst')}
             isSelected={rules.requireRedeemBeforeReplay}
             onChange={(requireRedeemBeforeReplay) => onChange({ requireRedeemBeforeReplay })}
-          />
+          >
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch>
           <span>{t('redeemFirst')}</span>
         </div>
       ),
@@ -269,10 +299,15 @@ export function RulesSentencesStep({
                 value={level}
                 className="items-start rounded-xl border p-2.5 hover:bg-muted/30 transition-colors"
               >
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium text-xs">{t(`antiFraudLevels.${level}`)}</span>
-                  <Caption>{t(`antiFraudHints.${level}`)}</Caption>
-                </div>
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                <Radio.Content>
+                  <div className="flex flex-col gap-0.5">
+                    <Label className="font-medium text-xs">{t(`antiFraudLevels.${level}`)}</Label>
+                    <Caption>{t(`antiFraudHints.${level}`)}</Caption>
+                  </div>
+                </Radio.Content>
               </Radio>
             ))}
           </RadioGroup>
@@ -314,17 +349,21 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   );
 
   return (
-    <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-      <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
-        {t('title')}
-      </span>
-      <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
-        {lines.map((line) => (
-          <li key={line.key}>
-            <span>{t(line.key, line.values)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Card variant="secondary" className="mt-4 p-4">
+      <Card.Header className="p-0">
+        <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+          {t('title')}
+        </Card.Title>
+      </Card.Header>
+      <Card.Content className="p-0">
+        <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
+          {lines.map((line) => (
+            <li key={line.key}>
+              <span>{t(line.key, line.values)}</span>
+            </li>
+          ))}
+        </ul>
+      </Card.Content>
+    </Card>
   );
 }

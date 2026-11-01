@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card, Chip } from '@playora/ui/components';
 import { ExternalLink, QrCode, Store, TicketCheck } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
@@ -32,24 +32,24 @@ export function LiveCounterFeed({
     .slice(0, 5);
 
   return (
-    <div
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+    <Card
+      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="home-live-counter"
     >
       {/* Header */}
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
         <div className="flex items-center gap-2">
           <Store className="size-4 text-text-tertiary" />
-          <h3 className="text-body-medium text-text-primary">{t('title')}</h3>
+          <Card.Title className="text-body-medium text-text-primary">{t('title')}</Card.Title>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-caption-2-medium text-emerald-700 dark:text-emerald-400">
+        <Chip variant="soft" size="sm" color="success" className="gap-1.5">
           <span className="size-1.5 rounded-full bg-emerald-500 animate-live-pulse" />
           <span>{t('stationActive')}</span>
-        </div>
-      </div>
+        </Chip>
+      </Card.Header>
 
       {/* List or Empty State */}
-      <div className="flex flex-1 flex-col justify-between p-4">
+      <Card.Content className="flex flex-1 flex-col justify-between p-4">
         {redeemedVouchers.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-6 text-center">
             <div className="flex size-9 items-center justify-center rounded-xl bg-background-secondary-default text-text-tertiary shadow-xs">
@@ -96,21 +96,17 @@ export function LiveCounterFeed({
             })}
           </ul>
         )}
+      </Card.Content>
 
-        {/* Footer Link to Redeem Desk */}
-        <div className="mt-3 border-t border-separator-border pt-3">
-          <Link href={`/orgs/${orgId}/redeem` as never} className="block w-full">
-            <Button
-              variant="secondary"
-              size="small"
-              trailingIcon={ExternalLink}
-              className="w-full justify-center"
-            >
-              {t('openDesk')}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
+      {/* Footer Link to Redeem Desk */}
+      <Card.Footer className="border-t border-separator-border px-4 py-3">
+        <Link href={`/orgs/${orgId}/redeem` as never} className="block w-full">
+          <Button variant="secondary" size="sm" className="w-full justify-center">
+            {t('openDesk')}
+            <ExternalLink className="size-4" />
+          </Button>
+        </Link>
+      </Card.Footer>
+    </Card>
   );
 }

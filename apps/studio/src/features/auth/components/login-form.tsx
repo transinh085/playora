@@ -1,14 +1,21 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Divider } from '@playora/ui/components/base/divider/divider';
-import { Input } from '@playora/ui/components/base/input/input';
-import { SocialButton } from '@playora/ui/components/base/social-button/social-button';
-import { toast } from '@playora/ui/components/base/toast/toast';
+import {
+  Alert,
+  Button,
+  Card,
+  Description,
+  FieldError,
+  Input,
+  Label,
+  Separator,
+  TextField,
+  toast,
+} from '@playora/ui/components';
 import {
   RiArrowLeftLine,
-  RiErrorWarningLine,
+  RiGoogleFill,
   RiLockPasswordLine,
   RiMailCheckLine,
   RiMailLine,
@@ -129,7 +136,7 @@ export function LoginForm({
   }
 
   return (
-    <div className="grid w-full max-w-[1020px] overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card md:grid-cols-12">
+    <Card className="grid w-full max-w-[1020px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card md:grid-cols-12">
       {/* Left Column: Authentication Form */}
       <div className="flex flex-col justify-between p-6 sm:p-10 md:col-span-6 lg:col-span-5">
         <div>
@@ -140,10 +147,14 @@ export function LoginForm({
 
           {/* Contextual Invitation Banner */}
           {isInviteFlow && (
-            <div className="mb-5 flex items-start gap-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default p-3.5 text-caption-1-medium text-text-secondary">
-              <RiMailOpenLine className="mt-0.5 size-4 shrink-0 text-accent-600" />
-              <span>{t('inviteContextBanner')}</span>
-            </div>
+            <Alert status="accent" className="mb-5">
+              <Alert.Indicator>
+                <RiMailOpenLine className="size-4" />
+              </Alert.Indicator>
+              <Alert.Content>
+                <Alert.Description>{t('inviteContextBanner')}</Alert.Description>
+              </Alert.Content>
+            </Alert>
           )}
 
           {magicLinkSentTo ? (
@@ -170,20 +181,20 @@ export function LoginForm({
                   type="button"
                   variant="secondary"
                   className="w-full"
-                  leadingIcon={RiMailSendLine}
-                  disabled={isSendingLink}
-                  onClick={onSendMagicLink}
+                  isDisabled={isSendingLink}
+                  onPress={onSendMagicLink}
                 >
+                  <RiMailSendLine className="size-4" />
                   {t('magicLinkResend')}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="small"
+                  size="sm"
                   className="w-full"
-                  leadingIcon={RiArrowLeftLine}
-                  onClick={() => setMagicLinkSentTo(null)}
+                  onPress={() => setMagicLinkSentTo(null)}
                 >
+                  <RiArrowLeftLine className="size-4" />
                   {t('magicLinkBack')}
                 </Button>
               </div>
@@ -206,16 +217,21 @@ export function LoginForm({
                     control={form.control}
                     name="name"
                     render={({ field, fieldState }) => (
-                      <Input
-                        label={t('name')}
-                        placeholder={t('namePlaceholder')}
-                        leadingIcon={RiUser3Line}
-                        autoComplete="name"
+                      <TextField
                         value={field.value ?? ''}
                         onChange={field.onChange}
                         isInvalid={!!fieldState.error}
-                        hint={fieldState.error?.message}
-                      />
+                        fullWidth
+                      >
+                        <Label className="inline-flex items-center gap-1.5">
+                          <RiUser3Line className="size-3.5 text-text-tertiary" />
+                          {t('name')}
+                        </Label>
+                        <Input placeholder={t('namePlaceholder')} autoComplete="name" />
+                        {fieldState.error?.message && (
+                          <FieldError>{fieldState.error.message}</FieldError>
+                        )}
+                      </TextField>
                     )}
                   />
                 )}
@@ -223,80 +239,100 @@ export function LoginForm({
                   control={form.control}
                   name="email"
                   render={({ field, fieldState }) => (
-                    <Input
-                      label={t('email')}
+                    <TextField
                       type="email"
-                      placeholder={t('emailPlaceholder')}
-                      leadingIcon={RiMailLine}
-                      autoComplete="email"
                       value={field.value}
                       onChange={field.onChange}
                       isInvalid={!!fieldState.error}
-                      hint={fieldState.error?.message}
-                    />
+                      fullWidth
+                    >
+                      <Label className="inline-flex items-center gap-1.5">
+                        <RiMailLine className="size-3.5 text-text-tertiary" />
+                        {t('email')}
+                      </Label>
+                      <Input placeholder={t('emailPlaceholder')} autoComplete="email" />
+                      {fieldState.error?.message && (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      )}
+                    </TextField>
                   )}
                 />
                 <Controller
                   control={form.control}
                   name="password"
                   render={({ field, fieldState }) => (
-                    <Input
-                      label={t('password')}
+                    <TextField
                       type="password"
-                      placeholder={t('passwordPlaceholder')}
-                      leadingIcon={RiLockPasswordLine}
-                      autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
                       value={field.value}
                       onChange={field.onChange}
                       isInvalid={!!fieldState.error}
-                      hint={
-                        fieldState.error?.message ??
-                        (mode === 'sign-up' ? t('passwordHint') : undefined)
-                      }
-                    />
+                      fullWidth
+                    >
+                      <Label className="inline-flex items-center gap-1.5">
+                        <RiLockPasswordLine className="size-3.5 text-text-tertiary" />
+                        {t('password')}
+                      </Label>
+                      <Input
+                        placeholder={t('passwordPlaceholder')}
+                        autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+                      />
+                      {fieldState.error?.message ? (
+                        <FieldError>{fieldState.error.message}</FieldError>
+                      ) : mode === 'sign-up' ? (
+                        <Description>{t('passwordHint')}</Description>
+                      ) : null}
+                    </TextField>
                   )}
                 />
 
                 {error && (
-                  <div
-                    role="alert"
-                    className="flex items-start gap-2.5 rounded-2xl border border-border-button-default bg-notification-error-background p-3.5 text-caption-1-medium text-text-error-primary"
-                  >
-                    <RiErrorWarningLine className="mt-0.5 size-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
+                  <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Title>{error}</Alert.Title>
+                    </Alert.Content>
+                  </Alert>
                 )}
 
                 <div className="flex flex-col gap-2.5 pt-1">
-                  <Button type="submit" className="w-full" disabled={isSubmitting || isSendingLink}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    isDisabled={isSubmitting || isSendingLink}
+                  >
                     {mode === 'sign-in' ? t('signIn') : t('signUp')}
                   </Button>
 
-                  <Divider className="my-1.5" contentClassName="text-caption-1-medium">
-                    {t('orDivider')}
-                  </Divider>
+                  <div className="my-1.5 flex items-center gap-3">
+                    <Separator className="flex-1" />
+                    <span className="text-caption-1-medium text-text-tertiary">
+                      {t('orDivider')}
+                    </span>
+                    <Separator className="flex-1" />
+                  </div>
 
                   <Button
                     type="button"
                     variant="secondary"
                     className="w-full"
-                    leadingIcon={RiMailSendLine}
-                    disabled={isSubmitting || isSendingLink}
-                    onClick={onSendMagicLink}
+                    isDisabled={isSubmitting || isSendingLink}
+                    onPress={onSendMagicLink}
                   >
+                    <RiMailSendLine className="size-4" />
                     {t('sendMagicLink')}
                   </Button>
 
                   {googleEnabled && (
-                    <SocialButton
-                      brand="google"
-                      appearance="white"
-                      fullWidth
-                      disabled={isSubmitting || isSendingLink}
-                      onClick={onGoogleSignIn}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      isDisabled={isSubmitting || isSendingLink}
+                      onPress={onGoogleSignIn}
                     >
+                      <RiGoogleFill className="size-4" />
                       {t('continueWithGoogle')}
-                    </SocialButton>
+                    </Button>
                   )}
                 </div>
               </form>
@@ -305,13 +341,14 @@ export function LoginForm({
         </div>
 
         {/* Footer Mode Switcher */}
-        <div className="mt-6 border-t border-separator-border pt-4 text-center">
+        <div className="mt-6 pt-4 text-center">
+          <Separator className="mb-4" />
           <Button
             type="button"
             variant="ghost"
-            size="small"
+            size="sm"
             className="w-full"
-            onClick={handleSwitchMode}
+            onPress={handleSwitchMode}
           >
             {mode === 'sign-in' ? t('toSignUp') : t('toSignIn')}
           </Button>
@@ -322,6 +359,6 @@ export function LoginForm({
       <div className="hidden border-l border-separator-border md:col-span-6 md:block lg:col-span-7">
         <AuthShowcase />
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,8 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { Button, Card, Input, InputGroup, Tooltip } from '@playora/ui/components';
 import { ArrowDown, ArrowUp, Gift, Plus, Trash2 } from '@playora/ui/icons';
 import { useLocale, useTranslations } from 'next-intl';
 import { Caption } from '@/components/caption';
@@ -63,15 +61,18 @@ export function PrizeListStep({
   return (
     <div className="flex flex-col gap-3">
       {prizes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-neutral-200 py-8 text-center text-neutral-400 text-xs dark:border-white/10">
-          <Gift className="mb-2 size-7 stroke-1 text-neutral-400/60" />
-          <span>{t('empty')}</span>
-        </div>
+        <Card className="flex flex-col items-center justify-center border-dashed py-8 text-center text-neutral-400 text-xs">
+          <Card.Content className="flex flex-col items-center p-0">
+            <Gift className="mb-2 size-7 stroke-1 text-neutral-400/60" />
+            <span>{t('empty')}</span>
+          </Card.Content>
+        </Card>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs divide-y divide-neutral-200 dark:border-white/10 dark:bg-[#0A0A0A] dark:divide-white/10">
+        <Card className="overflow-hidden p-0 divide-y divide-neutral-200 dark:divide-white/10">
           {prizes.map((prize, index) => (
             <div
               key={prize.id}
+              data-testid={`prize-row-${index}`}
               className="flex items-start gap-3 p-3.5 hover:bg-neutral-50/50 dark:hover:bg-white/[0.02]"
             >
               <PrizeImagePicker
@@ -82,22 +83,24 @@ export function PrizeListStep({
               />
               <div className="grid min-w-0 flex-1 gap-2.5 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
                 <Field label={t('name')} className="col-span-full">
-                  <InputBase
+                  <Input
                     value={prize.name}
                     maxLength={60}
                     placeholder={t('namePlaceholder')}
                     aria-invalid={!prize.name.trim() || undefined}
+                    fullWidth
                     className="text-xs"
                     onChange={(e) => update(index, { name: e.target.value })}
                   />
                 </Field>
                 <Field label={t('quantity')}>
-                  <InputBase
+                  <Input
                     type="number"
                     min={0}
                     max={1_000_000}
                     step={1}
                     value={prize.quantity}
+                    fullWidth
                     className="text-xs"
                     onChange={(e) => {
                       const val = parseInt(e.target.value, 10);
@@ -106,93 +109,98 @@ export function PrizeListStep({
                   />
                 </Field>
                 <Field label={t('value')}>
-                  <div className="relative">
-                    <InputBase
+                  <InputGroup fullWidth>
+                    <InputGroup.Input
                       type="text"
                       value={groupDigits(prize.valueVnd, locale)}
                       onChange={(e) => {
                         const val = parseDigits(e.target.value);
                         if (val !== null) update(index, { valueVnd: val });
                       }}
-                      className="pr-6 text-xs"
+                      className="text-xs"
                     />
-                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                      đ
-                    </span>
-                  </div>
+                    <InputGroup.Suffix>đ</InputGroup.Suffix>
+                  </InputGroup>
                 </Field>
                 {perPrize && (
                   <Field label={t('probability')}>
-                    <div className="relative">
-                      <InputBase
+                    <InputGroup fullWidth>
+                      <InputGroup.Input
                         type="number"
                         min={0}
                         max={100}
                         step={0.5}
                         value={toPercent(prize.probability ?? 0)}
                         aria-invalid={totals.probabilityPercent > 100 || undefined}
-                        className="text-xs pr-6"
+                        className="text-xs"
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           if (!Number.isNaN(val)) update(index, { probability: fromPercent(val) });
                         }}
                       />
-                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                        %
-                      </span>
-                    </div>
+                      <InputGroup.Suffix>%</InputGroup.Suffix>
+                    </InputGroup>
                   </Field>
                 )}
               </div>
               <div className="flex flex-col gap-1">
-                <TooltipTrigger>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    className="size-7 rounded-md p-0"
-                    aria-label={t('moveUp')}
-                    disabled={index === 0}
-                    onClick={() => move(index, -1)}
-                  >
-                    <ArrowUp className="size-3.5" />
-                  </Button>
-                  <Tooltip>{t('moveUp')}</Tooltip>
-                </TooltipTrigger>
-                <TooltipTrigger>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    className="size-7 rounded-md p-0"
-                    aria-label={t('moveDown')}
-                    disabled={index === prizes.length - 1}
-                    onClick={() => move(index, 1)}
-                  >
-                    <ArrowDown className="size-3.5" />
-                  </Button>
-                  <Tooltip>{t('moveDown')}</Tooltip>
-                </TooltipTrigger>
-                <TooltipTrigger>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    className="size-7 rounded-md p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    aria-label={t('remove')}
-                    onClick={() => remove(index)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                  <Tooltip>{t('remove')}</Tooltip>
-                </TooltipTrigger>
+                <Tooltip delay={150}>
+                  <Tooltip.Trigger>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      isIconOnly
+                      className="size-7 rounded-md p-0"
+                      aria-label={t('moveUp')}
+                      isDisabled={index === 0}
+                      onClick={() => move(index, -1)}
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </Button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{t('moveUp')}</Tooltip.Content>
+                </Tooltip>
+                <Tooltip delay={150}>
+                  <Tooltip.Trigger>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      isIconOnly
+                      className="size-7 rounded-md p-0"
+                      aria-label={t('moveDown')}
+                      isDisabled={index === prizes.length - 1}
+                      onClick={() => move(index, 1)}
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </Button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{t('moveDown')}</Tooltip.Content>
+                </Tooltip>
+                <Tooltip delay={150}>
+                  <Tooltip.Trigger>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      isIconOnly
+                      className="size-7 rounded-md p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={t('remove')}
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>{t('remove')}</Tooltip.Content>
+                </Tooltip>
               </div>
             </div>
           ))}
-        </div>
+        </Card>
       )}
 
       <Button
         type="button"
         variant="secondary"
-        size="small"
+        size="sm"
         onClick={add}
         className="h-8 w-full border-dashed rounded-md text-xs font-medium"
       >

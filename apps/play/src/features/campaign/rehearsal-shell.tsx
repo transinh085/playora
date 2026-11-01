@@ -16,11 +16,7 @@ import {
   type PlayerVoucher,
   toCanvasDoc,
 } from '@playora/ui/campaign';
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
-import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
+import { Button, Chip, PhoneMockup, Tooltip, toast } from '@playora/ui/components';
 import { ArrowLeft, ExternalLink, Gift, Loader2, RotateCcw, UserPlus } from '@playora/ui/icons';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -213,20 +209,22 @@ function RehearsalSession({
   return (
     <>
       <div className="flex items-center gap-2 border-b bg-card px-4 py-2.5 max-[479px]:hidden">
-        <TooltipTrigger>
-          <a
-            href={editUrl}
-            aria-label={t('backToEditor')}
-            className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
-          >
-            <ArrowLeft className="size-4" />
-          </a>
-          <Tooltip>{t('backToEditor')}</Tooltip>
-        </TooltipTrigger>
+        <Tooltip delay={200}>
+          <Tooltip.Trigger>
+            <a
+              href={editUrl}
+              aria-label={t('backToEditor')}
+              className="inline-flex size-8 items-center justify-center rounded-lg text-muted hover:bg-surface-secondary hover:text-foreground"
+            >
+              <ArrowLeft className="size-4" />
+            </a>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{t('backToEditor')}</Tooltip.Content>
+        </Tooltip>
 
         <span className="min-w-0 truncate text-sm font-semibold">{campaign.name}</span>
 
-        <Chip variant="caption" color="yellow">
+        <Chip variant="soft" size="sm" color="warning">
           {t('rehearsal')}
         </Chip>
 
@@ -240,29 +238,29 @@ function RehearsalSession({
 
         <Button
           variant="secondary"
-          size="small"
+          size="sm"
           className="gap-1.5"
-          onClick={() => player.current?.openVouchers()}
+          onPress={() => player.current?.openVouchers()}
         >
           <Gift className="size-3.5" />
           {t('myPrizes')}
         </Button>
         <Button
           variant="secondary"
-          size="small"
+          size="sm"
           className="gap-1.5"
-          onClick={() => player.current?.restart()}
+          onPress={() => player.current?.restart()}
         >
           <RotateCcw className="size-3.5" />
           {t('restart')}
         </Button>
-        <Button variant="secondary" size="small" className="gap-1.5" onClick={newPlayer}>
+        <Button variant="secondary" size="sm" className="gap-1.5" onPress={newPlayer}>
           <UserPlus className="size-3.5" />
           {t('newPlayer')}
         </Button>
         {campaign.status === 'published' && (
           <Link href={`/${campaign.slug}`}>
-            <Button size="small" className="gap-1.5">
+            <Button size="sm" className="gap-1.5">
               <ExternalLink className="size-3.5" />
               {t('live')}
             </Button>
@@ -287,9 +285,10 @@ function RehearsalSession({
           />
 
           <Chip
-            variant="caption"
-            color="yellow"
-            className="absolute left-2 top-2 z-10 min-[480px]:hidden"
+            variant="soft"
+            size="sm"
+            color="warning"
+            className="absolute top-2 left-2 z-10 min-[480px]:hidden"
           >
             {t('rehearsal')}
           </Chip>

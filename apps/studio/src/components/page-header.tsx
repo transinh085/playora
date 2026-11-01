@@ -1,6 +1,6 @@
 'use client';
 
-import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
+import { Button } from '@playora/ui/components';
 import { ArrowLeft } from '@playora/ui/icons';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
@@ -31,13 +31,15 @@ export function PageHeader({
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-3">
         {backHref && (
-          <IconButton
-            icon={ArrowLeft}
-            size="medium"
+          <Button
+            variant="secondary"
+            size="sm"
+            isIconOnly
             aria-label={backLabel ?? 'Back'}
-            title={backLabel}
-            onClick={() => router.push(backHref)}
-          />
+            onPress={() => router.push(backHref)}
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
         )}
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

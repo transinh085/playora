@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
 import type { z } from 'zod';
 
-export interface FormInstance<Values = any> {
+export interface FormInstance<Values = Record<string, unknown>> {
   getFieldsValue: (all?: true) => Values;
   setFields: (fields: Array<{ name: (string | number)[]; errors?: string[] }>) => void;
   setFieldsValue?: (values: Partial<Values>) => void;
@@ -21,7 +21,7 @@ export interface FormValuesStore {
   getFieldsValue: (all?: true) => unknown;
 }
 
-export interface FormErrorTarget<Values = unknown> {
+export interface FormErrorTarget<_Values = unknown> {
   setFields: (fields: Array<{ name: (string | number)[]; errors?: string[] }>) => void;
 }
 
@@ -266,11 +266,10 @@ export function applyApiError<Values = unknown, Code extends string = string>(
  * Maps an API error (`details.field` or `details.body.fieldErrors`) onto React Hook Form fields
  * via `setError`.
  */
-export function applyApiErrorToRHF<T extends FieldValues = FieldValues>(
-  setError: UseFormSetError<T>,
-  error: unknown,
-  messageFor?: (code: any) => string,
-): boolean {
+export function applyApiErrorToRHF<
+  T extends FieldValues = FieldValues,
+  Code extends string = string,
+>(setError: UseFormSetError<T>, error: unknown, messageFor?: (code: Code) => string): boolean {
   if (!error || typeof error !== 'object') return false;
 
   const errObj = error as {
@@ -286,7 +285,7 @@ export function applyApiErrorToRHF<T extends FieldValues = FieldValues>(
   if (!details) return false;
 
   if (typeof details.field === 'string' && details.field.trim().length > 0) {
-    const code = typeof errObj.code === 'string' ? errObj.code : 'INTERNAL';
+    const code = (typeof errObj.code === 'string' ? errObj.code : 'INTERNAL') as Code;
     const message = messageFor
       ? messageFor(code)
       : typeof errObj.message === 'string' && errObj.message.length > 0

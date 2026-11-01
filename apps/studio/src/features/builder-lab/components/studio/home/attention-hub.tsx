@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card, Chip } from '@playora/ui/components';
 import { Clock, Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import Link from 'next/link';
@@ -19,26 +19,27 @@ export function AttentionHub({ items }: { items: readonly AttentionItem[] }) {
   const t = useTranslations('campaigns.home');
 
   return (
-    <div
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
+    <Card
+      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
       data-testid="home-attention"
     >
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
         <div className="flex items-center gap-2">
-          <h3 className="text-body-medium text-text-primary">{t('attention.title')}</h3>
+          <Card.Title className="text-body-medium text-text-primary">
+            {t('attention.title')}
+          </Card.Title>
         </div>
-        {items.length > 0 ? (
-          <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-caption-1-medium tabular-nums text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-            {items.length}
-          </span>
-        ) : (
-          <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-caption-1-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
-            0
-          </span>
-        )}
-      </div>
+        <Chip
+          variant="soft"
+          size="sm"
+          color={items.length > 0 ? 'warning' : 'success'}
+          className="tabular-nums"
+        >
+          {items.length}
+        </Chip>
+      </Card.Header>
 
-      <div className="flex flex-1 flex-col justify-center p-4">
+      <Card.Content className="flex flex-1 flex-col justify-center p-4">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
             <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
@@ -75,7 +76,7 @@ export function AttentionHub({ items }: { items: readonly AttentionItem[] }) {
                     </span>
                   </div>
                   <Link href={href as never} className="shrink-0">
-                    <Button variant="secondary" size="xs" tabIndex={-1}>
+                    <Button variant="secondary" size="sm" excludeFromTabOrder>
                       {action}
                     </Button>
                   </Link>
@@ -84,7 +85,7 @@ export function AttentionHub({ items }: { items: readonly AttentionItem[] }) {
             })}
           </ul>
         )}
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

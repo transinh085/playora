@@ -2,9 +2,7 @@
 
 import { useRouteQuery } from '@playora/api-client/react';
 import { meApi } from '@playora/contracts';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
-import { Tooltip, TooltipTrigger } from '@playora/ui/components/base/tooltip/tooltip';
+import { Button, Input, Separator, Tabs, Tooltip } from '@playora/ui/components';
 import {
   ArrowLeft,
   CloudAlert,
@@ -108,50 +106,50 @@ function EditorShell({
   const organizerName = myOrgs.data?.items.find((o) => o.id === orgId)?.name;
 
   const modeSwitch = (
-    <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
-      {[
-        { value: 'quick' as const, label: t('modes.quick'), icon: Zap },
-        { value: 'customize' as const, label: t('modes.customize'), icon: PencilRuler },
-        { value: 'rules' as const, label: t('modes.rules'), icon: Gift },
-      ].map((item) => {
-        const Icon = item.icon;
-        const isActive = mode === item.value;
-        return (
-          <button
-            key={item.value}
-            type="button"
-            className={cx(
-              'ant-segmented-item flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all',
-              isActive
-                ? 'bg-white text-neutral-900 shadow-xs dark:bg-white/10 dark:text-neutral-100'
-                : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200',
-            )}
-            onClick={() => setMode(item.value)}
-          >
-            <Icon className="size-3.5" />
-            <span>{item.label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <Tabs selectedKey={mode} onSelectionChange={(key) => setMode(key as EditorMode)}>
+      <Tabs.ListContainer>
+        <Tabs.List aria-label={t('name')}>
+          {[
+            { value: 'quick' as const, label: t('modes.quick'), icon: Zap },
+            { value: 'customize' as const, label: t('modes.customize'), icon: PencilRuler },
+            { value: 'rules' as const, label: t('modes.rules'), icon: Gift },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <Tabs.Tab
+                key={item.value}
+                id={item.value}
+                className="ant-segmented-item flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium"
+              >
+                <Icon className="size-3.5" />
+                <span>{item.label}</span>
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            );
+          })}
+        </Tabs.List>
+      </Tabs.ListContainer>
+    </Tabs>
   );
 
   return (
     <div className="grid h-dvh grid-rows-[56px_auto_minmax(0,1fr)] lg:grid-rows-[56px_minmax(0,1fr)] bg-background">
       <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <TooltipTrigger>
-            <Link
-              href={campaignRoutes(orgId).detail(draft.id)}
-              aria-label={t('back')}
-              className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
-            >
-              <ArrowLeft className="size-4" />
-            </Link>
-            <Tooltip>{t('back')}</Tooltip>
-          </TooltipTrigger>
+          <Tooltip delay={150}>
+            <Tooltip.Trigger>
+              <Link
+                href={campaignRoutes(orgId).detail(draft.id)}
+                aria-label={t('back')}
+                className="inline-flex size-8 items-center justify-center rounded-lg text-button-ghost-foreground hover:bg-button-ghost-hover"
+              >
+                <ArrowLeft className="size-4" />
+              </Link>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{t('back')}</Tooltip.Content>
+          </Tooltip>
 
-          <InputBase
+          <Input
             aria-label={t('name')}
             value={draft.name}
             maxLength={80}
@@ -159,8 +157,7 @@ function EditorShell({
             onBlur={() => {
               if (!draft.name.trim()) update({ name: server.name.trim() || t('untitled') });
             }}
-            fieldClassName="max-w-[280px]"
-            className="font-semibold"
+            className="max-w-[280px] font-semibold"
           />
           <SaveIndicator state={saveState} />
         </div>
@@ -170,7 +167,7 @@ function EditorShell({
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           <div className="hidden lg:flex items-center gap-2">
             <CampaignStatusTag campaign={server} />
-            <div className="h-4 w-px bg-separator-border" aria-hidden="true" />
+            <Separator orientation="vertical" className="h-4" />
           </div>
 
           <a
@@ -180,14 +177,14 @@ function EditorShell({
             onClick={() => void flush()}
             aria-label={t('rehearse')}
           >
-            <Button variant="secondary" size="small" className="h-8 gap-1.5 rounded-md text-xs">
+            <Button variant="secondary" size="sm" className="h-8 gap-1.5 rounded-md text-xs">
               <Play className="size-3.5" />
               <span className="hidden lg:inline">{t('rehearse')}</span>
             </Button>
           </a>
 
           <Button
-            size="small"
+            size="sm"
             className="h-8 gap-1.5 rounded-md text-xs font-medium shadow-xs"
             onClick={() => setPublishing(true)}
           >

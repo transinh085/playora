@@ -1,15 +1,16 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { InputBase } from '@playora/ui/components/base/input/input';
 import {
+  Button,
+  Card,
+  Input,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { Select, SelectItem } from '@playora/ui/components/base/select/select';
-import { toast } from '@playora/ui/components/base/toast/toast';
+  Select,
+  TextField,
+  toast,
+} from '@playora/ui/components';
 import { RiMagicLine, RiPaletteLine, RiSparklingLine } from '@remixicon/react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -94,85 +95,95 @@ export function CreateFromTemplateDialog({
 
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <div className="w-full max-w-md">
-        <ModalHeader title={t('title')} description={t('subtitle')} />
+      <Modal.Backdrop isDismissable>
+        <Modal.Container size="md">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>{t('title')}</Modal.Heading>
+              <p className="mt-1 text-caption-1-regular text-text-secondary">{t('subtitle')}</p>
+            </Modal.Header>
 
-        <ModalBody>
-          <div className="flex flex-col gap-4 py-1">
-            {/* Template Summary Card */}
-            <div className="flex items-center gap-3 rounded-xl border border-border-card-default bg-background-tertiary-default/50 p-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background-primary-default border border-border-card-default text-text-primary">
-                <RiSparklingLine className="size-5 text-accent-500" />
+            <Modal.Body>
+              <div className="flex flex-col gap-4 py-1">
+                {/* Template Summary Card */}
+                <Card
+                  variant="secondary"
+                  className="flex-row items-center gap-3 border border-border-card-default p-3"
+                >
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border-card-default bg-background-primary-default text-text-primary">
+                    <RiSparklingLine className="size-5 text-accent-500" />
+                  </div>
+
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-body-2-semibold text-text-primary">
+                      {displayTemplate.name}
+                    </span>
+                    <span className="truncate text-caption-1-regular text-text-tertiary">
+                      {displayTemplate.skinName} · {displayTemplate.playDuration}
+                    </span>
+                  </div>
+                </Card>
+
+                {/* Campaign Name Input */}
+                <TextField id="campaign-name" value={name} onChange={setName} autoFocus fullWidth>
+                  <Label>{t('nameLabel')}</Label>
+                  <Input placeholder={t('namePlaceholder')} />
+                </TextField>
+
+                {/* Brand Kit Selector */}
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <RiPaletteLine className="size-3.5" />
+                    {t('brandKitLabel')}
+                  </Label>
+                  <Select
+                    aria-label={t('brandKitLabel')}
+                    placeholder={t('defaultBrandKit')}
+                    selectedKey={selectedBrandKitId ?? null}
+                    onSelectionChange={(key) => key !== null && setSelectedBrandKitId(String(key))}
+                  >
+                    <Select.Trigger>
+                      <Select.Value />
+                      <Select.Indicator />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {(brandKits.data?.items ?? []).map((kit) => (
+                          <ListBox.Item key={kit.id} id={kit.id} textValue={kit.name}>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="size-3.5 shrink-0 rounded-full border border-border-card-default"
+                                style={{ background: kit.tokens.colors.primary }}
+                              />
+                              <span>{kit.name}</span>
+                            </div>
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+                </div>
               </div>
+            </Modal.Body>
 
-              <div className="flex flex-col min-w-0">
-                <span className="text-body-2-semibold text-text-primary truncate">
-                  {displayTemplate.name}
-                </span>
-                <span className="text-caption-1-regular text-text-tertiary truncate">
-                  {displayTemplate.skinName} · {displayTemplate.playDuration}
-                </span>
-              </div>
-            </div>
-
-            {/* Campaign Name Input */}
-            <div className="space-y-1.5">
-              <label htmlFor="campaign-name" className="text-caption-1-medium text-text-secondary">
-                {t('nameLabel')}
-              </label>
-              <InputBase
-                id="campaign-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('namePlaceholder')}
-                autoFocus
-              />
-            </div>
-
-            {/* Brand Kit Selector */}
-            <div className="space-y-1.5">
-              <span className="text-caption-1-medium text-text-secondary flex items-center gap-1.5">
-                <RiPaletteLine className="size-3.5" />
-                {t('brandKitLabel')}
-              </span>
-              <Select
+            <Modal.Footer>
+              <Button variant="secondary" size="sm" onPress={onClose}>
+                {t('cancel')}
+              </Button>
+              <Button
+                variant="primary"
                 size="sm"
-                aria-label={t('brandKitLabel')}
-                placeholder={t('defaultBrandKit')}
-                selectedKey={selectedBrandKitId ?? null}
-                onSelectionChange={(key) => key !== null && setSelectedBrandKitId(String(key))}
+                isDisabled={!name.trim() || create.isPending}
+                onPress={handleSubmit}
               >
-                {(brandKits.data?.items ?? []).map((kit) => (
-                  <SelectItem key={kit.id} id={kit.id} textValue={kit.name}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="size-3.5 shrink-0 rounded-full border border-border-card-default"
-                        style={{ background: kit.tokens.colors.primary }}
-                      />
-                      <span>{kit.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button variant="secondary" size="small" onClick={onClose}>
-            {t('cancel')}
-          </Button>
-          <Button
-            variant="primary"
-            size="small"
-            leadingIcon={RiMagicLine}
-            disabled={!name.trim() || create.isPending}
-            onClick={handleSubmit}
-          >
-            {create.isPending ? t('creating') : t('startDesigning')}
-          </Button>
-        </ModalFooter>
-      </div>
+                <RiMagicLine className="size-4" />
+                {create.isPending ? t('creating') : t('startDesigning')}
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

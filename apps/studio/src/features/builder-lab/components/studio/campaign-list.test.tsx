@@ -106,24 +106,24 @@ function render(node: React.ReactNode, locale: 'vi' | 'en' = 'vi') {
   );
 }
 
-describe('CampaignList with BoardUI Tabs & Table', () => {
-  test('renders BoardUI Tabs with status labels and counts', () => {
+describe('CampaignList with HeroUI v3 Tabs & Table', () => {
+  test('renders HeroUI v3 Tabs with status labels and counts', () => {
     const html = render(<CampaignList orgId="org_1" />);
-    // Check BoardUI Tabs rendered
+    // Check HeroUI v3 Tabs rendered
     expect(html).toContain('role="tablist"');
     expect(html).toContain('Tất cả');
     expect(html).toContain('Đang chạy');
     expect(html).toContain('Nháp');
   });
 
-  test('renders Table structure with BoardUI styles and items', () => {
+  test('renders Table structure with HeroUI v3 styles and items', () => {
     const html = render(<CampaignList orgId="org_1" />);
     // Verify campaigns rendered
     expect(html).toContain('Vòng quay Tết May Mắn');
     expect(html).toContain('Thẻ cào Giảm Giá');
-    // Verify table styling and search
-    expect(html).toContain('bui-table');
+    // Verify HeroUI v3 Table and rows
     expect(html).toContain('data-testid="campaign-table"');
+    expect(html).toContain('data-testid="campaign-row"');
     // Verify no untranslated raw keys
     expect(html).not.toContain('campaigns.');
     expect(html).not.toContain('builderLab.');

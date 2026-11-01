@@ -1,6 +1,6 @@
 'use client';
 
-import { DirectionProvider } from '@playora/ui/components/foundations/direction/direction';
+import { DirectionProvider } from '@playora/ui/components';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { useState } from 'react';
@@ -26,7 +26,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute={['class', 'data-theme']}
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <DirectionProvider locale="vi">
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       </DirectionProvider>

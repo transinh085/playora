@@ -1,11 +1,15 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { CloseButton } from '@playora/ui/components/base/buttons/close-button';
-import { Drawer } from '@playora/ui/components/base/drawer/drawer';
-import { PillTab, PillTabList } from '@playora/ui/components/base/tabs/pill-tab';
-import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
+import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  CloseButton,
+  Drawer,
+  PhoneMockup,
+  Tabs,
+} from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiBookmarkFill,
@@ -18,10 +22,15 @@ import {
   RiTimeLine,
 } from '@remixicon/react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FitScreen } from '@/features/builder-lab/components/editor/fit-screen';
+import { buildScreens, type SkinKey } from '@/features/builder-lab/lib/starter';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
-import type { CatalogTemplate } from '../data/mock-templates';
+import { type CatalogTemplate, SKINS_INFO } from '../data/mock-templates';
+
+function isValidSkinKey(key: string): key is SkinKey {
+  return key === 'tet' || key === 'grand-opening' || key === 'everyday';
+}
 
 export function TemplatePreviewDrawer({
   template,
@@ -63,251 +72,299 @@ export function TemplatePreviewDrawer({
     }
   }, [template]);
 
-  if (!displayTemplate) return null;
+  const effectiveSkin = useMemo(() => {
+    if (!displayTemplate) return null;
+    const skinKey = isValidSkinKey(selectedSkinKey) ? selectedSkinKey : displayTemplate.skinKey;
+    const skinOption = displayTemplate.availableSkins.find((s) => s.key === skinKey);
+    const skinInfo = SKINS_INFO[skinKey];
+    const screens =
+      skinKey === displayTemplate.skinKey || !displayTemplate.isReal
+        ? displayTemplate.screens
+        : buildScreens(displayTemplate.realTemplateKey, skinKey);
 
-  const currentDoc = displayTemplate.screens[activeScreen];
+    return {
+      skinKey,
+      skinName: skinOption?.name ?? skinInfo?.name ?? displayTemplate.skinName,
+      brand: skinInfo?.brand ?? displayTemplate.brand,
+      screens,
+    };
+  }, [displayTemplate, selectedSkinKey]);
+
+  if (!displayTemplate || !effectiveSkin) return null;
+
+  const currentDoc = effectiveSkin.screens[activeScreen];
 
   return (
-    <Drawer
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      placement="end"
-      size="2xl"
-      modalClassName="max-w-[960px] xl:max-w-[1040px]"
-      className="p-0"
-    >
-      <div className="flex h-full flex-col bg-background-primary-default">
-        {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b border-border-card-default px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-body-1-semibold text-text-primary">{displayTemplate.name}</h2>
-            <Chip
-              color={displayTemplate.engineKind === 'instant' ? 'cyan' : 'purple'}
-              variant="caption"
-            >
-              {displayTemplate.engineKind === 'instant' ? t('instantWin') : t('skillGame')}
-            </Chip>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={effectiveSaved ? 'primary' : 'secondary'}
-              size="small"
-              leadingIcon={effectiveSaved ? RiBookmarkFill : RiBookmarkLine}
-              onClick={() => onToggleSave?.(displayTemplate.id)}
-            >
-              {effectiveSaved ? t('saved') : t('save')}
-            </Button>
-            <CloseButton aria-label={t('close')} onClick={onClose} />
-          </div>
-        </div>
-
-        {/* Drawer Body - Split View (Phone Canvas on Left, Specs on Right) */}
-        <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-          {/* Left Column: Phone Canvas Preview */}
-          <div className="flex flex-col items-center justify-center border-b border-border-card-default bg-background-tertiary-default/50 p-6 lg:w-[440px] lg:shrink-0 lg:border-b-0 lg:border-r overflow-y-auto">
-            {/* Screen Switcher */}
-            <div className="mb-5 shrink-0">
-              <PillTabList>
-                <PillTab
-                  variant="gray"
-                  isSelected={activeScreen === 'cover'}
-                  onSelect={() => setActiveScreen('cover')}
-                >
-                  {t('screens.cover')}
-                </PillTab>
-                <PillTab
-                  variant="gray"
-                  isSelected={activeScreen === 'game'}
-                  onSelect={() => setActiveScreen('game')}
-                >
-                  {t('screens.game')}
-                </PillTab>
-                <PillTab
-                  variant="gray"
-                  isSelected={activeScreen === 'resultWin'}
-                  onSelect={() => setActiveScreen('resultWin')}
-                >
-                  {t('screens.win')}
-                </PillTab>
-                <PillTab
-                  variant="gray"
-                  isSelected={activeScreen === 'resultLose'}
-                  onSelect={() => setActiveScreen('resultLose')}
-                >
-                  {t('screens.lose')}
-                </PillTab>
-              </PillTabList>
-            </div>
-
-            {/* Smartphone Canvas Frame */}
-            <PhoneMockup size="sm">
-              {currentDoc && (
-                <FitScreen
-                  key={activeScreen}
-                  screen={currentDoc}
-                  brand={displayTemplate.brand}
-                  scroll
-                  animate={0}
-                />
-              )}
-            </PhoneMockup>
-          </div>
-
-          {/* Right Column: Template Info & Settings */}
-          <div className="flex flex-1 flex-col justify-between overflow-y-auto">
-            <div className="flex flex-col gap-6 p-6 lg:p-8">
-              {/* Overview */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-caption-1-medium text-text-tertiary">
-                    {displayTemplate.skinName}
-                  </span>
-                  <span className="text-text-tertiary">•</span>
-                  <span className="text-caption-1-medium text-text-tertiary">
-                    {displayTemplate.engineKind === 'instant' ? t('instantWin') : t('skillGame')}
-                  </span>
-                </div>
-                <h3 className="text-title-1-semibold tracking-tight text-text-primary">
+    <Drawer isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Drawer.Backdrop isDismissable>
+        <Drawer.Content placement="right">
+          <Drawer.Dialog className="flex h-full w-full max-w-[960px] flex-col bg-background-primary-default p-0 sm:w-full xl:max-w-[1040px]">
+            {/* Drawer Header */}
+            <Drawer.Header className="mb-0 flex-row items-center justify-between gap-4 border-b border-border-card-default px-6 py-4">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <Drawer.Heading className="truncate text-body-semibold text-text-primary">
                   {displayTemplate.name}
-                </h3>
-                <p className="text-body-medium text-text-secondary leading-relaxed">
-                  {displayTemplate.description}
-                </p>
+                </Drawer.Heading>
+                <Chip
+                  color={displayTemplate.engineKind === 'instant' ? 'accent' : 'warning'}
+                  variant="soft"
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {displayTemplate.engineKind === 'instant' ? t('instantWin') : t('skillGame')}
+                </Chip>
               </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  variant={effectiveSaved ? 'primary' : 'secondary'}
+                  size="sm"
+                  onPress={() => onToggleSave?.(displayTemplate.id)}
+                >
+                  {effectiveSaved ? (
+                    <RiBookmarkFill className="size-4" />
+                  ) : (
+                    <RiBookmarkLine className="size-4" />
+                  )}
+                  {effectiveSaved ? t('saved') : t('save')}
+                </Button>
+                <CloseButton aria-label={t('close')} onPress={onClose} />
+              </div>
+            </Drawer.Header>
 
-              {/* Expected Business Outcomes */}
-              <div className="flex flex-col gap-2.5">
-                <span className="text-caption-1-medium text-text-tertiary">
-                  {t('expectedOutcomesTitle')}
-                </span>
-                <div className="grid grid-cols-3 gap-3">
-                  {/* 1. Usage Count */}
-                  <div className="flex flex-col gap-1 rounded-xl border border-border-card-default bg-background-secondary-default p-3">
-                    <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
-                      <RiFireLine className="size-3.5 text-orange-500 fill-orange-500" />
-                      {t('usageCount')}
-                    </span>
-                    <span className="text-body-1-semibold text-text-primary">
-                      {displayTemplate.usageCount}+
-                    </span>
-                    <span className="text-[11px] text-text-tertiary leading-tight">
-                      {t('usageHint')}
-                    </span>
-                  </div>
-
-                  {/* 2. Setup time */}
-                  <div className="flex flex-col gap-1 rounded-xl border border-border-card-default bg-background-secondary-default p-3">
-                    <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
-                      <RiTimeLine className="size-3.5 text-text-secondary" />
-                      {t('setupTime')}
-                    </span>
-                    <span className="text-body-1-semibold text-text-primary">
-                      {displayTemplate.setupTime}
-                    </span>
-                    <span className="text-[11px] text-text-tertiary leading-tight">
-                      {t('setupTimeHint')}
-                    </span>
-                  </div>
-
-                  {/* 3. Completion rate */}
-                  <div className="flex flex-col gap-1 rounded-xl border border-border-card-default bg-background-secondary-default p-3">
-                    <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
-                      <RiCheckDoubleLine className="size-3.5 text-emerald-500" />
-                      {t('completionRate')}
-                    </span>
-                    <span className="text-body-1-semibold text-text-primary">
-                      {displayTemplate.completionRate}
-                    </span>
-                    <span className="text-[11px] text-text-tertiary leading-tight">
-                      {t('completionHint')}
-                    </span>
-                  </div>
+            {/* Drawer Body - Split View (Phone Canvas on Left, Specs on Right) */}
+            <Drawer.Body className="m-0 mt-0 flex flex-1 flex-col overflow-hidden p-0 text-text-primary lg:flex-row">
+              {/* Left Column: Phone Canvas Preview */}
+              <div className="flex flex-col items-center justify-center overflow-y-auto border-b border-border-card-default bg-background-tertiary-default/50 p-6 lg:w-[440px] lg:shrink-0 lg:border-r lg:border-b-0">
+                {/* Screen Switcher */}
+                <div className="mb-5 shrink-0">
+                  <Tabs
+                    selectedKey={activeScreen}
+                    onSelectionChange={(key) => setActiveScreen(String(key) as ScreenKey)}
+                  >
+                    <Tabs.ListContainer>
+                      <Tabs.List aria-label="Screen preview">
+                        <Tabs.Tab id="cover" className="whitespace-nowrap">
+                          {t('screens.cover')}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                        <Tabs.Tab id="game" className="whitespace-nowrap">
+                          {t('screens.game')}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                        <Tabs.Tab id="resultWin" className="whitespace-nowrap">
+                          {t('screens.win')}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                        <Tabs.Tab id="resultLose" className="whitespace-nowrap">
+                          {t('screens.lose')}
+                          <Tabs.Indicator />
+                        </Tabs.Tab>
+                      </Tabs.List>
+                    </Tabs.ListContainer>
+                  </Tabs>
                 </div>
+
+                {/* Smartphone Canvas Frame */}
+                <PhoneMockup size="sm">
+                  {currentDoc && (
+                    <FitScreen
+                      key={`${effectiveSkin.skinKey}-${activeScreen}`}
+                      screen={currentDoc}
+                      brand={effectiveSkin.brand}
+                      scroll
+                      animate={0}
+                    />
+                  )}
+                </PhoneMockup>
               </div>
 
-              {/* Skin Variations */}
-              <div className="flex flex-col gap-2.5 rounded-xl border border-border-card-default bg-background-secondary-default p-4">
-                <span className="text-caption-1-medium text-text-tertiary">
-                  {t('availableSkinsTitle')}
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {displayTemplate.availableSkins.map((s) => (
-                    <button
-                      type="button"
-                      key={s.key}
-                      onClick={() => setSelectedSkinKey(s.key)}
-                      className={cx(
-                        'flex items-center gap-2 rounded-lg border px-3 py-1.5 text-caption-1-medium transition-all cursor-pointer',
-                        selectedSkinKey === s.key
-                          ? 'border-accent-500 bg-background-primary-default text-text-primary font-medium shadow-xs'
-                          : 'border-border-card-default text-text-secondary hover:border-border-card-hover',
-                      )}
+              {/* Right Column: Template Info & Settings */}
+              <div className="flex flex-1 flex-col justify-between overflow-y-auto">
+                <div className="flex flex-col gap-6 p-6 lg:p-8">
+                  {/* Overview */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-caption-1-medium text-text-tertiary">
+                        {effectiveSkin.skinName}
+                      </span>
+                      <span className="text-text-tertiary">•</span>
+                      <span className="text-caption-1-medium text-text-tertiary">
+                        {displayTemplate.engineKind === 'instant'
+                          ? t('instantWin')
+                          : t('skillGame')}
+                      </span>
+                    </div>
+                    <h3 className="text-title-1-semibold tracking-tight text-text-primary">
+                      {displayTemplate.name}
+                    </h3>
+                    <p className="text-body-medium leading-relaxed text-text-secondary">
+                      {displayTemplate.description}
+                    </p>
+                  </div>
+
+                  {/* Expected Business Outcomes */}
+                  <div className="flex flex-col gap-2.5">
+                    <span className="text-caption-1-medium text-text-tertiary">
+                      {t('expectedOutcomesTitle')}
+                    </span>
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* 1. Usage Count */}
+                      <Card
+                        variant="secondary"
+                        className="flex flex-col gap-1 border border-border-card-default p-3"
+                      >
+                        <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
+                          <RiFireLine className="size-3.5 fill-orange-500 text-orange-500" />
+                          {t('usageCount')}
+                        </span>
+                        <span className="text-body-semibold text-text-primary">
+                          {displayTemplate.usageCount}+
+                        </span>
+                        <span className="text-[11px] leading-tight text-text-tertiary">
+                          {t('usageHint')}
+                        </span>
+                      </Card>
+
+                      {/* 2. Setup time */}
+                      <Card
+                        variant="secondary"
+                        className="flex flex-col gap-1 border border-border-card-default p-3"
+                      >
+                        <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
+                          <RiTimeLine className="size-3.5 text-text-secondary" />
+                          {t('setupTime')}
+                        </span>
+                        <span className="text-body-semibold text-text-primary">
+                          {displayTemplate.setupTime}
+                        </span>
+                        <span className="text-[11px] leading-tight text-text-tertiary">
+                          {t('setupTimeHint')}
+                        </span>
+                      </Card>
+
+                      {/* 3. Completion rate */}
+                      <Card
+                        variant="secondary"
+                        className="flex flex-col gap-1 border border-border-card-default p-3"
+                      >
+                        <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
+                          <RiCheckDoubleLine className="size-3.5 text-emerald-500" />
+                          {t('completionRate')}
+                        </span>
+                        <span className="text-body-semibold text-text-primary">
+                          {displayTemplate.completionRate}
+                        </span>
+                        <span className="text-[11px] leading-tight text-text-tertiary">
+                          {t('completionHint')}
+                        </span>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Skin Variations */}
+                  <Card
+                    variant="secondary"
+                    className="flex flex-col gap-2.5 border border-border-card-default p-4"
+                  >
+                    <span className="text-caption-1-medium text-text-tertiary">
+                      {t('availableSkinsTitle')}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {displayTemplate.availableSkins.map((s) => (
+                        <button
+                          type="button"
+                          key={s.key}
+                          onClick={() => setSelectedSkinKey(s.key)}
+                          className={cx(
+                            'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-caption-1-medium transition-all',
+                            selectedSkinKey === s.key
+                              ? 'border-accent-500 bg-background-primary-default font-medium text-text-primary shadow-xs'
+                              : 'border-border-card-default text-text-secondary hover:border-border-card-hover',
+                          )}
+                        >
+                          <span
+                            className="size-3 rounded-full"
+                            style={{ backgroundColor: s.color }}
+                          />
+                          <span>{s.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card
+                      variant="secondary"
+                      className="flex flex-col gap-1.5 border border-border-card-default p-4"
                     >
-                      <span className="size-3 rounded-full" style={{ backgroundColor: s.color }} />
-                      <span>{s.name}</span>
-                    </button>
-                  ))}
+                      <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
+                        <RiTimeLine className="size-3.5 text-text-secondary" />
+                        {t('recommendedDuration')}
+                      </span>
+                      <span className="text-body-semibold text-text-primary">
+                        {displayTemplate.playDuration}
+                      </span>
+                      <span className="text-caption-2-regular text-text-tertiary">
+                        {t('durationHint')}
+                      </span>
+                    </Card>
+
+                    <Card
+                      variant="secondary"
+                      className="flex flex-col gap-1.5 border border-border-card-default p-4"
+                    >
+                      <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
+                        <RiGiftLine className="size-3.5 text-text-secondary" />
+                        {t('recommendedWinRate')}
+                      </span>
+                      <span className="text-body-semibold text-text-primary">
+                        {displayTemplate.recommendedWinRate}
+                      </span>
+                      <span className="text-caption-2-regular text-text-tertiary">
+                        {t('winRateHint')}
+                      </span>
+                    </Card>
+                  </div>
+
+                  {/* Compliance & Server Outcome */}
+                  <Alert status="accent">
+                    <Alert.Indicator>
+                      <RiShieldCheckLine className="size-4" />
+                    </Alert.Indicator>
+                    <Alert.Content>
+                      <Alert.Title>{t('complianceTitle')}</Alert.Title>
+                      <Alert.Description>{t('complianceDesc')}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                </div>
+
+                {/* Actions Sticky Footer */}
+                <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-card-default bg-background-primary-default px-6 py-4 lg:px-8">
+                  <Button variant="secondary" size="sm" onPress={onClose}>
+                    {t('close')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onPress={() =>
+                      onUseTemplate({
+                        ...displayTemplate,
+                        skinKey: effectiveSkin.skinKey,
+                        skinName: effectiveSkin.skinName,
+                        brand: effectiveSkin.brand,
+                      })
+                    }
+                  >
+                    <RiMagicLine className="size-4" />
+                    {t('useThisTemplate')}
+                  </Button>
                 </div>
               </div>
-
-              {/* Metrics */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5 rounded-xl border border-border-card-default bg-background-secondary-default p-4">
-                  <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
-                    <RiTimeLine className="size-3.5 text-text-secondary" />
-                    {t('recommendedDuration')}
-                  </span>
-                  <span className="text-body-1-semibold text-text-primary">
-                    {displayTemplate.playDuration}
-                  </span>
-                  <span className="text-caption-2-regular text-text-tertiary">
-                    {t('durationHint')}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1.5 rounded-xl border border-border-card-default bg-background-secondary-default p-4">
-                  <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
-                    <RiGiftLine className="size-3.5 text-text-secondary" />
-                    {t('recommendedWinRate')}
-                  </span>
-                  <span className="text-body-1-semibold text-text-primary">
-                    {displayTemplate.recommendedWinRate}
-                  </span>
-                  <span className="text-caption-2-regular text-text-tertiary">
-                    {t('winRateHint')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Compliance & Server Outcome */}
-              <div className="flex items-start gap-3 rounded-xl border border-border-card-default bg-background-secondary-default p-4 text-caption-1-regular text-text-secondary">
-                <RiShieldCheckLine className="size-4 shrink-0 text-text-tertiary mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium text-text-primary">{t('complianceTitle')}</span>
-                  <p className="text-caption-2-regular text-text-tertiary leading-relaxed">
-                    {t('complianceDesc')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions Sticky Footer */}
-            <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-card-default bg-background-primary-default px-6 py-4 lg:px-8">
-              <Button variant="secondary" size="small" onClick={onClose}>
-                {t('close')}
-              </Button>
-              <Button
-                variant="primary"
-                size="small"
-                leadingIcon={RiMagicLine}
-                onClick={() => onUseTemplate(displayTemplate)}
-              >
-                {t('useThisTemplate')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Drawer.Body>
+          </Drawer.Dialog>
+        </Drawer.Content>
+      </Drawer.Backdrop>
     </Drawer>
   );
 }

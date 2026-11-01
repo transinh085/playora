@@ -1,7 +1,7 @@
 'use client';
 
 import type { BrandKitSummary } from '@playora/contracts';
-import { Button } from '@playora/ui/components/base/buttons/button';
+import { Button, Card } from '@playora/ui/components';
 import { Palette, Pencil, Trash2 } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/empty-state';
@@ -29,7 +29,7 @@ export function BrandKitList({
   }
 
   return (
-    <div className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card">
+    <Card className="divide-y divide-separator-border overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
       {items.map((kit) => (
         <div
           key={kit.id}
@@ -78,29 +78,25 @@ export function BrandKitList({
           </div>
 
           <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
-            <Button
-              type="button"
-              variant="secondary"
-              size="small"
-              leadingIcon={Pencil}
-              onClick={() => onEdit(kit)}
-            >
+            <Button type="button" variant="secondary" size="sm" onPress={() => onEdit(kit)}>
+              <Pencil className="size-4" />
               {t('brandKits.edit')}
             </Button>
             <Button
               type="button"
               variant="ghost"
-              size="small"
-              iconOnly
-              leadingIcon={Trash2}
+              size="sm"
+              isIconOnly
               className="text-text-error-primary hover:bg-notification-error-background"
               aria-label={t('common.delete')}
-              disabled={isRemoving}
-              onClick={() => onRemove(kit.id)}
-            />
+              isDisabled={isRemoving}
+              onPress={() => onRemove(kit.id)}
+            >
+              <Trash2 className="size-4" />
+            </Button>
           </div>
         </div>
       ))}
-    </div>
+    </Card>
   );
 }

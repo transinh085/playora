@@ -1,7 +1,6 @@
 'use client';
 
-import { Popover, PopoverTrigger } from '@playora/ui/components';
-import { ProgressCircle } from '@playora/ui/components/base/progress/progress';
+import { Button, Chip, Popover, ProgressBar, ProgressCircle } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiArrowRightSLine,
@@ -193,31 +192,34 @@ function OnboardingPopoverContent({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <span className="rounded-full bg-background-secondary-default px-2 py-0.5 text-caption-2-medium tabular-nums text-text-secondary">
+          <Chip variant="soft" size="sm" color="default" className="tabular-nums">
             {`${doneCount}/${totalCount}`}
-          </span>
-          <button
-            type="button"
-            onClick={allDone && onDismiss ? onDismiss : onClose}
-            className="flex size-6 cursor-pointer items-center justify-center rounded-lg text-foreground-icon-tertiary transition-colors hover:bg-background-secondary-hover hover:text-foreground-icon-primary"
+          </Chip>
+          <Button
+            variant="ghost"
+            size="sm"
+            isIconOnly
+            onPress={allDone && onDismiss ? onDismiss : onClose}
             aria-label={allDone && onDismiss ? t('dismiss') : 'Close'}
-            title={allDone && onDismiss ? t('dismiss') : undefined}
+            className="size-6 min-w-6"
           >
             <RiCloseLine className="size-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-background-tertiary-default">
-        <div
-          className={cx(
-            'h-full rounded-full transition-all duration-300',
-            allDone ? 'bg-emerald-500' : 'bg-linear-to-r from-accent-500 to-accent-600',
-          )}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      <ProgressBar
+        value={percent}
+        size="sm"
+        color={allDone ? 'success' : 'accent'}
+        aria-label={t('gettingStarted')}
+        className="mt-2.5"
+      >
+        <ProgressBar.Track>
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
 
       {/* Step Items list */}
       <ul className="mt-2.5 flex list-none flex-col gap-1 border-t border-separator-border p-0 pt-2">
@@ -299,30 +301,111 @@ export function SidebarOnboarding({
   if (isCollapsedDesktop) {
     return (
       <div className="flex w-full justify-center">
-        <PopoverTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
+          <Popover.Trigger>
+            <button
+              type="button"
+              data-testid="home-checklist"
+              aria-label={t('gettingStarted')}
+              title={`${t('gettingStarted')} (${doneCount}/${totalCount})`}
+              className="relative flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-neutral-200/70 text-neutral-600 outline-none transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:bg-white/10 dark:text-[#A3A3A3] dark:hover:bg-white/15 dark:hover:text-[#FAFAFA]"
+            >
+              <RiSparklingLine
+                className={cx('size-4', allDone ? 'text-emerald-500' : 'text-accent-500')}
+              />
+              <span
+                className={cx(
+                  'absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white shadow-xs',
+                  allDone ? 'bg-emerald-600' : 'bg-accent-600',
+                )}
+              >
+                {doneCount}
+              </span>
+            </button>
+          </Popover.Trigger>
+          <Popover.Content placement="right bottom" className="w-[320px] p-2">
+            <Popover.Dialog className="p-0">
+              <OnboardingPopoverContent
+                steps={steps}
+                doneCount={doneCount}
+                totalCount={totalCount}
+                percent={percent}
+                allDone={allDone}
+                onClose={() => setIsOpen(false)}
+                onDismiss={handleDismiss}
+                onNavigate={onNavigate}
+              />
+            </Popover.Dialog>
+          </Popover.Content>
+        </Popover>
+      </div>
+    );
+  }
+
+  // Standard expanded sidebar: compact trigger card that opens a floating popover
+  return (
+    <div data-testid="home-checklist" className="relative flex flex-col">
+      <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Popover.Trigger>
           <button
             type="button"
-            data-testid="home-checklist"
-            aria-label={t('gettingStarted')}
-            title={`${t('gettingStarted')} (${doneCount}/${totalCount})`}
-            className="relative flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-background-tertiary-default text-foreground-icon-secondary outline-none transition-colors hover:bg-background-tertiary-hover hover:text-foreground-icon-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring"
+            aria-expanded={isOpen}
+            className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left shadow-2xs outline-none transition-colors hover:border-neutral-300 hover:bg-neutral-50 dark:border-white/10 dark:bg-[#171717] dark:hover:border-white/20 dark:hover:bg-white/5"
           >
-            <RiSparklingLine
-              className={cx('size-4', allDone ? 'text-emerald-500' : 'text-accent-500')}
-            />
-            <span
-              className={cx(
-                'absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white shadow-xs',
-                allDone ? 'bg-emerald-600' : 'bg-accent-600',
-              )}
+            <div className="flex w-full items-center justify-between gap-2">
+              <span className="flex min-w-0 flex-1 items-center gap-2">
+                <ProgressCircle
+                  size="sm"
+                  value={percent}
+                  color={allDone ? 'success' : 'accent'}
+                  aria-label={t('gettingStarted')}
+                >
+                  <ProgressCircle.Track>
+                    <ProgressCircle.TrackCircle />
+                    <ProgressCircle.FillCircle />
+                  </ProgressCircle.Track>
+                </ProgressCircle>
+                <span className="truncate text-caption-1-semibold text-text-primary">
+                  {allDone ? t('setupComplete') : t('gettingStarted')}
+                </span>
+              </span>
+
+              <span className="flex shrink-0 items-center gap-1">
+                <Chip variant="soft" size="sm" color="default" className="tabular-nums">
+                  {`${doneCount}/${totalCount}`}
+                </Chip>
+                <RiArrowUpSLine
+                  className={cx(
+                    'size-3.5 text-foreground-icon-tertiary transition-transform duration-200 group-hover:text-foreground-icon-primary',
+                    isOpen && 'rotate-180',
+                  )}
+                  aria-hidden
+                />
+              </span>
+            </div>
+
+            <ProgressBar
+              value={percent}
+              size="sm"
+              color={allDone ? 'success' : 'accent'}
+              aria-label={t('gettingStarted')}
             >
-              {doneCount}
-            </span>
+              <ProgressBar.Track>
+                <ProgressBar.Fill />
+              </ProgressBar.Track>
+            </ProgressBar>
+
+            {nextStep && (
+              <span className="flex w-full items-center justify-between gap-1.5 text-caption-2-regular text-text-secondary">
+                <span className="truncate">{nextStep.title}</span>
+                <RiArrowRightSLine className="size-3.5 shrink-0 text-foreground-icon-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-accent-600" />
+              </span>
+            )}
           </button>
-          <Popover
-            placement="right bottom"
-            className="w-[320px] rounded-2xl border border-border-button-default bg-background-primary-default p-2 shadow-dropdown"
-          >
+        </Popover.Trigger>
+
+        <Popover.Content placement={isMobile ? 'top' : 'right bottom'} className="w-[320px] p-2">
+          <Popover.Dialog className="p-0">
             <OnboardingPopoverContent
               steps={steps}
               doneCount={doneCount}
@@ -333,84 +416,9 @@ export function SidebarOnboarding({
               onDismiss={handleDismiss}
               onNavigate={onNavigate}
             />
-          </Popover>
-        </PopoverTrigger>
-      </div>
-    );
-  }
-
-  // Standard expanded sidebar: compact trigger pill/card that opens a floating popover
-  // so it never overlaps or crowds the sidebar navigation on small screens.
-  return (
-    <div data-testid="home-checklist" className="relative flex flex-col">
-      <PopoverTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
-        <button
-          type="button"
-          aria-expanded={isOpen}
-          className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-xl border border-border-button-default bg-background-primary-default px-2.5 py-2 text-left shadow-xs outline-none transition-colors hover:border-border-button-hover hover:bg-background-primary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring"
-        >
-          <div className="flex w-full items-center justify-between gap-2">
-            <span className="flex min-w-0 flex-1 items-center gap-2">
-              <ProgressCircle
-                size="sm"
-                value={percent}
-                aria-label={t('gettingStarted')}
-                className={allDone ? 'text-emerald-500' : 'text-accent-500'}
-              />
-              <span className="truncate text-caption-1-semibold text-text-primary">
-                {allDone ? t('setupComplete') : t('gettingStarted')}
-              </span>
-            </span>
-
-            <span className="flex shrink-0 items-center gap-1">
-              <span className="rounded-full bg-background-secondary-default px-1.5 py-0.5 text-caption-2-medium tabular-nums text-text-secondary">
-                {`${doneCount}/${totalCount}`}
-              </span>
-              <RiArrowUpSLine
-                className={cx(
-                  'size-3.5 text-foreground-icon-tertiary transition-transform duration-200 group-hover:text-foreground-icon-primary',
-                  isOpen && 'rotate-180',
-                )}
-                aria-hidden
-              />
-            </span>
-          </div>
-
-          {/* Slim progress bar */}
-          <div className="h-1 w-full overflow-hidden rounded-full bg-background-tertiary-default">
-            <div
-              className={cx(
-                'h-full rounded-full transition-all duration-300',
-                allDone ? 'bg-emerald-500' : 'bg-linear-to-r from-accent-500 to-accent-600',
-              )}
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          {nextStep && (
-            <span className="flex w-full items-center justify-between gap-1.5 text-caption-2-regular text-text-secondary">
-              <span className="truncate">{nextStep.title}</span>
-              <RiArrowRightSLine className="size-3.5 shrink-0 text-foreground-icon-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-accent-600" />
-            </span>
-          )}
-        </button>
-
-        <Popover
-          placement={isMobile ? 'top' : 'right bottom'}
-          className="w-[320px] rounded-2xl border border-border-button-default bg-background-primary-default p-2 shadow-dropdown"
-        >
-          <OnboardingPopoverContent
-            steps={steps}
-            doneCount={doneCount}
-            totalCount={totalCount}
-            percent={percent}
-            allDone={allDone}
-            onClose={() => setIsOpen(false)}
-            onDismiss={handleDismiss}
-            onNavigate={onNavigate}
-          />
-        </Popover>
-      </PopoverTrigger>
+          </Popover.Dialog>
+        </Popover.Content>
+      </Popover>
 
       {/* Keep step testids mounted in the DOM while popover is closed for SSR & e2e assertions */}
       {!isOpen && (

@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { Button, Card, Chip, ProgressBar } from '@playora/ui/components';
 import { CircleCheck, CircleDashed } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
@@ -38,24 +37,26 @@ export function Checklist({
   const nextKey = items.find((item) => !item.done)?.key;
 
   return (
-    <div
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-card"
-      data-testid={testId}
-    >
-      <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">{title}</h3>
+    <Card className="overflow-hidden p-0" data-testid={testId}>
+      <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
+        <Card.Title className="m-0 text-body-medium text-text-primary">{title}</Card.Title>
         {extra ?? (
-          <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
+          <Chip variant="soft" size="sm" color="default" className="tabular-nums">
             {`${done}/${items.length}`}
-          </span>
+          </Chip>
         )}
-      </div>
-      <div className="space-y-4 p-5">
+      </Card.Header>
+      <Card.Content className="space-y-4 p-5">
         <ProgressBar
           value={percent}
           size="md"
+          color="accent"
           aria-label={typeof title === 'string' ? title : 'Progress'}
-        />
+        >
+          <ProgressBar.Track>
+            <ProgressBar.Fill />
+          </ProgressBar.Track>
+        </ProgressBar>
         <ul className="m-0 flex list-none flex-col divide-y divide-separator-border p-0">
           {items.map((item) => (
             <li
@@ -88,9 +89,9 @@ export function Checklist({
                 {!item.done && (
                   <Link href={item.href as Route}>
                     <Button
-                      size="small"
+                      size="sm"
                       variant={item.key === nextKey ? 'primary' : 'secondary'}
-                      tabIndex={-1}
+                      excludeFromTabOrder
                     >
                       {item.action}
                     </Button>
@@ -100,7 +101,7 @@ export function Checklist({
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

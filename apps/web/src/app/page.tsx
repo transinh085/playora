@@ -1,6 +1,4 @@
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { ButtonLink } from '@playora/ui/components/base/buttons/button';
-import { ProgressBar } from '@playora/ui/components/base/progress/progress';
+import { buttonVariants, Chip, ProgressBar } from '@playora/ui/components';
 import {
   ArrowRight,
   BarChart2,
@@ -19,7 +17,7 @@ import { Logo } from '@/components/logo';
 const PLAYBOOKS = [
   {
     badge: 'Dịp lễ & Khai trương',
-    color: 'orange' as const,
+    color: 'warning' as const,
     icon: Sparkles,
     title: 'Đông khách dịp Tết & Khai trương',
     goal: 'Tăng lượng khách ghé quán trong 7–14 ngày cao điểm',
@@ -29,7 +27,7 @@ const PLAYBOOKS = [
   },
   {
     badge: 'Giữ chân khách hàng',
-    color: 'lime' as const,
+    color: 'success' as const,
     icon: Repeat,
     title: 'Khách quay lại lần 2',
     goal: 'Biến khách vãng lai thành khách quen trong 14 ngày',
@@ -39,7 +37,7 @@ const PLAYBOOKS = [
   },
   {
     badge: 'Tối ưu công suất quán',
-    color: 'purple' as const,
+    color: 'accent' as const,
     icon: Calendar,
     title: 'Lấp khung giờ & ngày vắng',
     goal: 'Kéo khách ghé quán vào Thứ 3 – Thứ 5 hoặc khung giờ thấp điểm',
@@ -123,34 +121,36 @@ const PLANS = [
 
 export default function Landing() {
   return (
-    <div className="min-h-dvh bg-background-full text-text-primary">
+    <div className="min-h-dvh bg-background text-foreground">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-30 border-b border-border-button-default bg-background-primary-default/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-8">
           <Logo className="text-xl" />
-          <nav className="hidden items-center gap-6 text-body-2-medium text-text-secondary md:flex">
-            <a href="#playbooks" className="transition-colors hover:text-text-primary">
+          <nav className="hidden items-center gap-6 text-body-2-medium text-muted md:flex">
+            <a href="#playbooks" className="transition-colors hover:text-foreground">
               Kịch bản mẫu
             </a>
-            <a href="#tinh-nang" className="transition-colors hover:text-text-primary">
+            <a href="#tinh-nang" className="transition-colors hover:text-foreground">
               Tính năng
             </a>
-            <a href="#bang-gia" className="transition-colors hover:text-text-primary">
+            <a href="#bang-gia" className="transition-colors hover:text-foreground">
               Bảng giá
             </a>
           </nav>
           <div className="flex items-center gap-2.5">
-            <ButtonLink href="mailto:hello@playora.vn" variant="secondary" size="small">
+            <a
+              href="mailto:hello@playora.vn"
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+            >
               Đặt lịch demo
-            </ButtonLink>
-            <ButtonLink
+            </a>
+            <a
               href="mailto:hello@playora.vn?subject=Dùng%20thử%20Playora"
-              variant="primary"
-              size="small"
-              trailingIcon={ArrowRight}
+              className={buttonVariants({ variant: 'primary', size: 'sm' })}
             >
               Dùng thử miễn phí
-            </ButtonLink>
+              <ArrowRight className="size-4" aria-hidden />
+            </a>
           </div>
         </div>
       </header>
@@ -160,53 +160,55 @@ export default function Landing() {
         <section className="grid items-center gap-10 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-7">
             <div className="inline-flex items-center gap-2">
-              <Chip variant="subtle" color="orange">
+              <Chip variant="soft" color="warning">
                 Giải pháp Minigame cho Quán Cà Phê, Trà Sữa & Bán Lẻ
               </Chip>
             </div>
-            <h1 className="font-display text-4xl font-bold tracking-tight text-balance text-text-primary sm:text-5xl lg:leading-[1.12]">
+            <h1 className="font-display text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:leading-[1.12]">
               Kéo khách tới quầy. Giữ khách quay lại lần hai.
             </h1>
-            <p className="max-w-2xl text-body-regular text-text-secondary sm:text-lg">
+            <p className="max-w-2xl text-body-regular text-muted sm:text-lg">
               Dựng vòng quay may mắn, thẻ cào, hộp quà mang đậm thương hiệu quán chỉ trong 5 phút.
               Hệ thống tự động rải đều kho quà theo giờ mở cửa, thu ngân đổi mã tại quầy trong 3
               giây và báo cáo chính xác số khách quay lại.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <ButtonLink
+              <a
                 href="mailto:hello@playora.vn?subject=Khởi%20tạo%20tài%20khoản%20Playora"
-                variant="primary"
-                size="medium"
-                trailingIcon={ArrowRight}
-                className="h-11 rounded-2lg px-5"
+                className={buttonVariants({
+                  variant: 'primary',
+                  size: 'md',
+                  className: 'h-11 rounded-2lg px-5',
+                })}
               >
                 Tạo chương trình miễn phí
-              </ButtonLink>
-              <ButtonLink
+                <ArrowRight className="size-4" aria-hidden />
+              </a>
+              <a
                 href="mailto:hello@playora.vn"
-                variant="secondary"
-                size="medium"
-                className="h-11 rounded-2lg px-5"
+                className={buttonVariants({
+                  variant: 'secondary',
+                  size: 'md',
+                  className: 'h-11 rounded-2lg px-5',
+                })}
               >
                 Đặt lịch demo
-              </ButtonLink>
+              </a>
             </div>
-            <div className="grid grid-cols-3 gap-4 border-t border-border-button-default pt-6">
+            <div className="grid grid-cols-3 gap-4 border-t border-border pt-6">
               <div>
-                <p className="text-title-3-semibold tabular-nums text-text-primary">5 phút</p>
-                <p className="text-caption-1-regular text-text-secondary">
-                  Lên sóng từ Playbook dựng sẵn
-                </p>
+                <p className="text-title-3-semibold text-foreground tabular-nums">5 phút</p>
+                <p className="text-caption-1-regular text-muted">Lên sóng từ Playbook dựng sẵn</p>
               </div>
               <div>
-                <p className="text-title-3-semibold tabular-nums text-text-primary">100%</p>
-                <p className="text-caption-1-regular text-text-secondary">
+                <p className="text-title-3-semibold text-foreground tabular-nums">100%</p>
+                <p className="text-caption-1-regular text-muted">
                   Kiểm soát trần ngân sách & tồn kho
                 </p>
               </div>
               <div>
-                <p className="text-title-3-semibold tabular-nums text-text-primary">3 giây</p>
-                <p className="text-caption-1-regular text-text-secondary">
+                <p className="text-title-3-semibold text-foreground tabular-nums">3 giây</p>
+                <p className="text-caption-1-regular text-muted">
                   Đổi mã 6 ký tự tại quầy thu ngân
                 </p>
               </div>
@@ -215,52 +217,54 @@ export default function Landing() {
 
           {/* Outcome Preview Card */}
           <div className="lg:col-span-5">
-            <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card">
-              <div className="flex items-center justify-between border-b border-border-button-default pb-4">
+            <div className="overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-surface">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <Store className="size-5" />
                   </div>
                   <div>
-                    <p className="text-body-2-semibold text-text-primary">
+                    <p className="text-body-2-semibold text-foreground">
                       Vòng quay Mùa Lễ Hội · Cà phê Mộc
                     </p>
-                    <p className="text-caption-1-regular text-text-secondary">
+                    <p className="text-caption-1-regular text-muted">
                       Báo cáo hiệu quả thực tế tại quầy
                     </p>
                   </div>
                 </div>
-                <Chip variant="subtle" color="lime">
+                <Chip variant="soft" color="success">
                   Đang chạy
                 </Chip>
               </div>
 
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-border-button-default bg-background-secondary-default/60 p-3.5">
-                  <p className="text-caption-1-medium text-text-secondary">
-                    Khách tới quầy đổi quà
-                  </p>
-                  <p className="mt-1 text-title-2-semibold tabular-nums text-text-primary">342</p>
-                  <p className="mt-0.5 text-caption-1-regular text-text-tertiary">
+                <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
+                  <p className="text-caption-1-medium text-muted">Khách tới quầy đổi quà</p>
+                  <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">342</p>
+                  <p className="mt-0.5 text-caption-1-regular text-muted">
                     68,4% tổng số mã đã phát
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border-button-default bg-background-secondary-default/60 p-3.5">
-                  <p className="text-caption-1-medium text-text-secondary">Khách quay lại lần 2</p>
-                  <p className="mt-1 text-title-2-semibold tabular-nums text-text-primary">28,4%</p>
-                  <p className="mt-0.5 text-caption-1-regular text-text-tertiary">
+                <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
+                  <p className="text-caption-1-medium text-muted">Khách quay lại lần 2</p>
+                  <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">28,4%</p>
+                  <p className="mt-0.5 text-caption-1-regular text-muted">
                     Quay lại trong vòng 14 ngày
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default/40 p-4">
+              <div className="mt-4 space-y-2.5 rounded-2xl border border-border bg-surface-secondary/40 p-4">
                 <div className="flex items-center justify-between text-caption-1-medium">
-                  <span className="text-text-secondary">Ngân sách quà đã đổi thực tế</span>
-                  <span className="tabular-nums text-text-primary">2.450.000 ₫ / 3.500.000 ₫</span>
+                  <span className="text-muted">Ngân sách quà đã đổi thực tế</span>
+                  <span className="text-foreground tabular-nums">2.450.000 ₫ / 3.500.000 ₫</span>
                 </div>
-                <ProgressBar value={70} size="sm" aria-label="Tiến độ ngân sách" />
-                <div className="flex items-center justify-between pt-1 text-caption-1-regular text-text-tertiary">
+                <ProgressBar value={70} size="sm" aria-label="Tiến độ ngân sách">
+                  <ProgressBar.Track>
+                    <ProgressBar.Fill />
+                  </ProgressBar.Track>
+                </ProgressBar>
+                <div className="flex items-center justify-between pt-1 text-caption-1-regular text-muted">
                   <span className="inline-flex items-center gap-1">
                     <QrCode className="size-3.5" /> Kênh hiệu quả nhất: Standee bàn (74% đổi quà)
                   </span>
@@ -273,13 +277,13 @@ export default function Landing() {
         {/* Playbooks Section */}
         <section id="playbooks" className="scroll-mt-20 space-y-8">
           <div className="max-w-2xl space-y-2">
-            <Chip variant="subtle" color="blue">
+            <Chip variant="soft" color="accent">
               Outcome Playbooks
             </Chip>
-            <h2 className="text-title-1-semibold tracking-tight text-text-primary">
+            <h2 className="text-title-1-semibold tracking-tight text-foreground">
               Chọn mục tiêu của quán, Playora thiết lập sẵn công thức
             </h2>
-            <p className="text-body-regular text-text-secondary">
+            <p className="text-body-regular text-muted">
               Không cần đau đầu tính xác suất. Chỉ cần nhập ngân sách quà và lượng khách ước tính,
               hệ thống tự gợi ý cơ cấu giải thưởng và luật chơi tối ưu.
             </p>
@@ -291,38 +295,36 @@ export default function Landing() {
               return (
                 <div
                   key={item.title}
-                  className="flex flex-col justify-between rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card"
+                  className="flex flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-surface"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                         <Icon className="size-5" />
                       </div>
-                      <Chip variant="subtle" color={item.color}>
+                      <Chip variant="soft" color={item.color}>
                         {item.badge}
                       </Chip>
                     </div>
-                    <h3 className="text-headline-semibold text-text-primary">{item.title}</h3>
-                    <div className="space-y-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default/50 p-4 text-body-2-regular">
+                    <h3 className="text-headline-semibold text-foreground">{item.title}</h3>
+                    <div className="space-y-2.5 rounded-2xl border border-border bg-surface-secondary/50 p-4 text-body-2-regular">
                       <div>
-                        <span className="text-caption-1-semibold uppercase tracking-wider text-text-tertiary">
+                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
                           Mục tiêu
                         </span>
-                        <p className="mt-0.5 text-body-2-medium text-text-primary">{item.goal}</p>
+                        <p className="mt-0.5 text-body-2-medium text-foreground">{item.goal}</p>
                       </div>
                       <div>
-                        <span className="text-caption-1-semibold uppercase tracking-wider text-text-tertiary">
+                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
                           Cơ chế tự động
                         </span>
-                        <p className="mt-0.5 text-caption-1-regular text-text-secondary">
-                          {item.mechanism}
-                        </p>
+                        <p className="mt-0.5 text-caption-1-regular text-muted">{item.mechanism}</p>
                       </div>
                       <div>
-                        <span className="text-caption-1-semibold uppercase tracking-wider text-text-tertiary">
+                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
                           Chỉ số đo lường
                         </span>
-                        <p className="mt-0.5 text-caption-1-medium text-text-primary">
+                        <p className="mt-0.5 text-caption-1-medium text-foreground">
                           {item.metric}
                         </p>
                       </div>
@@ -337,13 +339,13 @@ export default function Landing() {
         {/* Core Pillars Section */}
         <section id="tinh-nang" className="scroll-mt-20 space-y-8">
           <div className="max-w-2xl space-y-2">
-            <Chip variant="subtle" color="neutral">
+            <Chip variant="soft" color="default">
               Vận hành khép kín
             </Chip>
-            <h2 className="text-title-1-semibold tracking-tight text-text-primary">
+            <h2 className="text-title-1-semibold tracking-tight text-foreground">
               Từ mã QR tại bàn tới quầy thu ngân chỉ trong một luồng duy nhất
             </h2>
-            <p className="text-body-regular text-text-secondary">
+            <p className="text-body-regular text-muted">
               Mọi quyết định trúng thưởng đều do máy chủ xử lý minh bạch, chống gian lận và bảo vệ
               ngân sách của chủ quán.
             </p>
@@ -355,14 +357,14 @@ export default function Landing() {
               return (
                 <div
                   key={pillar.title}
-                  className="flex gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card"
+                  className="flex gap-4 rounded-3xl border border-border bg-surface p-6 shadow-surface"
                 >
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
                     <Icon className="size-5" />
                   </div>
                   <div className="space-y-1.5">
-                    <h3 className="text-body-semibold text-text-primary">{pillar.title}</h3>
-                    <p className="text-body-2-regular text-text-secondary">{pillar.description}</p>
+                    <h3 className="text-body-semibold text-foreground">{pillar.title}</h3>
+                    <p className="text-body-2-regular text-muted">{pillar.description}</p>
                   </div>
                 </div>
               );
@@ -373,13 +375,13 @@ export default function Landing() {
         {/* Pricing Section */}
         <section id="bang-gia" className="scroll-mt-20 space-y-8">
           <div className="max-w-2xl space-y-2">
-            <Chip variant="subtle" color="lime">
+            <Chip variant="soft" color="success">
               Bảng giá minh bạch
             </Chip>
-            <h2 className="text-title-1-semibold tracking-tight text-text-primary">
+            <h2 className="text-title-1-semibold tracking-tight text-foreground">
               Trả phí theo kết quả đổi quà thực tế tại quầy
             </h2>
-            <p className="text-body-regular text-text-secondary">
+            <p className="text-body-regular text-muted">
               Bắt đầu miễn phí để kiểm chứng lượng khách tới quầy. Nâng cấp bất cứ lúc nào khi quán
               cần mở rộng quy mô.
             </p>
@@ -391,46 +393,46 @@ export default function Landing() {
                 key={plan.name}
                 className={
                   plan.highlighted
-                    ? 'flex flex-col justify-between rounded-3xl border-2 border-accent-500 bg-background-primary-default p-6 shadow-card'
-                    : 'flex flex-col justify-between rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card'
+                    ? 'flex flex-col justify-between rounded-3xl border-2 border-accent bg-surface p-6 shadow-surface'
+                    : 'flex flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-surface'
                 }
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-body-semibold text-text-primary">{plan.name}</h3>
+                    <h3 className="text-body-semibold text-foreground">{plan.name}</h3>
                     {plan.highlighted && (
-                      <Chip variant="bold" color="orange">
+                      <Chip variant="primary" color="warning">
                         Phổ biến nhất
                       </Chip>
                     )}
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-title-1-semibold tabular-nums text-text-primary">
+                    <span className="text-title-1-semibold text-foreground tabular-nums">
                       {plan.price}
                     </span>
-                    <span className="text-caption-1-regular text-text-secondary">
-                      {plan.period}
-                    </span>
+                    <span className="text-caption-1-regular text-muted">{plan.period}</span>
                   </div>
-                  <p className="text-body-2-regular text-text-secondary">{plan.description}</p>
-                  <ul className="space-y-2.5 border-t border-border-button-default pt-4 text-body-2-regular text-text-secondary">
+                  <p className="text-body-2-regular text-muted">{plan.description}</p>
+                  <ul className="space-y-2.5 border-t border-border pt-4 text-body-2-regular text-muted">
                     {plan.features.map((feat) => (
                       <li key={feat} className="flex items-start gap-2.5">
-                        <Check className="mt-0.5 size-4 shrink-0 text-accent-600 dark:text-accent-400" />
+                        <Check className="mt-0.5 size-4 shrink-0 text-accent" />
                         <span>{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div className="pt-6">
-                  <ButtonLink
+                  <a
                     href="mailto:hello@playora.vn"
-                    variant={plan.highlighted ? 'primary' : 'secondary'}
-                    size="medium"
-                    className="w-full"
+                    className={buttonVariants({
+                      variant: plan.highlighted ? 'primary' : 'secondary',
+                      size: 'md',
+                      fullWidth: true,
+                    })}
                   >
                     {plan.cta}
-                  </ButtonLink>
+                  </a>
                 </div>
               </div>
             ))}
@@ -439,10 +441,10 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border-button-default bg-background-primary-default py-10">
+      <footer className="border-t border-border bg-surface py-10">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 sm:px-8">
           <Logo className="text-lg" />
-          <p className="text-caption-1-regular text-text-secondary">
+          <p className="text-caption-1-regular text-muted">
             © {new Date().getFullYear()} Playora. Nền tảng minigame trúng thưởng kéo khách tới quầy
             cho F&B và bán lẻ.
           </p>

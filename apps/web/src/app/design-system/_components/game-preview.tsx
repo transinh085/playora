@@ -1,8 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { Switch } from '@playora/ui/components/base/switch/switch';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+import { Chip, QRCodeSvg, Switch } from '@playora/ui/components';
 import { Countdown } from '@playora/ui/game/countdown';
 import { GameButton } from '@playora/ui/game/game-button';
 import { GameResult } from '@playora/ui/game/game-result';
@@ -64,8 +62,9 @@ function SkinShowcaseCard({
     >
       <div className="flex items-center justify-between gap-2">
         <Chip
-          variant="caption"
-          color="neutral"
+          variant="soft"
+          size="sm"
+          color="default"
           className="m-0 border-0 bg-[var(--game-surface)] px-3 py-1 font-game text-xs font-bold text-[var(--game-fg)]"
         >
           {badgeLabel}: {SKIN_LABEL[skin]}
@@ -171,7 +170,14 @@ export function GamePreview() {
           ))}
         </div>
         <Switch isSelected={branded} onChange={setBranded}>
-          Áp Brand Kit quán mẫu (Đỏ #E30613 · Tương phản tự động WCAG)
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          <Switch.Content>
+            <span className="text-xs font-medium">
+              Áp Brand Kit quán mẫu (Đỏ #E30613 · Tương phản tự động WCAG)
+            </span>
+          </Switch.Content>
         </Switch>
       </div>
 

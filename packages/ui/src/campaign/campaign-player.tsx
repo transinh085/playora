@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@heroui/react';
 import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
-import { Button } from '@playora/ui/components/base/buttons/button';
 import { RiGiftLine } from '@remixicon/react';
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
@@ -104,11 +104,12 @@ export function RedeemFirstBanner({
 }) {
   return (
     <div className="absolute inset-x-3 bottom-4 z-10" data-testid="redeem-first-notice">
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-border-button-default bg-background-primary-default p-4 text-center shadow-dropdown">
-        <span className="text-body-semibold text-text-primary">
+      <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-surface p-4 text-center shadow-overlay">
+        <span className="text-body-semibold text-foreground">
           {labels.redeemFirstMessage ?? 'Đổi quà ở quầy trước để chơi lượt tiếp theo'}
         </span>
-        <Button leadingIcon={RiGiftLine} className="rounded-full" onClick={onOpenVouchers}>
+        <Button className="rounded-full" onPress={onOpenVouchers}>
+          <RiGiftLine className="size-4" aria-hidden />
           {labels.myPrizes}
         </Button>
       </div>

@@ -1,8 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components/base/badges/chip';
-import { StatusDot } from '@playora/ui/components/base/badges/status-dot';
-import { PhoneMockup } from '@playora/ui/components/foundations/phone-mockup/phone-mockup';
+import { Card, Chip, PhoneMockup, Separator } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import {
   RiCheckboxCircleFill,
@@ -62,7 +60,7 @@ export function AuthShowcase() {
 
       {/* Top Headline */}
       <div className="relative z-10 flex flex-col items-start gap-3">
-        <Chip variant="caption" color="cyan" className="gap-1">
+        <Chip variant="soft" size="sm" color="accent" className="gap-1">
           <RiSparklingFill className="size-3.5" aria-hidden />
           <span>{t('badge')}</span>
         </Chip>
@@ -74,7 +72,7 @@ export function AuthShowcase() {
       {/* Center Stage: Interactive Phone Mockup + Floating Outcome Cards */}
       <div className="relative z-10 my-6 flex flex-1 items-center justify-center py-2">
         {/* Floating Card 1: Counter Verification Ticket (Top Right) */}
-        <div className=" absolute -top-2 right-0 z-20 hidden w-[236px] rounded-2xl border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:block">
+        <Card className="absolute -top-2 right-0 z-20 hidden w-[236px] gap-1.5 border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:flex">
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-caption-2-semibold text-emerald-600 dark:text-emerald-400">
               <RiCheckboxCircleFill className="size-3.5 shrink-0" />
@@ -84,14 +82,13 @@ export function AuthShowcase() {
               {currentPrize.code}
             </span>
           </div>
-          <p className="mt-1.5 mb-0 truncate text-body-2-semibold text-text-primary">
-            {prizeLabel}
-          </p>
-          <div className="mt-2 flex items-center gap-1.5 border-t border-separator-border pt-2 text-caption-2-regular text-text-tertiary">
+          <p className="m-0 truncate text-body-2-semibold text-text-primary">{prizeLabel}</p>
+          <Separator className="my-0.5" />
+          <div className="flex items-center gap-1.5 text-caption-2-regular text-text-tertiary">
             <RiQrScan2Line className="size-3.5 shrink-0 text-foreground-icon-secondary" />
             <span className="truncate">{t('counterCardMeta')}</span>
           </div>
-        </div>
+        </Card>
 
         {/* Realistic Phone Mockup with Interactive Lucky Wheel */}
         <PhoneMockup
@@ -186,15 +183,16 @@ export function AuthShowcase() {
         </PhoneMockup>
 
         {/* Floating Card 2: Business Outcome Metrics (Bottom Left) */}
-        <div className="absolute -bottom-2 left-0 z-20 hidden w-[244px] rounded-2xl border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:block">
+        <Card className="absolute -bottom-2 left-0 z-20 hidden w-[244px] gap-2 border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:flex">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-caption-2-semibold text-text-secondary">
-              <StatusDot color="green" />
+              <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
               <span>{t('outcomeCardTitle')}</span>
             </span>
             <RiUserHeartLine className="size-3.5 text-accent-600" />
           </div>
-          <div className="mt-2.5 grid grid-cols-3 gap-2 border-t border-separator-border pt-2.5">
+          <Separator />
+          <div className="grid grid-cols-3 gap-2">
             <div>
               <p className="m-0 text-body-2-semibold tabular-nums text-text-primary">
                 {stockLeft === 312 ? '312' : String(312 + (312 - stockLeft))}
@@ -214,11 +212,11 @@ export function AuthShowcase() {
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Bottom Compact Outcome Strip (Always visible on md+) */}
-      <div className="relative z-10 flex items-center justify-between gap-3 rounded-2xl border border-border-button-default bg-background-primary-default/80 px-4 py-3 backdrop-blur-xs">
+      <Card className="relative z-10 flex-row items-center justify-between gap-3 border border-border-button-default bg-background-primary-default/80 px-4 py-3 backdrop-blur-xs">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600">
             <RiCoupon3Line className="size-4" />
@@ -236,7 +234,7 @@ export function AuthShowcase() {
         <span className="shrink-0 rounded-lg border border-border-button-default bg-background-secondary-default px-2 py-1 font-mono text-caption-2-semibold tabular-nums text-text-primary">
           {currentPrize.code}
         </span>
-      </div>
+      </Card>
     </div>
   );
 }

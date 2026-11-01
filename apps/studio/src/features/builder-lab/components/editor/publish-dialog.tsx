@@ -1,19 +1,20 @@
 'use client';
 
 import { ApiError } from '@playora/api-client';
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { Checkbox } from '@playora/ui/components/base/checkbox/checkbox';
-import { Divider } from '@playora/ui/components/base/divider/divider';
 import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Label,
   Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-} from '@playora/ui/components/base/modal/modal';
-import { Popover, PopoverTrigger } from '@playora/ui/components/base/popover/popover';
-import { Radio, RadioGroup } from '@playora/ui/components/base/radio/radio';
-import { toast } from '@playora/ui/components/base/toast/toast';
-import { QRCodeSvg } from '@playora/ui/components/foundations/qr-code/qr-code';
+  Popover,
+  QRCodeSvg,
+  Radio,
+  RadioGroup,
+  Separator,
+  toast,
+} from '@playora/ui/components';
 import {
   CircleX,
   Copy,
@@ -156,216 +157,249 @@ export function PublishDialog({
   };
 
   return (
-    <Modal
-      isOpen={open}
-      onOpenChange={(isOpen) => !isOpen && onClose()}
-      size={published ? 'xl' : 'lg'}
-    >
-      <ModalHeader
-        title={published ? t('doneTitle', { version: published.version }) : t('title')}
-      />
-      <ModalBody>
-        {published ? (
-          <PublishSuccess orgId={orgId} campaign={published} />
-        ) : (
-          <div className="flex flex-col gap-4 py-1">
-            {planLimited ? (
-              <PlanCampaignLimitAlert orgId={orgId} />
-            ) : (
-              publishError && (
-                <div
-                  role="alert"
-                  className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-xs font-semibold text-destructive"
-                >
-                  {publishError}
-                </div>
-              )
-            )}
+    <Modal isOpen={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <Modal.Backdrop isDismissable>
+        <Modal.Container size="lg">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>
+                {published ? t('doneTitle', { version: published.version }) : t('title')}
+              </Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              {published ? (
+                <PublishSuccess orgId={orgId} campaign={published} />
+              ) : (
+                <div className="flex flex-col gap-4 py-1">
+                  {planLimited ? (
+                    <PlanCampaignLimitAlert orgId={orgId} />
+                  ) : (
+                    publishError && (
+                      <Alert status="danger">
+                        <Alert.Indicator />
+                        <Alert.Content>
+                          <Alert.Title>{publishError}</Alert.Title>
+                        </Alert.Content>
+                      </Alert>
+                    )
+                  )}
 
-            <div
-              role="alert"
-              className={cx(
-                'rounded-2xl border p-4',
-                blocking
-                  ? 'border-destructive/40 bg-destructive/10 text-destructive'
-                  : issues.length
-                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200'
-                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200',
-              )}
-            >
-              <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="text-sm font-semibold">
-                    {blocking
-                      ? t('summaryErrors', {
-                          count: issues.filter((i) => i.level === 'error').length,
-                        })
-                      : issues.length
-                        ? t('summaryWarnings', { count: issues.length })
-                        : t('summaryReady')}
-                  </div>
-                  <div className="text-xs opacity-90">
-                    {issues.length ? t('summaryHint') : t('readyHint')}
-                  </div>
+                  <Alert status={blocking ? 'danger' : issues.length ? 'warning' : 'success'}>
+                    <Alert.Indicator />
+                    <Alert.Content className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <Alert.Title>
+                          {blocking
+                            ? t('summaryErrors', {
+                                count: issues.filter((i) => i.level === 'error').length,
+                              })
+                            : issues.length
+                              ? t('summaryWarnings', { count: issues.length })
+                              : t('summaryReady')}
+                        </Alert.Title>
+                        <Alert.Description>
+                          {issues.length ? t('summaryHint') : t('readyHint')}
+                        </Alert.Description>
+                      </div>
+                      {fixable.length > 1 && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="gap-1.5 shrink-0 text-xs"
+                          onClick={fixAll}
+                        >
+                          <Wand2 className="size-3.5" />
+                          {t('fixAll', { count: fixable.length })}
+                        </Button>
+                      )}
+                    </Alert.Content>
+                  </Alert>
+
+                  {issues.length > 0 && (
+                    <Card className="divide-y overflow-hidden p-0">
+                      {issues.map((issue) => (
+                        <IssueRow
+                          key={issue.id}
+                          issue={issue}
+                          onFix={() => applyFix(issue)}
+                          onGoTo={() =>
+                            onGoTo(issue.where.area === 'screens' ? 'customize' : 'rules')
+                          }
+                        />
+                      ))}
+                    </Card>
+                  )}
+
+                  <Separator className="my-1" />
+
+                  {/* Legal / Compliance Checklist */}
+                  {campaign.compliance?.promotionType === null && (
+                    <Alert status="warning">
+                      <Alert.Indicator />
+                      <Alert.Content className="space-y-2">
+                        <Alert.Title>{t('promotionTypeQuestion')}</Alert.Title>
+                        <Alert.Description>{t('promotionTypeQuestionHint')}</Alert.Description>
+                        <RadioGroup
+                          aria-label={t('promotionTypeQuestion')}
+                          value={campaign.compliance?.promotionType ?? ''}
+                          onChange={(val) =>
+                            onFix({
+                              compliance: {
+                                ...campaign.compliance,
+                                promotionType: val as 'purchase_linked' | 'not_linked',
+                              },
+                            })
+                          }
+                          className="flex flex-wrap gap-3 pt-1"
+                        >
+                          <Radio value="purchase_linked">
+                            <Radio.Control>
+                              <Radio.Indicator />
+                            </Radio.Control>
+                            <Radio.Content>
+                              <Label>{t('purchaseLinkedOption')}</Label>
+                            </Radio.Content>
+                          </Radio>
+                          <Radio value="not_linked">
+                            <Radio.Control>
+                              <Radio.Indicator />
+                            </Radio.Control>
+                            <Radio.Content>
+                              <Label>{t('notLinkedOption')}</Label>
+                            </Radio.Content>
+                          </Radio>
+                        </RadioGroup>
+                      </Alert.Content>
+                    </Alert>
+                  )}
+
+                  <Card variant="secondary" className="space-y-3 p-3.5">
+                    <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t('checklistTitle')}
+                    </span>
+
+                    <Checkbox
+                      isSelected={ackOrganizer}
+                      onChange={setAckOrganizer}
+                      className="items-start text-xs"
+                    >
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Content>
+                        <Label className="text-xs font-normal">{t('ackOrganizer')}</Label>
+                      </Checkbox.Content>
+                    </Checkbox>
+
+                    {campaign.compliance?.promotionType === 'purchase_linked' && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Checkbox
+                          isSelected={ackDepartment}
+                          onChange={setAckDepartment}
+                          className="items-start text-xs"
+                        >
+                          <Checkbox.Control>
+                            <Checkbox.Indicator />
+                          </Checkbox.Control>
+                          <Checkbox.Content>
+                            <Label className="text-xs font-normal">{t('ackDepartment')}</Label>
+                          </Checkbox.Content>
+                        </Checkbox>
+                        <Popover>
+                          <Popover.Trigger>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                            >
+                              <Info className="size-3" />
+                              <span>{t('legalHelpLink')}</span>
+                            </button>
+                          </Popover.Trigger>
+                          <Popover.Content>
+                            <Popover.Dialog
+                              aria-label={t('legalHelpTitle')}
+                              className="w-80 p-3 text-xs"
+                            >
+                              <span className="font-semibold">{t('legalHelpTitle')}</span>
+                              <p className="mt-1 text-muted-foreground">{t('legalHelpContent')}</p>
+                            </Popover.Dialog>
+                          </Popover.Content>
+                        </Popover>
+                      </div>
+                    )}
+
+                    <Checkbox
+                      isSelected={ackTerms}
+                      onChange={setAckTerms}
+                      className="items-start text-xs"
+                    >
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Content>
+                        <Label className="text-xs font-normal">{t('ackTerms')}</Label>
+                      </Checkbox.Content>
+                    </Checkbox>
+                  </Card>
                 </div>
-                {fixable.length > 1 && (
+              )}
+            </Modal.Body>
+
+            <Modal.Footer>
+              {published ? (
+                <div className="flex w-full flex-wrap items-center justify-end gap-2">
+                  <Link href={campaignRoutes(orgId).share(campaign.id)}>
+                    <Button variant="secondary" size="sm" className="gap-2">
+                      <Share2 className="size-4" />
+                      {t('openShare')}
+                    </Button>
+                  </Link>
+                  <a
+                    href={labLinks(orgId, published.id, published.slug).play}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-testid="publish-open-play"
+                  >
+                    <Button variant="secondary" size="sm" className="gap-2">
+                      <ExternalLink className="size-4" />
+                      {t('openPlay')}
+                    </Button>
+                  </a>
+                  <Link href={campaignRoutes(orgId).detail(campaign.id)}>
+                    <Button size="sm" className="gap-2">
+                      <Gauge className="size-4" />
+                      {t('openOps')}
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex w-full items-center justify-end gap-2">
                   <Button
                     variant="secondary"
-                    size="small"
-                    className="gap-1.5 shrink-0 text-xs"
-                    onClick={fixAll}
+                    size="sm"
+                    className="h-8 rounded-md text-xs"
+                    onClick={onClose}
                   >
-                    <Wand2 className="size-3.5" />
-                    {t('fixAll', { count: fixable.length })}
+                    {t('cancel')}
                   </Button>
-                )}
-              </div>
-            </div>
-
-            {issues.length > 0 && (
-              <div className="divide-y rounded-xl border">
-                {issues.map((issue) => (
-                  <IssueRow
-                    key={issue.id}
-                    issue={issue}
-                    onFix={() => applyFix(issue)}
-                    onGoTo={() => onGoTo(issue.where.area === 'screens' ? 'customize' : 'rules')}
-                  />
-                ))}
-              </div>
-            )}
-
-            <Divider className="my-1" />
-
-            {/* Legal / Compliance Checklist */}
-            {campaign.compliance?.promotionType === null && (
-              <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
-                <span className="block text-xs font-semibold text-amber-900 dark:text-amber-200">
-                  {t('promotionTypeQuestion')}
-                </span>
-                <Caption className="block text-amber-800/90 dark:text-amber-300/80">
-                  {t('promotionTypeQuestionHint')}
-                </Caption>
-                <RadioGroup
-                  aria-label={t('promotionTypeQuestion')}
-                  value={campaign.compliance?.promotionType ?? ''}
-                  onChange={(val) =>
-                    onFix({
-                      compliance: {
-                        ...campaign.compliance,
-                        promotionType: val as 'purchase_linked' | 'not_linked',
-                      },
-                    })
-                  }
-                  className="flex flex-wrap gap-3 pt-1"
-                >
-                  <Radio value="purchase_linked">{t('purchaseLinkedOption')}</Radio>
-                  <Radio value="not_linked">{t('notLinkedOption')}</Radio>
-                </RadioGroup>
-              </div>
-            )}
-
-            <div className="space-y-3 rounded-xl border bg-muted/30 p-3.5">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('checklistTitle')}
-              </span>
-
-              <Checkbox
-                isSelected={ackOrganizer}
-                onChange={setAckOrganizer}
-                className="items-start text-xs"
-              >
-                {t('ackOrganizer')}
-              </Checkbox>
-
-              {campaign.compliance?.promotionType === 'purchase_linked' && (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Checkbox
-                    isSelected={ackDepartment}
-                    onChange={setAckDepartment}
-                    className="items-start text-xs"
+                  <Button
+                    size="sm"
+                    className="h-8 gap-1.5 rounded-md text-xs font-medium shadow-xs"
+                    isDisabled={!canPublish || publish.isPending}
+                    onClick={doPublish}
                   >
-                    {t('ackDepartment')}
-                  </Checkbox>
-                  <PopoverTrigger>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                    >
-                      <Info className="size-3" />
-                      <span>{t('legalHelpLink')}</span>
-                    </button>
-                    <Popover aria-label={t('legalHelpTitle')} className="w-80 p-3 text-xs">
-                      <span className="font-semibold">{t('legalHelpTitle')}</span>
-                      <p className="mt-1 text-muted-foreground">{t('legalHelpContent')}</p>
-                    </Popover>
-                  </PopoverTrigger>
+                    <Rocket className="size-3.5" />
+                    {campaign.version > 0
+                      ? t('publishAgain', { version: campaign.version + 1 })
+                      : t('publish')}
+                  </Button>
                 </div>
               )}
-
-              <Checkbox
-                isSelected={ackTerms}
-                onChange={setAckTerms}
-                className="items-start text-xs"
-              >
-                {t('ackTerms')}
-              </Checkbox>
-            </div>
-          </div>
-        )}
-      </ModalBody>
-
-      <ModalFooter>
-        {published ? (
-          <div className="flex w-full flex-wrap items-center justify-end gap-2">
-            <Link href={campaignRoutes(orgId).share(campaign.id)}>
-              <Button variant="secondary" size="small" className="gap-2">
-                <Share2 className="size-4" />
-                {t('openShare')}
-              </Button>
-            </Link>
-            <a
-              href={labLinks(orgId, published.id, published.slug).play}
-              target="_blank"
-              rel="noreferrer"
-              data-testid="publish-open-play"
-            >
-              <Button variant="secondary" size="small" className="gap-2">
-                <ExternalLink className="size-4" />
-                {t('openPlay')}
-              </Button>
-            </a>
-            <Link href={campaignRoutes(orgId).detail(campaign.id)}>
-              <Button size="small" className="gap-2">
-                <Gauge className="size-4" />
-                {t('openOps')}
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="flex w-full items-center justify-end gap-2">
-            <Button
-              variant="secondary"
-              size="small"
-              className="h-8 rounded-md text-xs"
-              onClick={onClose}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              size="small"
-              className="h-8 gap-1.5 rounded-md text-xs font-medium shadow-xs"
-              disabled={!canPublish || publish.isPending}
-              onClick={doPublish}
-            >
-              <Rocket className="size-3.5" />
-              {campaign.version > 0
-                ? t('publishAgain', { version: campaign.version + 1 })
-                : t('publish')}
-            </Button>
-          </div>
-        )}
-      </ModalFooter>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
@@ -412,7 +446,7 @@ function IssueRow({
       {issue.fix ? (
         <Button
           variant="secondary"
-          size="xs"
+          size="sm"
           className="h-7 gap-1.5 text-xs shrink-0"
           onClick={onFix}
         >
@@ -420,7 +454,7 @@ function IssueRow({
           {t('fix')}
         </Button>
       ) : (
-        <Button variant="ghost" size="xs" className="h-7 text-xs shrink-0" onClick={onGoTo}>
+        <Button variant="ghost" size="sm" className="h-7 text-xs shrink-0" onClick={onGoTo}>
           {t('goTo')}
         </Button>
       )}
@@ -435,7 +469,7 @@ function PublishSuccess({ orgId, campaign }: { orgId: string; campaign: Campaign
       <div className="flex items-center justify-between">
         <Caption>{t('liveHint')}</Caption>
         <Link href={campaignRoutes(orgId).share(campaign.id)}>
-          <Button variant="secondary" size="small" className="gap-2">
+          <Button variant="secondary" size="sm" className="gap-2">
             <Share2 className="size-4" />
             {t('openShare')}
           </Button>
@@ -567,7 +601,8 @@ function LinkRow({
         </a>
         <Button
           variant="ghost"
-          size="xs"
+          size="sm"
+          isIconOnly
           className="size-6 p-0 text-muted-foreground hover:text-foreground"
           onClick={copyToClipboard}
         >
