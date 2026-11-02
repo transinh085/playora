@@ -1,9 +1,10 @@
 'use client';
 
-import { Button } from '@playora/ui/components/base/buttons/button';
-import { ArrowLeft } from '@playora/ui/icons';
+import { Tab, TabList, Tabs } from '@playora/ui/components/base/tabs/tabs';
+import { RiGamepadLine, RiTargetLine } from '@remixicon/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { TemplatesCatalog } from '@/features/templates';
 import { PLAYBOOK_KEYS, type PlaybookKey } from '../../lib/playbooks';
 import { GoalPicker } from './goal-picker';
@@ -13,9 +14,9 @@ const isPlaybook = (value: string | null): value is PlaybookKey =>
   PLAYBOOK_KEYS.includes(value as PlaybookKey);
 
 /**
- * New campaign (docs/product/specs/playbooks.md §2.1): goal first ("Bạn muốn gì?"), then the
- * playbook setup with its suggestion, then the editor. "Tự chọn mẫu" opens the template gallery.
- * The step lives in the URL (`?playbook=…`, `?start=templates`) so Back works.
+ * New campaign creation flow:
+ * Defaults to the rich visual TemplatesCatalog (Kho mẫu), with an option to switch
+ * to Goal-based Playbooks for strategic suggestions.
  */
 export function CreateCampaignFlow({ orgId }: { orgId: string }) {
   const t = useTranslations('builderLab.playbooks');
@@ -24,26 +25,56 @@ export function CreateCampaignFlow({ orgId }: { orgId: string }) {
   const pathname = usePathname();
   const go = (query: string) => router.push(`${pathname}${query}` as never);
 
+  // Default mode is 'templates' (Kho mẫu minigame), or 'playbooks'
+  const currentMode = params.get('mode') === 'playbooks' ? 'playbooks' : 'templates';
+  const [mode, setMode] = useState<'templates' | 'playbooks'>(currentMode);
+
   const playbook = params.get('playbook');
   if (isPlaybook(playbook)) {
     return (
-      <PlaybookSetupForm key={playbook} orgId={orgId} playbook={playbook} onBack={() => go('')} />
+      <PlaybookSetupForm
+        key={playbook}
+        orgId={orgId}
+        playbook={playbook}
+        onBack={() => go('?mode=playbooks')}
+      />
     );
   }
-  if (params.get('start') === 'templates') {
-    return (
-      <div className="flex flex-col gap-4">
-        <div>
-          <Button variant="secondary" className="gap-2" onClick={() => go('')}>
-            <ArrowLeft className="size-4" />
-            {t('backToGoals')}
-          </Button>
-        </div>
-        <TemplatesCatalog orgId={orgId} />
-      </div>
-    );
-  }
+
   return (
-    <GoalPicker onPick={(key) => go(`?playbook=${key}`)} onCustom={() => go('?start=templates')} />
+    <div className="flex flex-col gap-6">
+      {/* Creation Mode Tabs */}
+      <Tabs
+        selectedKey={mode}
+        onSelectionChange={(key) => {
+          const next = String(key) as 'templates' | 'playbooks';
+          setMode(next);
+          go(next === 'playbooks' ? '?mode=playbooks' : '');
+        }}
+      >
+        <TabList aria-label={t('title')}>
+          <Tab id="templates" className="gap-2">
+            <RiGamepadLine className="size-4" />
+            <span>{t('tabTemplates')}</span>
+          </Tab>
+          <Tab id="playbooks" className="gap-2">
+            <RiTargetLine className="size-4" />
+            <span>{t('tabPlaybooks')}</span>
+          </Tab>
+        </TabList>
+      </Tabs>
+
+      {mode === 'templates' ? (
+        <TemplatesCatalog orgId={orgId} />
+      ) : (
+        <GoalPicker
+          onPick={(key) => go(`?playbook=${key}`)}
+          onCustom={() => {
+            setMode('templates');
+            go('');
+          }}
+        />
+      )}
+    </div>
   );
 }

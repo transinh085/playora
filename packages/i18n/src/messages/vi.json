@@ -992,6 +992,8 @@
       "6": "T7"
     },
     "playbooks": {
+      "tabTemplates": "Kho mẫu minigame",
+      "tabPlaybooks": "Gợi ý theo mục tiêu (Playbook)",
       "title": "Bạn muốn gì?",
       "hint": "Chọn mục tiêu cho quán. Playora điền sẵn trò chơi, luật và gợi ý quà theo ngân sách; sau đó vẫn sửa được hết.",
       "goalLabel": "Mục tiêu",

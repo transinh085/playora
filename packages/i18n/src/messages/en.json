@@ -992,6 +992,8 @@
       "6": "Sat"
     },
     "playbooks": {
+      "tabTemplates": "Template Gallery",
+      "tabPlaybooks": "Goal-based Playbooks",
       "title": "What do you want?",
       "hint": "Pick a goal for your shop. Playora fills in the game, the rules and a prize mix for your budget; you can still change everything.",
       "goalLabel": "Goal",

@@ -1,4 +1,4 @@
-import type { Metadata, Route } from 'next';
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -13,12 +13,7 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ or
   const t = await getTranslations('campaigns');
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title={t('create')}
-        description={t('createSubtitle')}
-        backHref={`/orgs/${orgId}/campaigns` as Route}
-        backLabel={t('backToList')}
-      />
+      <PageHeader title={t('create')} description={t('createSubtitle')} />
       <Suspense>
         <CreateCampaignFlow orgId={orgId} />
       </Suspense>
