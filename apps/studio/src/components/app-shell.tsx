@@ -52,6 +52,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useNow, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { type ComponentType, useEffect, useState } from 'react';
+import { LogoMark } from '@/components/logo';
 import { useCampaigns } from '@/features/builder-lab/api';
 import { campaignPhase } from '@/features/builder-lab/lib/phase';
 import { campaignRoutes } from '@/features/builder-lab/lib/routes';
@@ -571,9 +572,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                 isCollapsedDesktop ? 'h-9 w-9 justify-center' : 'flex-1',
               )}
             >
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr from-emerald-400 to-cyan-500 text-caption-1-semibold font-bold text-white shadow-xs">
-                P
-              </div>
+              <LogoMark className="size-7" />
               <Collapsible collapsed={isCollapsedDesktop}>
                 <span className="truncate text-body-medium font-medium">Playora</span>
               </Collapsible>

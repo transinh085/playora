@@ -23,10 +23,10 @@ export const DEFAULT_BRAND_KIT_VALUES: BrandKitFormValues = {
   name: '',
   tokens: {
     colors: {
-      primary: '#7c3aed',
-      secondary: '#f59e0b',
-      background: '#0f0a1e',
-      text: '#ffffff',
+      primary: '#F25C05', // Sunset Tangerine (Ora Primary)
+      secondary: '#0D9488', // Brand Teal
+      background: '#FFFBF5', // Vanilla Cream
+      text: '#201815', // Pearl Dark
     },
     fontHeading: 'Unbounded',
     fontBody: 'Be Vietnam Pro',
