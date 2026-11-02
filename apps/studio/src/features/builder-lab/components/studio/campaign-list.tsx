@@ -364,7 +364,9 @@ export function CampaignList({ orgId }: { orgId: string }) {
                         ? ('orange' as const)
                         : campaign.templateKey === 'scratch-card'
                           ? ('cyan' as const)
-                          : ('purple' as const);
+                          : campaign.templateKey === 'catch-items'
+                            ? ('purple' as const)
+                            : ('blue' as const);
 
                     const skinTone =
                       campaign.skinKey === 'tet'

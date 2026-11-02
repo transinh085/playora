@@ -16,6 +16,7 @@
     "@playora/contracts": "workspace:*",
     "@playora/game-sdk": "workspace:*",
     "@playora/ui": "workspace:*",
+    "pixi.js": "8.22.0",
     "zod": "4.6.7"
   },
   "peerDependencies": {

@@ -1,5 +1,6 @@
 'use client';
 
+import { Mechanism } from '@playora/ui/campaign';
 import { Chip } from '@playora/ui/components/base/badges/chip';
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { CloseButton } from '@playora/ui/components/base/buttons/close-button';
@@ -17,8 +18,10 @@ import {
   RiTimeLine,
 } from '@remixicon/react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FitScreen } from '@/features/builder-lab/components/editor/fit-screen';
+import { defaultPrizes } from '@/features/builder-lab/lib/starter';
+import { useMechanismLabels } from '@/features/canvas-editor/components/use-canvas-labels';
 import type { ScreenKey } from '@/features/canvas-editor/lib/model';
 import type { CatalogTemplate } from '../data/mock-templates';
 
@@ -38,6 +41,8 @@ export function TemplatePreviewDrawer({
   onToggleSave?: (templateId: string) => void;
 }) {
   const t = useTranslations('templatesCatalog.drawer');
+  const mechanismLabels = useMechanismLabels();
+  const starterPrizes = useMemo(() => defaultPrizes(), []);
   const [activeScreen, setActiveScreen] = useState<ScreenKey>('cover');
   const [selectedSkinKey, setSelectedSkinKey] = useState<string>('');
 
@@ -156,6 +161,16 @@ export function TemplatePreviewDrawer({
                     key={activeScreen}
                     screen={currentDoc}
                     brand={displayTemplate.brand}
+                    stage={
+                      activeScreen === 'game' ? (
+                        <Mechanism
+                          mechanism={displayTemplate.templateKey}
+                          brand={displayTemplate.brand}
+                          prizes={starterPrizes}
+                          labels={mechanismLabels}
+                        />
+                      ) : undefined
+                    }
                     scroll
                     animate={0}
                   />

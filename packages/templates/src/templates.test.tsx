@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { createPreviewSession, resolveTemplateAssets } from '@playora/game-sdk';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
+  catchItemsServer,
+  catchItemsTemplate,
   getTemplate,
   getTemplateSurfaces,
   SpinWheelPlayer,
@@ -140,5 +142,90 @@ describe('@playora/templates registry', () => {
     expect(playerHtml).toContain('Vòng quay may mắn');
     expect(playerHtml).toContain('Quay ngay');
     expect(playerHtml).toContain('Giải Nhất');
+  });
+
+  test('catchItemsServer validates duration and theoretical score limit, and qualifies threshold', () => {
+    const config = catchItemsTemplate.defaultConfig;
+
+    // 1. Duration too short (< 27s for 30s config)
+    const tooFast = catchItemsServer.validate(
+      { score: 100, durationMs: 15000, itemsCaught: 10, bombsHit: 0 },
+      { config, startedAt: 0, endedAt: 30000 },
+    );
+    expect(tooFast.ok).toBe(false);
+    if (!tooFast.ok) {
+      expect(tooFast.reason).toBe('duration_too_short');
+    }
+
+    // 2. Score exceeds maximum theoretical limit (e.g. 9999 pts in 30s)
+    const cheat = catchItemsServer.validate(
+      { score: 9999, durationMs: 30000, itemsCaught: 999, bombsHit: 0 },
+      { config, startedAt: 0, endedAt: 30000 },
+    );
+    expect(cheat.ok).toBe(false);
+    if (!cheat.ok) {
+      expect(cheat.reason).toBe('score_exceeds_theoretical_limit');
+    }
+
+    // 3. Valid normal play
+    const valid = catchItemsServer.validate(
+      { score: 120, durationMs: 30000, itemsCaught: 12, bombsHit: 0 },
+      { config, startedAt: 0, endedAt: 30000 },
+    );
+    expect(valid.ok).toBe(true);
+    if (valid.ok) {
+      expect(valid.score).toBe(120);
+    }
+
+    // 4. Threshold qualifying
+    expect(catchItemsServer.qualifies(120, config)).toBe(true);
+    expect(catchItemsServer.qualifies(80, config)).toBe(false);
+  });
+
+  test('createPreviewSession works seamlessly with skill template catch-items', async () => {
+    const session = createPreviewSession({
+      template: catchItemsTemplate,
+      outcome: {
+        kind: 'win',
+        prize: { id: 'prize-tea', name: { vi: 'Ly Trà Sữa 0đ' }, type: 'voucher_code' },
+      },
+      startedAt: 0,
+      endedAt: 30000,
+    });
+
+    expect(session.state).toBe('ready');
+    await session.start();
+    expect(session.state).toBe('playing');
+
+    // Submit winning score >= 100
+    await session.submit({
+      score: 150,
+      durationMs: 30000,
+      itemsCaught: 15,
+      bombsHit: 0,
+    });
+
+    expect(session.state).toBe('done');
+    expect(session.result?.outcome.kind).toBe('win');
+
+    // Fresh session submitting losing score < 100
+    const loseSession = createPreviewSession({
+      template: catchItemsTemplate,
+      outcome: {
+        kind: 'win',
+        prize: { id: 'prize-tea', name: { vi: 'Ly Trà Sữa 0đ' }, type: 'voucher_code' },
+      },
+      startedAt: 0,
+      endedAt: 30000,
+    });
+    await loseSession.start();
+    await loseSession.submit({
+      score: 60,
+      durationMs: 30000,
+      itemsCaught: 6,
+      bombsHit: 0,
+    });
+    expect(loseSession.state).toBe('done');
+    expect(loseSession.result?.outcome.kind).toBe('lose');
   });
 });

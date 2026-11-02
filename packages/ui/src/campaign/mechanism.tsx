@@ -38,8 +38,12 @@ export function Mechanism({ mechanism, ...props }: MechanismProps) {
         <SpinWheel {...props} />
       ) : mechanism === 'scratch-card' ? (
         <ScratchCard {...props} />
-      ) : (
+      ) : mechanism === 'gift-box' ? (
         <GiftBox {...props} />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center p-4 text-center text-sm font-semibold opacity-75">
+          Minigame 2D {mechanism}
+        </div>
       )}
     </div>
   );

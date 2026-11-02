@@ -61,14 +61,14 @@ const SKINS: Record<SkinKey, SkinInfo> = {
 
 const ALL_INDUSTRIES: Industry[] = ['fnb', 'beauty', 'retail', 'fitness'];
 
-export const TEMPLATES: TemplateInfo[] = (['spin-wheel', 'scratch-card', 'gift-box'] as const).map(
-  (key) => ({
-    key,
-    mechanism: key,
-    industries: ALL_INDUSTRIES,
-    skins: [SKINS.tet, SKINS['grand-opening'], SKINS.everyday],
-  }),
-);
+export const TEMPLATES: TemplateInfo[] = (
+  ['spin-wheel', 'scratch-card', 'gift-box', 'catch-items'] as const
+).map((key) => ({
+  key,
+  mechanism: key,
+  industries: ALL_INDUSTRIES,
+  skins: [SKINS.tet, SKINS['grand-opening'], SKINS.everyday],
+}));
 
 export function getTemplate(key: TemplateKey): TemplateInfo {
   const template = TEMPLATES.find((t) => t.key === key);
@@ -85,6 +85,7 @@ const MECH_TITLE: Record<TemplateKey, string> = {
   'spin-wheel': 'VÒNG QUAY',
   'scratch-card': 'THẺ CÀO',
   'gift-box': 'MỞ HỘP QUÀ',
+  'catch-items': 'HỨNG QUÀ',
 };
 const OCCASION_LINE: Record<SkinKey, string> = {
   tet: 'TẾT 2027',
@@ -100,18 +101,21 @@ const PROMO_VERB: Record<TemplateKey, string> = {
   'spin-wheel': 'Quay là trúng',
   'scratch-card': 'Cào là trúng',
   'gift-box': 'Mở là có quà',
+  'catch-items': 'Hứng là trúng',
 };
 
 const TURN_NOUN: Record<TemplateKey, string> = {
   'spin-wheel': 'lượt quay',
   'scratch-card': 'lượt cào',
   'gift-box': 'lượt mở quà',
+  'catch-items': 'lượt hứng quà',
 };
 
 const GAME_PROMPT: Record<TemplateKey, string> = {
   'spin-wheel': 'Chạm để quay!',
   'scratch-card': 'Cào để nhận quà!',
   'gift-box': 'Chọn một hộp quà!',
+  'catch-items': 'Di chuyển giỏ hứng quà!',
 };
 const STICKERS: Record<SkinKey, [string, string, string]> = {
   tet: ['lantern', 'apricot', 'envelope'],
@@ -122,6 +126,7 @@ const STAGE_BOX: Record<TemplateKey, { x: number; y: number; w: number; h: numbe
   'spin-wheel': { x: 22, y: 120, w: 331, h: 331 },
   'scratch-card': { x: 24, y: 160, w: 327, h: 230 },
   'gift-box': { x: 24, y: 150, w: 327, h: 260 },
+  'catch-items': { x: 20, y: 80, w: 335, h: 560 },
 };
 
 /**

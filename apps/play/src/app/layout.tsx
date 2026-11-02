@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     campaignPlayer: messages.campaignPlayer,
   };
   return (
-    <html lang={locale} className={`${font.variable} ${display.variable}`}>
+    <html lang={locale} className={`${font.variable} ${display.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={playMessages}>
           {children}

@@ -31,7 +31,7 @@ import { buildScreens, TEMPLATES } from '../../lib/starter';
 import { FitScreen } from '../editor/fit-screen';
 
 const OCCASIONS: Occasion[] = ['tet', 'opening', 'everyday'];
-const MECHANICS: TemplateKey[] = ['spin-wheel', 'scratch-card', 'gift-box'];
+const MECHANICS: TemplateKey[] = ['spin-wheel', 'scratch-card', 'gift-box', 'catch-items'];
 
 interface Choice {
   templateKey: TemplateKey;

@@ -5,6 +5,14 @@ import type {
 } from '@playora/game-sdk/server';
 import type { z } from 'zod';
 import {
+  type CatchItemsConfig,
+  type CatchItemsSubmission,
+  catchItemsConfigSchema,
+  catchItemsServer,
+  catchItemsSubmissionSchema,
+  catchItemsTemplate,
+} from './catch-items/definition';
+import {
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   type SpinWheelConfig,
   type SpinWheelDisplay,
@@ -16,6 +24,12 @@ import {
 } from './spin-wheel/definition';
 
 export {
+  type CatchItemsConfig,
+  type CatchItemsSubmission,
+  catchItemsConfigSchema,
+  catchItemsServer,
+  catchItemsSubmissionSchema,
+  catchItemsTemplate,
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   type SpinWheelConfig,
   type SpinWheelDisplay,
@@ -33,7 +47,10 @@ export type RegisteredServerTemplate = RegisteredTemplate;
 // biome-ignore lint/suspicious/noExplicitAny: Heterogeneous server module map
 export type AnyServerModule = InstantServerModule<any, any> | SkillServerModule<any, any, any>;
 
-export const templates: readonly RegisteredTemplate[] = Object.freeze([spinWheelTemplate]);
+export const templates: readonly RegisteredTemplate[] = Object.freeze([
+  spinWheelTemplate,
+  catchItemsTemplate,
+]);
 
 export function getTemplate(id: string, version?: string): RegisteredTemplate | undefined {
   return templates.find((t) => t.id === id && (version === undefined || t.version === version));

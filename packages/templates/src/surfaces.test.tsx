@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { AutoForm, type FormDescriptor } from '@playora/ui/auto-form';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
+  catchItemsTemplate,
   type EditorPanelProps,
   getTemplateSurfaces,
   spinWheelTemplate,
@@ -53,6 +54,30 @@ describe('TemplateSurfaces editor escape hatches (§2.5)', () => {
     expect(html).toContain('1:1 · ≥128px');
     expect(html).toContain('value="Vòng quay may mắn"');
     expect(html).toContain('value="Quay ngay"');
+  });
+
+  test('renders full catch-items 2D skill config form in AutoForm without any custom editor code', () => {
+    const html = renderToStaticMarkup(
+      <AutoForm
+        descriptor={catchItemsTemplate.formDescriptor}
+        configSchema={catchItemsTemplate.configSchema}
+        value={catchItemsTemplate.defaultConfig as unknown as Record<string, unknown>}
+        assetSlots={catchItemsTemplate.assetSlots}
+        onChange={() => {}}
+        locale="vi"
+      />,
+    );
+
+    expect(html).toContain('Thời gian chơi (giây)');
+    expect(html).toContain('Điểm nhận quà');
+    expect(html).toContain('Tốc độ rơi');
+    expect(html).toContain('Tần suất xuất hiện (ms)');
+    expect(html).toContain('Ảnh nền sân chơi');
+    expect(html).toContain('Hình ảnh giỏ hứng');
+    expect(html).toContain('Vật phẩm cộng điểm (+10đ)');
+    expect(html).toContain('Chướng ngại vật/Bom (-10đ)');
+    expect(html).toContain('value="Hứng Quà May Mắn"');
+    expect(html).toContain('value="Chơi ngay"');
   });
 
   test('supports optional editorWidgets and editorPanels on TemplateSurfaces and passes editorWidgets to AutoForm', () => {

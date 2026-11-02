@@ -20,6 +20,7 @@ import { TurnstileModal, type TurnstileModalHandle } from '@/features/captcha';
 import { api, playerApi } from '@/lib/api';
 import { buttonActionHref } from './button-action';
 import { CampaignFrame } from './campaign-frame';
+import { CatchItemsStage } from './catch-items-stage';
 import { toJoinBody } from './join-body';
 import { formatOpenDays } from './open-days';
 import { executePlayWithCaptcha } from './play-captcha';
@@ -261,6 +262,11 @@ function CampaignPlay({ campaign, channel }: { campaign: PublicCampaign; channel
         blockedReason={me.state?.blockedReason ?? null}
         nextTurnAtFormatted={nextTurnFormatted}
         openDaysFormatted={openDaysFormatted}
+        renderMechanism={
+          campaign.templateKey === 'catch-items'
+            ? (props) => <CatchItemsStage {...props} />
+            : undefined
+        }
       />
       <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
         {turnsLeft !== undefined && (

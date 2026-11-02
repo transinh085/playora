@@ -51,3 +51,4 @@ Proposed ──► Accepted ──► Superseded by ADR-x   (có ADR mới thay 
 | [015](./015-campaign-persistence.md) | Lưu Campaign trên `events` + `games` + `game_versions`; contract `campaigns`/`plays`/`vouchers`/`stats`; vai trò "chỉ đổi quà" | Accepted | 26/10/2026 |
 | [016](./016-shadcn-luma-ui.md) | shadcn/ui với style luma thay thế Ant Design v6; gỡ bỏ CSS-in-JS; sonner; RHF | Accepted | 31/10/2026 |
 | [017](./017-counter-device-pairing.md) | Máy quầy ghép bằng QR: chế độ auth `device`, bảng `counter_devices`, quyền chỉ đổi quà | Proposed | 31/10/2026 |
+| [019](./019-pixijs-2d-skill-templates.md) | Tích hợp PixiJS v8 cho Mẫu Game 2D Kỹ Năng (Skill Templates) | Proposed | 02/11/2026 |

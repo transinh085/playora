@@ -801,7 +801,8 @@
       "templates": {
         "spin-wheel": "Vòng quay may mắn",
         "scratch-card": "Thẻ cào",
-        "gift-box": "Hộp quà bí mật"
+        "gift-box": "Hộp quà bí mật",
+        "catch-items": "Hứng quà may mắn"
       },
       "skins": {
         "tet": "Tết đỏ",
@@ -1918,7 +1919,7 @@
         "scratchCard": "Thẻ cào trúng thưởng",
         "giftBox": "Mở hộp quà bí mật",
         "eggSmash": "Đập trứng vàng (M2)",
-        "catchItems": "Hứng quà rơi (M2)",
+        "catchItems": "Hứng quà 2D (PixiJS)",
         "memoryMatch": "Lật thẻ tìm cặp (M2)",
         "luckyEnvelope": "Rút bao lì xì"
       },

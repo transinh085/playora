@@ -14,7 +14,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "seed": "bun --env-file=../../.env src/seed.ts"
+    "seed": "bun --env-file=../../.env src/seed.ts",
+    "seed:catch-items": "bun --env-file=../../.env src/seed-catch-items.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",

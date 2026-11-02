@@ -1,7 +1,7 @@
 import type { LocalizedText, PlayerProps } from '@playora/game-sdk';
 import type { EditorPanel, EditorPanelProps, WidgetProps } from '@playora/ui/auto-form';
 import { type ComponentType, lazy } from 'react';
-import { getTemplate, spinWheelTemplate } from './registry';
+import { catchItemsTemplate, getTemplate, spinWheelTemplate } from './registry';
 
 export type { EditorPanel, EditorPanelProps, WidgetProps };
 
@@ -19,6 +19,11 @@ export interface TemplateSurfaces<C = any, D = any, Sub = any> {
 export const surfaces: Readonly<Record<string, TemplateSurfaces>> = Object.freeze({
   [`${spinWheelTemplate.id}@${spinWheelTemplate.version}`]: {
     Player: lazy(() => import('./spin-wheel/player').then((m) => ({ default: m.SpinWheelPlayer }))),
+  },
+  [`${catchItemsTemplate.id}@${catchItemsTemplate.version}`]: {
+    Player: lazy(() =>
+      import('./catch-items/player').then((m) => ({ default: m.CatchItemsPlayer })),
+    ),
   },
 });
 

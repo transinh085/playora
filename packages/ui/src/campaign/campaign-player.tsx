@@ -3,7 +3,7 @@
 import type { CampaignBrand, CampaignTemplateKey, PlayResult } from '@playora/contracts';
 import { Button } from '@playora/ui/components/base/buttons/button';
 import { RiGiftLine } from '@remixicon/react';
-import { type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { type ReactNode, type Ref, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toCanvasPrizes } from './canvas-prizes';
 import { type CanvasRuntime, CanvasScreen } from './canvas-screen';
 import {
@@ -13,7 +13,7 @@ import {
   validatePlayerForm,
 } from './form-validation';
 import type { CampaignPlayerLabels } from './labels';
-import { Mechanism } from './mechanism';
+import { Mechanism, type MechanismProps } from './mechanism';
 import {
   ARTBOARD_WIDTH,
   type ButtonElement,
@@ -90,6 +90,8 @@ export interface CampaignPlayerProps {
   nextTurnAtFormatted?: string | null;
   /** Pre-formatted open weekdays for closed notice and rules sheet. */
   openDaysFormatted?: string | null;
+  /** Custom mechanism renderer escape hatch for new / skill templates. */
+  renderMechanism?: (props: MechanismProps) => ReactNode;
 }
 
 type Sheet = 'noTurns' | 'closed' | 'vouchers' | 'rules' | null;
@@ -142,6 +144,7 @@ export function CampaignPlayer({
   blockedReason,
   nextTurnAtFormatted,
   openDaysFormatted,
+  renderMechanism,
 }: CampaignPlayerProps) {
   const reduced = useReducedMotion();
 
@@ -276,16 +279,25 @@ export function CampaignPlayer({
       ...(result?.prize ? { 'prize.name': result.prize.name } : {}),
       ...(turns === undefined ? {} : { 'turns.left': String(turns) }),
     },
-    renderStage: () => (
-      <Mechanism
-        key={round}
-        mechanism={campaign.templateKey}
-        brand={campaign.brand}
-        prizes={campaign.prizes}
-        labels={labels.mechanism}
-        play={{ onPlay, onDone, disabled: playDisabled }}
-      />
-    ),
+    renderStage: () =>
+      renderMechanism ? (
+        renderMechanism({
+          mechanism: campaign.templateKey,
+          brand: campaign.brand,
+          prizes: campaign.prizes,
+          labels: labels.mechanism,
+          play: { onPlay, onDone, disabled: playDisabled },
+        })
+      ) : (
+        <Mechanism
+          key={round}
+          mechanism={campaign.templateKey}
+          brand={campaign.brand}
+          prizes={campaign.prizes}
+          labels={labels.mechanism}
+          play={{ onPlay, onDone, disabled: playDisabled }}
+        />
+      ),
     renderForm: (element) => (
       <PlayerForm
         element={element}

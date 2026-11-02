@@ -801,7 +801,8 @@
       "templates": {
         "spin-wheel": "Lucky wheel",
         "scratch-card": "Scratch card",
-        "gift-box": "Mystery gift box"
+        "gift-box": "Mystery gift box",
+        "catch-items": "Catch lucky gifts"
       },
       "skins": {
         "tet": "Tết red",
@@ -1918,7 +1919,7 @@
         "scratchCard": "Scratch Card",
         "giftBox": "Mystery Gift Box",
         "eggSmash": "Egg Smash (M2)",
-        "catchItems": "Catch Items (M2)",
+        "catchItems": "Catch Items 2D (PixiJS)",
         "memoryMatch": "Memory Match (M2)",
         "luckyEnvelope": "Lucky Envelope"
       },

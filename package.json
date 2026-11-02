@@ -19,6 +19,7 @@
     "db:migrate": "bun run --cwd packages/db migrate",
     "db:studio": "bun run --cwd packages/db studio",
     "db:seed": "bun run --cwd packages/db seed",
+    "db:seed:catch-items": "bun run --cwd packages/db seed:catch-items",
     "infra:up": "docker compose -f infra/compose/docker-compose.dev.yml up -d",
     "infra:down": "docker compose -f infra/compose/docker-compose.dev.yml down",
     "e2e": "bun run --cwd tooling/e2e e2e",

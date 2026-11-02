@@ -8,7 +8,12 @@ import { defineRoute } from './route';
  * `events`/`games` routes stay until the legacy UI is removed.
  */
 
-export const CampaignTemplateKey = z.enum(['spin-wheel', 'scratch-card', 'gift-box']);
+export const CampaignTemplateKey = z.enum([
+  'spin-wheel',
+  'scratch-card',
+  'gift-box',
+  'catch-items',
+]);
 export type CampaignTemplateKey = z.infer<typeof CampaignTemplateKey>;
 
 export const CampaignSkinKey = z.enum(['tet', 'grand-opening', 'everyday']);
