@@ -125,6 +125,7 @@ export function CreateFromTemplateDialog({
 
   return (
     <Modal
+      size="lg"
       isOpen={isOpen}
       onOpenChange={(open) => {
         if (!open) {
@@ -134,7 +135,7 @@ export function CreateFromTemplateDialog({
         }
       }}
     >
-      <div className="w-full max-w-lg">
+      <div className="w-full">
         {step === 'setup' ? (
           <>
             <ModalHeader title={t('step1Title')} description={t('step1Subtitle')} />
@@ -289,7 +290,7 @@ export function CreateFromTemplateDialog({
           </>
         ) : (
           /* Step 2: ORA Success Celebration */
-          <div className="flex flex-col items-center p-6 text-center">
+          <div className="flex flex-col items-center px-6 py-2 text-center">
             {/* ORA Celebrating Mascot Graphic */}
             <div className="relative mb-3 flex items-center justify-center">
               <div className="absolute size-32 rounded-full bg-emerald-500/10 blur-xl animate-pulse" />
@@ -335,7 +336,7 @@ export function CreateFromTemplateDialog({
                 variant="secondary"
                 size="medium"
                 leadingIcon={RiEditLine}
-                className="w-full sm:w-auto flex-1 justify-center"
+                className="w-full sm:w-auto flex-1 justify-center whitespace-normal"
                 onClick={handleFinishAndGoToCanvas}
               >
                 {t('goToCanvas')}
@@ -344,7 +345,7 @@ export function CreateFromTemplateDialog({
                 variant="primary"
                 size="medium"
                 leadingIcon={RiQrCodeLine}
-                className="w-full sm:w-auto flex-1 justify-center"
+                className="w-full sm:w-auto flex-1 justify-center whitespace-normal font-medium"
                 onClick={handleFinishAndGoToManage}
               >
                 {t('goToManage')}

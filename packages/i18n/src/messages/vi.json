@@ -2035,8 +2035,8 @@
       "submitButton": "Tạo chương trình ngay",
       "step2Title": "Chiến dịch đã sẵn sàng bùng nổ!",
       "step2Subtitle": "Rái cá ORA đã chuẩn bị xong minigame cho quán. Bạn có thể lấy mã QR để in tại quầy ngay hoặc tùy biến sâu hơn trên Canvas.",
-      "goToManage": "Tới trang Vận hành & Lấy mã QR",
-      "goToCanvas": "Tùy biến trên Canvas"
+      "goToManage": "Lấy mã QR & Vận hành",
+      "goToCanvas": "Tùy biến Canvas"
     },
     "empty": {
       "title": "Không tìm thấy mẫu phù hợp",

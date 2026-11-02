@@ -2035,7 +2035,7 @@
       "submitButton": "Launch campaign now",
       "step2Title": "Your campaign is ready to launch!",
       "step2Subtitle": "ORA prepared your minigame. You can grab your counter QR code now or customize the design in Canvas.",
-      "goToManage": "Go to Dashboard & Get QR code",
+      "goToManage": "Get QR Code & Launch",
       "goToCanvas": "Customize in Canvas"
     },
     "empty": {
