@@ -222,7 +222,7 @@ export function Toaster({
       role="region"
       aria-live="polite"
       aria-relevant="additions text"
-      className={cx('z-130', className)}
+      className={cx('z-[9999]', className)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}

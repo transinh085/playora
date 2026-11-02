@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { Google_Sans, Unbounded } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
+import { Suspense } from 'react';
+import { RouteProgressBar } from '@/components/route-progress-bar';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -32,8 +34,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${font.variable} ${display.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased bg-background-full text-text-primary selection:bg-accent-500/20 selection:text-accent-700">
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
-          <Toaster position="top-right" />
+          <Providers>
+            <Suspense fallback={null}>
+              <RouteProgressBar />
+            </Suspense>
+            {children}
+            <Toaster position="top-right" />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

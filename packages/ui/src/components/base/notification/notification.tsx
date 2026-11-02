@@ -335,7 +335,7 @@ export function NotificationViewport({
       dir={direction}
       aria-label={ariaLabel}
       className={cx(
-        'pointer-events-none fixed z-100 flex w-[min(400px,calc(100vw-24px))] flex-col gap-3',
+        'pointer-events-none fixed z-[9999] flex w-[min(400px,calc(100vw-24px))] flex-col gap-3',
         VIEWPORT_POSITION[resolvedPosition],
         className,
       )}
