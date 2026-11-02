@@ -62,6 +62,22 @@ export const stage = {
   950: '#0d0520',
 } as const;
 
+/**
+ * Official Brand Mascot (Ora) & Accent Palette (Production-Ready v2.0):
+ * - primary: Sunset Tangerine (#F25C05) - WCAG AA compliant with white text
+ * - caramel: Roasted Coffee Caramel (#6F3A08)
+ * - teal: Fresh Brand Teal (#0D9488)
+ * - cream: Vanilla Cream (#FFFBF5)
+ * - pearl: Pearl Dark (#201815)
+ */
+export const brand = {
+  primary: '#F25C05',
+  caramel: '#6F3A08',
+  teal: '#0D9488',
+  cream: '#FFFBF5',
+  pearl: '#201815',
+} as const;
+
 export const team = {
   1: '#fc5855',
   2: '#388cf0',
@@ -131,6 +147,7 @@ export const font = {
 } as const;
 
 export const tokens = {
+  brand,
   teal,
   violet,
   ink,

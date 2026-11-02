@@ -98,6 +98,13 @@
   --medal-silver: oklch(0.86 0.015 260);
   --medal-bronze: oklch(0.7 0.11 55);
 
+  /* Brand Mascot (Ora) & Accent Palette (Production-Ready v2.0) */
+  --brand-primary: #f25c05;
+  --brand-caramel: #6f3a08;
+  --brand-teal: #0d9488;
+  --brand-cream: #fffbf5;
+  --brand-pearl: #201815;
+
   /* Motion */
   --duration-fast: 120ms;
   --duration-base: 200ms;
@@ -281,6 +288,12 @@
   --color-info-foreground: var(--info-foreground);
   --color-live: var(--live);
   --color-live-foreground: var(--live-foreground);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-caramel: var(--brand-caramel);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-pearl: var(--brand-pearl);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);

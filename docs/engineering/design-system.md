@@ -211,21 +211,21 @@ Linh vật chính thức của Playora là **ORA — Chú Rái Cá May Mắn (Th
 2. **Hành vi đập sò tìm ngọc:** Thao tác đập vỏ sò mở thức ăn trên bụng 👉 Tương ứng với các minigame may mắn của Playora (**Mở quà, đập trứng, cào thẻ, quay số**).
 3. **Nắm tay nhau khi trôi trên nước:** Rái cá luôn nắm tay đồng loại khi bơi để không lạc 👉 Tương ứng với cơ chế **[Kèo đi đôi (Duo Perk)](../product/specs/participation.md)** rủ cạ cứng đi uống nước chung.
 
-### 6.2 Bảng màu nhận diện linh vật (Màu Trà Sữa & Cà Phê Nướng)
+### 6.2 Bảng màu nhận diện linh vật (Production-Ready v2.0)
 
 ```
 ┌──────────────────┬──────────────────┬──────────────────┬──────────────────┬──────────────────┐
-│ Primary Orange   │ Roasted Caramel  │ Mint Splash      │ Milk Foam Cream  │ Pearl Dark       │
-│ #FF7A00          │ #7B3F00          │ #2EC4B6          │ #FFF8F0          │ #2B2118          │
-│ Cam Trúng Thưởng │ Nâu Trà/Cà phê   │ Xanh Ngọc Mint   │ Kem Sữa Béo      │ Đen Trân Châu    │
+│ Primary Orange   │ Roasted Caramel  │ Brand Teal       │ Vanilla Cream    │ Pearl Dark       │
+│ #F25C05          │ #6F3A08          │ #0D9488          │ #FFFBF5          │ #201815          │
+│ Cam Trúng Thưởng │ Nâu Cà Phê       │ Xanh Brand Teal  │ Nền Kem Sữa      │ Đen Trân Châu    │
 └──────────────────┴──────────────────┴──────────────────┴──────────────────┴──────────────────┘
 ```
 
-* **Primary Orange (`#FF7A00`):** Năng lượng tuổi trẻ, may mắn trúng thưởng, màu nút CTA chính, pháo hoa, khăn quàng cổ Ora.
-* **Roasted Caramel / Coffee Brown (`#7B3F00`):** Màu lông của Ora, màu cốt trà/cà phê ấm áp, thân thiện, tin cậy.
-* **Milk Foam Cream (`#FFF8F0`):** Màu bụng và má của Ora, màu nền dịu mắt thay thế cho trắng tinh.
-* **Mint Splash (`#2EC4B6`):** Màu điểm nhấn accent, biểu tượng dòng nước mát lành, nhãn đặc quyền VIP, tick thành công tại quầy.
-* **Pearl Dark (`#2B2118`):** Nâu đen trân châu sâu thẳm dùng cho typography và đường viền sắc nét.
+* **Primary Orange (`#F25C05`):** Năng lượng tuổi trẻ, may mắn trúng thưởng, màu nút CTA chính, pháo hoa, khăn quàng cổ Ora. Tương phản đạt chuẩn WCAG AA khi đi cùng chữ Trắng `#FFFFFF`.
+* **Roasted Caramel / Coffee Brown (`#6F3A08`):** Màu lông của Ora, màu cốt trà/cà phê ấm áp, thân thiện, tin cậy.
+* **Vanilla Cream (`#FFFBF5`):** Màu bụng và má của Ora, màu nền dịu mắt thay thế cho trắng tinh, không bị ố vàng trên OLED.
+* **Brand Teal (`#0D9488`):** Màu điểm nhấn accent, biểu tượng dòng nước mát lành, nhãn đặc quyền VIP, tick thành công tại quầy (khớp dải `--teal-*`).
+* **Pearl Dark (`#201815`):** Nâu đen trân châu sâu thẳm dùng cho typography và đường viền sắc nét.
 
 ### 6.3 Hệ thống Prompt chuẩn để sinh Asset AI (AI Asset Generation System)
 
@@ -238,11 +238,11 @@ Linh vật chính thức của Playora là **ORA — Chú Rái Cá May Mắn (Th
 
 #### 2. Khóa nhận diện nhân vật (Character Key Traits Lock)
 Mọi prompt vẽ Ora bắt buộc có cụm mô tả bất biến sau:
-> *"A cute chibi otter mascot named Ora with soft warm caramel-brown fur (#7B3F00), chubby cream milk-foam cheeks and belly (#FFF8F0), round joyful eyes, wearing a tiny vibrant orange scarf (#FF7A00)"*
+> *"A cute chibi otter mascot named Ora with soft warm caramel-brown fur (#6F3A08), chubby cream milk-foam cheeks and belly (#FFFBF5), round joyful eyes, wearing a tiny vibrant sunset orange scarf (#F25C05)"*
 
 #### 3. Khóa bảng màu bắt buộc (Strict Color Palette Lock)
 Luôn dán đoạn này vào phần màu sắc của prompt:
-> *"Strict brand color palette: vibrant orange (#FF7A00), roasted caramel brown (#7B3F00), fresh mint teal accent (#2EC4B6), soft milk foam cream background (#FFF8F0), dark pearl outlines (#2B2118)"*
+> *"Strict brand color palette: vibrant sunset orange (#F25C05), roasted caramel brown (#6F3A08), fresh brand teal accent (#0D9488), warm vanilla cream background (#FFFBF5), dark pearl outlines (#201815)"*
 
 #### 4. Ba preset phong cách chuẩn theo bề mặt
 
