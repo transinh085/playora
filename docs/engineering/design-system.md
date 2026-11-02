@@ -202,7 +202,63 @@ Sử dụng trực tiếp các component nguyên bản của **BoardUI** (dựng
 
 ---
 
-## 6. Quy tắc khi code
+## 6. Linh vật thương hiệu & Màu sắc nhận diện (Brand Mascot: ORA the Lucky Otter)
+
+Linh vật chính thức của Playora là **ORA — Chú Rái Cá May Mắn (The Lucky Otter)**, đại diện cho tính cách thương hiệu: vui vẻ, lém lỉnh, may mắn và gắn kết cộng đồng F&B (trà sữa, cà phê).
+
+### 6.1 Vì sao chọn Rái Cá (Ý nghĩa sản phẩm)
+1. **Chiếc túi bí mật dưới nách:** Rái cá có nếp gấp da cất giữ viên đá may mắn nhất của nó 👉 Tương ứng với **"Quà của tôi" (My Prizes / Voucher Wallet)**.
+2. **Hành vi đập sò tìm ngọc:** Thao tác đập vỏ sò mở thức ăn trên bụng 👉 Tương ứng với các minigame may mắn của Playora (**Mở quà, đập trứng, cào thẻ, quay số**).
+3. **Nắm tay nhau khi trôi trên nước:** Rái cá luôn nắm tay đồng loại khi bơi để không lạc 👉 Tương ứng với cơ chế **[Kèo đi đôi (Duo Perk)](../product/specs/participation.md)** rủ cạ cứng đi uống nước chung.
+
+### 6.2 Bảng màu nhận diện linh vật (Màu Trà Sữa & Cà Phê Nướng)
+
+```
+┌──────────────────┬──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+│ Primary Orange   │ Roasted Caramel  │ Mint Splash      │ Milk Foam Cream  │ Pearl Dark       │
+│ #FF7A00          │ #7B3F00          │ #2EC4B6          │ #FFF8F0          │ #2B2118          │
+│ Cam Trúng Thưởng │ Nâu Trà/Cà phê   │ Xanh Ngọc Mint   │ Kem Sữa Béo      │ Đen Trân Châu    │
+└──────────────────┴──────────────────┴──────────────────┴──────────────────┴──────────────────┘
+```
+
+* **Primary Orange (`#FF7A00`):** Năng lượng tuổi trẻ, may mắn trúng thưởng, màu nút CTA chính, pháo hoa, khăn quàng cổ Ora.
+* **Roasted Caramel / Coffee Brown (`#7B3F00`):** Màu lông của Ora, màu cốt trà/cà phê ấm áp, thân thiện, tin cậy.
+* **Milk Foam Cream (`#FFF8F0`):** Màu bụng và má của Ora, màu nền dịu mắt thay thế cho trắng tinh.
+* **Mint Splash (`#2EC4B6`):** Màu điểm nhấn accent, biểu tượng dòng nước mát lành, nhãn đặc quyền VIP, tick thành công tại quầy.
+* **Pearl Dark (`#2B2118`):** Nâu đen trân châu sâu thẳm dùng cho typography và đường viền sắc nét.
+
+### 6.3 Hệ thống Prompt chuẩn để sinh Asset AI (AI Asset Generation System)
+
+Để đảm bảo **100% asset sinh ra trong tương lai đều nhất quán** về nhân vật Ora, bảng màu và phong cách đồ họa, mọi câu prompt bắt buộc phải tuân theo cấu trúc chuẩn dưới đây:
+
+#### 1. Công thức Prompt chuẩn (Master Formula)
+```text
+[Style Preset] of "Ora the Lucky Otter" [Action/Context], [Character Key Traits], [Color Palette Lock], [Lighting/Background], [Art Direction & Tech Parameters]
+```
+
+#### 2. Khóa nhận diện nhân vật (Character Key Traits Lock)
+Mọi prompt vẽ Ora bắt buộc có cụm mô tả bất biến sau:
+> *"A cute chibi otter mascot named Ora with soft warm caramel-brown fur (#7B3F00), chubby cream milk-foam cheeks and belly (#FFF8F0), round joyful eyes, wearing a tiny vibrant orange scarf (#FF7A00)"*
+
+#### 3. Khóa bảng màu bắt buộc (Strict Color Palette Lock)
+Luôn dán đoạn này vào phần màu sắc của prompt:
+> *"Strict brand color palette: vibrant orange (#FF7A00), roasted caramel brown (#7B3F00), fresh mint teal accent (#2EC4B6), soft milk foam cream background (#FFF8F0), dark pearl outlines (#2B2118)"*
+
+#### 4. Ba preset phong cách chuẩn theo bề mặt
+
+| Bề mặt sử dụng | Style Preset Prefix | Suffix & Parameters |
+|---|---|---|
+| **App Icon / Web Favicon** | `Minimalist flat vector logo icon, geometric clean lines, Paul Rand and Linear app aesthetic, sharp silhouette` | `flat 2D vector, clean negative space, solid cream background, no text, no gradients, Dribbble --v 6.0 --ar 1:1` |
+| **Landing Page Hero / 3D Asset** | `3D cute stylized clay character, Pixar and Apple Animoji style, soft tactile felt/clay texture, whimsical friendly smile` | `soft studio lighting, Octane Render, 8k, isometric clean cream studio backdrop, C4D render --v 6.0 --ar 4:3` |
+| **Game UI State / Sticker quầy** | `2D kawaii flat vector sticker, clean bold white border, expressive cartoon mascot, mobile game asset` | `transparent PNG feel, solid flat colors, high contrast, clean vector lines, Behance --v 6.0 --ar 1:1` |
+
+#### 5. Bộ lọc cấm lệch phong cách (Negative Prompting / What to Avoid)
+Khi dùng DALL-E hoặc Midjourney (`--no ...`), luôn loại bỏ:
+* `--no photorealistic fur, scary teeth, real animal, neon green, bright purple, muddy dark background, 3d render for vector, messy sketch, low quality, human hands`
+
+---
+
+## 7. Quy tắc khi code
 
 - **Không hard-code màu.** Component Studio lấy màu từ semantic token (`bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `Badge variant="success"…`); bề mặt game và SVG tự vẽ dùng `--game-*` và `--team-*`.
 - **Bề mặt game luôn nằm trong `GameRoot`.**
