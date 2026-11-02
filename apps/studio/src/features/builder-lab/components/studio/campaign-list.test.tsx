@@ -80,6 +80,13 @@ const mockStats: Map<string, CampaignStats> = new Map([
 
 const actualApi = await import('../../api');
 
+mock.module('next/navigation', () => ({
+  useRouter: () => ({ push: () => {}, back: () => {} }),
+  usePathname: () => '/orgs/org_1/campaigns',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({ orgId: 'org_1' }),
+}));
+
 mock.module('../../api', () => ({
   ...actualApi,
   useCampaigns: () => ({

@@ -9,6 +9,13 @@
     "retry": "Retry",
     "unknownError": "Something went wrong. Please try again."
   },
+  "notFoundPage": {
+    "badge": "404 · Page Not Found",
+    "title": "Oops, page not found!",
+    "description": "The page you are looking for might have been moved, renamed, or does not exist on Playora Studio.",
+    "backHome": "Back to Home",
+    "backPrevious": "Go Back"
+  },
   "auth": {
     "signInTitle": "Sign in to Studio",
     "signUpTitle": "Create an account",

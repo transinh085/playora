@@ -9,6 +9,13 @@
     "retry": "Thử lại",
     "unknownError": "Đã có lỗi xảy ra. Vui lòng thử lại."
   },
+  "notFoundPage": {
+    "badge": "404 · Không tìm thấy trang",
+    "title": "Ối, trang này không tồn tại!",
+    "description": "Trang bạn đang tìm kiếm có thể đã bị di chuyển, đổi tên hoặc chưa từng tồn tại trên Playora Studio.",
+    "backHome": "Về trang chủ",
+    "backPrevious": "Quay lại"
+  },
   "auth": {
     "signInTitle": "Đăng nhập Studio",
     "signUpTitle": "Tạo tài khoản",
