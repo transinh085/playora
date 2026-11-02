@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@playora/ui/components/base/buttons/button';
-import { Sparkles } from '@playora/ui/icons';
 import { cx } from '@playora/ui/utils/cx';
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -59,17 +58,11 @@ export function EmptyState({
     >
       <div className="mx-auto flex max-w-md flex-col items-center justify-center">
         {mascot ? (
-          <div className="relative mb-5 flex items-center justify-center">
-            {/* Ambient warm aura */}
-            <div className="absolute size-28 rounded-full bg-linear-to-tr from-accent-500/15 via-brand-primary/10 to-amber-400/15 blur-xl" />
-
-            {/* Mascot pedestal card */}
-            <div className="relative flex size-24 items-center justify-center rounded-3xl border border-border-button-default bg-linear-to-b from-background-primary-default to-background-secondary-default p-3 shadow-sm transition-transform duration-300 hover:scale-105">
-              <LogoMark className="size-16 object-contain drop-shadow-xs" alt="Ora mascot" />
-              <span className="absolute -bottom-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full border border-background-primary-default bg-accent-600 text-white shadow-xs">
-                {Icon ? <Icon className="size-3.5" /> : <Sparkles className="size-3.5" />}
-              </span>
-            </div>
+          <div className="mb-4 flex items-center justify-center">
+            <LogoMark
+              className="size-24 shrink-0 object-contain drop-shadow-xs transition-transform duration-300 hover:scale-105 sm:size-28"
+              alt="Playora"
+            />
           </div>
         ) : (
           Icon && (

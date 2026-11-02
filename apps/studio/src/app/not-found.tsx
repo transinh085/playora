@@ -14,17 +14,11 @@ export default function NotFound() {
 
   return (
     <main className="flex min-h-[75vh] w-full flex-col items-center justify-center p-6 text-center">
-      <div className="relative mb-6 flex items-center justify-center">
-        {/* Ambient warm aura */}
-        <div className="absolute size-36 rounded-full bg-linear-to-tr from-accent-500/20 via-brand-primary/15 to-amber-500/20 blur-2xl" />
-
-        {/* Mascot hero pedestal card */}
-        <div className="relative flex size-28 items-center justify-center rounded-3xl border border-border-button-default bg-linear-to-b from-background-primary-default to-background-secondary-default p-4 shadow-lg transition-transform duration-300 hover:scale-105">
-          <LogoMark className="size-20 object-contain drop-shadow-sm" alt="Ora mascot" />
-          <span className="absolute -bottom-2 -right-2 flex h-6 items-center justify-center rounded-full border border-background-primary-default bg-accent-600 px-2 text-caption-2-medium font-bold text-white shadow-xs">
-            404
-          </span>
-        </div>
+      <div className="mb-4 flex items-center justify-center">
+        <LogoMark
+          className="size-28 shrink-0 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105 sm:size-32"
+          alt="Playora"
+        />
       </div>
 
       <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50 px-3 py-1 text-caption-1-medium text-accent-700 dark:border-accent-800/40 dark:bg-accent-950/40 dark:text-accent-300">
