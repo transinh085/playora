@@ -19,6 +19,11 @@ const display = Unbounded({ subsets: ['latin', 'vietnamese'], variable: '--font-
 
 export const metadata: Metadata = {
   title: { default: 'Playora Studio', template: '%s · Playora Studio' },
+  icons: {
+    icon: '/assets/logo.svg',
+    shortcut: '/assets/logo.svg',
+    apple: '/assets/logo.png',
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
