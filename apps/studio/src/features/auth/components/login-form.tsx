@@ -5,6 +5,7 @@ import { Button } from '@playora/ui/components/base/buttons/button';
 import { Divider } from '@playora/ui/components/base/divider/divider';
 import { Input } from '@playora/ui/components/base/input/input';
 import { toast } from '@playora/ui/components/base/toast/toast';
+import { RiFlashlightLine } from '@remixicon/react';
 import type { Route } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -20,7 +21,13 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
-export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function LoginForm({
+  googleEnabled,
+  isDev = process.env.NODE_ENV === 'development',
+}: {
+  googleEnabled: boolean;
+  isDev?: boolean;
+}) {
   const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,6 +44,13 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   });
 
   const redirectPath = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
+
+  function onFillDev() {
+    setMode('sign-in');
+    form.setValue('email', 'dev@playora.local', { shouldValidate: true });
+    form.setValue('password', 'password123', { shouldValidate: true });
+    setError(null);
+  }
 
   async function onSubmit(rawValues: Values) {
     setError(null);
@@ -151,6 +165,24 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
             />
           )}
         />
+
+        {isDev && (
+          <div className="flex items-center justify-between rounded-2lg border border-dashed border-border-button-default bg-background-secondary-default px-3 py-2">
+            <div className="flex flex-col text-left">
+              <span className="text-caption-1-medium text-text-primary">{t('devAccount')}</span>
+              <span className="text-caption-2-medium text-text-tertiary">dev@playora.local</span>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="xs"
+              leadingIcon={RiFlashlightLine}
+              onClick={onFillDev}
+            >
+              {t('autoFillDev')}
+            </Button>
+          </div>
+        )}
 
         {error && (
           <div className="rounded-xl bg-notification-error-background p-3 text-caption-1-medium text-text-error-primary">

@@ -30,7 +30,9 @@
     "declineInvite": "Decline",
     "inviteAccepted": "Joined {organization}",
     "inviteError": "This invitation was not found, has expired, or belongs to a different account.",
-    "switchAccount": "Sign in with another account"
+    "switchAccount": "Sign in with another account",
+    "devAccount": "Dev account",
+    "autoFillDev": "Auto-fill (Dev)"
   },
   "onboarding": {
     "title": "Create your first organization",

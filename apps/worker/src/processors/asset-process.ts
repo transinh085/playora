@@ -30,8 +30,10 @@ function getDefaultDeps(): AssetProcessorDeps {
     const s3 = new S3Client({
       endpoint: env.S3_ENDPOINT,
       bucket: env.S3_BUCKET,
+      region: env.S3_REGION,
       accessKeyId: env.S3_ACCESS_KEY,
       secretAccessKey: env.S3_SECRET_KEY,
+      virtualHostedStyle: !env.S3_USE_PATH_STYLE_ENDPOINT,
     });
     defaultDeps = { db, s3 };
   }

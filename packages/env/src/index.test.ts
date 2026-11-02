@@ -91,6 +91,66 @@ describe('apiEnvSchema', () => {
       expect(prodParsed.data.S3_SECRET_KEY).toBe('prod-secret-key-complex-12345');
     }
   });
+
+  test('accepts AWS S3 credentials and maps them to S3 config', () => {
+    const parsed = apiEnvSchema.safeParse({
+      ...validBaseApiEnv,
+      NODE_ENV: 'development',
+      FILESYSTEM_DISK: 's3',
+      AWS_ACCESS_KEY_ID: 'aws-dev-key',
+      AWS_SECRET_ACCESS_KEY: 'aws-dev-secret',
+      AWS_DEFAULT_REGION: 'ap-southeast-1',
+      AWS_BUCKET: 'aws-shop-bucket',
+      AWS_USE_PATH_STYLE_ENDPOINT: 'false',
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.FILESYSTEM_DISK).toBe('s3');
+      expect(parsed.data.S3_ACCESS_KEY).toBe('aws-dev-key');
+      expect(parsed.data.S3_SECRET_KEY).toBe('aws-dev-secret');
+      expect(parsed.data.S3_REGION).toBe('ap-southeast-1');
+      expect(parsed.data.S3_BUCKET).toBe('aws-shop-bucket');
+      expect(parsed.data.S3_USE_PATH_STYLE_ENDPOINT).toBe(false);
+      expect(parsed.data.S3_ENDPOINT).toBeUndefined();
+    }
+  });
+
+  test('accepts custom AWS_URL / CDN endpoint', () => {
+    const parsed = apiEnvSchema.safeParse({
+      ...validBaseApiEnv,
+      NODE_ENV: 'development',
+      FILESYSTEM_DISK: 's3',
+      AWS_ACCESS_KEY_ID: 'aws-dev-key',
+      AWS_SECRET_ACCESS_KEY: 'aws-dev-secret',
+      AWS_DEFAULT_REGION: 'ap-southeast-1',
+      AWS_BUCKET: 'aws-shop-bucket',
+      AWS_USE_PATH_STYLE_ENDPOINT: 'false',
+      AWS_URL: 'https://cdn.example.com',
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.S3_ENDPOINT).toBe('https://cdn.example.com');
+      expect(parsed.data.S3_USE_PATH_STYLE_ENDPOINT).toBe(false);
+    }
+  });
+
+  test('accepts AWS S3 credentials in production', () => {
+    const prodParsed = apiEnvSchema.safeParse({
+      ...validBaseApiEnv,
+      NODE_ENV: 'production',
+      AWS_ACCESS_KEY_ID: 'aws-prod-key-123',
+      AWS_SECRET_ACCESS_KEY: 'aws-prod-secret-complex-456',
+      AWS_DEFAULT_REGION: 'ap-southeast-1',
+      AWS_BUCKET: 'prod-bucket',
+      ...prodPiiKeys,
+    });
+    expect(prodParsed.success).toBe(true);
+    if (prodParsed.success) {
+      expect(prodParsed.data.S3_ACCESS_KEY).toBe('aws-prod-key-123');
+      expect(prodParsed.data.S3_SECRET_KEY).toBe('aws-prod-secret-complex-456');
+      expect(prodParsed.data.S3_BUCKET).toBe('prod-bucket');
+    }
+  });
 });
 
 describe('apiEnvSchema PII keys', () => {

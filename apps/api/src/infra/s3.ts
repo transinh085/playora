@@ -4,15 +4,22 @@ import { S3Client } from 'bun';
 
 export type S3Config = Pick<
   ApiEnv,
-  'S3_ENDPOINT' | 'S3_BUCKET' | 'S3_ACCESS_KEY' | 'S3_SECRET_KEY'
+  | 'S3_ENDPOINT'
+  | 'S3_BUCKET'
+  | 'S3_ACCESS_KEY'
+  | 'S3_SECRET_KEY'
+  | 'S3_REGION'
+  | 'S3_USE_PATH_STYLE_ENDPOINT'
 >;
 
 export function createS3Client(env: S3Config): S3Client {
   return new S3Client({
     endpoint: env.S3_ENDPOINT,
     bucket: env.S3_BUCKET,
+    region: env.S3_REGION,
     accessKeyId: env.S3_ACCESS_KEY,
     secretAccessKey: env.S3_SECRET_KEY,
+    virtualHostedStyle: !env.S3_USE_PATH_STYLE_ENDPOINT,
   });
 }
 
@@ -21,8 +28,9 @@ export function createS3Client(env: S3Config): S3Client {
  * Uses AWS Signature V4 (`PUT /{bucket}`) so no external S3 SDK dependency is required.
  */
 export async function ensureS3Bucket(env: S3Config): Promise<void> {
-  const region = 'auto';
-  const url = new URL(`/${env.S3_BUCKET}`, env.S3_ENDPOINT);
+  const region = env.S3_REGION || 'auto';
+  const endpoint = env.S3_ENDPOINT || `https://s3.${region}.amazonaws.com`;
+  const url = new URL(`/${env.S3_BUCKET}`, endpoint);
   const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
   const dateStamp = amzDate.slice(0, 8);
   const payloadHash = createHash('sha256').update('').digest('hex');

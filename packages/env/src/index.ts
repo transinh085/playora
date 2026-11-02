@@ -11,13 +11,88 @@ const optionalString = z
 
 export const DEV_DEFAULT_S3_ACCESS_KEY = 'playora';
 export const DEV_DEFAULT_S3_SECRET_KEY = 'playora123';
+export const DEV_DEFAULT_S3_BUCKET = 'playora-dev';
+export const DEV_DEFAULT_S3_ENDPOINT = 'http://localhost:9000';
 
 const s3Env = {
-  S3_ENDPOINT: z.url().default('http://localhost:9000'),
-  S3_BUCKET: z.string().min(1).default('playora-dev'),
-  S3_ACCESS_KEY: z.string().min(1).default(DEV_DEFAULT_S3_ACCESS_KEY),
-  S3_SECRET_KEY: z.string().min(1).default(DEV_DEFAULT_S3_SECRET_KEY),
+  /** Storage driver: 's3' or 'local'. Defaults to 's3'. */
+  FILESYSTEM_DISK: z.enum(['local', 's3']).default('s3'),
+
+  /** S3 / MinIO bucket name. Accepts AWS_BUCKET or S3_BUCKET. */
+  S3_BUCKET: optionalString,
+  AWS_BUCKET: optionalString,
+
+  /** S3 region. Accepts AWS_DEFAULT_REGION, AWS_REGION, or S3_REGION. */
+  S3_REGION: optionalString,
+  AWS_DEFAULT_REGION: optionalString,
+  AWS_REGION: optionalString,
+
+  /** S3 / MinIO access key ID. Accepts AWS_ACCESS_KEY_ID or S3_ACCESS_KEY. */
+  S3_ACCESS_KEY: optionalString,
+  AWS_ACCESS_KEY_ID: optionalString,
+
+  /** S3 / MinIO secret access key. Accepts AWS_SECRET_ACCESS_KEY or S3_SECRET_KEY. */
+  S3_SECRET_KEY: optionalString,
+  AWS_SECRET_ACCESS_KEY: optionalString,
+
+  /** S3 endpoint URL (MinIO, R2, CDN). Accepts AWS_URL, AWS_ENDPOINT, or S3_ENDPOINT. */
+  S3_ENDPOINT: optionalString,
+  AWS_URL: optionalString,
+  AWS_ENDPOINT: optionalString,
+
+  /** Path-style endpoint vs virtual-hosted-style (false = virtual-hosted style). */
+  S3_USE_PATH_STYLE_ENDPOINT: z.stringbool().optional(),
+  AWS_USE_PATH_STYLE_ENDPOINT: z.stringbool().optional(),
 };
+
+function resolveS3Config<
+  T extends {
+    FILESYSTEM_DISK?: 'local' | 's3';
+    S3_BUCKET?: string;
+    AWS_BUCKET?: string;
+    S3_REGION?: string;
+    AWS_DEFAULT_REGION?: string;
+    AWS_REGION?: string;
+    S3_ACCESS_KEY?: string;
+    AWS_ACCESS_KEY_ID?: string;
+    S3_SECRET_KEY?: string;
+    AWS_SECRET_ACCESS_KEY?: string;
+    S3_ENDPOINT?: string;
+    AWS_URL?: string;
+    AWS_ENDPOINT?: string;
+    S3_USE_PATH_STYLE_ENDPOINT?: boolean;
+    AWS_USE_PATH_STYLE_ENDPOINT?: boolean;
+  },
+>(data: T) {
+  const accessKey = data.S3_ACCESS_KEY || data.AWS_ACCESS_KEY_ID || DEV_DEFAULT_S3_ACCESS_KEY;
+  const secretKey = data.S3_SECRET_KEY || data.AWS_SECRET_ACCESS_KEY || DEV_DEFAULT_S3_SECRET_KEY;
+  const bucket = data.S3_BUCKET || data.AWS_BUCKET || DEV_DEFAULT_S3_BUCKET;
+  const region = data.S3_REGION || data.AWS_DEFAULT_REGION || data.AWS_REGION || 'ap-southeast-1';
+  const customEndpoint = data.S3_ENDPOINT || data.AWS_URL || data.AWS_ENDPOINT;
+  const hasAwsExplicit = Boolean(
+    data.AWS_ACCESS_KEY_ID ||
+      data.AWS_SECRET_ACCESS_KEY ||
+      data.AWS_DEFAULT_REGION ||
+      data.AWS_REGION ||
+      data.AWS_BUCKET,
+  );
+  const endpoint = customEndpoint || (hasAwsExplicit ? undefined : DEV_DEFAULT_S3_ENDPOINT);
+  const usePathStyle =
+    data.AWS_USE_PATH_STYLE_ENDPOINT ??
+    data.S3_USE_PATH_STYLE_ENDPOINT ??
+    Boolean(endpoint?.includes('localhost:9000') || endpoint?.includes('127.0.0.1:9000'));
+
+  return {
+    ...data,
+    FILESYSTEM_DISK: data.FILESYSTEM_DISK ?? 's3',
+    S3_ACCESS_KEY: accessKey,
+    S3_SECRET_KEY: secretKey,
+    S3_BUCKET: bucket,
+    S3_REGION: region,
+    S3_ENDPOINT: endpoint,
+    S3_USE_PATH_STYLE_ENDPOINT: usePathStyle,
+  };
+}
 
 function refineProductionS3<
   T extends {
@@ -159,6 +234,7 @@ export const apiEnvSchema = z
     ...playerSessionEnv,
     ...piiEnv,
   })
+  .transform(resolveS3Config)
   .superRefine((data, ctx) => {
     refineProductionS3(data, ctx);
     refineProductionPii(data, ctx);
@@ -172,6 +248,7 @@ export const workerEnvSchema = z
     REDIS_URL: z.url(),
     ...s3Env,
   })
+  .transform(resolveS3Config)
   .superRefine(refineProductionS3);
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

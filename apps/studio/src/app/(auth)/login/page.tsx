@@ -8,7 +8,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
       <Suspense>
-        <LoginForm googleEnabled={googleEnabled} />
+        <LoginForm googleEnabled={googleEnabled} isDev={process.env.NODE_ENV === 'development'} />
       </Suspense>
     </main>
   );

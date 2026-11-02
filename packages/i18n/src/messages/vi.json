@@ -30,7 +30,9 @@
     "declineInvite": "Từ chối",
     "inviteAccepted": "Đã tham gia {organization}",
     "inviteError": "Lời mời không tồn tại, đã hết hạn hoặc không dành cho tài khoản hiện tại.",
-    "switchAccount": "Đăng nhập bằng tài khoản khác"
+    "switchAccount": "Đăng nhập bằng tài khoản khác",
+    "devAccount": "Tài khoản dev",
+    "autoFillDev": "Tự động điền (Dev)"
   },
   "onboarding": {
     "title": "Tạo tổ chức đầu tiên",

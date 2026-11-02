@@ -10,7 +10,6 @@ import {
 import { applyThemeWithTransition } from '@playora/ui/components/application/theme/theme-toggle';
 import { Avatar } from '@playora/ui/components/base/avatar/avatar';
 import { Breadcrumb, BreadcrumbItem } from '@playora/ui/components/base/breadcrumb/breadcrumb';
-import { Button } from '@playora/ui/components/base/buttons/button';
 import { IconButton } from '@playora/ui/components/base/buttons/icon-button';
 import { Drawer } from '@playora/ui/components/base/drawer/drawer';
 import {
@@ -25,7 +24,6 @@ import { Kbd } from '@playora/ui/components/base/kbd/kbd';
 import { Modal } from '@playora/ui/components/base/modal/modal';
 import { cx } from '@playora/ui/utils/cx';
 import {
-  RiAddLine,
   RiArrowDownSLine,
   RiArrowUpDownLine,
   RiBankCardLine,
@@ -235,7 +233,8 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickSearch, setQuickSearch] = useState('');
   const [isMobile, setIsMobile] = useState(false);
-  const { orgId } = useParams<{ orgId?: string }>();
+  const params = useParams<{ orgId?: string; campaignId?: string }>();
+  const orgId = params.orgId;
   const { data: session } = authClient.useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const now = useNow({ updateInterval: 60_000 }).getTime();
@@ -314,15 +313,123 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
         path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
       )
     : undefined;
-  const activeGroup = current
-    ? NAV_GROUPS.find((group) =>
-        group.items.some(({ path }) =>
-          path ? pathname.startsWith(`${orgHome}/${path}`) : pathname === orgHome,
-        ),
-      )
-    : undefined;
   const ActiveIcon = activeNav?.icon ?? RiHome5Line;
   const headerTitle = activeNav ? t(`nav.${activeNav.key}`) : t('shell.home');
+
+  interface BreadcrumbEntry {
+    key: string;
+    label: string;
+    icon?: IconComponent;
+    href?: Route;
+    current?: boolean;
+  }
+
+  const breadcrumbs: BreadcrumbEntry[] = [];
+  if (current) {
+    if (pathname === orgHome) {
+      breadcrumbs.push({
+        key: 'home',
+        label: t('nav.home'),
+        icon: RiHome5Line,
+        current: true,
+      });
+    } else if (pathname.startsWith(`${orgHome}/campaigns`)) {
+      const isList = pathname === `${orgHome}/campaigns`;
+      breadcrumbs.push({
+        key: 'campaigns',
+        label: t('nav.campaigns'),
+        icon: RiCalendarEventLine,
+        href: isList ? undefined : (`${orgHome}/campaigns` as Route),
+        current: isList,
+      });
+
+      if (pathname === `${orgHome}/campaigns/new`) {
+        breadcrumbs.push({
+          key: 'campaigns-new',
+          label: t('campaigns.create'),
+          current: true,
+        });
+      } else if (params.campaignId) {
+        const campaignId = params.campaignId;
+        const currentCampaign = campaigns.find((c) => c.id === campaignId);
+        const campaignTitle = currentCampaign?.name || t('shell.eventDetail');
+        const isDetail = pathname === `${orgHome}/campaigns/${campaignId}`;
+
+        if (isDetail) {
+          breadcrumbs.push({
+            key: `campaign-${campaignId}`,
+            label: campaignTitle,
+            current: true,
+          });
+        } else if (pathname.endsWith('/report')) {
+          breadcrumbs.push({
+            key: `campaign-${campaignId}`,
+            label: campaignTitle,
+            href: `${orgHome}/campaigns/${campaignId}` as Route,
+          });
+          breadcrumbs.push({
+            key: 'campaign-report',
+            label: t('nav.reports'),
+            current: true,
+          });
+        } else if (pathname.endsWith('/share')) {
+          breadcrumbs.push({
+            key: `campaign-${campaignId}`,
+            label: campaignTitle,
+            href: `${orgHome}/campaigns/${campaignId}` as Route,
+          });
+          breadcrumbs.push({
+            key: 'campaign-share',
+            label: t('campaigns.openShare'),
+            current: true,
+          });
+        } else {
+          breadcrumbs.push({
+            key: `campaign-${campaignId}`,
+            label: campaignTitle,
+            current: true,
+          });
+        }
+      }
+    } else if (pathname.startsWith(`${orgHome}/settings`)) {
+      const isSettingsRoot = pathname === `${orgHome}/settings`;
+      breadcrumbs.push({
+        key: 'settings',
+        label: t('nav.settings'),
+        icon: RiSettings4Line,
+        href: isSettingsRoot ? undefined : (`${orgHome}/settings` as Route),
+        current: isSettingsRoot,
+      });
+
+      if (pathname === `${orgHome}/settings/billing`) {
+        breadcrumbs.push({
+          key: 'settings-billing',
+          label: t('nav.billing'),
+          current: true,
+        });
+      } else if (pathname === `${orgHome}/settings/members`) {
+        breadcrumbs.push({
+          key: 'settings-members',
+          label: t('members.title'),
+          current: true,
+        });
+      }
+    } else if (activeNav) {
+      breadcrumbs.push({
+        key: activeNav.key,
+        label: t(`nav.${activeNav.key}`),
+        icon: activeNav.icon,
+        current: true,
+      });
+    } else {
+      breadcrumbs.push({
+        key: 'current',
+        label: headerTitle,
+        icon: ActiveIcon,
+        current: true,
+      });
+    }
+  }
 
   const showLabels = !collapsed || isMobile;
   const userName = session?.user.name ?? '';
@@ -809,17 +916,16 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
             {/* Breadcrumb navigation trail */}
             {current ? (
               <Breadcrumb aria-label="Page navigation" className="min-w-0">
-                <BreadcrumbItem href={orgHome as Route} className="hidden sm:inline-flex">
-                  {current.name}
-                </BreadcrumbItem>
-                {activeGroup && activeGroup.key !== 'start' && (
-                  <BreadcrumbItem className="hidden md:inline-flex">
-                    {t(`navGroups.${activeGroup.key}`)}
+                {breadcrumbs.map((crumb) => (
+                  <BreadcrumbItem
+                    key={crumb.key}
+                    href={crumb.href}
+                    icon={crumb.icon}
+                    current={crumb.current}
+                  >
+                    <span className="truncate max-w-[180px] sm:max-w-[280px]">{crumb.label}</span>
                   </BreadcrumbItem>
-                )}
-                <BreadcrumbItem current icon={ActiveIcon}>
-                  {headerTitle}
-                </BreadcrumbItem>
+                ))}
               </Breadcrumb>
             ) : (
               <div className="flex items-center gap-2">
@@ -831,7 +937,7 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
             )}
           </div>
 
-          {/* Right: Notification + Theme mode + Primary CTA */}
+          {/* Right: Notification + Theme mode */}
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {/* Notification Center Popover */}
             <PopoverTrigger>
@@ -871,31 +977,6 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
               aria-label={resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
               onClick={(e) => handleToggleTheme(e)}
             />
-
-            {routes && canReadCampaigns && (
-              <>
-                <div
-                  className="mx-0.5 hidden h-4 w-px bg-separator-border sm:block"
-                  aria-hidden="true"
-                />
-                <Link href={routes.create}>
-                  <Button
-                    variant="primary"
-                    size="small"
-                    leadingIcon={RiAddLine}
-                    className="hidden sm:inline-flex"
-                  >
-                    <span>{t('campaigns.create')}</span>
-                  </Button>
-                  <IconButton
-                    icon={RiAddLine}
-                    size="small"
-                    aria-label={t('campaigns.create')}
-                    className="border-accent-600 bg-accent-600 text-white hover:bg-accent-700 sm:hidden"
-                  />
-                </Link>
-              </>
-            )}
           </div>
         </header>
 

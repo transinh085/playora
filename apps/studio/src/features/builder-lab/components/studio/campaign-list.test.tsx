@@ -78,7 +78,10 @@ const mockStats: Map<string, CampaignStats> = new Map([
   ],
 ]);
 
+const actualApi = await import('../../api');
+
 mock.module('../../api', () => ({
+  ...actualApi,
   useCampaigns: () => ({
     data: mockCampaigns,
     isPending: false,

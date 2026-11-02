@@ -15,4 +15,5 @@ playwright-report
 .claude/worktrees/
 .agents/
 .commandcode/
+.codegraph/
 skills-lock.json
