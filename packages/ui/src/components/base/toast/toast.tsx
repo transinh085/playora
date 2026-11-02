@@ -49,10 +49,12 @@ export interface ToastOptions {
   avatar?: NotificationAvatar;
   /** Small buttons under the message. Pressing one also dismisses the toast. */
   actions?: NotificationAction[];
-  /** Milliseconds before it dismisses itself; `Infinity` keeps it until closed. Default from the Toaster (5000). */
+  /** Milliseconds before it dismisses itself; `Infinity` keeps it until closed. Default from the Toaster (4000). */
   duration?: number;
   /** Show the close button. Default true. */
   dismissible?: boolean;
+  /** Whether to show a countdown progress bar along the bottom edge. Default false. */
+  showProgressBar?: boolean;
   /** Called once the toast has left the screen. */
   onDismiss?: () => void;
 }
@@ -111,9 +113,9 @@ toast.error = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
 toast.info = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
   show(title, { ...options, status: 'information' });
 toast.warning = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
-  show(title, { ...options, status: 'error' });
+  show(title, { ...options, status: 'warning' });
 toast.loading = (title: ReactNode, options?: Omit<ToastOptions, 'status'>) =>
-  show(title, { duration: Number.POSITIVE_INFINITY, ...options, status: 'neutral' });
+  show(title, { duration: Number.POSITIVE_INFINITY, ...options, status: 'loading' });
 
 /** Change a toast that is showing. A new `duration` restarts its countdown. */
 toast.update = (id: ToastId, options: ToastOptions & { title?: ReactNode }) => {
@@ -150,8 +152,10 @@ export interface ToasterProps {
   position?: NotificationPosition;
   /** How many toasts show at once; older ones leave as new ones arrive. Default 3. */
   limit?: number;
-  /** Default countdown in milliseconds. Default 5000. */
+  /** Default countdown in milliseconds. Default 4000. */
   duration?: number;
+  /** Whether to show a countdown progress bar along the bottom edge of toasts. Default false. */
+  showProgressBar?: boolean;
   /** Accessible name of the region. */
   'aria-label'?: string;
   /** Accessible name of each toast's close button. */
@@ -162,7 +166,8 @@ export interface ToasterProps {
 export function Toaster({
   position = 'bottom-end',
   limit = 3,
-  duration = 5000,
+  duration = 4000,
+  showProgressBar = false,
   'aria-label': ariaLabel = 'Notifications',
   closeLabel,
   className,
@@ -251,6 +256,7 @@ export function Toaster({
               },
             }))}
             autoDismissDuration={Number.isFinite(timeout) && timeout > 0 ? timeout : undefined}
+            showProgressBar={item.showProgressBar ?? showProgressBar}
             paused={hovered || focused}
             dismissed={item.dismissed}
             introDelay={0}
