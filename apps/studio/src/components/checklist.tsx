@@ -24,11 +24,13 @@ export interface ChecklistItem {
  */
 export function Checklist({
   title,
+  icon,
   extra,
   items,
   testId,
 }: {
   title: React.ReactNode;
+  icon?: React.ReactNode;
   extra?: React.ReactNode;
   items: readonly ChecklistItem[];
   testId?: string;
@@ -43,7 +45,10 @@ export function Checklist({
       data-testid={testId}
     >
       <div className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
-        <h3 className="m-0 text-body-medium text-text-primary">{title}</h3>
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <h3 className="m-0 text-body-medium text-text-primary">{title}</h3>
+        </div>
         {extra ?? (
           <span className="rounded-md border border-border-button-default bg-background-secondary-default px-2 py-0.5 text-caption-1-medium tabular-nums text-text-secondary">
             {`${done}/${items.length}`}

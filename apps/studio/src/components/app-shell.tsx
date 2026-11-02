@@ -501,15 +501,24 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                     : 'min-w-0 flex-1 gap-2 rounded-xl p-1.5 text-left',
                 )}
               >
-                <div
-                  aria-hidden="true"
-                  className={cx(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr text-caption-1-semibold font-semibold text-white shadow-xs',
-                    currentGradient,
-                  )}
-                >
-                  {current.name.slice(0, 1).toUpperCase()}
-                </div>
+                {current.logo ? (
+                  // biome-ignore lint/performance/noImgElement: Org custom logo
+                  <img
+                    src={current.logo}
+                    alt={current.name}
+                    className="h-7 w-7 shrink-0 rounded-lg border border-border-button-default bg-white object-contain shadow-xs"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className={cx(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr text-caption-1-semibold font-semibold text-white shadow-xs',
+                      currentGradient,
+                    )}
+                  >
+                    {current.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
                 <Collapsible collapsed={isCollapsedDesktop} className="flex-1">
                   <span className="flex min-w-0 flex-col items-start justify-center">
                     <span className="truncate text-body-medium font-medium text-text-primary">
@@ -543,14 +552,23 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
                           )
                         }
                       >
-                        <div
-                          className={cx(
-                            'flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-linear-to-tr text-caption-2-medium text-white',
-                            grad,
-                          )}
-                        >
-                          {org.name.slice(0, 1).toUpperCase()}
-                        </div>
+                        {org.logo ? (
+                          // biome-ignore lint/performance/noImgElement: Org custom logo
+                          <img
+                            src={org.logo}
+                            alt={org.name}
+                            className="h-5 w-5 shrink-0 rounded-md border border-border-button-default bg-white object-contain shadow-xs"
+                          />
+                        ) : (
+                          <div
+                            className={cx(
+                              'flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-linear-to-tr text-caption-2-medium text-white',
+                              grad,
+                            )}
+                          >
+                            {org.name.slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
                         <span className="flex-1 truncate text-left text-body-medium">
                           {org.name}
                         </span>
@@ -781,6 +799,27 @@ export function AppShell({ orgs, children }: { orgs: MyOrg[]; children: React.Re
             </DropdownGroup>
           </DropdownPopover>
         </Dropdown>
+
+        <div
+          className={cx(
+            'flex items-center justify-between px-2 pt-1 text-caption-2-medium text-text-tertiary',
+            isCollapsedDesktop ? 'justify-center p-0' : '',
+          )}
+        >
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-text-primary"
+            aria-label="Playora Studio"
+          >
+            <LogoMark className="size-4" aria-hidden />
+            <Collapsible collapsed={isCollapsedDesktop}>
+              <span className="font-semibold tracking-tight text-caption-1-medium">playora</span>
+            </Collapsible>
+          </Link>
+          <Collapsible collapsed={isCollapsedDesktop}>
+            <span className="font-mono text-[10px] text-text-tertiary">v3.0</span>
+          </Collapsible>
+        </div>
       </div>
     </div>
   );

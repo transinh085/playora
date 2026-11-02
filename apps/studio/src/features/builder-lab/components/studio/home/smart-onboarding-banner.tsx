@@ -5,6 +5,7 @@ import { ChevronUp, Sparkles } from '@playora/ui/icons';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Checklist, type ChecklistItem } from '@/components/checklist';
+import { LogoMark } from '@/components/logo';
 
 export function SmartOnboardingBanner({
   items,
@@ -21,6 +22,7 @@ export function SmartOnboardingBanner({
     return (
       <div className="flex items-center justify-between rounded-2xl border border-separator-border bg-background-primary-default px-4 py-2.5 shadow-xs">
         <div className="flex items-center gap-2 text-caption-1-medium text-text-secondary">
+          <LogoMark className="size-4 shrink-0" aria-hidden />
           <Sparkles className="size-4 text-emerald-500" />
           <span>{t('metrics.allGood')}</span>
         </div>
@@ -39,6 +41,7 @@ export function SmartOnboardingBanner({
   return (
     <div className="relative">
       <Checklist
+        icon={<LogoMark className="size-6 shrink-0" aria-hidden />}
         title={t('gettingStarted')}
         extra={
           allDone ? (
