@@ -72,5 +72,8 @@ Một khái niệm, một tên. Cột "Trong code" là tên dùng trong DB, API 
 | Zalo OA dùng chung | Shared Zalo OA | `sharedOA` | Kênh Zalo OA xác thực (Playora Pass) gửi tin ZNS nhắc quà cho quán nhỏ không có tư cách doanh nghiệp (D-40) |
 | Kèo đi đôi | Duo perk | `duoPerk` | Cơ chế quà tặng cho nhóm đi 2 người trở lên, tạo động lực chia sẻ tự nhiên không ép buộc (D-41) |
 | Thời điểm xác thực | Auth timing | `authTiming` | Cấu hình cho quán tự chọn: Chơi trước nhận giải sau (`claim_only`), Form trước khi chơi (`pre_play`), hoặc Ẩn danh (`none`) (D-42) |
+| Wizard luồng tạo | Creation wizard | `creationWizard` | Luồng tạo chương trình 3 bước tinh gọn: 1. Chọn mẫu -> 2. Cấu hình nhanh & Quà -> 3. Hoàn tất & Kích hoạt (D-43) |
+| Xem trước điện thoại tương tác | Interactive live phone preview | `livePhonePreview` | Giả lập trải nghiệm chơi thật trên khung iPhone tương tác trước khi quyết định chọn mẫu (D-43) |
+| Nhãn mục tiêu thông minh | Smart goal badges | `goalBadges` | Nhãn kinh doanh (Kéo khách, Quay lại, Lấp ngày vắng) hiển thị trực tiếp trên thẻ game trong Kho mẫu (D-44) |
 
 **Nhãn trong tài liệu:** `[GĐ]` = số giả định, cần kiểm chứng · `[CXM]` = chưa xác minh · M0–M4 = giai đoạn ở [roadmap](./roadmap.md) · ID dạng `BLD-01` = yêu cầu trong [prd.md](./prd.md) · `D-xx` = [quyết định sản phẩm](./decisions.md) · `ADR-xxx` = [quyết định kiến trúc](../adr/README.md).

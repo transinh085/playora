@@ -1880,6 +1880,19 @@
     "title": "Kho mẫu minigame",
     "subtitle": "Bộ sưu tập mẫu minigame phong phú được thiết kế chuẩn cho F&B và bán lẻ. Chọn mẫu, xem trước và khởi tạo chiến dịch trong tích tắc.",
     "totalCountTag": "{count} mẫu có sẵn",
+    "hero": {
+      "badge": "Trợ lý minigame F&B",
+      "greeting": "Hôm nay quán mình muốn thu hút khách bằng minigame nào?",
+      "subtitle": "Chọn nhanh mẫu trò chơi có sẵn, tùy biến quà tặng và kích hoạt chỉ trong 3 phút cùng Playora & Rái cá ORA.",
+      "quickGoals": {
+        "all": "Tất cả mẫu",
+        "traffic": "🎯 Kéo khách đông quán",
+        "retention": "🔄 Khách quay lại lần 2",
+        "clearance": "⚡ Lấp ngày vắng khách",
+        "tet": "🧧 Tết & Dịp lễ",
+        "opening": "🎊 Khai trương quán"
+      }
+    },
     "toolbar": {
       "searchPlaceholder": "Tìm kiếm theo tên mẫu, dịp, cơ chế…",
       "filterBy": "Bộ lọc",
@@ -1938,9 +1951,21 @@
       "saved": "Đã lưu",
       "usageTag": "{count} lượt dùng",
       "skinsLabel": "Giao diện",
-      "playsLabel": "lượt chơi"
+      "playsLabel": "lượt chơi",
+      "tryPlay": "Chơi thử",
+      "smartGoals": {
+        "traffic": "🎯 Kéo khách",
+        "retention": "🔄 Khách quay lại",
+        "clearance": "⚡ Lấp ngày vắng",
+        "leads": "📋 Thu thập data",
+        "tet": "🧧 Tết bùng nổ",
+        "opening": "🎊 Khai trương",
+        "everyday": "✨ Thường ngày"
+      }
     },
     "drawer": {
+      "oraTipTitle": "Rái cá ORA gợi ý cho bạn",
+      "oraTipDesc": "Luật chơi 1 chạm cực kỳ đơn giản, khách dễ chơi - dễ nghiện, tỷ lệ mở quà cao giúp tăng đơn hàng tại quầy!",
       "instantWin": "Instant-win (Trúng tức thì)",
       "skillGame": "Skill game (Kỹ năng)",
       "save": "Lưu mẫu",
@@ -1992,7 +2017,26 @@
       "creating": "Đang khởi tạo…",
       "createdSuccess": "Khởi tạo chương trình thành công!",
       "createFailed": "Không thể khởi tạo chương trình. Vui lòng thử lại.",
-      "m2FallbackNotice": "Mẫu M2 đang thử nghiệm. Hệ thống đã tạo bản nháp trên engine tương đương để bạn trải nghiệm!"
+      "m2FallbackNotice": "Mẫu M2 đang thử nghiệm. Hệ thống đã tạo bản nháp trên engine tương đương để bạn trải nghiệm!",
+      "step1Title": "Thiết lập nhanh chương trình",
+      "step1Subtitle": "Playora đã chuẩn bị sẵn cấu hình tối ưu cho quán F&B. Bạn có thể sửa nhanh các thông tin cơ bản.",
+      "durationLabel": "Thời lượng chiến dịch",
+      "durations": {
+        "7d": "7 ngày (Thử nghiệm)",
+        "14d": "14 ngày (Tiêu chuẩn)",
+        "30d": "30 ngày (Dài hạn)"
+      },
+      "winRateLabel": "Tỷ lệ trúng thưởng gợi ý",
+      "winRates": {
+        "high": "80% Dễ trúng (Kéo khách tối đa)",
+        "medium": "50% Cân bằng (Chuẩn F&B)",
+        "low": "30% Thử thách (Quà lớn)"
+      },
+      "submitButton": "Tạo chương trình ngay",
+      "step2Title": "Chiến dịch đã sẵn sàng bùng nổ!",
+      "step2Subtitle": "Rái cá ORA đã chuẩn bị xong minigame cho quán. Bạn có thể lấy mã QR để in tại quầy ngay hoặc tùy biến sâu hơn trên Canvas.",
+      "goToManage": "Tới trang Vận hành & Lấy mã QR",
+      "goToCanvas": "Tùy biến trên Canvas"
     },
     "empty": {
       "title": "Không tìm thấy mẫu phù hợp",

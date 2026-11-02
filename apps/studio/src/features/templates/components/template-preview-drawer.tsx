@@ -186,6 +186,25 @@ export function TemplatePreviewDrawer({
                 </p>
               </div>
 
+              {/* ORA Gaming Tip Card */}
+              <div className="flex items-center gap-4 rounded-2xl border border-teal-500/20 bg-gradient-to-r from-teal-500/10 via-emerald-500/5 to-transparent p-4">
+                {/* biome-ignore lint/performance/noImgElement: static mascot graphic */}
+                <img
+                  src="/assets/ora-gaming.png"
+                  alt="ORA Gaming"
+                  className="size-16 sm:size-20 shrink-0 object-contain drop-shadow-sm select-none"
+                />
+                <div className="flex flex-col gap-1 min-w-0">
+                  <span className="text-caption-1-semibold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                    <span className="inline-block size-2 rounded-full bg-teal-500" />
+                    {t('oraTipTitle')}
+                  </span>
+                  <p className="text-caption-1-regular text-text-secondary leading-relaxed">
+                    {t('oraTipDesc')}
+                  </p>
+                </div>
+              </div>
+
               {/* Expected Business Outcomes */}
               <div className="flex flex-col gap-2.5">
                 <span className="text-caption-1-medium text-text-tertiary">

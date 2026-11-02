@@ -98,8 +98,26 @@ export function TemplateCard({
         </div>
       </div>
 
-      {/* Card Info Body - Title only, focused on preview */}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      {/* Card Info Body - Title & Smart Goal Badge */}
+      <div className="flex flex-col gap-1 px-3 py-2.5">
+        <div className="flex items-center justify-between gap-1.5">
+          <span className="inline-flex items-center rounded-md bg-accent-500/10 px-1.5 py-0.5 text-[11px] font-medium text-accent-600 dark:text-accent-400">
+            {template.occasion === 'tet'
+              ? t('smartGoals.tet')
+              : template.occasion === 'opening'
+                ? t('smartGoals.opening')
+                : template.goal === 'traffic'
+                  ? t('smartGoals.traffic')
+                  : template.goal === 'retention'
+                    ? t('smartGoals.retention')
+                    : template.goal === 'clearance'
+                      ? t('smartGoals.clearance')
+                      : template.goal === 'leads'
+                        ? t('smartGoals.leads')
+                        : t('smartGoals.everyday')}
+          </span>
+          <span className="text-[11px] text-text-tertiary truncate">{template.skinName}</span>
+        </div>
         <button
           type="button"
           onClick={() => onPreview(template)}

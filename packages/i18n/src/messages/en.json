@@ -1880,6 +1880,19 @@
     "title": "Minigame Template Catalog",
     "subtitle": "Rich collection of minigame templates designed for F&B and retail. Browse, preview, and launch campaigns in seconds.",
     "totalCountTag": "{count} templates available",
+    "hero": {
+      "badge": "F&B Minigame Assistant",
+      "greeting": "What campaign goal are you aiming for today?",
+      "subtitle": "Pick a pre-built minigame, customize prizes, and launch in 3 minutes with Playora & ORA the Lucky Otter.",
+      "quickGoals": {
+        "all": "All templates",
+        "traffic": "🎯 Drive foot traffic",
+        "retention": "🔄 Boost return visits",
+        "clearance": "⚡ Fill slow days",
+        "tet": "🧧 Tet & Holidays",
+        "opening": "🎊 Grand opening"
+      }
+    },
     "toolbar": {
       "searchPlaceholder": "Search by template name, occasion, mechanic…",
       "filterBy": "Filters",
@@ -1938,9 +1951,21 @@
       "saved": "Saved",
       "usageTag": "{count} uses",
       "skinsLabel": "Skins",
-      "playsLabel": "plays"
+      "playsLabel": "plays",
+      "tryPlay": "Try play",
+      "smartGoals": {
+        "traffic": "🎯 Traffic",
+        "retention": "🔄 Retention",
+        "clearance": "⚡ Slow days",
+        "leads": "📋 Lead gen",
+        "tet": "🧧 Tet boost",
+        "opening": "🎊 Opening",
+        "everyday": "✨ Everyday"
+      }
     },
     "drawer": {
+      "oraTipTitle": "ORA's Recommendation",
+      "oraTipDesc": "Simple 1-tap game mechanics, engaging play flow, and high gift redemption rate to drive immediate counter orders!",
       "instantWin": "Instant-win",
       "skillGame": "Skill game",
       "save": "Save template",
@@ -1992,7 +2017,26 @@
       "creating": "Creating…",
       "createdSuccess": "Campaign created successfully!",
       "createFailed": "Failed to create campaign. Please try again.",
-      "m2FallbackNotice": "M2 template prototype: created on equivalent engine for you to test!"
+      "m2FallbackNotice": "M2 template prototype: created on equivalent engine for you to test!",
+      "step1Title": "Quick Campaign Setup",
+      "step1Subtitle": "Playora pre-filled optimal F&B defaults. You can adjust the basics below.",
+      "durationLabel": "Campaign duration",
+      "durations": {
+        "7d": "7 days (Trial)",
+        "14d": "14 days (Standard)",
+        "30d": "30 days (Long term)"
+      },
+      "winRateLabel": "Recommended win rate",
+      "winRates": {
+        "high": "80% High win rate (Max traffic)",
+        "medium": "50% Balanced (F&B standard)",
+        "low": "30% Challenge (High-value prizes)"
+      },
+      "submitButton": "Launch campaign now",
+      "step2Title": "Your campaign is ready to launch!",
+      "step2Subtitle": "ORA prepared your minigame. You can grab your counter QR code now or customize the design in Canvas.",
+      "goToManage": "Go to Dashboard & Get QR code",
+      "goToCanvas": "Customize in Canvas"
     },
     "empty": {
       "title": "No templates match your filters",
