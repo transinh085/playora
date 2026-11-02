@@ -78,7 +78,7 @@ export function SlotCard({
   return (
     <Card className="gap-2.5 p-3.5" onFocus={onFocus} data-testid={`slot-${slot}`}>
       <Card.Header className="flex flex-row items-baseline justify-between gap-2 p-0">
-        <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+        <Card.Title className="m-0 font-semibold text-xs text-foreground">
           {t(`slots.${slot}`)}
         </Card.Title>
         <Caption>{t('usage', { count: usage })}</Caption>
@@ -86,7 +86,7 @@ export function SlotCard({
       <Card.Content className="space-y-2.5 p-0">
         {kind === 'image' ? (
           <div className="flex items-center gap-3">
-            <div className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-neutral-50/50 dark:border-white/10 dark:bg-white/[0.02]">
+            <div className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-secondary/40">
               {/* biome-ignore lint/performance/noImgElement: data-URL uploads and stickers */}
               <img src={value} alt={t(`slots.${slot}`)} className="h-full w-full object-contain" />
             </div>

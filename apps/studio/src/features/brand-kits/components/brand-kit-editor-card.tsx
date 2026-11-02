@@ -124,7 +124,7 @@ export function HexColorInput({
             type="color"
             value={safePickerColor}
             onChange={(e) => onChange?.(e.target.value)}
-            className="size-6 shrink-0 cursor-pointer rounded border border-border-button-default bg-transparent p-0"
+            className="size-6 shrink-0 cursor-pointer rounded border border-border bg-transparent p-0"
             aria-label="Pick color"
           />
         </InputGroup.Prefix>
@@ -215,7 +215,7 @@ export function BrandKitEditorCard({
   };
 
   return (
-    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+    <Card className="overflow-hidden p-0">
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">
           {editingId ? t('brandKits.edit') : t('brandKits.new')}

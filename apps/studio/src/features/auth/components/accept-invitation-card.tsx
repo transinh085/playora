@@ -101,7 +101,7 @@ export function AcceptInvitationCard() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background-full p-4 sm:p-6">
-      <Card className="w-full max-w-[460px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card className="w-full max-w-[460px] overflow-hidden p-0">
         {/* Top Brand & Title Header */}
         <Card.Header className="border-b border-separator-border px-6 pt-6 pb-5 sm:px-8">
           <div className="mb-5 flex w-full items-center justify-between">
@@ -136,10 +136,7 @@ export function AcceptInvitationCard() {
           )}
 
           {invitation && (
-            <Card
-              variant="secondary"
-              className="flex flex-col gap-3 border border-border-button-default p-4"
-            >
+            <Card variant="secondary" className="flex flex-col gap-3 p-4">
               {/* Organization & Role Badge Row */}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">

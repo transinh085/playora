@@ -54,10 +54,7 @@ export function CampaignsDataTable({
   }, [rows, activeTab, search]);
 
   return (
-    <Card
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="home-campaigns"
-    >
+    <Card className="flex flex-col overflow-hidden p-0" data-testid="home-campaigns">
       {/* Header with Title & All Campaigns Link */}
       <Card.Header className="flex flex-row flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
         <div className="flex items-center gap-2.5">
@@ -122,7 +119,7 @@ export function CampaignsDataTable({
       <Card.Content className="p-0">
         {filteredRows.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-            <div className="flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary">
+            <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-surface-secondary text-foreground-icon-secondary">
               <Sparkles className="size-5" />
             </div>
             <p className="m-0 max-w-sm text-body-2-regular text-text-secondary">
@@ -167,7 +164,7 @@ export function CampaignsDataTable({
                   <div className="flex min-w-0 flex-1 items-start gap-3">
                     <div
                       aria-hidden="true"
-                      className="mt-1 size-3.5 shrink-0 rounded-full border border-border-button-default shadow-2xs"
+                      className="mt-1 size-3.5 shrink-0 rounded-full border border-border shadow-2xs"
                       style={{ backgroundColor: campaign.brand.primary }}
                     />
                     <div className="min-w-0 flex-1">

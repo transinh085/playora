@@ -19,10 +19,7 @@ export function AttentionHub({ items }: { items: readonly AttentionItem[] }) {
   const t = useTranslations('campaigns.home');
 
   return (
-    <Card
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="home-attention"
-    >
+    <Card className="flex flex-col overflow-hidden p-0" data-testid="home-attention">
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
         <div className="flex items-center gap-2">
           <Card.Title className="text-body-medium text-text-primary">

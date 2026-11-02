@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Chip, Input, QRCodeSvg, Slider, Table, Tabs } from '@playora/ui/components';
+import { Button, Card, Chip, Input, QRCodeSvg, Slider, Table, Tabs } from '@playora/ui/components';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -126,14 +126,21 @@ export function PrdRecipes() {
             const Icon = pb.icon;
             const active = pb.key === selectedPlaybook;
             return (
-              <button
+              <Card
                 key={pb.key}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelectedPlaybook(pb.key)}
-                className={`group flex flex-col justify-between rounded-2xl border p-5 text-left transition-all ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedPlaybook(pb.key);
+                  }
+                }}
+                className={`group flex flex-col justify-between p-5 text-left transition-all cursor-pointer ${
                   active
                     ? 'border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20'
-                    : 'border-border/80 bg-card shadow-xs hover:border-primary/40 hover:shadow-md'
+                    : 'border-border/80 shadow-xs hover:border-primary/40 hover:shadow-md'
                 }`}
               >
                 <div className="grid gap-3">
@@ -156,12 +163,12 @@ export function PrdRecipes() {
                 <div className="mt-4 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">
                   Chỉ số đo chính: <strong className="text-foreground">{pb.metric}</strong>
                 </div>
-              </button>
+              </Card>
             );
           })}
         </div>
 
-        <div className="rounded-3xl border border-primary/25 bg-surface p-5 shadow-surface">
+        <Card className="border border-primary/25 p-5">
           <div className="grid items-center gap-6 lg:grid-cols-12">
             <div className="grid gap-3 lg:col-span-5">
               <div className="flex items-center justify-between">
@@ -211,7 +218,7 @@ export function PrdRecipes() {
               <Button className="shrink-0">Tạo vào Builder</Button>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* RECIPE 2: Studio Campaign Operation & Outcome Report (PLB-03, PRZ-09, TableCard) */}
@@ -493,7 +500,7 @@ export function PrdRecipes() {
           </div>
 
           {/* Right Phone Frame: Mobile Counter Redemption */}
-          <div className="mx-auto w-full max-w-md rounded-3xl border-4 border-foreground/15 bg-card p-5 shadow-lg lg:col-span-7">
+          <Card className="mx-auto w-full max-w-md border-4 border-foreground/15 p-5 shadow-lg lg:col-span-7">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-2">
                 <Smartphone className="size-4 text-primary" />
@@ -564,14 +571,14 @@ export function PrdRecipes() {
                       Chưa sử dụng
                     </Chip>
                   </div>
-                  <div className="mt-3 rounded-xl bg-card p-3 shadow-xs">
-                    <div className="text-base font-bold text-foreground">
+                  <Card className="mt-3 p-3">
+                    <Card.Title className="text-base font-bold text-foreground">
                       1× Miễn phí Up Size L (Giá vốn 4.000đ)
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
+                    </Card.Title>
+                    <Card.Description className="mt-1 text-xs text-muted-foreground">
                       Khách: <strong>Nguyễn Minh Anh</strong> (090***482) · Hạn: 05/02/2027
-                    </div>
-                  </div>
+                    </Card.Description>
+                  </Card>
                   <Button fullWidth className="mt-4 h-14 text-base font-bold shadow-sm">
                     <CheckCircle2 className="size-5" />
                     Xác nhận đã trao quà (PL94K7)
@@ -620,7 +627,7 @@ export function PrdRecipes() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 

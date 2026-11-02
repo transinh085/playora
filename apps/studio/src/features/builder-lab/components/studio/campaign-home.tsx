@@ -244,7 +244,7 @@ export function CampaignHome({ orgId }: { orgId: string }) {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {quickPlaybooks.map((item) => (
             <Link key={item.key} href={item.href as Route} className="group block">
-              <Card className="flex flex-row items-center justify-between gap-3 rounded-2xl border border-border-button-default bg-background-primary-default p-3.5 shadow-card transition-all group-hover:border-border-card-hover group-hover:bg-background-secondary-default/40">
+              <Card className="flex flex-row items-center justify-between gap-3 p-3.5 transition-all group-hover:bg-surface-secondary">
                 <Card.Content className="flex min-w-0 flex-row items-center gap-3 p-0">
                   <IconTile tone={item.tone} size={38}>
                     {item.icon}

@@ -125,7 +125,7 @@ export function PlaybookGoalBanner({
 
   return (
     <Card
-      className="rounded-3xl border border-teal-500/25 bg-teal-50/50 p-5 shadow-card dark:border-teal-500/30 dark:bg-teal-950/20"
+      className="p-5"
       data-testid="playbook-highlight"
       data-playbook-goal={playbookKey}
       data-print-card
@@ -300,11 +300,7 @@ export function DailyOutcomeCard({
   const locale = useLocale();
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="daily-chart-card"
-      data-print-card
-    >
+    <Card className="overflow-hidden p-0" data-testid="daily-chart-card" data-print-card>
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
         {extra}
@@ -347,11 +343,7 @@ export function ChannelsTableCard({
   const maxPlays = Math.max(1, ...rows.map((r) => r.plays));
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="channel-table"
-      data-print-card
-    >
+    <Card className="overflow-hidden p-0" data-testid="channel-table" data-print-card>
       <Card.Header className="border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
       </Card.Header>
@@ -466,11 +458,7 @@ export function PrizesOutcomeCard({
         }));
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="prize-stock"
-      data-print-card
-    >
+    <Card className="overflow-hidden p-0" data-testid="prize-stock" data-print-card>
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">{tr('title')}</Card.Title>
         {showEditLink && (
@@ -595,7 +583,7 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
   }
   if (campaignQuery.isError || !campaignQuery.data) {
     return (
-      <Card className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
+      <Card className="p-6 text-center">
         <Card.Content className="p-0">
           <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
           <Link href={routes.list}>
@@ -658,11 +646,7 @@ export function CampaignReportView({ orgId, campaignId }: { orgId: string; campa
 
       <OutcomeMetricGrid campaign={campaign} report={report} />
 
-      <Card
-        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-        data-testid="report-insights"
-        data-print-card
-      >
+      <Card className="overflow-hidden p-0" data-testid="report-insights" data-print-card>
         <Card.Header className="border-b border-separator-border px-5 py-3.5">
           <Card.Title className="m-0 text-body-medium text-text-primary">
             {tr('insights.title')}

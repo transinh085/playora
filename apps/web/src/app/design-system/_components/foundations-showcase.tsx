@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@playora/ui/components';
+import { Card, Chip } from '@playora/ui/components';
 import {
   AlertTriangle,
   CalendarDays,
@@ -230,7 +230,7 @@ const ELEVATION_STEPS = [
   },
   {
     name: 'Subtle Card (shadow-xs)',
-    cls: 'bg-card border border-neutral-200 dark:border-white/10 shadow-xs',
+    cls: 'bg-surface border border-neutral-200 dark:border-white/10 shadow-xs',
     token: '--shadow-xs',
     usedBy: 'Card, MetricCard, TableCard, Input, Button outline (rounded-md / rounded-lg)',
   },
@@ -300,7 +300,7 @@ export function FoundationsShowcase() {
                 </span>
                 <span className="text-xs text-muted-foreground">{scale.note}</span>
               </div>
-              <div className="flex overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+              <Card className="flex overflow-hidden p-0">
                 {scale.steps.map((step) => (
                   <div key={step} className="min-w-0 flex-1">
                     <div className="h-12" style={{ background: `var(--${scale.name}-${step})` }} />
@@ -309,7 +309,7 @@ export function FoundationsShowcase() {
                     </div>
                   </div>
                 ))}
-              </div>
+              </Card>
             </div>
           ))}
 
@@ -353,7 +353,7 @@ export function FoundationsShowcase() {
           </Chip>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+        <Card className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border/80 bg-muted/50 text-xs text-muted-foreground">
@@ -386,7 +386,7 @@ export function FoundationsShowcase() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* 4. Radius, Elevation & Icons */}
@@ -397,10 +397,7 @@ export function FoundationsShowcase() {
           </h3>
           <div className="grid gap-2.5 sm:grid-cols-2">
             {RADIUS_STEPS.map((r) => (
-              <div
-                key={r.token}
-                className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-3.5 shadow-xs"
-              >
+              <Card key={r.token} className="flex flex-row items-center gap-3.5 p-3.5">
                 <div
                   className={`size-12 shrink-0 border-2 border-primary bg-primary/10 ${r.cls}`}
                 />
@@ -411,7 +408,7 @@ export function FoundationsShowcase() {
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">{r.usedBy}</p>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -437,7 +434,7 @@ export function FoundationsShowcase() {
             ))}
           </div>
 
-          <div className="mt-2 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+          <Card className="mt-2 p-4">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-foreground">
                 Hệ biểu tượng (Hugeicons · 16px trong nút/nhãn, 20px trong IconTile)
@@ -466,7 +463,7 @@ export function FoundationsShowcase() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

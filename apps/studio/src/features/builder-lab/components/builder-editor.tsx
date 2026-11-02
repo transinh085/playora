@@ -203,7 +203,7 @@ function EditorShell({
 
   return (
     <div className="grid h-dvh grid-rows-[56px_auto_minmax(0,1fr)] lg:grid-rows-[56px_minmax(0,1fr)] bg-background">
-      <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
+      <header className="flex items-center justify-between gap-3 border-b bg-surface px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Tooltip delay={150}>
             <Tooltip.Trigger>
@@ -312,7 +312,7 @@ function EditorShell({
         </div>
       </header>
 
-      <div className="flex items-center justify-between border-b bg-card px-3 py-2 lg:hidden">
+      <div className="flex items-center justify-between border-b bg-surface px-3 py-2 lg:hidden">
         {modeSwitch}
         <CampaignStatusTag campaign={server} />
       </div>
@@ -320,7 +320,7 @@ function EditorShell({
       <div className="min-h-0">
         {mode === 'quick' && (
           <div className="h-full overflow-y-auto lg:grid lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] lg:overflow-hidden">
-            <aside className="border-r p-4 bg-card lg:min-h-0 lg:overflow-y-auto">
+            <aside className="border-r p-4 bg-surface lg:min-h-0 lg:overflow-y-auto">
               <QuickEditPanel campaign={draft} onChange={update} onShowScreen={setScreen} />
             </aside>
             <main className="flex justify-center p-6 lg:min-h-0 lg:overflow-y-auto">
@@ -346,7 +346,7 @@ function EditorShell({
                 focusStep={focusRulesStep}
               />
             </div>
-            <aside className="hidden flex-col items-center justify-start border-l bg-card p-6 overflow-y-auto lg:flex">
+            <aside className="hidden flex-col items-center justify-start border-l bg-surface p-6 overflow-y-auto lg:flex">
               <div className="mb-4 text-center">
                 <span className="block text-sm font-semibold">{t('liveGamePreview')}</span>
                 <Caption>{t('liveGamePreviewHint')}</Caption>

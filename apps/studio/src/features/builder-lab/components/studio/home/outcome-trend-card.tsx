@@ -185,7 +185,7 @@ export function OutcomeTrendCard({
 
   if (isPending) {
     return (
-      <Card className="flex h-[320px] flex-col justify-between rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card">
+      <Card className="flex h-[320px] flex-col justify-between p-5">
         <Skeleton className="h-6 w-48 rounded-md" />
         <Skeleton className="h-44 w-full rounded-xl" />
         <Skeleton className="h-4 w-64 rounded-md" />
@@ -233,10 +233,7 @@ export function OutcomeTrendCard({
   const playsLine = buildLinePath(playsPoints);
 
   return (
-    <Card
-      className="flex flex-col gap-4 overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
-      data-testid="home-outcome-trend"
-    >
+    <Card className="flex flex-col gap-4 overflow-hidden p-5" data-testid="home-outcome-trend">
       {/* Top Bar: Title & 7d/30d Segmented Filter */}
       <Card.Header className="flex flex-row flex-wrap items-center justify-between gap-3 p-0">
         <div className="flex flex-col gap-0.5">
@@ -307,8 +304,8 @@ export function OutcomeTrendCard({
 
         {/* Main Chart or Empty State */}
         {!hasActivity ? (
-          <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-button-default bg-background-secondary-default/50 px-4 py-8 text-center">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-background-primary-default text-text-tertiary shadow-xs">
+          <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-surface-secondary/50 px-4 py-8 text-center">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-surface text-text-tertiary shadow-xs">
               <BarChart2 className="size-5" />
             </div>
             <div className="max-w-md space-y-1">

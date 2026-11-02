@@ -322,20 +322,20 @@ function SkinPicker({ campaign, onPick }: { campaign: Campaign; onPick: (skin: S
             data-testid={`skin-${skin.key}`}
             className={`cursor-pointer overflow-hidden p-0 transition-all ${
               active
-                ? 'border-neutral-900 ring-1 ring-neutral-900/10 dark:border-white dark:ring-white/20'
-                : 'border-neutral-200 hover:border-neutral-400 dark:border-white/10 dark:hover:border-white/20'
+                ? 'border-accent ring-1 ring-accent/20'
+                : 'border-border hover:border-border/80'
             }`}
           >
-            <div className="relative h-20 w-full bg-neutral-100/50 dark:bg-white/5">
+            <div className="relative h-20 w-full bg-surface-secondary/50">
               {cover && <FitScreen screen={cover} brand={skin.brand} />}
               {active && (
-                <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-neutral-900 text-white shadow-xs dark:bg-white dark:text-neutral-900">
+                <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-xs">
                   <Check className="size-2.5" />
                 </span>
               )}
             </div>
             <Card.Content className="p-2">
-              <span className="block truncate text-center text-xs font-medium text-neutral-900 dark:text-neutral-100">
+              <span className="block truncate text-center text-xs font-medium text-foreground">
                 {t(`skins.${skin.key}`)}
               </span>
             </Card.Content>

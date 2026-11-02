@@ -26,7 +26,7 @@ export function BrandKitPreviewCard({
   const bgAsset = imageAssets.find((a) => a.id === watchedTokens?.backgroundAssetId);
 
   return (
-    <Card className="flex h-fit flex-col items-center border border-border-button-default bg-background-primary-default p-5 shadow-card">
+    <Card className="flex h-fit flex-col items-center p-5">
       <Card.Header className="mb-4 w-full p-0">
         <Card.Title className="self-start text-caption-1-semibold uppercase tracking-wider text-text-secondary">
           {t('brandKits.previewTitle')}

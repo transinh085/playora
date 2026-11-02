@@ -114,7 +114,7 @@ export function CampaignOps({ orgId, campaignId }: { orgId: string; campaignId: 
   }
   if (query.isError || !query.data) {
     return (
-      <Card className="rounded-3xl border border-border-button-default bg-background-primary-default p-6 text-center shadow-card">
+      <Card className="p-6 text-center">
         <Card.Content className="p-0">
           <p className="m-0 mb-4 text-body-medium text-text-secondary">{t('notFound')}</p>
           <Link href={routes.list}>
@@ -330,7 +330,7 @@ function PacingMonitorCard({
 
   return (
     <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
+      className="overflow-hidden p-0"
       data-testid="pacing-monitor-card"
       data-pacing-status={pacing.status}
     >
@@ -391,10 +391,7 @@ function DraftChecklist({ orgId, campaign }: { orgId: string; campaign: Campaign
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="draft-checklist"
-    >
+    <Card className="overflow-hidden p-0" data-testid="draft-checklist">
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">
           {errors.length ? t('draft.blocked', { count: errors.length }) : t('draft.ready')}
@@ -453,7 +450,7 @@ function RecentPlays({ orgId, campaign }: { orgId: string; campaign: Campaign })
   const routes = campaignRoutes(orgId);
 
   return (
-    <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+    <Card className="overflow-hidden p-0">
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">
           {t('recent.title')}
@@ -637,10 +634,7 @@ function PrizeStock({
   };
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="prize-stock"
-    >
+    <Card className="overflow-hidden p-0" data-testid="prize-stock">
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-3.5">
         <Card.Title className="m-0 text-body-medium text-text-primary">
           {t('stock.title')}
@@ -860,7 +854,7 @@ function PrizesTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) {
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <PrizeStock orgId={orgId} campaign={campaign} report={report.data} />
-      <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card className="overflow-hidden p-0">
         <Card.Header className="flex flex-wrap items-center justify-between gap-2 border-b border-separator-border px-5 py-3.5">
           <Card.Title className="m-0 text-body-medium text-text-primary">
             {t('vouchers.title')}
@@ -1036,7 +1030,7 @@ function PlayersTab({ orgId, campaign }: { orgId: string; campaign: Campaign }) 
   };
 
   return (
-    <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+    <Card className="overflow-hidden p-0">
       <Card.Header className="flex flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -1253,7 +1247,7 @@ function SettingsTab({ orgId, campaign }: { orgId: string; campaign: Campaign })
 
   return (
     <div className="flex max-w-4xl flex-col">
-      <Card className="divide-y divide-separator-border overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card className="divide-y divide-separator-border overflow-hidden p-0">
         {/* Schedule Section */}
         <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
           <div className="max-w-md space-y-1">

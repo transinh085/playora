@@ -29,7 +29,7 @@ export function BrandKitList({
   }
 
   return (
-    <Card className="divide-y divide-separator-border overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+    <Card className="divide-y divide-separator-border overflow-hidden p-0">
       {items.map((kit) => (
         <div
           key={kit.id}

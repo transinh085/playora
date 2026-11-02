@@ -1,3 +1,4 @@
+import { Card } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import type * as React from 'react';
 
@@ -15,12 +16,7 @@ export function StateMatrix<Row extends string>({
   className?: string;
 }) {
   return (
-    <div
-      className={cx(
-        'w-full overflow-x-auto rounded-2xl border border-border/80 bg-card p-4 shadow-xs',
-        className,
-      )}
-    >
+    <Card className={cx('w-full overflow-x-auto p-4', className)}>
       <table className="w-full border-separate border-spacing-x-3 border-spacing-y-3">
         <thead>
           <tr>
@@ -56,7 +52,7 @@ export function StateMatrix<Row extends string>({
           ))}
         </tbody>
       </table>
-    </div>
+    </Card>
   );
 }
 

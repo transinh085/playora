@@ -50,7 +50,7 @@ export function GoalPicker({
             <Card
               key={spec.key}
               data-testid={`playbook-card-${spec.key}`}
-              className="flex h-full flex-col justify-between gap-5 overflow-hidden p-0 transition-all duration-200 hover:border-border-card-hover hover:shadow-dropdown"
+              className="flex h-full flex-col justify-between gap-5 overflow-hidden p-0 transition-all duration-200 hover:shadow-lg"
             >
               <div>
                 {/* Visual mini-preview of the playbook's template × skin */}

@@ -615,46 +615,46 @@ export function CampaignList({ orgId }: { orgId: string }) {
                           {th('trends.title')}
                         </span>
                         <div className="grid grid-cols-2 gap-2.5">
-                          <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
-                            <span className="text-caption-1-regular text-text-secondary">
+                          <Card className="gap-1 p-3">
+                            <Card.Description className="m-0 text-caption-1-regular text-text-secondary">
                               {t('columns.plays')}
-                            </span>
-                            <p className="text-title-2-semibold text-text-primary tabular-nums">
+                            </Card.Description>
+                            <Card.Title className="m-0 text-title-2-semibold text-text-primary tabular-nums">
                               {format.number(selectedStats?.plays ?? 0)}
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
-                            <span className="text-caption-1-regular text-text-secondary">
+                            </Card.Title>
+                          </Card>
+                          <Card className="gap-1 p-3">
+                            <Card.Description className="m-0 text-caption-1-regular text-text-secondary">
                               {th('trends.redeemed')}
-                            </span>
-                            <p className="text-title-2-semibold text-accent-600 dark:text-accent-400 tabular-nums">
+                            </Card.Description>
+                            <Card.Title className="m-0 text-title-2-semibold text-accent-600 dark:text-accent-400 tabular-nums">
                               {format.number(selectedStats?.redeemed ?? 0)}
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
-                            <span className="text-caption-1-regular text-text-secondary">
+                            </Card.Title>
+                          </Card>
+                          <Card className="gap-1 p-3">
+                            <Card.Description className="m-0 text-caption-1-regular text-text-secondary">
                               {th('statCards.prizeCostCaption')}
-                            </span>
-                            <p className="text-title-2-semibold text-text-primary tabular-nums">
+                            </Card.Description>
+                            <Card.Title className="m-0 text-title-2-semibold text-text-primary tabular-nums">
                               {formatVnd(selectedStats?.redeemedValueVnd ?? 0)}
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-border-button-default bg-background-primary-default p-3 shadow-2xs">
-                            <span className="text-caption-1-regular text-text-secondary">
+                            </Card.Title>
+                          </Card>
+                          <Card className="gap-1 p-3">
+                            <Card.Description className="m-0 text-caption-1-regular text-text-secondary">
                               {t('columns.stock')}
-                            </span>
-                            <p className="text-title-2-semibold text-text-primary tabular-nums">
+                            </Card.Description>
+                            <Card.Title className="m-0 text-title-2-semibold text-text-primary tabular-nums">
                               {Object.values(selectedStats?.remainingByPrize ?? {}).reduce(
                                 (a, b) => a + b,
                                 0,
                               )}
                               /{selectedCampaign.prizes.reduce((sum, p) => sum + p.quantity, 0)}
-                            </p>
-                          </div>
+                            </Card.Title>
+                          </Card>
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-dashed border-border-button-default bg-background-secondary-default/50 p-4 text-center">
+                      <div className="rounded-xl border border-dashed border-border bg-surface-secondary/50 p-4 text-center">
                         <p className="text-caption-1-medium text-text-secondary">
                           {t('draft.hint')}
                         </p>
@@ -662,7 +662,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
                     )}
 
                     {/* Share & QR Access Link */}
-                    <Card className="flex flex-col gap-2 rounded-2xl border border-border-button-default bg-background-primary-default p-4 shadow-card">
+                    <Card className="flex flex-col gap-2 p-4">
                       <Card.Header className="p-0">
                         <Card.Title className="text-caption-1-semibold text-text-primary">
                           {t('openShare')}
@@ -696,7 +696,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
                             }
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border-button-default bg-background-secondary-default text-text-secondary hover:text-text-primary transition-colors"
+                            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
                           >
                             <RiExternalLinkLine className="size-4" />
                           </a>
@@ -784,9 +784,9 @@ function CampaignGridCard({
   const percent = total ? Math.round((left / total) * 100) : 0;
 
   return (
-    <Card className="group flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card transition-all duration-200 hover:shadow-dropdown">
+    <Card className="group flex flex-col overflow-hidden p-0 transition-all duration-200 hover:shadow-dropdown">
       {/* Cover Canvas Screen */}
-      <div className="relative h-[180px] overflow-hidden bg-background-tertiary-default">
+      <div className="relative h-[180px] overflow-hidden bg-surface-secondary">
         <FitScreen
           screen={
             (campaign as { screens?: CanvasDoc }).screens?.cover ??

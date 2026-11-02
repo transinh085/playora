@@ -114,8 +114,8 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
       : null;
 
   return (
-    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+    <Card className="overflow-hidden p-0">
+      <Card.Header className="border-b border-separator-border px-5 py-3.5">
         <Card.Title className="text-body-2-semibold text-text-primary">
           {t('currentPlan')}
         </Card.Title>
@@ -139,9 +139,9 @@ function CurrentPlanCard({ billing }: { billing: OrgBilling }) {
           </div>
         </div>
 
-        <Card variant="secondary" className="space-y-2 border border-border-button-default p-3.5">
+        <Card variant="secondary" className="space-y-2 p-3.5">
           <Caption className="font-medium text-text-primary">{t('limitsTitle')}</Caption>
-          <div className="divide-y divide-border-button-default text-caption-1-regular">
+          <div className="divide-y divide-separator-border text-caption-1-regular">
             <div className="flex justify-between py-2">
               <span className="text-text-secondary">{t('limitRunning')}</span>
               <span className="text-caption-1-semibold text-text-primary">
@@ -173,8 +173,8 @@ function UsageCard({ billing }: { billing: OrgBilling }) {
   const { usage, limits } = billing;
 
   return (
-    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+    <Card className="overflow-hidden p-0">
+      <Card.Header className="border-b border-separator-border px-5 py-3.5">
         <Card.Title className="text-body-2-semibold text-text-primary">
           {t('usageTitle')}
         </Card.Title>
@@ -299,10 +299,8 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
             <Card
               key={plan}
               className={cx(
-                'flex flex-col gap-3 border bg-background-primary-default p-5 shadow-card transition-all',
-                isSelected
-                  ? 'border-accent-500 ring-2 ring-accent-500/20'
-                  : 'border-border-button-default',
+                'flex flex-col gap-3 p-5 transition-all',
+                isSelected && 'ring-2 ring-accent-500',
               )}
               data-testid={`plan-option-${plan}`}
             >
@@ -362,8 +360,8 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
         })}
       </div>
 
-      <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
-        <Card.Header className="flex-row flex-wrap items-center justify-between gap-3 border-b border-border-button-default px-5 py-3.5">
+      <Card className="overflow-hidden p-0">
+        <Card.Header className="flex-row flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-3.5">
           <Card.Title className="text-body-2-semibold text-text-primary">
             {t('payTitle', { plan: t(`plans.${selected}`) })}
           </Card.Title>
@@ -454,7 +452,7 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
             </div>
 
             <div
-              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border-button-default bg-white p-3 text-center"
+              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-white p-3 text-center"
               data-testid="billing-vietqr"
             >
               {/* biome-ignore lint/performance/noImgElement: dynamic external VietQR image */}
@@ -468,7 +466,7 @@ function UpgradeCard({ orgId, current }: { orgId: string; current: BillingPlan }
           </Card.Content>
         )}
 
-        <Card.Footer className="border-t border-border-button-default bg-background-secondary-default p-4">
+        <Card.Footer className="border-t border-separator bg-surface-secondary p-4">
           <Alert status="accent" className="w-full">
             <Alert.Indicator />
             <Alert.Content>
@@ -489,8 +487,8 @@ function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
   const day = (iso: string) => format.dateTime(new Date(iso), DAY);
 
   return (
-    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <Card.Header className="border-b border-border-button-default px-5 py-3.5">
+    <Card className="overflow-hidden p-0">
+      <Card.Header className="border-b border-separator-border px-5 py-3.5">
         <Card.Title className="text-body-2-semibold text-text-primary">
           {t('invoicesTitle')}
         </Card.Title>
@@ -501,7 +499,7 @@ function InvoicesCard({ invoices }: { invoices: BillingInvoice[] }) {
             {t('invoicesEmpty')}
           </div>
         ) : (
-          <ul className="divide-y divide-border-button-default">
+          <ul className="divide-y divide-separator-border">
             {invoices.map((inv) => (
               <li
                 key={inv.id}

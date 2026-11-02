@@ -12,6 +12,8 @@
 @layer theme, base, components, utilities;
 
 @import "@heroui/styles";
+@import "./components/pro-layout/styles.css";
+@import "./components/command/styles.css";
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 @custom-variant rtl (&:dir(rtl));

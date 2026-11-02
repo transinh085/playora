@@ -192,11 +192,11 @@ function AssetPickerModalOpen({
                         className={cx(
                           'group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all',
                           isSelected
-                            ? 'border-accent ring-2 ring-accent/25 bg-background-secondary-default'
-                            : 'border-border-button-default bg-background-primary-default hover:border-border-button-hover',
+                            ? 'border-accent ring-2 ring-accent/25 bg-surface-secondary'
+                            : 'border-border bg-surface hover:border-border/80',
                         )}
                       >
-                        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-separator-border bg-background-secondary-default">
+                        <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-separator-border bg-surface-secondary">
                           {/* biome-ignore lint/performance/noImgElement: dynamic asset URL */}
                           <img
                             src={thumbUrl}

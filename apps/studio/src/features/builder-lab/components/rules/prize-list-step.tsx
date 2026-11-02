@@ -61,19 +61,19 @@ export function PrizeListStep({
   return (
     <div className="flex flex-col gap-3">
       {prizes.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center border-dashed py-8 text-center text-neutral-400 text-xs">
+        <Card className="flex flex-col items-center justify-center border-dashed py-8 text-center text-muted text-xs">
           <Card.Content className="flex flex-col items-center p-0">
-            <Gift className="mb-2 size-7 stroke-1 text-neutral-400/60" />
+            <Gift className="mb-2 size-7 stroke-1 text-muted/60" />
             <span>{t('empty')}</span>
           </Card.Content>
         </Card>
       ) : (
-        <Card className="overflow-hidden p-0 divide-y divide-neutral-200 dark:divide-white/10">
+        <Card className="overflow-hidden p-0 divide-y divide-border">
           {prizes.map((prize, index) => (
             <div
               key={prize.id}
               data-testid={`prize-row-${index}`}
-              className="flex items-start gap-3 p-3.5 hover:bg-neutral-50/50 dark:hover:bg-white/[0.02]"
+              className="flex items-start gap-3 p-3.5 hover:bg-default/40"
             >
               <PrizeImagePicker
                 orgId={orgId}
@@ -208,36 +208,24 @@ export function PrizeListStep({
         {t('add')}
       </Button>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-200 pt-3 px-1 text-xs text-neutral-600 dark:border-white/10 dark:text-neutral-300">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-3 px-1 text-xs text-muted">
         <span>
           {t.rich('totalStock', {
             count: totals.stock,
-            b: (chunks) => (
-              <strong className="font-semibold text-neutral-900 dark:text-neutral-100">
-                {chunks}
-              </strong>
-            ),
+            b: (chunks) => <strong className="font-semibold text-foreground">{chunks}</strong>,
           })}
         </span>
         <span>
           {t.rich('totalValue', {
             value: formatVnd(totals.valueVnd, locale),
-            b: (chunks) => (
-              <strong className="font-semibold text-neutral-900 dark:text-neutral-100">
-                {chunks}
-              </strong>
-            ),
+            b: (chunks) => <strong className="font-semibold text-foreground">{chunks}</strong>,
           })}
         </span>
         {perPrize && (
           <span className={totals.probabilityPercent > 100 ? 'text-destructive font-medium' : ''}>
             {t.rich('totalProbability', {
               total: totals.probabilityPercent,
-              b: (chunks) => (
-                <strong className="font-semibold text-neutral-900 dark:text-neutral-100">
-                  {chunks}
-                </strong>
-              ),
+              b: (chunks) => <strong className="font-semibold text-foreground">{chunks}</strong>,
             })}
           </span>
         )}

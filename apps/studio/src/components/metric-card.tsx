@@ -52,9 +52,11 @@ export function MetricCard({
         highlighted && 'border-accent-500/60 ring-1 ring-accent-500/20',
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <Card.Header className="flex flex-row items-center justify-between gap-2 p-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-body-medium text-text-secondary">{label}</span>
+          <Card.Description className="m-0 truncate text-body-medium text-text-secondary">
+            {label}
+          </Card.Description>
           {tooltip && (
             <Tooltip delay={150}>
               <Tooltip.Trigger aria-label={typeof tooltip === 'string' ? tooltip : label}>
@@ -67,20 +69,22 @@ export function MetricCard({
           )}
         </div>
         <IconTile tone={tone}>{icon}</IconTile>
-      </div>
-      <div className="flex items-center gap-3">
-        <p
-          className={cx(
-            'm-0 text-title-1-semibold tabular-nums',
-            highlighted ? 'text-accent-600' : 'text-text-primary',
-          )}
-        >
-          {value}
-        </p>
-      </div>
-      {subtext && (
-        <p className="m-0 line-clamp-2 text-body-2-regular text-text-secondary">{subtext}</p>
-      )}
+      </Card.Header>
+      <Card.Content className="flex flex-col gap-1 p-0">
+        <div className="flex items-center gap-3">
+          <Card.Title
+            className={cx(
+              'm-0 text-title-1-semibold tabular-nums',
+              highlighted ? 'text-accent-600' : 'text-text-primary',
+            )}
+          >
+            {value}
+          </Card.Title>
+        </div>
+        {subtext && (
+          <p className="m-0 line-clamp-2 text-body-2-regular text-text-secondary">{subtext}</p>
+        )}
+      </Card.Content>
     </Card>
   );
 }

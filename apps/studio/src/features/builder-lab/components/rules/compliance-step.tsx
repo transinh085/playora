@@ -84,8 +84,8 @@ export function ComplianceStep({
             }}
             className={`cursor-pointer p-3.5 transition-all ${
               compliance.promotionType === 'purchase_linked'
-                ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
+                ? 'border-accent bg-accent/5 ring-1 ring-accent/20'
+                : 'border-border hover:border-border/80'
             }`}
           >
             <Card.Content className="flex flex-row items-start gap-3 p-0">
@@ -96,10 +96,10 @@ export function ComplianceStep({
                 <ShoppingBag className="size-4" />
               </IconTile>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-foreground">
                   {t('purchaseLinked')}
                 </Card.Title>
-                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                <Card.Description className="m-0 text-muted text-[11px] leading-relaxed">
                   {t('purchaseLinkedHint')}
                 </Card.Description>
               </div>
@@ -120,8 +120,8 @@ export function ComplianceStep({
             }}
             className={`cursor-pointer p-3.5 transition-all ${
               compliance.promotionType === 'not_linked'
-                ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
+                ? 'border-accent bg-accent/5 ring-1 ring-accent/20'
+                : 'border-border hover:border-border/80'
             }`}
           >
             <Card.Content className="flex flex-row items-start gap-3 p-0">
@@ -132,10 +132,10 @@ export function ComplianceStep({
                 <Sparkles className="size-4" />
               </IconTile>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-foreground">
                   {t('notLinked')}
                 </Card.Title>
-                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                <Card.Description className="m-0 text-muted text-[11px] leading-relaxed">
                   {t('notLinkedHint')}
                 </Card.Description>
               </div>
@@ -184,7 +184,7 @@ export function ComplianceStep({
           )}
         </div>
 
-        <span className="text-neutral-500 text-xs dark:text-neutral-400">{t('termsHint')}</span>
+        <span className="text-muted text-xs">{t('termsHint')}</span>
 
         {isCustom && isStale && (
           <Alert status="warning" data-testid="stale-terms-warning">
@@ -220,7 +220,7 @@ export function ComplianceStep({
         ) : (
           <Card
             variant="secondary"
-            className="max-h-72 overflow-y-auto whitespace-pre-wrap p-3.5 text-xs leading-relaxed text-neutral-800 dark:text-neutral-200"
+            className="max-h-72 overflow-y-auto whitespace-pre-wrap p-3.5 text-xs leading-relaxed text-foreground"
           >
             <Card.Content className="p-0">{generatedTerms}</Card.Content>
           </Card>

@@ -413,12 +413,10 @@ export function RulesSummary({ rules, prizes }: { rules: CampaignRules; prizes: 
   return (
     <Card variant="secondary" className="mt-4 p-4">
       <Card.Header className="p-0">
-        <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
-          {t('title')}
-        </Card.Title>
+        <Card.Title className="m-0 font-semibold text-xs text-foreground">{t('title')}</Card.Title>
       </Card.Header>
       <Card.Content className="p-0">
-        <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
+        <ul className="mt-2 mb-0 flex list-disc flex-col gap-1 pl-5 text-xs text-muted">
           {lines.map((line) => (
             <li key={line.key}>
               <span>{t(line.key, line.values)}</span>

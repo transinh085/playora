@@ -153,7 +153,7 @@ export function OnboardingLaunchpad({ orgId }: { orgId: string }) {
                             'flex size-5 shrink-0 items-center justify-center rounded-full text-caption-2-semibold tabular-nums',
                             isNext
                               ? 'bg-accent-600 text-white'
-                              : 'border border-border-button-default bg-background-secondary-default text-text-tertiary',
+                              : 'border border-border bg-surface-secondary text-text-tertiary',
                           )}
                         >
                           {index + 1}

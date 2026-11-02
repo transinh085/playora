@@ -118,11 +118,7 @@ export function HomeStatCards({
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card
-            key={stat.label}
-            variant="secondary"
-            className="flex min-w-0 flex-col rounded-2xl p-2"
-          >
+          <Card key={stat.label} variant="secondary" className="flex min-w-0 flex-col p-2">
             <Card.Header className="flex w-full flex-row items-start justify-between gap-2.5 p-2">
               <span
                 className={cx(
@@ -153,7 +149,7 @@ export function HomeStatCards({
               </Card.Title>
             </Card.Content>
 
-            <Card.Footer className="mt-auto flex w-full items-center justify-between gap-2 rounded-2lg bg-surface py-1.5 pe-1.5 ps-2.5 shadow-card">
+            <Card.Footer className="mt-auto flex w-full items-center justify-between gap-2 rounded-2lg bg-surface py-1.5 pe-1.5 ps-2.5">
               <p className="m-0 truncate text-body-regular text-text-secondary">{stat.caption}</p>
               <Chip variant="soft" size="sm" color={stat.deltaColor}>
                 {stat.delta}

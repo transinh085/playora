@@ -303,10 +303,7 @@ export function CampaignShareView({
       )}
 
       {/* Launch Readiness Checklist (BLD-29) */}
-      <Card
-        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-        data-testid="launch-checklist"
-      >
+      <Card className="overflow-hidden p-0" data-testid="launch-checklist">
         <Card.Header className="flex flex-wrap items-center justify-between gap-2 border-b border-separator-border px-5 py-4">
           <div>
             <div className="flex items-center gap-2">
@@ -360,7 +357,7 @@ export function CampaignShareView({
                         'flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors',
                         checked
                           ? 'border-teal-600 bg-teal-600 text-white'
-                          : 'border-border-button-default bg-background-primary-default',
+                          : 'border-border bg-surface',
                       )}
                     >
                       {checked && <Check className="size-3.5" />}
@@ -382,7 +379,7 @@ export function CampaignShareView({
       </Card>
 
       {/* Preset and Custom Channels */}
-      <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card className="overflow-hidden p-0">
         <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-5 py-4">
           <div>
             <Card.Title className="m-0 text-body-medium text-text-primary">
@@ -419,10 +416,7 @@ export function CampaignShareView({
       </Card>
 
       {/* Counter Staff Card */}
-      <Card
-        className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-        data-testid="invite-counter-staff"
-      >
+      <Card className="overflow-hidden p-0" data-testid="invite-counter-staff">
         <Card.Content className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div className="flex items-start gap-3.5">
             <IconTile tone="success" size={40}>
@@ -450,7 +444,7 @@ export function CampaignShareView({
       </Card>
 
       {/* Traffic by Channel Visual List (replaces table) */}
-      <Card className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card">
+      <Card className="overflow-hidden p-0">
         <Card.Header className="border-b border-separator-border px-5 py-4">
           <Card.Title className="m-0 text-body-medium text-text-primary">
             {t('report.title')}
@@ -604,7 +598,7 @@ function ChannelCard({
   return (
     <Card
       variant="secondary"
-      className="rounded-3xl border border-border-button-default bg-background-secondary-default/40 p-4 transition-colors hover:bg-background-secondary-default/70"
+      className="p-4 transition-colors"
       data-testid={`share-channel-${channel.key}`}
     >
       <Card.Content className="space-y-3 p-0">

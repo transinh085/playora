@@ -32,10 +32,7 @@ export function LiveCounterFeed({
     .slice(0, 5);
 
   return (
-    <Card
-      className="flex flex-col overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="home-live-counter"
-    >
+    <Card className="flex flex-col overflow-hidden p-0" data-testid="home-live-counter">
       {/* Header */}
       <Card.Header className="flex flex-row items-center justify-between border-b border-separator-border px-4 py-3.5">
         <div className="flex items-center gap-2">
@@ -52,7 +49,7 @@ export function LiveCounterFeed({
       <Card.Content className="flex flex-1 flex-col justify-between p-4">
         {redeemedVouchers.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-6 text-center">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-background-secondary-default text-text-tertiary shadow-xs">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-surface-secondary text-text-tertiary shadow-xs">
               <QrCode className="size-4.5" />
             </div>
             <div className="max-w-[240px] space-y-0.5">

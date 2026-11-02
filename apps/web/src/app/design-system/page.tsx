@@ -1,4 +1,4 @@
-import { Chip } from '@playora/ui/components';
+import { Card, Chip } from '@playora/ui/components';
 import type { Metadata } from 'next';
 import { Logo, LogoMark } from '@/components/logo';
 import { FoundationsShowcase } from './_components/foundations-showcase';
@@ -130,14 +130,19 @@ export default function DesignSystemPage() {
                 desc: 'Tải ≤ 260 KB gzip, đổi da theo Skin × Brand Kit tự tính tương phản WCAG, đồng hồ thực chống chụp màn hình.',
               },
             ].map((item) => (
-              <div
-                key={item.surface}
-                className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs"
-              >
-                <div className="text-sm font-bold text-foreground">{item.surface}</div>
-                <div className="mt-0.5 text-xs font-medium text-primary">{item.persona}</div>
-                <p className="mt-2 text-xs text-muted-foreground">{item.desc}</p>
-              </div>
+              <Card key={item.surface} className="p-4">
+                <Card.Header className="p-0">
+                  <Card.Title className="text-sm font-bold text-foreground">
+                    {item.surface}
+                  </Card.Title>
+                  <span className="mt-0.5 text-xs font-medium text-primary">{item.persona}</span>
+                </Card.Header>
+                <Card.Content className="p-0">
+                  <Card.Description className="mt-2 text-xs text-muted-foreground">
+                    {item.desc}
+                  </Card.Description>
+                </Card.Content>
+              </Card>
             ))}
           </div>
         </header>
@@ -184,13 +189,13 @@ export default function DesignSystemPage() {
           title="Logo & Quy tắc White-label"
           lead="Biểu tượng nút Play dưới một chấm đèn spotlight. Wordmark luôn viết thường bằng font Unbounded. Ở gói có quyền White-label (ORG-04), watermark và logo Playora trên Player được ẩn hoàn toàn."
         >
-          <div className="flex flex-wrap items-center gap-8 rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+          <Card className="flex flex-wrap items-center gap-8 p-6">
             <Logo className="text-3xl" />
             <LogoMark className="size-16" />
             <div className="dark rounded-2xl border border-white/10 bg-background p-6 text-foreground">
               <Logo className="text-2xl" />
             </div>
-          </div>
+          </Card>
         </Section>
       </main>
     </div>

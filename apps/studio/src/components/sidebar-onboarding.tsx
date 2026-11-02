@@ -308,7 +308,7 @@ export function SidebarOnboarding({
               data-testid="home-checklist"
               aria-label={t('gettingStarted')}
               title={`${t('gettingStarted')} (${doneCount}/${totalCount})`}
-              className="relative flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-neutral-200/70 text-neutral-600 outline-none transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:bg-white/10 dark:text-[#A3A3A3] dark:hover:bg-white/15 dark:hover:text-[#FAFAFA]"
+              className="relative flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md bg-default text-muted outline-none transition-colors hover:bg-default/80 hover:text-foreground"
             >
               <RiSparklingLine
                 className={cx('size-4', allDone ? 'text-emerald-500' : 'text-accent-500')}
@@ -350,7 +350,7 @@ export function SidebarOnboarding({
           <button
             type="button"
             aria-expanded={isOpen}
-            className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left shadow-2xs outline-none transition-colors hover:border-neutral-300 hover:bg-neutral-50 dark:border-white/10 dark:bg-[#171717] dark:hover:border-white/20 dark:hover:bg-white/5"
+            className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-2 text-left shadow-2xs outline-none transition-colors hover:border-border/80 hover:bg-default"
           >
             <div className="flex w-full items-center justify-between gap-2">
               <span className="flex min-w-0 flex-1 items-center gap-2">

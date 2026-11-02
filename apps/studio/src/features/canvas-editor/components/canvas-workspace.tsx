@@ -339,7 +339,7 @@ export function CanvasWorkspace({
       }}
     >
       {!hideHeader && (
-        <header className="flex items-center justify-between gap-3 border-b bg-card px-3">
+        <header className="flex items-center justify-between gap-3 border-b bg-surface px-3">
           <div className="flex min-w-0 items-center gap-2">
             {toolbarStart}
             <Tooltip delay={150}>
@@ -460,7 +460,7 @@ export function CanvasWorkspace({
       )}
 
       <div className="grid min-h-0" style={{ gridTemplateColumns: '280px minmax(0, 1fr) 320px' }}>
-        <aside className="min-h-0 overflow-y-auto border-r bg-card p-4">
+        <aside className="min-h-0 overflow-y-auto border-r bg-surface p-4">
           <div className="flex flex-col gap-4">
             <span className="font-semibold text-sm">{t('screens')}</span>
             <ScreensPanel state={state} dispatch={dispatch} />
@@ -946,7 +946,7 @@ export function CanvasWorkspace({
           )}
         </div>
 
-        <aside className="min-h-0 overflow-y-auto border-l bg-card p-4">
+        <aside className="min-h-0 overflow-y-auto border-l bg-surface p-4">
           <PropertiesPanel
             state={state}
             dispatch={dispatch}

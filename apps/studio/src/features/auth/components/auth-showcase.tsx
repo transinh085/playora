@@ -72,7 +72,7 @@ export function AuthShowcase() {
       {/* Center Stage: Interactive Phone Mockup + Floating Outcome Cards */}
       <div className="relative z-10 my-6 flex flex-1 items-center justify-center py-2">
         {/* Floating Card 1: Counter Verification Ticket (Top Right) */}
-        <Card className="absolute -top-2 right-0 z-20 hidden w-[236px] gap-1.5 border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:flex">
+        <Card className="absolute -top-2 right-0 z-20 hidden w-[236px] gap-1.5 p-3.5 backdrop-blur-md xl:flex">
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-caption-2-semibold text-emerald-600 dark:text-emerald-400">
               <RiCheckboxCircleFill className="size-3.5 shrink-0" />
@@ -183,7 +183,7 @@ export function AuthShowcase() {
         </PhoneMockup>
 
         {/* Floating Card 2: Business Outcome Metrics (Bottom Left) */}
-        <Card className="absolute -bottom-2 left-0 z-20 hidden w-[244px] gap-2 border border-border-button-default bg-background-primary-default/95 p-3.5 shadow-dropdown backdrop-blur-md xl:flex">
+        <Card className="absolute -bottom-2 left-0 z-20 hidden w-[244px] gap-2 p-3.5 backdrop-blur-md xl:flex">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-caption-2-semibold text-text-secondary">
               <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
@@ -216,7 +216,7 @@ export function AuthShowcase() {
       </div>
 
       {/* Bottom Compact Outcome Strip (Always visible on md+) */}
-      <Card className="relative z-10 flex-row items-center justify-between gap-3 border border-border-button-default bg-background-primary-default/80 px-4 py-3 backdrop-blur-xs">
+      <Card className="relative z-10 flex-row items-center justify-between gap-3 px-4 py-3 backdrop-blur-xs">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-500/10 text-accent-600">
             <RiCoupon3Line className="size-4" />
@@ -231,7 +231,7 @@ export function AuthShowcase() {
             </p>
           </div>
         </div>
-        <span className="shrink-0 rounded-lg border border-border-button-default bg-background-secondary-default px-2 py-1 font-mono text-caption-2-semibold tabular-nums text-text-primary">
+        <span className="shrink-0 rounded-lg border border-border bg-surface-secondary px-2 py-1 font-mono text-caption-2-semibold tabular-nums text-text-primary">
           {currentPrize.code}
         </span>
       </Card>

@@ -102,11 +102,8 @@ export function CreateFromTemplateDialog({
             <Modal.Body>
               <div className="flex flex-col gap-4 py-1">
                 {/* Template Summary Card */}
-                <Card
-                  variant="secondary"
-                  className="flex-row items-center gap-3 border border-border-card-default p-3"
-                >
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border-card-default bg-background-primary-default text-text-primary">
+                <Card variant="secondary" className="flex-row items-center gap-3 p-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-primary">
                     <RiSparklingLine className="size-5 text-accent-500" />
                   </div>
 
@@ -148,7 +145,7 @@ export function CreateFromTemplateDialog({
                           <ListBox.Item key={kit.id} id={kit.id} textValue={kit.name}>
                             <div className="flex items-center gap-2">
                               <span
-                                className="size-3.5 shrink-0 rounded-full border border-border-card-default"
+                                className="size-3.5 shrink-0 rounded-full border border-border"
                                 style={{ background: kit.tokens.colors.primary }}
                               />
                               <span>{kit.name}</span>

@@ -1,4 +1,4 @@
-import { buttonVariants, Chip, ProgressBar } from '@playora/ui/components';
+import { buttonVariants, Card, Chip, ProgressBar } from '@playora/ui/components';
 import {
   ArrowRight,
   BarChart2,
@@ -217,60 +217,62 @@ export default function Landing() {
 
           {/* Outcome Preview Card */}
           <div className="lg:col-span-5">
-            <div className="overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-surface">
-              <div className="flex items-center justify-between border-b border-border pb-4">
+            <Card className="overflow-hidden p-6">
+              <Card.Header className="flex flex-row items-center justify-between border-b border-border pb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <Store className="size-5" />
                   </div>
                   <div>
-                    <p className="text-body-2-semibold text-foreground">
+                    <Card.Title className="text-body-2-semibold text-foreground">
                       Vòng quay Mùa Lễ Hội · Cà phê Mộc
-                    </p>
-                    <p className="text-caption-1-regular text-muted">
+                    </Card.Title>
+                    <Card.Description className="text-caption-1-regular text-muted">
                       Báo cáo hiệu quả thực tế tại quầy
-                    </p>
+                    </Card.Description>
                   </div>
                 </div>
                 <Chip variant="soft" color="success">
                   Đang chạy
                 </Chip>
-              </div>
+              </Card.Header>
 
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
-                  <p className="text-caption-1-medium text-muted">Khách tới quầy đổi quà</p>
-                  <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">342</p>
-                  <p className="mt-0.5 text-caption-1-regular text-muted">
-                    68,4% tổng số mã đã phát
-                  </p>
+              <Card.Content className="p-0">
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
+                    <p className="text-caption-1-medium text-muted">Khách tới quầy đổi quà</p>
+                    <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">342</p>
+                    <p className="mt-0.5 text-caption-1-regular text-muted">
+                      68,4% tổng số mã đã phát
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
+                    <p className="text-caption-1-medium text-muted">Khách quay lại lần 2</p>
+                    <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">28,4%</p>
+                    <p className="mt-0.5 text-caption-1-regular text-muted">
+                      Quay lại trong vòng 14 ngày
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-surface-secondary/60 p-3.5">
-                  <p className="text-caption-1-medium text-muted">Khách quay lại lần 2</p>
-                  <p className="mt-1 text-title-2-semibold text-foreground tabular-nums">28,4%</p>
-                  <p className="mt-0.5 text-caption-1-regular text-muted">
-                    Quay lại trong vòng 14 ngày
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-4 space-y-2.5 rounded-2xl border border-border bg-surface-secondary/40 p-4">
-                <div className="flex items-center justify-between text-caption-1-medium">
-                  <span className="text-muted">Ngân sách quà đã đổi thực tế</span>
-                  <span className="text-foreground tabular-nums">2.450.000 ₫ / 3.500.000 ₫</span>
+                <div className="mt-4 space-y-2.5 rounded-2xl border border-border bg-surface-secondary/40 p-4">
+                  <div className="flex items-center justify-between text-caption-1-medium">
+                    <span className="text-muted">Ngân sách quà đã đổi thực tế</span>
+                    <span className="text-foreground tabular-nums">2.450.000 ₫ / 3.500.000 ₫</span>
+                  </div>
+                  <ProgressBar value={70} size="sm" aria-label="Tiến độ ngân sách">
+                    <ProgressBar.Track>
+                      <ProgressBar.Fill />
+                    </ProgressBar.Track>
+                  </ProgressBar>
+                  <div className="flex items-center justify-between pt-1 text-caption-1-regular text-muted">
+                    <span className="inline-flex items-center gap-1">
+                      <QrCode className="size-3.5" /> Kênh hiệu quả nhất: Standee bàn (74% đổi quà)
+                    </span>
+                  </div>
                 </div>
-                <ProgressBar value={70} size="sm" aria-label="Tiến độ ngân sách">
-                  <ProgressBar.Track>
-                    <ProgressBar.Fill />
-                  </ProgressBar.Track>
-                </ProgressBar>
-                <div className="flex items-center justify-between pt-1 text-caption-1-regular text-muted">
-                  <span className="inline-flex items-center gap-1">
-                    <QrCode className="size-3.5" /> Kênh hiệu quả nhất: Standee bàn (74% đổi quà)
-                  </span>
-                </div>
-              </div>
-            </div>
+              </Card.Content>
+            </Card>
           </div>
         </section>
 
@@ -293,44 +295,49 @@ export default function Landing() {
             {PLAYBOOKS.map((item) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="flex flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-surface"
-                >
+                <Card key={item.title} className="flex flex-col justify-between p-6">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                        <Icon className="size-5" />
+                    <Card.Header className="p-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                          <Icon className="size-5" />
+                        </div>
+                        <Chip variant="soft" color={item.color}>
+                          {item.badge}
+                        </Chip>
                       </div>
-                      <Chip variant="soft" color={item.color}>
-                        {item.badge}
-                      </Chip>
-                    </div>
-                    <h3 className="text-headline-semibold text-foreground">{item.title}</h3>
-                    <div className="space-y-2.5 rounded-2xl border border-border bg-surface-secondary/50 p-4 text-body-2-regular">
-                      <div>
-                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
-                          Mục tiêu
-                        </span>
-                        <p className="mt-0.5 text-body-2-medium text-foreground">{item.goal}</p>
+                      <Card.Title className="mt-4 text-headline-semibold text-foreground">
+                        {item.title}
+                      </Card.Title>
+                    </Card.Header>
+                    <Card.Content className="p-0">
+                      <div className="space-y-2.5 rounded-2xl border border-border bg-surface-secondary/50 p-4 text-body-2-regular">
+                        <div>
+                          <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
+                            Mục tiêu
+                          </span>
+                          <p className="mt-0.5 text-body-2-medium text-foreground">{item.goal}</p>
+                        </div>
+                        <div>
+                          <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
+                            Cơ chế tự động
+                          </span>
+                          <p className="mt-0.5 text-caption-1-regular text-muted">
+                            {item.mechanism}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
+                            Chỉ số đo lường
+                          </span>
+                          <p className="mt-0.5 text-caption-1-medium text-foreground">
+                            {item.metric}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
-                          Cơ chế tự động
-                        </span>
-                        <p className="mt-0.5 text-caption-1-regular text-muted">{item.mechanism}</p>
-                      </div>
-                      <div>
-                        <span className="text-caption-1-semibold tracking-wider text-muted uppercase">
-                          Chỉ số đo lường
-                        </span>
-                        <p className="mt-0.5 text-caption-1-medium text-foreground">
-                          {item.metric}
-                        </p>
-                      </div>
-                    </div>
+                    </Card.Content>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -355,18 +362,23 @@ export default function Landing() {
             {PILLARS.map((pillar) => {
               const Icon = pillar.icon;
               return (
-                <div
-                  key={pillar.title}
-                  className="flex gap-4 rounded-3xl border border-border bg-surface p-6 shadow-surface"
-                >
+                <Card key={pillar.title} className="flex flex-row gap-4 p-6">
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
                     <Icon className="size-5" />
                   </div>
                   <div className="space-y-1.5">
-                    <h3 className="text-body-semibold text-foreground">{pillar.title}</h3>
-                    <p className="text-body-2-regular text-muted">{pillar.description}</p>
+                    <Card.Header className="p-0">
+                      <Card.Title className="text-body-semibold text-foreground">
+                        {pillar.title}
+                      </Card.Title>
+                    </Card.Header>
+                    <Card.Content className="p-0">
+                      <Card.Description className="text-body-2-regular text-muted">
+                        {pillar.description}
+                      </Card.Description>
+                    </Card.Content>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -389,40 +401,48 @@ export default function Landing() {
 
           <div className="grid gap-5 md:grid-cols-3">
             {PLANS.map((plan) => (
-              <div
+              <Card
                 key={plan.name}
                 className={
                   plan.highlighted
-                    ? 'flex flex-col justify-between rounded-3xl border-2 border-accent bg-surface p-6 shadow-surface'
-                    : 'flex flex-col justify-between rounded-3xl border border-border bg-surface p-6 shadow-surface'
+                    ? 'flex flex-col justify-between border-2 border-accent p-6'
+                    : 'flex flex-col justify-between p-6'
                 }
               >
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-body-semibold text-foreground">{plan.name}</h3>
-                    {plan.highlighted && (
-                      <Chip variant="primary" color="warning">
-                        Phổ biến nhất
-                      </Chip>
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-title-1-semibold text-foreground tabular-nums">
-                      {plan.price}
-                    </span>
-                    <span className="text-caption-1-regular text-muted">{plan.period}</span>
-                  </div>
-                  <p className="text-body-2-regular text-muted">{plan.description}</p>
-                  <ul className="space-y-2.5 border-t border-border pt-4 text-body-2-regular text-muted">
-                    {plan.features.map((feat) => (
-                      <li key={feat} className="flex items-start gap-2.5">
-                        <Check className="mt-0.5 size-4 shrink-0 text-accent" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <Card.Header className="p-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <Card.Title className="text-body-semibold text-foreground">
+                        {plan.name}
+                      </Card.Title>
+                      {plan.highlighted && (
+                        <Chip variant="primary" color="warning">
+                          Phổ biến nhất
+                        </Chip>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-title-1-semibold text-foreground tabular-nums">
+                        {plan.price}
+                      </span>
+                      <span className="text-caption-1-regular text-muted">{plan.period}</span>
+                    </div>
+                    <Card.Description className="mt-1 text-body-2-regular text-muted">
+                      {plan.description}
+                    </Card.Description>
+                  </Card.Header>
+                  <Card.Content className="p-0">
+                    <ul className="space-y-2.5 border-t border-border pt-4 text-body-2-regular text-muted">
+                      {plan.features.map((feat) => (
+                        <li key={feat} className="flex items-start gap-2.5">
+                          <Check className="mt-0.5 size-4 shrink-0 text-accent" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card.Content>
                 </div>
-                <div className="pt-6">
+                <Card.Footer className="p-0 pt-6">
                   <a
                     href="mailto:hello@playora.vn"
                     className={buttonVariants({
@@ -433,8 +453,8 @@ export default function Landing() {
                   >
                     {plan.cta}
                   </a>
-                </div>
-              </div>
+                </Card.Footer>
+              </Card>
             ))}
           </div>
         </section>

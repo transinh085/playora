@@ -1,5 +1,6 @@
 'use client';
 
+import { Card } from '@playora/ui/components';
 import { cx } from '@playora/ui/utils/cx';
 import * as React from 'react';
 
@@ -89,12 +90,7 @@ export function ColorPair({
           : 'Fail';
 
   return (
-    <div
-      className={cx(
-        'flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs',
-        className,
-      )}
-    >
+    <Card className={cx('flex flex-col overflow-hidden p-0', className)}>
       <div
         ref={ref}
         style={{
@@ -110,18 +106,18 @@ export function ColorPair({
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-1 bg-card p-3.5">
+      <Card.Content className="flex flex-col gap-1 p-3.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-semibold text-foreground">{name}</span>
+          <Card.Title className="text-sm font-semibold text-foreground">{name}</Card.Title>
           {info && (
             <span className="font-mono text-[11px] text-muted-foreground uppercase">{info.bg}</span>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">{role}</span>
+        <Card.Description className="text-xs text-muted-foreground">{role}</Card.Description>
         <span className="mt-0.5 font-mono text-[11px] text-muted-foreground/80">
           --{background} / --{foreground}
         </span>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

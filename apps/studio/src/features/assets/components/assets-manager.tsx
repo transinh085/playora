@@ -81,10 +81,7 @@ export function AssetsManager({ orgId }: { orgId: string }) {
       {query.isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[0, 1, 2].map((i) => (
-            <Card
-              key={i}
-              className="flex flex-col overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card"
-            >
+            <Card key={i} className="flex flex-col overflow-hidden p-0">
               <Skeleton className="aspect-video w-full rounded-none" />
               <Card.Content className="space-y-2 p-4">
                 <Skeleton className="h-4 w-2/3" />

@@ -136,7 +136,7 @@ export function LoginForm({
   }
 
   return (
-    <Card className="grid w-full max-w-[1020px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card md:grid-cols-12">
+    <Card className="grid w-full max-w-[1020px] overflow-hidden p-0 md:grid-cols-12">
       {/* Left Column: Authentication Form */}
       <div className="flex flex-col justify-between p-6 sm:p-10 md:col-span-6 lg:col-span-5">
         <div>

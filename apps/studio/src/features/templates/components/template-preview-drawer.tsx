@@ -150,9 +150,9 @@ export function TemplatePreviewDrawer({
     <Drawer isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Backdrop isDismissable>
         <Drawer.Content placement="right">
-          <Drawer.Dialog className="flex h-full w-full max-w-[960px] flex-col bg-background-primary-default p-0 sm:w-full xl:max-w-[1040px]">
+          <Drawer.Dialog className="flex h-full w-full max-w-[960px] flex-col bg-surface p-0 sm:w-full xl:max-w-[1040px]">
             {/* Drawer Header */}
-            <Drawer.Header className="mb-0 flex-row items-center justify-between gap-4 border-b border-border-card-default px-6 py-4">
+            <Drawer.Header className="mb-0 flex-row items-center justify-between gap-4 border-b border-separator px-6 py-4">
               <div className="flex min-w-0 items-center gap-2.5">
                 <Drawer.Heading className="truncate text-body-semibold text-text-primary">
                   {displayTemplate.name}
@@ -186,7 +186,7 @@ export function TemplatePreviewDrawer({
             {/* Drawer Body - Split View (Phone Canvas on Left, Specs on Right) */}
             <Drawer.Body className="m-0 mt-0 flex flex-1 flex-col overflow-hidden p-0 text-text-primary lg:flex-row">
               {/* Left Column: Phone Canvas Preview */}
-              <div className="flex flex-col items-center justify-center overflow-y-auto border-b border-border-card-default bg-background-tertiary-default/50 p-6 lg:w-[440px] lg:shrink-0 lg:border-r lg:border-b-0">
+              <div className="flex flex-col items-center justify-center overflow-y-auto border-b border-separator bg-surface-secondary/50 p-6 lg:w-[440px] lg:shrink-0 lg:border-r lg:border-b-0">
                 {/* Screen Switcher (All 5 screens) */}
                 <div className="mb-3 shrink-0">
                   <Tabs
@@ -224,7 +224,7 @@ export function TemplatePreviewDrawer({
                 {activeScreen === 'game' && (
                   <div
                     data-testid="preview-outcome-toggle"
-                    className="mb-3 flex items-center gap-1.5 rounded-full border border-border-card-default bg-background-primary-default px-2.5 py-1 text-caption-2-medium"
+                    className="mb-3 flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-caption-2-medium"
                   >
                     <span className="text-text-tertiary">{t('tryPlayInteractive')}:</span>
                     <button
@@ -319,10 +319,7 @@ export function TemplatePreviewDrawer({
                     </span>
                     <div className="grid grid-cols-3 gap-3">
                       {/* 1. Skins count */}
-                      <Card
-                        variant="secondary"
-                        className="flex flex-col gap-1 border border-border-card-default p-3"
-                      >
+                      <Card variant="secondary" className="flex flex-col gap-1 p-3">
                         <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
                           <RiPaletteLine className="size-3.5 text-accent-500" />
                           {t('availableSkinsTitle')}
@@ -336,10 +333,7 @@ export function TemplatePreviewDrawer({
                       </Card>
 
                       {/* 2. Setup time */}
-                      <Card
-                        variant="secondary"
-                        className="flex flex-col gap-1 border border-border-card-default p-3"
-                      >
+                      <Card variant="secondary" className="flex flex-col gap-1 p-3">
                         <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
                           <RiTimeLine className="size-3.5 text-text-secondary" />
                           {t('setupTime')}
@@ -353,10 +347,7 @@ export function TemplatePreviewDrawer({
                       </Card>
 
                       {/* 3. Completion rate */}
-                      <Card
-                        variant="secondary"
-                        className="flex flex-col gap-1 border border-border-card-default p-3"
-                      >
+                      <Card variant="secondary" className="flex flex-col gap-1 p-3">
                         <span className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
                           <RiCheckDoubleLine className="size-3.5 text-emerald-500" />
                           {t('completionRate')}
@@ -372,10 +363,7 @@ export function TemplatePreviewDrawer({
                   </div>
 
                   {/* Skin Variations */}
-                  <Card
-                    variant="secondary"
-                    className="flex flex-col gap-2.5 border border-border-card-default p-4"
-                  >
+                  <Card variant="secondary" className="flex flex-col gap-2.5 p-4">
                     <span className="text-caption-1-medium text-text-tertiary">
                       {t('availableSkinsTitle')}
                     </span>
@@ -388,8 +376,8 @@ export function TemplatePreviewDrawer({
                           className={cx(
                             'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-caption-1-medium transition-all',
                             selectedSkinKey === s.key
-                              ? 'border-accent-500 bg-background-primary-default font-medium text-text-primary shadow-xs'
-                              : 'border-border-card-default text-text-secondary hover:border-border-card-hover',
+                              ? 'border-accent-500 bg-surface font-medium text-text-primary shadow-xs'
+                              : 'border-border text-text-secondary hover:border-border',
                           )}
                         >
                           <span
@@ -404,10 +392,7 @@ export function TemplatePreviewDrawer({
 
                   {/* Metrics */}
                   <div className="grid grid-cols-2 gap-4">
-                    <Card
-                      variant="secondary"
-                      className="flex flex-col gap-1.5 border border-border-card-default p-4"
-                    >
+                    <Card variant="secondary" className="flex flex-col gap-1.5 p-4">
                       <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
                         <RiTimeLine className="size-3.5 text-text-secondary" />
                         {t('recommendedDuration')}
@@ -420,10 +405,7 @@ export function TemplatePreviewDrawer({
                       </span>
                     </Card>
 
-                    <Card
-                      variant="secondary"
-                      className="flex flex-col gap-1.5 border border-border-card-default p-4"
-                    >
+                    <Card variant="secondary" className="flex flex-col gap-1.5 p-4">
                       <span className="flex items-center gap-1.5 text-caption-2-medium text-text-tertiary">
                         <RiGiftLine className="size-3.5 text-text-secondary" />
                         {t('recommendedWinRate')}
@@ -450,7 +432,7 @@ export function TemplatePreviewDrawer({
                 </div>
 
                 {/* Actions Sticky Footer */}
-                <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border-card-default bg-background-primary-default px-6 py-4 lg:px-8">
+                <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-separator bg-surface px-6 py-4 lg:px-8">
                   <Button variant="secondary" size="sm" onPress={onClose}>
                     {t('close')}
                   </Button>

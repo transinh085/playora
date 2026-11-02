@@ -47,7 +47,7 @@ export function EmptyState({
       className={cx('px-4 py-16 text-center', !bordered && 'border-0 shadow-none')}
     >
       <Card.Content className="mx-auto flex max-w-md flex-col items-center justify-center">
-        <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border-button-default bg-background-secondary-default text-foreground-icon-secondary shadow-xs">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border bg-surface-secondary text-foreground-icon-secondary shadow-xs">
           <Icon className="size-5 stroke-[1.75]" />
         </div>
         <h3 className="m-0 mb-1 text-headline-semibold text-text-primary">{title}</h3>

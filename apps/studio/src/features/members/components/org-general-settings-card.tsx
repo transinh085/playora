@@ -82,7 +82,7 @@ export function OrgGeneralSettingsCard({
   }
 
   return (
-    <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+    <Card className="overflow-hidden p-0">
       <Card.Header className="border-b border-separator-border px-5 py-3.5">
         <div className="flex flex-col gap-0.5">
           <Card.Title className="m-0 text-body-medium text-text-primary">

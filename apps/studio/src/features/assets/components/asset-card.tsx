@@ -53,14 +53,14 @@ export function AssetCard({ asset, isRemoving, onRemove }: AssetCardProps) {
   const displayName = asset.filename || asset.mime;
   const thumbUrl = asset.variants.cropped?.url ?? asset.variants.w320?.url ?? asset.url;
   const placeholderTile = (icon: React.ReactNode) => (
-    <div className="flex size-12 items-center justify-center rounded-xl bg-background-secondary-default text-text-secondary">
+    <div className="flex size-12 items-center justify-center rounded-xl bg-surface-secondary text-text-secondary">
       {icon}
     </div>
   );
 
   return (
-    <Card className="flex flex-col overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
-      <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b border-border-button-default bg-background-secondary-default">
+    <Card className="flex flex-col overflow-hidden p-0">
+      <div className="flex aspect-video w-full items-center justify-center overflow-hidden border-b border-border bg-surface-secondary">
         {asset.kind === 'image' ? (
           // biome-ignore lint/performance/noImgElement: presigned S3 URLs are dynamic
           <img src={thumbUrl} alt={displayName} className="size-full object-cover" />

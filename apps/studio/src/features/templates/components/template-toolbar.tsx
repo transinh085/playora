@@ -88,7 +88,7 @@ export function TemplateToolbar({
     filters.goal !== 'all';
 
   return (
-    <Card className="flex flex-col gap-3 border-[0.5px] border-border-card-default bg-background-secondary-default p-4 shadow-xs">
+    <Card variant="secondary" className="flex flex-col gap-3 p-4">
       {/* Top row: Search input + Occasion pills + Saved filter */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="w-full lg:max-w-sm">

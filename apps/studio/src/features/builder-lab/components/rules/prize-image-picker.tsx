@@ -57,7 +57,7 @@ export function PrizeImagePicker({
         <button
           type="button"
           aria-label={t('changeImage', { name })}
-          className="flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed border-neutral-200 bg-neutral-50/50 p-1 text-neutral-400 hover:border-neutral-400 transition-colors dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20"
+          className="flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-dashed border-border bg-surface-secondary/40 p-1 text-muted transition-colors hover:border-border/80"
         >
           {value ? (
             // biome-ignore lint/performance/noImgElement: data URLs / inline SVG
@@ -82,8 +82,8 @@ export function PrizeImagePicker({
                 }}
                 className={`flex aspect-square cursor-pointer items-center justify-center rounded-md border p-1 transition-colors ${
                   value === preset.src
-                    ? 'border-neutral-900 bg-neutral-100 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/10 dark:ring-white/20'
-                    : 'border-neutral-200 bg-neutral-50/50 hover:border-neutral-300 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20'
+                    ? 'border-accent bg-accent/10 ring-1 ring-accent/20'
+                    : 'border-border bg-surface-secondary/30 hover:border-border/80'
                 }`}
               >
                 {/* biome-ignore lint/performance/noImgElement: inline SVG data URLs */}

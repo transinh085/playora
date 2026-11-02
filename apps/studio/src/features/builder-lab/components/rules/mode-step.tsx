@@ -68,18 +68,18 @@ export function ModeStep({
               }}
               className={`cursor-pointer p-4 transition-all ${
                 selected
-                  ? 'border-neutral-900 bg-neutral-50/60 ring-1 ring-neutral-900/10 dark:border-white dark:bg-white/5 dark:ring-white/20'
-                  : 'border-neutral-200 hover:border-neutral-300 dark:border-white/10 dark:hover:border-white/20'
+                  ? 'border-accent bg-accent/5 ring-1 ring-accent/20'
+                  : 'border-border hover:border-border/80'
               }`}
             >
               <Card.Content className="flex flex-col gap-2 p-0">
                 <IconTile tone={mode.tone} size={32}>
                   {mode.icon}
                 </IconTile>
-                <Card.Title className="m-0 font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+                <Card.Title className="m-0 font-semibold text-xs text-foreground">
                   {t(`${mode.i18n}.title`)}
                 </Card.Title>
-                <Card.Description className="m-0 text-neutral-500 text-[11px] leading-relaxed dark:text-neutral-400">
+                <Card.Description className="m-0 text-muted text-[11px] leading-relaxed">
                   {t(`${mode.i18n}.description`)}
                 </Card.Description>
                 <Caption italic>{t(`${mode.i18n}.example`)}</Caption>
@@ -91,9 +91,7 @@ export function ModeStep({
 
       {rules.mode === 'overall_win_rate' && (
         <div className="flex flex-col gap-2">
-          <span className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
-            {t('overall.rateLabel')}
-          </span>
+          <span className="font-semibold text-xs text-foreground">{t('overall.rateLabel')}</span>
           <div className="flex flex-wrap items-center gap-4">
             <div className="min-w-[160px] flex-1">
               <Slider

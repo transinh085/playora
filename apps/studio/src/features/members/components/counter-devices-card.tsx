@@ -173,7 +173,7 @@ export function CreateCounterDeviceDialog({
                   </Modal.Header>
                   <Modal.Body className="flex flex-col items-center gap-4 py-3">
                     <div
-                      className="rounded-3xl border border-border-button-default bg-white p-4 shadow-sm"
+                      className="rounded-3xl border border-border bg-white p-4 shadow-sm"
                       data-testid="counter-device-pairing-qr"
                     >
                       <QRCodeSvg value={pairingUrl} size={200} />
@@ -245,10 +245,7 @@ export function CounterDevicesCard({ orgId, canManage }: { orgId: string; canMan
   };
 
   return (
-    <Card
-      className="overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default p-0 shadow-card"
-      data-testid="counter-devices-card"
-    >
+    <Card className="overflow-hidden p-0" data-testid="counter-devices-card">
       <Card.Header className="flex flex-wrap items-center justify-between gap-3 border-b border-separator-border px-5 py-4">
         <div>
           <div className="flex items-center gap-2">

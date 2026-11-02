@@ -124,7 +124,7 @@ export function Toolbox({ onAdd }: { onAdd: (type: AddableType) => void }) {
                       }}
                       onClick={() => onAdd(type)}
                       data-testid={`toolbox-${type}`}
-                      className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-card p-2 text-center transition-colors hover:border-primary/50"
+                      className="flex cursor-grab flex-col items-center gap-1 rounded-xl border border-border bg-surface p-2 text-center transition-colors hover:border-primary/50"
                     >
                       <IconTile size={28}>
                         <Icon className="size-3.5" />

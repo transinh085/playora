@@ -145,8 +145,8 @@ export function PhonePreview({
                 onClick={() => setSelectedPrizeId(prize.id)}
                 className={`cursor-pointer rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
                   active
-                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900'
-                    : 'border-neutral-200 bg-card text-text-secondary hover:border-neutral-400 dark:border-white/15'
+                    ? 'border-accent bg-accent text-accent-foreground'
+                    : 'border-border bg-surface text-muted hover:border-border/80'
                 }`}
               >
                 {prize.name}

@@ -212,7 +212,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
           {hasExistingOrgs && firstExistingOrg && (
             <Link
               href={`/orgs/${firstExistingOrg.id}` as Route}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border-button-default bg-background-primary-default px-3 py-1.5 text-caption-1-medium text-text-secondary transition-colors hover:bg-background-secondary-hover hover:text-text-primary"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-1.5 text-caption-1-medium text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
             >
               <RiArrowLeftLine className="size-3.5" />
               <span>{t('backToStudio')}</span>
@@ -222,7 +222,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
 
         <div className="flex items-center gap-2.5">
           {session?.user.email && (
-            <span className="hidden max-w-[220px] truncate rounded-full bg-background-secondary-default px-3 py-1 text-caption-1-medium text-text-secondary sm:inline-block">
+            <span className="hidden max-w-[220px] truncate rounded-full bg-surface-secondary px-3 py-1 text-caption-1-medium text-text-secondary sm:inline-block">
               {session.user.email}
             </span>
           )}
@@ -234,7 +234,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
       </header>
 
       {/* Center 2-Column Split Onboarding Card */}
-      <Card className="mx-auto my-auto grid w-full max-w-[1020px] overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card lg:grid-cols-12">
+      <Card className="mx-auto my-auto grid w-full max-w-[1020px] overflow-hidden p-0 lg:grid-cols-12">
         {/* Left Column: Store Setup Form */}
         <div className="flex flex-col justify-between p-6 sm:p-10 lg:col-span-7">
           <div>
@@ -326,8 +326,8 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
                         className={cx(
                           'group relative flex items-center gap-2 rounded-xl border px-3 py-2 text-caption-1-medium transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring',
                           isSelected
-                            ? 'border-text-primary bg-background-secondary-default text-text-primary shadow-xs'
-                            : 'border-border-button-default bg-background-primary-default text-text-secondary hover:bg-background-secondary-hover',
+                            ? 'border-text-primary bg-surface-secondary text-text-primary shadow-xs'
+                            : 'border-border bg-surface text-text-secondary hover:bg-surface-secondary',
                         )}
                       >
                         <span
@@ -357,21 +357,21 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
         </div>
 
         {/* Right Column: Live Storefront & Starter Plan Preview */}
-        <div className="flex flex-col justify-between border-t border-separator-border bg-background-secondary-default p-6 sm:p-8 lg:col-span-5 lg:border-t-0 lg:border-l">
+        <div className="flex flex-col justify-between border-t border-separator-border bg-surface-secondary p-6 sm:p-8 lg:col-span-5 lg:border-t-0 lg:border-l">
           {/* Live Storefront Preview Card */}
           <div className="flex flex-col gap-3.5">
             <div className="flex items-center justify-between">
               <span className="text-caption-1-semibold text-text-secondary">
                 {t('preview.badge')}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-background-primary-default px-2.5 py-1 font-mono text-caption-2-medium text-text-secondary shadow-2xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 font-mono text-caption-2-medium text-text-secondary shadow-2xs">
                 <RiGlobalLine className="size-3 text-foreground-icon-tertiary" />
                 <span className="max-w-[190px] truncate">play.playora.vn/{displaySlug}</span>
               </span>
             </div>
 
             {/* Storefront Game Card Simulation */}
-            <Card className="overflow-hidden border border-border-button-default bg-background-primary-default p-0 shadow-card">
+            <Card className="overflow-hidden p-0">
               {/* Dynamic Brand Header Banner */}
               <div
                 className="flex items-center gap-3 p-4 text-white transition-colors duration-300"
@@ -394,7 +394,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
 
               {/* Sample Prize & Counter Voucher Preview */}
               <Card.Content className="flex flex-col gap-3 p-4">
-                <div className="flex items-center gap-3 rounded-xl bg-background-secondary-default p-3">
+                <div className="flex items-center gap-3 rounded-xl bg-surface-secondary p-3">
                   <div
                     className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white"
                     style={{ backgroundColor: selectedPreset.hex }}
@@ -424,7 +424,7 @@ export function OnboardingForm({ existingOrgs = [] }: { existingOrgs?: MyOrg[] }
           </div>
 
           {/* Starter Plan Perks Box */}
-          <Card className="mt-6 border border-border-button-default bg-background-primary-default p-4">
+          <Card className="mt-6 p-4">
             <Card.Header className="p-0">
               <Card.Title className="m-0 text-caption-1-semibold text-text-primary">
                 {t('preview.planTitle')}
