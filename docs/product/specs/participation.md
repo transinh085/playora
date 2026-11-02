@@ -4,18 +4,19 @@ Cập nhật: 31/10/2026 · Owner: PO · PRD: EVT-*, RET-* ([prd §5.4–5.5](..
 
 ---
 
-## 1. Danh tính người chơi
+## 1. Danh tính và Thời điểm xác thực (Auth Timing)
 
-| Cách | Mô tả | GĐ |
-|---|---|---|
-| Ẩn danh | `deviceId` lưu trên trình duyệt; kèm chống gian lận mức Chuẩn | M1 |
-| Form | Tên, SĐT (mặc định); trường thêm do quán chọn; consent tách mục đích (`participation` bắt buộc, `marketing` tuỳ chọn) | M1 |
-| Danh sách khách mời | Import Excel (mã, tên, nhóm); khách nhập mã hoặc quét QR cá nhân | Chưa lên lịch (có ở module sự kiện cũ, không có trong mô hình Chương trình — EVT-02) |
-| Chơi trước, SĐT sau | Chỉ người trúng nhập tên + SĐT + consent trước khi thấy mã (EVT-17) | M2 |
-| OTP SĐT | ZNS ưu tiên, SMS dự phòng; chặn đầu số ảo (EVT-03) | M2 |
-| Zalo | Đăng nhập Zalo / Zalo Mini App, lấy SĐT đã xác thực (EVT-04) | M3 |
+Chủ quán có toàn quyền lựa chọn **Thời điểm thu thập thông tin người chơi (`authTiming`)** trong phần cấu hình Luật & Tham gia của Builder:
 
-Mặc định của playbook F&B: **form tên + SĐT**, vì quán cần liên hệ để nhắc quay lại ([playbooks](./playbooks.md)). Một SĐT là một người chơi trong mỗi chương trình; SĐT đã gắn thiết bị khác thì báo trùng (409 `PHONE_ALREADY_REGISTERED`), không gộp phiên ([D-22](../decisions.md)). Khách đổi trình duyệt cứu mã quà bằng tra theo SĐT ở quầy hoặc khôi phục Quà của tôi ([D-25](../decisions.md), PRZ-15, PRZ-16). Form tối thiểu hoá dữ liệu: cảnh báo khi quán thêm trường nhạy cảm.
+| Thời điểm (`authTiming`) | Mô tả & Trải nghiệm | Khi nào dùng | GĐ |
+|---|---|---|---|
+| `claim_only` **(Chơi trước, SĐT sau — Mặc định)** | Khách bấm chơi ngay lập tức; chỉ khi **trúng quà** mới hiện form nhập Tên + SĐT để lưu mã (Loss Aversion) | Mặc định của playbook F&B; tối đa lượt chơi, giảm 50% drop-off | M1 |
+| `pre_play` **(Điền form trước khi chơi)** | Bắt buộc nhập Tên + SĐT trước khi mở màn chơi game | Quán muốn lọc khách nghiêm ngặt hoặc chương trình tri ân thành viên | M1 |
+| `none` **(Ẩn danh hoàn toàn)** | Không thu SĐT, `deviceId` lưu trên trình duyệt; cấp voucher ẩn danh | Tương tác giải trí nhanh tại quầy, không cần thu lead | M1 |
+| OTP SĐT | ZNS ưu tiên, SMS dự phòng; chặn đầu số ảo (EVT-03) | Giải giá trị cao (trên 500k) | M2 |
+| Zalo | Đăng nhập Zalo / Zalo Mini App, lấy SĐT đã xác thực (EVT-04) | Kênh Zalo Mini App | M3 |
+
+**Xác thực mềm không cần OTP SMS ([D-35](../decisions.md)):** Để bảo vệ dữ liệu khách hàng mà không gây phiền hà hoặc tốn chi phí SMS/ZNS, Playora áp dụng cơ chế **Đối chiếu 4 số đuôi SĐT tại quầy**: Khách nhập SĐT bình thường khi chơi/lưu quà; khi đổi quà tại quầy nhân viên đối chiếu 4 số cuối. Một SĐT là một người chơi trong mỗi chương trình ([D-22](../decisions.md)). Khách đổi trình duyệt cứu mã quà bằng tra theo SĐT ở quầy hoặc khôi phục Quà của tôi ([D-25](../decisions.md), PRZ-15, PRZ-16). Form tối thiểu hoá dữ liệu: cảnh báo khi quán thêm trường nhạy cảm.
 
 ## 2. Điều kiện tham gia
 
@@ -39,7 +40,8 @@ Engine thứ ba ([builder §2.2](./builder.md#22-engine-và-renderer)): trạng 
 | Tính năng | Mô tả | Chỉ số | GĐ |
 |---|---|---|---|
 | Bốc mỗi ngày (RET-02) | Mỗi ngày một lượt mới; màn Kết quả nói rõ "Mai quay tiếp" | % khách chơi ≥ 2 ngày | M2 (M1 đã có lượt theo ngày) |
-| Quà lần sau (RET-06) | Đổi quà xong tặng voucher cố định, dùng từ ngày mai, hạn 14 ngày; quà tặng không ngẫu nhiên, ghi trong thể lệ | Khách quay lại | M1 (Could) / M2 |
+| Quà lần sau (RET-06) | Đổi quà xong tặng voucher cố định, dùng từ ngày mai, hạn 14 ngày; quà tặng không ngẫu nhiên, ghi trong thể lệ ([D-33](../decisions.md)) | Khách quay lại | M1 (Should) / M2 |
+| Kèo đi đôi (RET-09) | Quà tặng dành cho nhóm đi 2 người trở lên; nút "Gửi rủ cạ cứng đi cùng" chia sẻ thiệp mời tự nhiên, không ép trợ lực ([D-41](../decisions.md)) | % chia sẻ & khách đi cùng | M1 (Should) |
 | Nút Zalo OA (RET-07) | Kết quả và Quà của tôi có nút "Quan tâm quán trên Zalo" (link do quán nhập) | — | M1 (Should) |
 | Điểm danh (RET-01) | Chuỗi ngày ghé quán (xác thực bằng mã tại quầy); quà theo mốc 3/7/14 ngày | Chuỗi trung bình | M2 |
 | Thẻ thành viên QR (RET-08) | QR cá nhân trong Quà của tôi; quầy quét khi khách không có quà → ghi lượt ghé (cần hồ sơ khách ANL-08) | Lượt ghé đã xác thực | M2 |

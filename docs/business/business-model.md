@@ -28,32 +28,32 @@ Persona tương lai (PM agency làm cho nhãn hàng — M4; brand manager nhãn 
 | **Giá trị** | Mục 1 |
 | **Kênh** | Dựng hộ miễn phí trong pilot; watermark "Tạo bằng Playora" (dẫn về `playora.vn`) trên mọi game Free; SEO chợ mẫu (mỗi mẫu × dịp là một trang chơi thử); nhóm Facebook chủ quán F&B; đối tác POS (M4); agency (M4) |
 | **Quan hệ** | Tự phục vụ; hỗ trợ qua Zalo; dựng hộ cho quán đầu tiên của mỗi chuỗi |
-| **Doanh thu** | Thuê bao tháng/năm theo quán; add-on (OTP/ZNS theo lượt, skin riêng); về sau reseller/OEM |
-| **Tài nguyên chính** | Builder + kho mẫu × skin; prize engine; quầy đổi quà; dữ liệu kết quả theo ngành (benchmark) |
-| **Hoạt động chính** | Ra skin và playbook theo dịp đều đặn; giữ prize engine đúng; nói chuyện với quán; viết case study |
-| **Đối tác** | Cổng thanh toán (PayOS/VietQR); Zalo (ZNS, OA, Mini App); POS (KiotViet, Sapo, M4); họa sĩ/nhà cung cấp art theo dịp; công ty luật (khuyến mại, PDPL) |
+| **Doanh thu** | Thuê bao gói sàn + phí nạp credit theo lượt đổi quà thật (Pay-per-verified-visit, D-34); add-on (skin riêng); về sau reseller/OEM |
+| **Tài nguyên chính** | Hồ sơ khách quen & Benchmark ngành tại quầy (Moat, D-30); Quầy đổi quà Zero-delay & POS visual bridge (D-32, D-39); Builder + kho mẫu × skin; prize engine |
+| **Hoạt động chính** | Ra skin và playbook theo dịp; giữ prize engine đúng; vận hành Marketing Autopilot (D-37); case study có số liệu |
+| **Đối tác** | Cổng thanh toán (PayOS/VietQR); Zalo (ZNS qua OA riêng hoặc Shared OA "Playora Pass" cho hộ cá thể, D-40); POS (cầu nối phím tắt D-39, tích hợp M4); họa sĩ/nhà cung cấp art; tư vấn pháp lý |
 | **Chi phí** | Founder; cloud (nhỏ, xem §5); art theo dịp; ZNS/SMS (thu lại từ khách); pháp lý, kế toán |
 
 ---
 
 ## 3. Giá `[GĐ]`
 
-### 3.1 Nguyên tắc
+### 3.1 Nguyên tắc (Mô hình giá Hybrid)
 
-- **Thuê bao theo quán**, trả tháng hoặc năm (năm giảm ~2 tháng). Định giá bằng VND, VietQR/chuyển khoản; M1 kích hoạt thủ công, M2 tự thanh toán qua PayOS.
-- **Đơn vị giới hạn là lượt đổi quà tại quầy/tháng**, không phải lượt chơi: khách chơi bao nhiêu cũng được, quán chỉ "dùng hết gói" khi khách thật tới quán ([D-20](../product/decisions.md)). Khác WOAY bán quota lượt/ngày.
-- **Hết hạn mức không làm khách mất quà** ([D-23](../product/decisions.md)): Studio cảnh báo ở 80% và 100%; khi mã còn hiệu lực đã phát + lượt đã đổi trong tháng chạm trần cứng (hạn mức + 10%), chương trình ngừng phát giải mới, còn quầy **luôn đổi được** mã đã phát.
-- Gói Free soạn đầy đủ, để chủ quán thấy giá trị trước khi trả tiền; giới hạn ở số chương trình chạy, lượt đổi quà và watermark.
-- **Đang cân nhắc** (Q-1 ở [decisions](../product/decisions.md#câu-hỏi-đang-mở)): trả theo kết quả, ví dụ 300–500đ mỗi lượt đổi quà, thay thuê bao cố định. Hỏi trong phỏng vấn M0 trước khi chốt.
+- **Mô hình Hybrid (Sàn thấp + Pay-per-verified-visit, [D-34](../product/decisions.md)):** Giảm rào cản chi phí cố định định kỳ cho chủ quán F&B. Quán đóng gói sàn nhẹ mỗi tháng (kèm một số lượt đổi cơ bản), và chỉ nạp thêm credit theo lượt khách thực tế tới quầy đổi quà thành công (300đ–500đ/lượt đổi quà thật).
+- **Đơn vị giới hạn là lượt đổi quà tại quầy/tháng**, không phải lượt chơi: khách chơi bao nhiêu cũng được, quán chỉ chi trả khi có khách bằng xương bằng thịt ghé quầy ([D-20](../product/decisions.md)). Khác WOAY bán quota lượt/ngày.
+- **Thấu chi an toàn giờ cao điểm ([D-38](../product/decisions.md)):** Khi ví credit về 0đ trong lúc quán đông khách, hệ thống tự động cho phép thấu chi 50–100 lượt đổi quà tiếp theo (tương đương 25k–50k) và gửi nhắc nhở VietQR thân thiện, không bao giờ làm đứt đoạn cảm xúc của khách đang ngồi tại quán.
+- **Hết hạn mức không làm khách mất quà** ([D-23](../product/decisions.md)): khi vượt trần thấu chi, chương trình ngừng phát giải mới, còn quầy **luôn đổi được** mã đã phát.
+- Gói Free soạn đầy đủ, để chủ quán thấy giá trị trước khi trả tiền; giới hạn ở số chương trình chạy, 100 lượt đổi quà và watermark.
 
-### 3.2 Gói
+### 3.2 Gói `[GĐ]`
 
-| Gói | Giá `[GĐ]` | Giới hạn chính | Cho ai |
-|---|---|---|---|
-| **Free** | 0đ | 1 chương trình đang chạy; ≤ 100 lượt đổi quà/tháng (trần cứng 110); 1 máy quầy `[GĐ]`; mẫu và skin cơ bản (gán mẫu theo gói từ M2, ADM-03); watermark Playora | Thử, quán rất nhỏ; **kênh kéo khách** |
-| **Quán** | 299.000đ/tháng · 2.990.000đ/năm | ≤ 3 chương trình đang chạy; ≤ 2.000 lượt đổi quà/tháng (trần cứng 2.200); ≤ 3 máy quầy `[GĐ]`; mọi mẫu và skin theo dịp; bỏ watermark; báo cáo kết quả đầy đủ; giữ chân (từ M2) | Một quán |
-| **Chuỗi** | 799.000đ/tháng · 7.990.000đ/năm | ≤ 10 điểm đổi quà `[GĐ]` (đối chiếu với trần 30 máy quầy ở ORG-10 là câu hỏi đang mở); không giới hạn chương trình; ≤ 10.000 lượt đổi quà/tháng (trần cứng 11.000); báo cáo theo quán (nhãn quán từ M1, PRZ-17); điểm đổi quà và quản lý cửa hàng theo quán (từ M2, PRZ-14, ORG-12) | Chuỗi 2–30 điểm bán |
-| **Agency / Reseller** | Chiết khấu 30–50% (M4) | Workspace theo quán, white-label | Agency, freelancer |
+| Gói | Giá sàn `[GĐ]` | Lượt đổi đi kèm | Phí lượt đổi phát sinh (Pay-as-you-grow) | Cho ai |
+|---|---|---|---|---|
+| **Free** | 0đ | ≤ 100 lượt/tháng (trần 110) | Không nạp thêm (cần nâng gói) | Thử nghiệm, quán rất nhỏ; **kênh kéo khách** |
+| **Quán (Hybrid)** | 149.000đ – 199.000đ/tháng · 1.490.000đ/năm | 200 lượt đổi/tháng | **300đ – 500đ / lượt đổi thành công** (nạp qua VietQR, có thấu chi 50 lượt) | Một quán (cà phê, trà sữa 1 điểm bán) |
+| **Chuỗi (Hybrid)** | 499.000đ – 599.000đ/tháng · 4.990.000đ/năm | 1.000 lượt đổi/tháng | **200đ – 300đ / lượt đổi thành công** (thấu chi 100 lượt/quán) | Chuỗi 2–30 điểm bán |
+| **Agency / Reseller** | Chiết khấu 30–50% (M4) | Theo hợp đồng | Giá sỉ theo credit | Agency, freelancer |
 
 Mỏ neo: WOAY Pro 50.000đ/ngày (500 lượt/tháng), Pro-Adv 300.000đ/ngày ([market-research](../research/market-research.md)). Giá Playora cần kiểm bằng Van Westendorp trong phỏng vấn M0 ([interview guide](../research/customer-interview-guide.md)).
 

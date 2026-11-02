@@ -1,6 +1,6 @@
 # Chiến lược sản phẩm Playora
 
-Phiên bản: **v4.1** · 31/10/2026 · Owner: PO (founder) · **Nguồn chân lý** cho định hình sản phẩm: khi tài liệu khác mâu thuẫn với file này thì file này đúng.
+Phiên bản: **v4.2** · 02/11/2026 · Owner: PO (founder) · **Nguồn chân lý** cho định hình sản phẩm: khi tài liệu khác mâu thuẫn với file này thì file này đúng.
 
 Liên quan: [prd.md](./prd.md) · [roadmap.md](./roadmap.md) · [decisions.md](./decisions.md) · [business-model](../business/business-model.md) · nghiên cứu ở [research/](../research/)
 
@@ -10,20 +10,20 @@ Liên quan: [prd.md](./prd.md) · [roadmap.md](./roadmap.md) · [decisions.md](.
 
 > **Playora giúp quán nhỏ kéo khách tới và giữ khách quay lại bằng minigame có thưởng mang đúng sản phẩm của quán: dựng trong vài phút, giải không bao giờ phát sai, đổi quà ngay tại quầy, và báo lại bằng con số chủ quán hiểu (bao nhiêu khách đã đến, bao nhiêu quay lại, tốn bao nhiêu).**
 
-- **Category:** Mobile Game Campaign Builder cho SME. Hình mẫu sản phẩm là 凡科互动 ([teardown](../research/guandayun-teardown.md)), chỉ lấy mảng hoạt động marketing.
+- **Category:** Mobile Game Campaign Builder & Attribution-Retention Engine cho SME.
 - **Tagline** `[GĐ]`: *"Minigame kéo khách về quán."*
 
-### 1.1 Builder là lõi, kết quả là thứ để bán
+### 1.1 Builder là mồi câu (Hook), Attribution & Retention Engine là hào lũy (Moat)
 
-Chủ quán không mua "game builder", họ mua **khách tới quán**. Builder vẫn là phần khó và là tài sản lõi của Playora, nhưng mọi màn hình, thông điệp và chỉ số phải trả lời câu hỏi của chủ quán: *"Chương trình này mang lại gì cho tôi?"*
+Chủ quán không mua "game builder", họ mua **khách tới quán và khách quay lại**. Builder là công cụ onboarding giúp quán dựng nhanh trong vài phút, nhưng hào lũy cạnh tranh thật sự (*structural moat*) là **Dữ liệu khách ghé quầy đã xác thực, Hồ sơ khách quen và Cỗ máy giữ chân tự động quanh năm** ([D-30](./decisions.md)).
 
 | Ta xây | Chủ quán thấy |
 |---|---|
 | Builder (template × skin × canvas) | "Có game mang ảnh ly trà sữa của quán trong vài phút" |
 | Prize engine (tồn kho, pacing, ngân sách) | "Không bao giờ phát quá số quà tôi đặt" |
-| Đổi quà tại quầy | "Biết chắc khách đã đến quán" |
-| Giữ chân (điểm danh, bốc mỗi ngày…) | "Khách quay lại lần 2, lần 3" |
-| Báo cáo | "Chi 1,4 triệu tiền quà, 312 khách tới quầy, 97 khách quay lại" |
+| Quầy đổi quà Zero-delay (<3s) & POS Bridge | "Biết chắc khách đã đến quán, nhân viên thao tác nhanh hơn gõ POS" |
+| Giữ chân tự động (Bounce-back, Autopilot) | "Khách quay lại lần 2, tự động lấp khung giờ vắng 365 ngày" |
+| Báo cáo kết quả & Benchmark | "Chi 1,4 triệu tiền quà, 312 khách tới quầy, 97 khách quay lại, biết quán mình so với ngành ra sao" |
 
 Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ vì nó đẹp hơn về kỹ thuật.** Mỗi việc phải gắn với một bước của vòng giá trị ở §2.
 
@@ -83,9 +83,9 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
 
 ### 5.1 Ba lớp khác biệt (thứ tự đầu tư)
 
-1. **Builder nhanh và đúng chất quán** *(lõi, khó sao chép)*: playbook theo mục tiêu → template × skin → **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi) → **Tuỳ biến** canvas tự do khi cần ([ADR-014](../adr/014-free-canvas-screen-editor.md)) → **Luật & giải** viết bằng câu dễ hiểu. Đặc tả: [specs/builder.md](./specs/builder.md).
-2. **Giải đúng và đổi quà tin được** *(lý do tin)*: prize engine, mô phỏng phát giải, đổi quà tại quầy không hoàn tác, chống gian lận, log kiểm chứng. Đặc tả: [specs/prizes-redemption.md](./specs/prizes-redemption.md).
-3. **Kết quả đo được và khách quay lại** *(lý do trả tiền và ở lại)*: báo cáo theo ngôn ngữ chủ quán, giữ chân (điểm danh, bốc mỗi ngày, hub điểm, sưu tầm thẻ), nhắc quay lại qua Zalo. Đặc tả: [specs/playbooks.md](./specs/playbooks.md), [specs/participation.md](./specs/participation.md).
+1. **Builder nhanh và đúng chất quán** *(mồi câu onboarding, giảm ma sát tạo chiến dịch)*: playbook theo mục tiêu → template × skin → **Sửa nhanh** bằng ô thay thế (logo, ảnh sản phẩm, chữ khuyến mãi) → **Tuỳ biến** canvas tự do khi cần ([ADR-014](../adr/014-free-canvas-screen-editor.md)) → **Luật & giải** viết bằng câu dễ hiểu. Đặc tả: [specs/builder.md](./specs/builder.md).
+2. **Điểm chạm quầy tin cậy & Zero-delay** *(lý do tin và thu ngân đồng minh)*: camera auto-scan < 3s, âm thanh báo tít và icon quà lớn ([D-32](./decisions.md)), xác thực 4 số đuôi SĐT tại quầy ([D-35](./decisions.md)), cầu nối trực quan POS ([D-39](./decisions.md)), prize engine không vượt ngân sách, log kiểm chứng. Đặc tả: [specs/prizes-redemption.md](./specs/prizes-redemption.md).
+3. **Hồ sơ khách quen, Giữ chân 365 ngày & Marketing Autopilot** *(hào lũy cấu trúc và lý do ở lại)*: tự động kích hoạt Quà lần sau (Bounce-back) sau đổi quà lần 1 ([D-33](./decisions.md)), Marketing Autopilot 1-chạm lấp khung giờ vắng ([D-37](./decisions.md)), Zalo OA dùng chung Playora Pass ([D-40](./decisions.md)), báo cáo kết quả theo ngôn ngữ chủ quán và benchmark ngành ([D-30](./decisions.md)). Đặc tả: [specs/playbooks.md](./specs/playbooks.md), [specs/participation.md](./specs/participation.md).
 
 ---
 
@@ -94,7 +94,7 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
 ```
  ┌──────── PLAYORA STUDIO (desktop-first; màn Đổi quà dùng tốt trên điện thoại) ────────┐
  │ Playbook theo mục tiêu · Kho mẫu (ngành × dịp) · Builder: Sửa nhanh / Tuỳ biến /    │
- │ Luật & giải · Brand kit · Chia sẻ & QR · Vận hành · Báo cáo kết quả · Đổi quà        │
+ │ Luật & giải · Cấu hình Auth linh hoạt · Brand kit · Chia sẻ & QR · Báo cáo kết quả    │
  └──────────────────────────────┬─────────────────────────────────────────────────────────┘
                                 │ publish (phiên bản bất biến)
                 ┌───────────────┴────────────────┐
@@ -106,8 +106,9 @@ Hệ quả cho cách làm việc: **không thêm tính năng builder nào chỉ 
  PLAYORA CORE
  · Engine instant-win (1 logic, nhiều renderer: vòng quay, cào, mở hộp, đập trứng, lật thẻ…)
  · Engine skill + điểm (hứng quà, lật cặp, đập logo, ghép hình…)
- · Engine giữ chân (điểm danh, bốc mỗi ngày, hub điểm, sưu tầm thẻ)
- · Prize & Participation · Đổi quà · Chống gian lận · Danh tính & Consent · Báo cáo · Gói/Quota
+ · Engine giữ chân (Bounce-back tự động, Autopilot lấp ngày vắng, điểm danh, sưu tầm thẻ)
+ · Prize & Participation (Cấu hình Auth: Chơi trước hoặc Form trước) · Đổi quà Zero-delay · POS Bridge
+ · Chống gian lận (Xác thực 4 số đuôi) · Danh tính & Consent · Báo cáo & Benchmark · Giá Hybrid
 ```
 
 Kiến trúc kỹ thuật: [engineering/architecture.md](../engineering/architecture.md).
@@ -120,11 +121,15 @@ Kiến trúc kỹ thuật: [engineering/architecture.md](../engineering/architec
 2. **Giải thưởng không được sai.** Server quyết định mọi kết quả trước khi client animate. Không bao giờ vượt tồn kho, ngân sách hay giới hạn người chơi.
 3. **Báo cáo bằng kết quả kinh doanh.** Ưu tiên "khách tới quầy", "khách quay lại", "chi phí quà so với ngân sách" hơn "lượt chơi".
 4. **Engine ít, renderer và skin nhiều.** Cơ chế mới phải là renderer trên engine có sẵn, trừ khi nó đáng giá ≥ 10 skin.
-5. **Game mobile-first, Studio desktop-first.** Riêng màn Đổi quà dùng tốt trên điện thoại.
+5. **Game mobile-first, Studio desktop-first.** Riêng màn Đổi quà dùng tốt trên điện thoại với trải nghiệm Zero-delay (< 3s).
 6. **Nhanh mặc định, sâu khi cần.** Phát hành từ playbook ≤ 10 phút ở M1, ≤ 5 phút ở M2 (luồng "60 giây" BLD-28); cấu hình nâng cao mở theo lớp.
 7. **Builder là sản phẩm.** Playora dựng hộ khách bằng chính Studio. Cái gì mình thấy khó thì khách cũng thấy khó.
 8. **Minh bạch mặc định.** Không định trước người trúng, không số liệu ảo. Quà không ngẫu nhiên chỉ đi qua "Tặng quà theo danh sách" (PRZ-12) hoặc "Quà lần sau" (RET-06), luôn ghi rõ là quà tặng trong thể lệ.
 9. **Không xây khi chưa có người dùng cần.** Tính năng mới cần một bước trong vòng giá trị (§2) và một bằng chứng từ khách (phỏng vấn, pilot, số liệu).
+10. **Tôn trọng tâm lý người chơi (Dignified Redemption & Loss Aversion):** Màn quà tặng hiển thị như Thẻ đặc quyền VIP sang trọng, quét QR không cần mở lời giải thích ([D-31](./decisions.md)); chia sẻ tự nhiên qua "Kèo đi đôi" (Duo Perk, [D-41](./decisions.md)) thay cho cơ chế ép chia sẻ.
+11. **Linh hoạt thời điểm xác thực/thu thập danh tính (Configurable Auth Timing):** Cho phép chủ quán tự chọn logic thu lead trong Builder: `claim_only` (Chơi trước, nhận giải sau — mặc định tận dụng Loss Aversion), `pre_play` (Điền form trước khi chơi — lọc lead chặt chẽ), hoặc `none` (Hoàn toàn ẩn danh).
+12. **Thu ngân là đồng minh vận hành:** Trải nghiệm quầy phải nhanh hơn gõ máy POS; âm báo rõ ràng, hiển thị phím tắt POS ([D-39](./decisions.md)), và vinh danh ca trực ([D-36](./decisions.md)).
+13. **An toàn tâm lý cho chủ quán:** Mô hình giá Hybrid (sàn thấp + nạp credit theo lượt đổi quà thật, [D-34](./decisions.md)) kèm cơ chế Thấu chi an toàn ([D-38](./decisions.md)) để không bao giờ làm đứt đoạn vận hành giờ cao điểm.
 
 ### Không làm (ít nhất đến hết 2027)
 

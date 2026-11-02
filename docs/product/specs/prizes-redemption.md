@@ -80,32 +80,40 @@ Từ ngày thứ 2, so lưu lượng thật/ngày với dự kiến, dự báo q
 
 Đây là điểm biến một lượt chơi thành **lượt ghé quán đã xác thực** (North Star, [strategy §8](../strategy.md#8-chỉ-số)).
 
-### 6.1 Luồng
+### 6.1 Luồng đổi quà Zero-delay (< 3 giây tại quầy)
 
 ```
-Khách trúng → màn Trúng hiện mã 6 ký tự + QR (nút "Lưu mã") → khách tới quầy
-Nhân viên mở Quầy đổi quà trên điện thoại (máy quầy ghép QR hoặc tài khoản "chỉ đổi quà")
-  → quét QR / gõ mã / tìm theo SĐT
-  → thấy: tên + ảnh quà, tên khách, chương trình, hạn, trạng thái (chưa đổi / đã đổi lúc… bởi… / hết hạn / huỷ / không thuộc quán / mã chơi thử)
-  → [Xác nhận đã trao] → award.status = redeemed, ghi người/máy đổi, nhãn quán (PRZ-17), thời điểm
+Khách trúng → Màn Trúng hiện Thẻ quà tặng VIP (QR sắc nét + 4 số đuôi SĐT + đồng hồ đếm lùi chống chụp màn hình)
+Nhân viên mở Quầy đổi quà trên điện thoại (máy quầy ghép QR, PWA)
+  → Đưa camera lên: Tự động nhận diện QR tức thì (Zero-click scan)
+  → Màn hình hiện pop-up nhanh: Xác nhận 4 số đuôi SĐT (đối chiếu khách đọc hoặc hiển thị sẵn trên thẻ VIP) [D-35]
+  → [Xác nhận trao quà] → Tiếng "Tít" vang lên, màn hình xanh lớn hiện:
+       🎁 TÊN & ICON QUÀ (ví dụ: Tặng Topping Trân Châu)
+       ⌨️ CẦU NỐI POS: Nhấn phím [KM_TOPPING] trên máy POS [D-39]
+  → award.status = redeemed, khóa mã nguyên tử, Counter tracker ca trực tăng +1 [D-36]
 ```
 
 ### 6.2 Quy tắc
 
 | Quy tắc | Chi tiết | GĐ |
 |---|---|---|
+| Quầy Zero-delay (< 3s) | Camera auto-scan nhận diện QR tức thì; âm thanh "tít" phản hồi thành công; icon quà siêu to và màu trạng thái trực quan để thu ngân không cần đọc chữ nhỏ ([D-32](../decisions.md)) | M1 (Must) |
+| Xác thực đuôi SĐT | Đối chiếu 4 số đuôi SĐT tại quầy khi quét QR; thay thế hoàn toàn OTP SMS, triệt tiêu drop-off của khách và chống SĐT ảo ([D-35](../decisions.md)) | M1 (Must) |
+| Cầu nối trực quan POS | Hiện mã/phím tắt tương ứng trên máy POS của quán (ví dụ `[F4] KM_5K`) ngay sau khi đổi quà thành công để thu ngân không phải suy nghĩ ([D-39](../decisions.md)) | M1 (Must) |
+| Đếm lượt ca trực | Counter Tracker hiển thị số lượt đổi quà thành công trong ca trực; là căn cứ gửi báo cáo tuần vinh danh nhân viên xuất sắc ([D-36](../decisions.md)) | M1 (Should) |
+| Thấu chi an toàn | Khi ví credit chạm 0đ, hệ thống cho phép thấu chi 50–100 lượt đổi quà trong giờ cao điểm; quầy không bao giờ từ chối khách vì hết tiền gói ([D-38](../decisions.md), D-23) | M1 (Must) |
 | Vai trò "chỉ đổi quà" | Chỉ thấy Quầy đổi quà; không xem/sửa chương trình, không xem danh sách khách | M1 |
 | Không hoàn tác | Đổi nhầm thì owner mở lại ngay tại Quầy đổi quà, bắt buộc lý do (3–500 ký tự), có audit | M1 |
 | Một mã một lần | Chống đổi hai lần dưới yêu cầu đồng thời (cập nhật có điều kiện) | M1 |
 | Hạn đổi | Cố định = ngày kết thúc chương trình + 7 ngày (`VOUCHER_GRACE_MS`); gia hạn chương trình thì mã phát sau có hạn mới, mã đã phát giữ hạn cũ. Chỉnh hạn theo chương trình: M1 Could | M1 |
-| Chống ảnh chụp màn hình | Màn quà của khách có đồng hồ chạy và trạng thái lấy từ server; mã đã đổi hiện "Đã đổi" | M1 |
+| Chống ảnh chụp màn hình | Màn Thẻ quà tặng VIP của khách có đồng hồ chạy và trạng thái lấy từ server; mã đã đổi hiện "Đã đổi" | M1 |
 | Không từ chối vì hạn mức gói | Hạn mức lượt đổi quà/tháng được giữ ở lúc **phát giải**; mã đã phát luôn đổi được ([D-23](../decisions.md), thay D-21) | M1 (Must — chưa làm; code hiện vẫn chặn ở 110% `PLAN_REDEMPTION_LIMIT`) |
 | Tra theo SĐT | Khách mất mã/đổi trình duyệt: nhân viên tìm mã chưa đổi theo SĐT, đối chiếu tên; rate limit + audit `via=phone` ([D-25](../decisions.md), PRZ-15) | M1 (Must) |
 | Khôi phục "Quà của tôi" | SĐT + 4 ký tự cuối của mã trên thiết bị mới; nút "Lưu mã" qua Zalo/ảnh; không mở thêm lượt chơi (PRZ-16) | M1 (Must) |
 | Máy quầy | Điện thoại ghép bằng QR, quyền chỉ đổi quà, gắn nhãn quán, thu hồi được; mã ghép dùng một lần, hết hạn 10 phút; số máy theo gói Free 1 / Quán 3 / Chuỗi 30 `[GĐ]` ([D-24](../decisions.md), [ADR-017](../../adr/017-counter-device-pairing.md)) | M1 (Must; nhãn quán: Should, PRZ-17) |
 | Quầy dạng PWA | Cài lên màn hình chính, giữ quyền camera, rung + âm báo, chữ kết quả rất to; không đổi offline (PRZ-18) | M1 (Should) |
 | Chế độ tập huấn | Mã chơi thử bấm Xác nhận được, không ghi số liệu (PRZ-19) | M1 (Should) |
-| Quà lần sau | Đổi quà xong tặng voucher cố định dùng từ ngày mai, hạn 14 ngày; sau khi trao quầy hiện "Nhắc khách: lần sau có quà"; quà tặng không ngẫu nhiên, ghi trong thể lệ (RET-06) | M1 (Could) / M2 |
+| Quà lần sau | Đổi quà xong tặng voucher cố định dùng từ ngày mai, hạn 14 ngày; sau khi trao quầy hiện "Nhắc khách: lần sau có quà"; quà tặng không ngẫu nhiên, ghi trong thể lệ (RET-06, [D-33](../decisions.md)) | M1 (Should) / M2 |
 | Điểm đổi quà | Chuỗi nhiều quán: mỗi quán một điểm đổi, báo cáo theo điểm; quản lý cửa hàng xem/thêm tồn kho, máy quầy, nhân viên của quán mình (PRZ-14, ORG-12) | M2 |
 | Nhật ký quầy | Theo nhân viên/máy/ca + cờ bất thường (đổi < 2 phút sau khi trúng cùng IP máy quầy, > X mã/giờ, tỷ lệ tra SĐT cao) (PRZ-20) | M2 |
 | Quà hết hạn quay về kho | Tuỳ chọn, ghi trong thể lệ; chờ ý kiến luật sư (PRZ-21) | M2 |

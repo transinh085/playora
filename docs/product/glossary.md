@@ -63,5 +63,14 @@ Một khái niệm, một tên. Cột "Trong code" là tên dùng trong DB, API 
 | Trạng thái chương trình | Phase | `draft / scheduled / live / paused / ended` | Nháp, Đã lên lịch, Đang chạy, Tạm dừng, Đã kết thúc; suy ra từ lịch và thao tác (EVT-01) |
 | Soạn / Vận hành | Build / Operate | — | Hai chế độ của một chương trình: Builder và trang Vận hành ([studio-ux §2](./specs/studio-ux.md)) |
 | Chia sẻ & QR | Share & QR | `/share` | Tab QR, link theo kênh, vật in, mời nhân viên (EVT-10, EVT-11) |
+| Xác thực đuôi SĐT | Counter phone-tail verification | `phoneTail` | Quầy hỏi 4 số đuôi SĐT khi quét QR để xác thực không cần OTP SMS, chống gian lận (D-35) |
+| Đếm lượt ca quầy | Counter tracker | `shiftVisits` | Bộ đếm lượt đổi quà thành công trong ca trực, phục vụ vinh danh và thưởng nhân viên (D-36) |
+| Tiếp thị tự động | Marketing autopilot | `autopilot` | Đề xuất 1-chạm lấp ngày vắng/khung giờ vắng dựa trên dữ liệu thật của quầy (D-37) |
+| Giá Hybrid | Hybrid pricing | `hybrid_tier` | Gói sàn thấp kèm hạn mức ban đầu + trả thêm theo lượt đổi quà thật nạp credit (D-34) |
+| Thấu chi an toàn | Safety overdraft buffer | `overdraft` | Cho phép tiếp tục phát quà vượt 50–100 lượt khi hết credit ví để không đứt đoạn giờ cao điểm (D-38) |
+| Cầu nối trực quan POS | POS visual bridge | `posPreset` | Hiện phím tắt/mã giảm giá tương ứng của POS trên màn hình quầy khi đổi quà thành công (D-39) |
+| Zalo OA dùng chung | Shared Zalo OA | `sharedOA` | Kênh Zalo OA xác thực (Playora Pass) gửi tin ZNS nhắc quà cho quán nhỏ không có tư cách doanh nghiệp (D-40) |
+| Kèo đi đôi | Duo perk | `duoPerk` | Cơ chế quà tặng cho nhóm đi 2 người trở lên, tạo động lực chia sẻ tự nhiên không ép buộc (D-41) |
+| Thời điểm xác thực | Auth timing | `authTiming` | Cấu hình cho quán tự chọn: Chơi trước nhận giải sau (`claim_only`), Form trước khi chơi (`pre_play`), hoặc Ẩn danh (`none`) (D-42) |
 
 **Nhãn trong tài liệu:** `[GĐ]` = số giả định, cần kiểm chứng · `[CXM]` = chưa xác minh · M0–M4 = giai đoạn ở [roadmap](./roadmap.md) · ID dạng `BLD-01` = yêu cầu trong [prd.md](./prd.md) · `D-xx` = [quyết định sản phẩm](./decisions.md) · `ADR-xxx` = [quyết định kiến trúc](../adr/README.md).
