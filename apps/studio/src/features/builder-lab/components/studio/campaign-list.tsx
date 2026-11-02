@@ -574,7 +574,7 @@ export function CampaignList({ orgId }: { orgId: string }) {
               <DrawerHeader
                 title={selectedCampaign.name}
                 description={
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <PhaseTag phase={selectedPhase} />
                     <span className="text-caption-1-regular text-text-tertiary">
                       {tl(`templates.${selectedCampaign.templateKey}`)} ·{' '}
